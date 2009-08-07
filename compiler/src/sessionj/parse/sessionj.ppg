@@ -223,27 +223,7 @@ sj_protocol_declaration_statement ::= // Implicitly noalias (set by node factory
 	:}
 ;
 
-/*sj_final_and_or_noalias ::= // One or both can be specified but both will be set anyway.  
-	FINAL:a
-	{:
-		RESULT = Flags.FINAL;
-	:}
-|	SJ_NOALIAS:a
-	{:
-		RESULT = Flags.NONE;
-	:}
-|	FINAL:a SJ_NOALIAS // Will want the position of the first token.
-	{:
-		RESULT = Flags.FINAL;
-	:}
-;*/
-
-/*extend type ::=
-	sj_session_type:a 
-	{:	
-		RESULT = a;
-	:}
-;*/
+// sj_final_and_or_noalias One or both can be specified but both will be set anyway.
 
 sj_session_type ::= // begin prefixes actually enforced syntactically (although well-formedness routines still explicitly check).	
 	sj_channel_type:a
@@ -281,17 +261,6 @@ sj_server_type ::=
 		RESULT = a.child(b); 
 	:}
 ;
-
-/*sj_session_type_begin ::= // Is this needed?
-	SJ_CBEGIN:a
-	{:
-		RESULT = parser.nf.SJCBeginNode(parser.pos(a)); 
-	:}
-| SJ_SBEGIN:a
-	{:
-		RESULT = parser.nf.SJSBeginNode(parser.pos(a)); 
-	:}
-;*/
 
 sj_session_type_cbegin ::=
 	SJ_CBEGIN:a
@@ -498,47 +467,15 @@ extend method_invocation ::= // Unicast basic operations done here.
 ;
 
 extend statement_expression ::= // Does the current approach (extend statement_expression and assignment_expression) make sense?
-	/*sj_channel_operation:a
-	{:
-		RESULT = a;
-	:}	
-|*/	sj_basic_operation:a
+    sj_basic_operation:a
 	{:
 		RESULT = a;
 	:}
-| sj_spawn_operation:a
+|   sj_spawn_operation:a
 	{:
 		RESULT = a;
 	:}
 ;
-
-/*extend assignment_expression ::=
-	sj_receive_operation:a
-	{:
-		RESULT = a;
-	:}
-;
-
-extend cast_expression ::= // Any better to way to at least unify this case with the above one?
-	LPAREN:p expression:a RPAREN sj_receive_operation:b
-	{:
-		parser.nf.Cast(parser.pos(p, b,a), parser.exprToType(a), b);
-	:}
-;*/
-
-/*sj_channel_operation ::=
-	sj_request_operation:a
-	{:
-		RESULT = a;
-	:}
-;
-
-sj_request_operation ::= // Could also have inline channel creation target. 
-	LT:a sj_socket_list:b GT DOT SJ_REQUEST LPAREN argument_list_opt:c RPAREN:d 
-	{: 	
-		RESULT = parser.nf.SJRequest(parser.pos(a, d), c, b); 
-	:}
-;*/
 
 sj_basic_operation ::= // For parsing the full multi-target operations, so receive not included here. 
 	sj_send_operation:a
@@ -553,10 +490,7 @@ sj_basic_operation ::= // For parsing the full multi-target operations, so recei
 	{:
 		RESULT = a;
 	:}
-/*|	sj_receive_operation:a // Not needed here because already in method_invocation extension.
-	{:
-		RESULT = a;
-	:}*/
+/* sj_receive_operation Not needed here because already in method_invocation extension. */
 |	sj_recurse_operation:a
 	{:
 		RESULT = a;
@@ -834,12 +768,7 @@ sj_recursion_statement ::=
 	:}
 ;
 
-/*drop // Doesn't help resolve any grammar ambiguity.
-{
-	cast_expression ::= LPAREN:p expression:a RPAREN unary_expression_not_plus_minus:b;
-}*/
-
-sj_session_type_cast_expression ::= // Extra keywords needed to prevent grammar problems with the send type constructor, and also makes handling protocol reference nodes easier. 
+sj_session_type_cast_expression ::= // Extra keywords needed to prevent grammar problems with the send type constructor, and also makes handling protocol reference nodes easier.
 	LPAREN:a sj_channel_type:b RPAREN method_invocation:c // Should be a SJReceive (or SJReceiveChannel). 
 	{: 
 		RESULT = parser.nf.SJChannelCast(parser.pos(a, c), c, b); // FIXME: protocol references to channel types will be incorrectly parsed as session type bodies. (Currently dealt with by disallowing protocol references to channel types). So maybe better to have a manual SJ parse pass for session casts and formals before base type checking. But this might be difficult - somehow need session type information first. Then maybe use a SJServiceSocketHack style hack. Old SJ didn't have this problem because used inactive session sockets. 
@@ -855,15 +784,7 @@ sj_session_type_cast_expression ::= // Extra keywords needed to prevent grammar 
 			RESULT = parser.nf.SJSessionCast(parser.pos(a, c), c, b);
 		}
 	:}
-/*|	LPAREN:a SJ_CHANNEL sj_session_type:b RPAREN method_invocation:c // Not sj_channel_type in order to support protocol references. // Should be a SJReceive (or SJReceiveChannel). 
-	{: 
-		RESULT = parser.nf.SJChannelCast(parser.pos(a, c), c, b);
-	:}	
-|	LPAREN:a SJ_SESSION sj_session_type_body:b RPAREN method_invocation:c // Should be a SJReceive (or SJReceiveSession). 
-	{: 
-		RESULT = parser.nf.SJSessionCast(parser.pos(a, c), c, b);
-	:}*/
-; 
+;
 
 
 extend formal_parameter ::= // For method session type paramters. 
@@ -896,15 +817,12 @@ sj_channel_formal ::=
 ;
 
 sj_session_formal ::=
-	/*sj_session_type:a variable_declarator_id:b // Not allowed - all session sockets must be (final) noalias. 
-	{: 
-		RESULT = parser.nf.SJFormal(parser.pos(a, b), Flags.NONE, b.name, a, false); 
-	:}
-|*/ SJ_NOALIAS:a sj_session_type_body:b variable_declarator_id:c 
+	// sj_session_type:a variable_declarator_id:b Not allowed - all session sockets must be (final) noalias.
+    SJ_NOALIAS:a sj_session_type_body:b variable_declarator_id:c
 	{: 
 		RESULT = parser.nf.SJSessionFormal(parser.pos(a, c), Flags.NONE, c.name, b, true); 
 	:}
-| FINAL:a SJ_NOALIAS sj_session_type_body:b variable_declarator_id:c 
+|   FINAL:a SJ_NOALIAS sj_session_type_body:b variable_declarator_id:c
 	{: 
 		RESULT = parser.nf.SJSessionFormal(parser.pos(a, c), Flags.FINAL, c.name, b, true); 
 	:}	
