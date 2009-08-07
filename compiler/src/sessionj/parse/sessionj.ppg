@@ -19,8 +19,6 @@ import sessionj.ast.sessformals.*;
 import sessionj.types.*;
 import sessionj.util.*;
 
-//import sessionj.runtime.*;
-
 parser Grm extends polyglot.parse.Grm {:
     public final SJTypeSystem ts;
     public final SJNodeFactory nf;
@@ -55,6 +53,12 @@ parser Grm extends polyglot.parse.Grm {:
     			throw new RuntimeException("[sessionj.ppg] " + se);
     		}
     		//YAR        
+    }
+
+    static List<Receiver> asRecvList(Name n) {
+        List<Receiver> l = new LinkedList<Receiver>();
+        l.add(n.toReceiver());
+        return l;
     }
 :};
 
@@ -718,24 +722,27 @@ sj_outwhile_statement ::=
 ;
 
 sj_outinwhile_statement ::=
-	LT:a sj_socket_list:b GT DOT SJ_OUTWHILE LPAREN name:c DOT SJ_INWHILE LPAREN RPAREN RPAREN statement:d 
-	{: 
-		List targets = new LinkedList();
-
-		targets.add(c.toReceiver());
-		targets.addAll(b);
-		
-		RESULT = parser.nf.SJOutInwhile(parser.pos(a, d), d, targets); 
-	:} 
-| name:a DOT SJ_OUTWHILE LPAREN name:b DOT SJ_INWHILE LPAREN RPAREN RPAREN statement:c 
-	{: 
-		List targets = new LinkedList();
-
-		targets.add(b.toReceiver());
-		targets.add(a.toReceiver());
-		
-		RESULT = parser.nf.SJOutInwhile(parser.pos(a, c), c, targets);
-	:}  
+	// multi-targets, single source, no condition
+	LT:lt sj_socket_list:tgtLst GT DOT SJ_OUTWHILE LPAREN name:src DOT SJ_INWHILE LPAREN RPAREN RPAREN statement:body
+	{:
+	    RESULT = parser.nf.SJOutInwhile(parser.pos(lt, body), body, parser.asRecvList(src), tgtLst, null);
+	:}
+  // single target, single source, no condition
+| name:tgt DOT SJ_OUTWHILE LPAREN name:src DOT SJ_INWHILE LPAREN RPAREN RPAREN statement:body
+	{:
+		RESULT = parser.nf.SJOutInwhile(parser.pos(tgt, body), body, parser.asRecvList(src), parser.asRecvList(tgt), null);
+	:}
+  // single target, single source, with condition
+| name:tgt DOT SJ_OUTWHILE LPAREN name:src DOT SJ_INWHILE LPAREN RPAREN SEMICOLON expression:cond RPAREN statement:body
+    {:
+        RESULT = parser.nf.SJOutInwhile(parser.pos(tgt, body), body, parser.asRecvList(src), parser.asRecvList(tgt), cond);
+    :}
+  // multi-targets, single source, with condition
+| LT:lt sj_socket_list:tgtLst GT DOT SJ_OUTWHILE LPAREN name:src DOT SJ_INWHILE LPAREN RPAREN SEMICOLON expression:cond RPAREN statement:body
+    {:
+        RESULT = parser.nf.SJOutInwhile(parser.pos(lt, body), body, parser.asRecvList(src), tgtLst, cond);
+    :}
+  // TODO: multi-source
 ;
 
 sj_inwhile_statement ::=

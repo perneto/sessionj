@@ -7,7 +7,6 @@ import polyglot.frontend.ExtensionInfo;
 import polyglot.types.*;
 import polyglot.util.*;
 
-import sessionj.SJConstants;
 import sessionj.ast.createops.*;
 import sessionj.ast.noalias.*;
 import sessionj.ast.protocoldecls.*;
@@ -22,10 +21,7 @@ import sessionj.ast.sessvars.*;
 import sessionj.ast.typenodes.*;
 //import sessionj.del.*;
 import sessionj.extension.*;
-import sessionj.types.SJTypeSystem;
 import sessionj.util.SJLabel;
-
-import static sessionj.SJConstants.*;
 
 /**
  * NodeFactory for sessionj extension.
@@ -95,7 +91,7 @@ public interface SJNodeFactory extends NodeFactory
 	public SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets);
 	public SJInbranchCase SJInbranchCase(Position pos, List stmts, SJLabel lab);
 	public SJOutwhile SJOutwhile(Position pos, List arguments, Stmt body, List targets);
-	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List targets);
+	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition);
 	public SJInwhile SJInwhile(Position pos, List arguments, Stmt body, List targets);
 	//public SJRecursion SJRecursion(SJTypeSystem ts, Position pos, List stmts, SJLabel lab, List targets);
 	public SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets);
