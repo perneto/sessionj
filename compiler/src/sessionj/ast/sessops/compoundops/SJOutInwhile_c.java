@@ -7,7 +7,7 @@ import polyglot.util.Position;
 
 public class SJOutInwhile_c extends SJWhile_c implements SJOutInwhile
 {
-	public SJOutInwhile_c(Position pos, Expr cond, Stmt body, List targets)
+	public SJOutInwhile_c(Position pos, Expr cond, Stmt body, List targets, Expr condition)
 	{
 		super(pos, cond, body, targets);
 	}

@@ -692,7 +692,8 @@ public class SJRuntime
 	
 	public static boolean insync(SJSocket[] sockets) throws SJIOException
 	{
-		return sockets[0].insync();
+		//TODO: Implement multi-session inwhile
+        return sockets[0].insync();
 	}
 	
 	public static void outlabel(SJSocket s, String lab) throws SJIOException // FIXME: this should be automatically eligible for reference passing, need to check how it is currently performed - labels cannot be user modified, and are immutable Strings anyway.

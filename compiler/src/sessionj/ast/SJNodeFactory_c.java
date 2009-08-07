@@ -533,18 +533,18 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return n;
 	}
 
-	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List targets)
+	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition)
 	{
-		SJInsync is = SJInsync(pos, new LinkedList(), targets.subList(0, 1)); // Factor out constants.		
+		SJInsync is = SJInsync(pos, new LinkedList(), sources); // Factor out constants.
 		
 		List arguments = new LinkedList();
-		
 		arguments.add(is);
 		
-		SJOutsync os = SJOutsync(pos, arguments, targets.subList(1, targets.size()));		
-		SJOutInwhile n = new SJOutInwhile_c(pos, os, body, targets);
+		SJOutsync os = SJOutsync(pos, arguments, targets);
 
-		return n;
+        List<Receiver> all = new LinkedList<Receiver>(sources);
+        all.addAll(targets);
+        return new SJOutInwhile_c(pos, os, body, all, condition);
 	}
 	
 	public SJInwhile SJInwhile(Position pos, List arguments, Stmt body, List targets)
