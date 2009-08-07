@@ -35,7 +35,6 @@ public class SJSessionBranchContext_c extends SJBranchContext_c implements SJSes
 	/* (non-Javadoc)
 	 * @see sessionj.types.contexts.SJSessionContext#targets()
 	 */
-	@Override
 	public List<String> targets()
 	{
 		return targets;

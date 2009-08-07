@@ -171,9 +171,7 @@
 
     <target name="runtime" depends="init,configure" description="compile the runtime" if="has-runtime">
         <mkdir dir="${runtime.classes}" />
-    	  <!-- RAY: changed to 1.5 -->
-        <!-- <javac source="1.4" target="1.4" srcdir="${runtime.src}" destdir="${runtime.classes}" debug="on" includes="**"> -->
-    	  <javac source="1.5" target="1.5" srcdir="${runtime.src}" destdir="${runtime.classes}" debug="on" includes="**"> 
+    	  <javac source="1.6" target="1.6" srcdir="${runtime.src}" destdir="${runtime.classes}" debug="on" includes="**"> 
             <classpath>
                 <path refid="standard.classpath" />
             </classpath>

@@ -36,7 +36,6 @@ public class SJSessionLoopContext_c extends SJLoopContext_c implements
 	/* (non-Javadoc)
 	 * @see sessionj.types.contexts.SJSessionContext#targets()
 	 */
-	@Override
 	public List<String> targets()
 	{
 		return targets;

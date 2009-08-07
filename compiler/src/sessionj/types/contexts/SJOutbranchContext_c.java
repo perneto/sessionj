@@ -3,12 +3,10 @@
  */
 package sessionj.types.contexts;
 
-import java.util.*;
-
-import sessionj.ast.sessops.compoundops.*;
-import sessionj.types.sesstypes.*;
-import sessionj.types.typeobjects.*;
+import sessionj.ast.sessops.compoundops.SJOutbranch;
 import sessionj.util.SJLabel;
+
+import java.util.List;
 
 /**
  * @author Raymond
@@ -40,7 +38,6 @@ public class SJOutbranchContext_c extends SJBranchCaseContext_c implements SJOut
 	/* (non-Javadoc)
 	 * @see sessionj.types.contexts.SJSessionContext#targets()
 	 */
-	@Override
 	public List<String> targets()
 	{
 		return targets;

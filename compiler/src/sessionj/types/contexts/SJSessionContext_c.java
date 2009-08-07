@@ -46,7 +46,6 @@ abstract public class SJSessionContext_c extends SJContextElement_c implements
 	/* (non-Javadoc)
 	 * @see sessionj.types.contexts.SJSessionContext#targets()
 	 */
-	@Override
 	public List<String> targets()
 	{
 		return targets;
