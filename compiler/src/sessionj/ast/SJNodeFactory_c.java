@@ -427,11 +427,9 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
 		Id name = Id(pos, SJ_SOCKET_OUTSYNC);						
 				
-		arguments.add(0, makeSocketsArray(pos, targets.size()));   
-		
-		SJOutsync n = new SJOutsync_c(pos, target, name, arguments, targets);
-		
-		return n;
+		arguments.add(0, makeSocketsArray(pos, targets.size()));
+
+        return new SJOutsync_c(pos, target, name, arguments, targets);
 	}
 	
 	public SJInsync SJInsync(Position pos, List arguments, List targets)
@@ -541,10 +539,12 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		arguments.add(is);
 		
 		SJOutsync os = SJOutsync(pos, arguments, targets);
+        Expr completeCond = new Binary_c(pos,os,Binary.COND_AND, condition);
+
 
         List<Receiver> all = new LinkedList<Receiver>(sources);
         all.addAll(targets);
-        return new SJOutInwhile_c(pos, os, body, all, condition);
+        return new SJOutInwhile_c(pos, completeCond, body, all);
 	}
 	
 	public SJInwhile SJInwhile(Position pos, List arguments, Stmt body, List targets)
