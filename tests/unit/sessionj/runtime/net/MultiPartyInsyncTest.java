@@ -1,0 +1,138 @@
+package sessionj.runtime.net;
+
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeTest;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJProtocol;
+
+public class MultiPartyInsyncTest {
+    private SJSocket sockContinue;
+    private SJSocket[] sockets;
+    private SJSocket sockStop;
+
+    /**
+     * Only the insync() method is of interest for this test.
+     */
+    static class DummySocket implements SJSocket {
+        private boolean willContinue;
+
+        DummySocket(boolean willContinue) {
+            this.willContinue = willContinue;
+        }
+
+        public void close() {
+        }
+
+        public void send(Object o) throws SJIOException {
+        }
+
+        public void sendInt(int i) throws SJIOException {
+        }
+
+        public void sendBoolean(boolean b) throws SJIOException {
+        }
+
+        public void sendDouble(double d) throws SJIOException {
+        }
+
+        public void pass(Object o) throws SJIOException {
+        }
+
+        public void copy(Object o) throws SJIOException {
+        }
+
+        public Object receive() throws SJIOException, ClassNotFoundException {
+            return null;
+        }
+
+        public int receiveInt() throws SJIOException {
+            return 0;
+        }
+
+        public boolean receiveBoolean() throws SJIOException {
+            return false;
+        }
+
+        public double receiveDouble() throws SJIOException {
+            return 0;
+        }
+
+        public void outlabel(String lab) throws SJIOException {
+        }
+
+        public String inlabel() throws SJIOException {
+            return null;
+        }
+
+        public boolean outsync(boolean bool) throws SJIOException {
+            return false;
+        }
+
+        public boolean insync() throws SJIOException {
+            return willContinue;
+        }
+
+        public void sendChannel(SJService c, String encoded) throws SJIOException {
+        }
+
+        public SJService receiveChannel(String encoded) throws SJIOException {
+            return null;
+        }
+
+        public void delegateSession(SJAbstractSocket s, String encoded) throws SJIOException {
+        }
+
+        public SJAbstractSocket receiveSession(String encoded, SJSessionParameters params) throws SJIOException {
+            return null;
+        }
+
+        public SJProtocol getProtocol() {
+            return null;
+        }
+
+        public String getHostName() {
+            return null;
+        }
+
+        public int getPort() {
+            return 0;
+        }
+
+        public String getLocalHostName() {
+            return null;
+        }
+
+        public int getLocalPort() {
+            return 0;
+        }
+
+        public SJSessionParameters getParameters() {
+            return null;
+        }
+    }
+
+    @BeforeTest
+    void createSockets() {
+        sockContinue = new DummySocket(true);
+        sockStop = new DummySocket(false);
+    }
+
+    @Test
+    void allSocketsContinue() throws SJIOException {
+        sockets = new SJSocket[] {sockContinue, sockContinue, sockContinue};
+        assert SJRuntime.insync(sockets);
+    }
+
+    @Test
+    void allSocketsStop() throws SJIOException {
+        sockets = new SJSocket[] {sockStop, sockStop, sockStop};
+        assert !SJRuntime.insync(sockets);
+    }
+
+    @Test(expectedExceptions = SJIOException.class)
+    void oneSocketStopOthersContinue() throws SJIOException {
+        sockets = new SJSocket[] {sockStop, sockContinue, sockStop};
+        SJRuntime.insync(sockets);
+    }
+
+}

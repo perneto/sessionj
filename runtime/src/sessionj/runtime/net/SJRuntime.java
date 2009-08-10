@@ -692,9 +692,20 @@ public class SJRuntime
 	
 	public static boolean insync(SJSocket[] sockets) throws SJIOException
 	{
-		//TODO: Implement multi-session inwhile
-        return sockets[0].insync();
-	}
+		//Semantics: require all sockets to terminate at the same time, otherwise fail on all sockets.
+        boolean[] hasMore = new boolean[sockets.length];
+        Arrays.fill(hasMore, true);
+        for (int i=0; i<sockets.length; ++i) {
+            hasMore[i] = sockets[i].insync();
+        }
+        boolean oneFalse = false, allFalse = true;
+        for (boolean b : hasMore) {
+            if (!b) oneFalse = true;
+            else allFalse = false;
+        }
+        if (oneFalse && !allFalse) throw new SJIOException("multi-party insync: some of the sockets signalled end of transmission but not all");
+	    return !allFalse;
+    }
 	
 	public static void outlabel(SJSocket s, String lab) throws SJIOException // FIXME: this should be automatically eligible for reference passing, need to check how it is currently performed - labels cannot be user modified, and are immutable Strings anyway.
 	{
