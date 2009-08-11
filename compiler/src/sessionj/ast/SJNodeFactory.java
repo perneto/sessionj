@@ -82,7 +82,6 @@ public interface SJNodeFactory extends NodeFactory
 	
 	public SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets);
 	public SJInlabel SJInlabel(Position pos, List arguments, List targets);
-	public SJOutsync SJOutsync(Position pos, List arguments, List targets); // No need to be public?
 	public SJInsync SJInsync(Position pos, List arguments, List targets);
 	public SJRecursionEnter SJRecursionEnter(Position pos, List targets);
 	public SJRecursionExit SJRecursionExit(Position pos, List targets);
@@ -90,7 +89,7 @@ public interface SJNodeFactory extends NodeFactory
 	public SJOutbranch SJOutbranch(Position pos, List stmts, SJLabel lab, List targets);
 	public SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets);
 	public SJInbranchCase SJInbranchCase(Position pos, List stmts, SJLabel lab);
-	public SJOutwhile SJOutwhile(Position pos, List arguments, Stmt body, List targets);
+	public SJOutwhile SJOutwhile(Position pos, Expr condition, Stmt body, List targets);
 	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition);
 	public SJInwhile SJInwhile(Position pos, List arguments, Stmt body, List targets);
 	//public SJRecursion SJRecursion(SJTypeSystem ts, Position pos, List stmts, SJLabel lab, List targets);

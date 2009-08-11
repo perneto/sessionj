@@ -422,26 +422,20 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return n;
 	}
 	
-	public SJOutsync SJOutsync(Position pos, List arguments, List targets)
+	public SJOutsync SJOutsync(Position pos, Expr condition, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_OUTSYNC);						
-				
-		arguments.add(0, makeSocketsArray(pos, targets.size()));
+		List arguments = new LinkedList();
+        arguments.add(condition);
+        arguments.add(makeSocketsArray(pos, targets.size()));
 
-        return new SJOutsync_c(pos, target, name, arguments, targets);
+        return new SJOutsync_c(this, pos, arguments, targets);
 	}
 	
 	public SJInsync SJInsync(Position pos, List arguments, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_INSYNC);						
-				
-		arguments.add(0, makeSocketsArray(pos, targets.size()));   
-		
-		SJInsync n = new SJInsync_c(pos, target, name, arguments, targets);
-		
-		return n;
+		arguments.add(0, makeSocketsArray(pos, targets.size()));
+
+        return new SJInsync_c(this, pos, arguments, targets);
 	}
 	
 	public SJRecursionEnter SJRecursionEnter(Position pos, List targets)
@@ -520,9 +514,9 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return ibc;
 	}
 	
-	public SJOutwhile SJOutwhile(Position pos, List arguments, Stmt body, List targets)
+	public SJOutwhile SJOutwhile(Position pos, Expr condition, Stmt body, List targets)
 	{
-		SJOutsync os = SJOutsync(pos, arguments, targets); 		
+		SJOutsync os = SJOutsync(pos, condition, targets); 		
 		SJOutwhile n = new SJOutwhile_c(pos, os, body, targets);
 
 		//n = (SJOutwhile) n.del(delFactory().SJStructuralOperationDel());
@@ -534,13 +528,13 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition)
 	{
 		SJInsync is = SJInsync(pos, new LinkedList(), sources); // Factor out constants.
-		
-		List arguments = new LinkedList();
-		arguments.add(is);
-		
-		SJOutsync os = SJOutsync(pos, arguments, targets);
-        Expr completeCond = new Binary_c(pos,os,Binary.COND_AND, condition);
-
+		SJOutsync os = SJOutsync(pos, is, targets);
+        Expr completeCond;
+        if (condition != null) {
+            completeCond = new Binary_c(pos,os,Binary.COND_AND, condition);
+        } else {
+            completeCond = os;
+        }
 
         List<Receiver> all = new LinkedList<Receiver>(sources);
         all.addAll(targets);

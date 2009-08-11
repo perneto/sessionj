@@ -1,7 +1,5 @@
 package benchmarks;
 
-import java.io.*;
-import java.net.*;
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 import benchmarks.BigObject;
@@ -31,7 +29,7 @@ public class FClient {
         try {
             ds = c.request();
             int k1 = 0;
-            while (SJRuntime.outsync(new SJSocket[] { ds }, k1++ < 1)) {
+            while (SJRuntime.outsync(k1++ < 1, new SJSocket[] { ds })) {
                 System.out.println("Client Receiving...");
                 BigObject bo =
                   (BigObject) SJRuntime.receive(new SJSocket[] { ds });
@@ -40,7 +38,7 @@ public class FClient {
             timeStarted = System.nanoTime();
             s = c.request();
             int k = 0;
-            while (SJRuntime.outsync(new SJSocket[] { s }, k++ < sessLen)) {
+            while (SJRuntime.outsync(k++ < sessLen, new SJSocket[] { s })) {
                 System.out.println("Client Receiving2...");
                 BigObject bo =
                   (BigObject) SJRuntime.receive(new SJSocket[] { s });

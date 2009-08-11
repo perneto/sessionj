@@ -25,6 +25,7 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 	private static final byte DELEGATION_START = -1; // Would be more uniform to be a control signal (although slower).
 	//private static final byte DELEGATION_ACK = -2;	
 
+    /** Collects messages received after a session has been delegated. */
 	private List<SJMessage> lostMessages = new LinkedList<SJMessage>(); // Doesn't need synchronization, shouldn't be adding and removing in different threads.
 	
 	public SJSessionProtocolsImpl(SJAbstractSocket s, SJSerializer ser)

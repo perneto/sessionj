@@ -1,11 +1,11 @@
 package sessionj.ast.sessops.basicops;
 
-import java.util.List;
-
-import polyglot.ast.*;
+import polyglot.ast.Call_c;
+import polyglot.ast.Id;
+import polyglot.ast.Receiver;
 import polyglot.util.Position;
 
-import sessionj.ast.sessvars.SJSocketVariable;
+import java.util.List;
 
 abstract public class SJBasicOperation_c extends Call_c implements SJBasicOperation
 {	
