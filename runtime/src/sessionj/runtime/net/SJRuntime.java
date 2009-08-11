@@ -1,6 +1,5 @@
 package sessionj.runtime.net;
 
-import java.io.*;
 import java.net.*;
 import java.util.*;
 
@@ -667,15 +666,8 @@ public class SJRuntime
 	{
 		t.spawn(...);
 	}*/
-	
-	public static boolean outsync(SJSocket s, boolean cond) throws SJIOException
-	{
-		s.outsync(cond);
-		
-		return cond;
-	}
-	
-	public static boolean outsync(SJSocket[] sockets, boolean cond) throws SJIOException
+
+    public static boolean outsync(boolean cond, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
@@ -685,12 +677,7 @@ public class SJRuntime
 		return cond;
 	}
 
-	public static boolean insync(SJSocket s) throws SJIOException
-	{
-		return s.insync();
-	}
-	
-	public static boolean insync(SJSocket[] sockets) throws SJIOException
+	public static boolean insync(SJSocket... sockets) throws SJIOException
 	{
 		//Semantics: require all sockets to terminate at the same time, otherwise fail on all sockets.
         boolean[] hasMore = new boolean[sockets.length];

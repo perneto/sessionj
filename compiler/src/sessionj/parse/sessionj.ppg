@@ -707,11 +707,11 @@ sj_inbranch_case ::=
 ;
 
 sj_outwhile_statement ::=
-	LT:a sj_socket_list:b GT DOT SJ_OUTWHILE LPAREN argument_list_opt:c RPAREN statement:d 
+	LT:a sj_socket_list:b GT DOT SJ_OUTWHILE LPAREN expression:c RPAREN statement:d 
 	{: 
 		RESULT = parser.nf.SJOutwhile(parser.pos(a, d), c, d, b); 
 	:} 
-| name:a DOT SJ_OUTWHILE LPAREN argument_list_opt:b RPAREN statement:c 
+| name:a DOT SJ_OUTWHILE LPAREN expression:b RPAREN statement:c 
 	{: 
 		List targets = new LinkedList();
 
