@@ -1,24 +1,21 @@
 package sessionj.visit;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.Job;
-import polyglot.types.*;
-import polyglot.util.Position;
+import polyglot.types.LocalInstance;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.SJSpawn;
+import sessionj.ast.sessops.basicops.SJBasicOperation;
+import sessionj.ast.sessvars.SJLocalSocket;
+import sessionj.ast.sessvars.SJSocketVariable;
+import sessionj.ast.sessvars.SJVariable;
+import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
 
-import sessionj.ast.*;
-import sessionj.ast.sessops.*;
-import sessionj.ast.sessops.basicops.*;
-import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.sessvars.*;
-import sessionj.extension.*;
-import sessionj.types.typeobjects.SJLocalSocketInstance;
-
-import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import java.util.*;
 
 /**
  * 
@@ -27,7 +24,8 @@ import static sessionj.util.SJCompilerUtils.*;
  * Also parses SJSpawns (which aren't session operations - "multiply" typed and can have channel targets.
  * 
  */
-public class SJSessionOperationParser extends ContextVisitor // Doesn't do any "proper" parsing of session operations (done by actual parser), but does some argument adjusting. // Except SJSpawns.
+public class SJSessionOperationParser extends ContextVisitor
+// Doesn't do any "proper" parsing of session operations (done by actual parser), but does some argument adjusting. // Except SJSpawns.
 {
 	public static final Set<String> RUNTIME_SOCKET_OPERATIONS = new HashSet<String>(); // Factor out as constants.
 	
@@ -42,14 +40,15 @@ public class SJSessionOperationParser extends ContextVisitor // Doesn't do any "
 	
 	private static final Set<String> SJ_BASIC_OPERATION_KEYWORDS = new HashSet<String>();
 	
-	static 
+/*	static
 	{
-		/*SJ_BASIC_OPERATION_KEYWORDS.add(SJ_KEYWORD_SEND);
+		SJ_BASIC_OPERATION_KEYWORDS.add(SJ_KEYWORD_SEND);
 		SJ_BASIC_OPERATION_KEYWORDS.add(SJ_KEYWORD_PASS);
 		SJ_BASIC_OPERATION_KEYWORDS.add(SJ_KEYWORD_COPY);
 		SJ_BASIC_OPERATION_KEYWORDS.add(SJ_KEYWORD_RECEIVE);
-		SJ_BASIC_OPERATION_KEYWORDS.add(SJ_KEYWORD_RECEIVEINT);*/
+		SJ_BASIC_OPERATION_KEYWORDS.add(SJ_KEYWORD_RECEIVEINT);
 	}
+*/
 	
 	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 	//private SJExtFactory sjef = ((SJNodeFactory) nodeFactory()).extFactory();
@@ -94,11 +93,10 @@ public class SJSessionOperationParser extends ContextVisitor // Doesn't do any "
 	private SJSpawn parseSJSpawn(SJSpawn s) throws SemanticException
 	{
 		List<SJVariable> args = new LinkedList<SJVariable>();
-		
-		for (Iterator i = s.targets().iterator(); i.hasNext(); )
-		{
-			args.add((SJVariable) i.next());
-		}
+
+        for (Object o : s.targets()) {
+            args.add((SJVariable) o);
+        }
 		
 		s = (SJSpawn) s.arguments(args);		
 		s = (SJSpawn) buildAndCheckTypes(job(), this, s);
@@ -113,39 +111,23 @@ public class SJSessionOperationParser extends ContextVisitor // Doesn't do any "
 		if (target instanceof SJSocketVariable)
 		{
 			String name = c.name();
-			
+			/*
 			if (SJ_BASIC_OPERATION_KEYWORDS.contains(name)) // Currently empty.
 			{
 				SJBasicOperation bo = null;
-				
+
 				List<Expr> args = new LinkedList<Expr>();
 				List<SJSocketVariable> targets = new LinkedList<SJSocketVariable>();
 				
 				targets.add((SJSocketVariable) target);
-			
-				/*if (name.equals(SJ_KEYWORD_SEND)) // Done by parser.
-				{
-					bo = sjnf.SJSend(c.position(), args, targets); // Maybe should instead change the factory method to create the proper NewArray argument directly.
-				}
-				else if (name.equals(SJ_KEYWORD_PASS)) 
-				{
-					bo = sjnf.SJPass(c.position(), args, targets); 
-				}
-				else if (name.equals(SJ_KEYWORD_COPY)) 
-				{
-					bo = sjnf.SJCopy(c.position(), args, targets); 
-				}
-				else*/ /*if (name.equals(SJ_KEYWORD_RECEIVE)) // Maybe SJReceive should be implemented more like a regular Call, rather than like e.g. a SJSend. // Now parsed by parser.
-				{
-					bo = sjnf.SJReceive(c.position(), args, targets); // Maybe should instead change the factory method to create the proper NewArray argument directly.
-				}*/
-				
-				bo = (SJBasicOperation) fixSJBasicOperationArguments(bo);
+
+				bo = fixSJBasicOperationArguments(bo);
 				bo = (SJBasicOperation) buildAndCheckTypes(job(), this, bo);
 				
 				c = bo;
 			}
-			else if (!RUNTIME_SOCKET_OPERATIONS.contains(name))// FIXME: should allow for socket parameter setter methods, etc.
+			else */
+            if (!RUNTIME_SOCKET_OPERATIONS.contains(name))// FIXME: should allow for socket parameter setter methods, etc.
 			{
 				throw new SemanticException("[SJSessionOperationParser] Unknown session operation: " + c);
 			}
@@ -154,49 +136,39 @@ public class SJSessionOperationParser extends ContextVisitor // Doesn't do any "
 		return c;
 	}
 	
-	private SJBasicOperation fixSJBasicOperationArguments(SJBasicOperation bo) throws SemanticException
+	private SJBasicOperation fixSJBasicOperationArguments(final SJBasicOperation bo) throws SemanticException
 	{
-		List targets = bo.targets(); // Already type built and checked by SJVariableParser.		
+		final List targets = bo.targets(); // Already type built and checked by SJVariableParser.
 		
-		List<LocalInstance> seen = new LinkedList<LocalInstance>(); 
-		
-		for (Iterator i = targets.iterator(); i.hasNext(); )
-		{
-			Receiver r = (Receiver) i.next();
-			
-			if (!(r instanceof SJSocketVariable))
-			{
-				throw new SemanticException("[SJSessionOperationParser] Expected session socket target, not: " + r);
-			}
-			
-			LocalInstance li = (LocalInstance) ((SJLocalSocket) r).localInstance(); // SJLocalSocketInstance not built until SJSessionTypeChecker.
-			
-			if (seen.contains(li))
-			{
-				throw new SemanticException("[SJSessionOperationParser] Repeated session target: " + li);				
-			}
-			
-			seen.add(li);
-		}
-		
-		List orig = bo.arguments();		
-		NewArray na = (NewArray) orig.get(0); // Factor out constant?
-		
-		ArrayInit ai = sjnf.ArrayInit(bo.position(), targets);
-		ai = (ArrayInit) buildAndCheckTypes(job(), this, ai); 
-		
-		na = na.init(ai);
-		na = na.dims(Collections.EMPTY_LIST); 
-		na = na.additionalDims(1); // Factor out constant?
-		
-		List<Expr> args = new LinkedList<Expr>(); 
-		
-		args.add(na);
-		args.addAll(orig);
-		args.remove(1); // Factor out constant?
-		
-		bo = (SJBasicOperation) bo.arguments(args);
-		
-		return bo;
+		List<LocalInstance> seen = new LinkedList<LocalInstance>();
+
+        for (Object target : targets) {
+            Receiver r = (Receiver) target;
+
+            if (!(r instanceof SJSocketVariable)) {
+                throw new SemanticException("[SJSessionOperationParser] Expected session socket target, not: " + r);
+            }
+
+            LocalInstance li = ((SJLocalSocket) r).localInstance(); // SJLocalSocketInstance not built until SJSessionTypeChecker.
+
+            if (seen.contains(li)) {
+                throw new SemanticException("[SJSessionOperationParser] Repeated session target: " + li);
+            }
+
+            seen.add(li);
+        }
+        ArrayInit ai = sjnf.ArrayInit(bo.position(), targets);
+        ai = (ArrayInit) buildAndCheckTypes(job(), this, ai);
+        final NewArray na = bo.dummyArray()
+                .init(ai)
+                .dims(Collections.EMPTY_LIST)
+                .additionalDims(1);
+
+        List<Expr> newArgs = new LinkedList<Expr>() {{
+            addAll(bo.realArgs());
+            add(na);
+        }};
+
+		return (SJBasicOperation) bo.arguments(newArgs);		
 	}
 }

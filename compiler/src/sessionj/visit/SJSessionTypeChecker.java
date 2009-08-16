@@ -3,41 +3,45 @@
  */
 package sessionj.visit;
 
-import java.util.*;
-
 import polyglot.ast.*;
-import polyglot.frontend.*;
+import polyglot.frontend.Job;
 import polyglot.types.*;
-import polyglot.visit.*;
-
-import sessionj.ast.*;
-import sessionj.ast.createops.*;
-import sessionj.ast.protocoldecls.*;
-import sessionj.ast.servops.*;
-import sessionj.ast.sesstry.*;
-import sessionj.ast.sessvars.*;
-import sessionj.ast.chanops.*;
+import polyglot.visit.ContextVisitor;
+import polyglot.visit.NodeVisitor;
+import static sessionj.SJConstants.*;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.SJSpawn;
+import sessionj.ast.chanops.SJChannelOperation;
+import sessionj.ast.chanops.SJRequest;
+import sessionj.ast.createops.SJChannelCreate;
+import sessionj.ast.createops.SJServerCreate;
+import sessionj.ast.servops.SJAccept;
+import sessionj.ast.servops.SJServerOperation;
 import sessionj.ast.sesscasts.SJChannelCast;
 import sessionj.ast.sesscasts.SJSessionCast;
 import sessionj.ast.sesscasts.SJSessionTypeCast;
-import sessionj.ast.sessformals.SJSessionFormal;
-import sessionj.ast.sessops.*;
+import sessionj.ast.sessops.SJInternalOperation;
+import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.typenodes.SJTypeNode;
-import sessionj.extension.*;
-import sessionj.extension.noalias.*;
+import sessionj.ast.sesstry.SJServerTry;
+import sessionj.ast.sesstry.SJSessionTry;
+import sessionj.ast.sesstry.SJTry;
+import sessionj.ast.sessvars.*;
+import sessionj.extension.SJExtFactory;
 import sessionj.extension.sessops.SJSessionOperationExt;
-import sessionj.types.*;
-import sessionj.types.contexts.*;
+import sessionj.types.SJTypeSystem;
+import sessionj.types.contexts.SJBranchContext;
+import sessionj.types.contexts.SJContextElement;
+import sessionj.types.contexts.SJTypeBuildingContext;
+import sessionj.types.contexts.SJTypeBuildingContext_c;
 import sessionj.types.sesstypes.*;
 import sessionj.types.typeobjects.*;
-import sessionj.types.noalias.*;
-import sessionj.util.SJLabel;
-import sessionj.util.noalias.*;
-
-import static sessionj.SJConstants.*;
 import static sessionj.util.SJCompilerUtils.*;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Raymond
@@ -51,9 +55,6 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	
 	private SJTypeBuildingContext sjcontext = new SJTypeBuildingContext_c(this);
 	
-	/**
-	 * 
-	 */
 	public SJSessionTypeChecker(Job job, TypeSystem ts, NodeFactory nf)
 	{
 		super(job, ts, nf);
@@ -69,7 +70,12 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	
 	protected Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
 	{				
-		SJContextElement ce = leaveSJContext(old, n, v); // Does type checking for compound operations and session-try, etc. Basically, doesn't do anything (no context is popped) for basic operations and so on (the stuff that follows this). So does it matter if we do context pops or the following stuff first? (Shouldn't do, there is no Node n that will trigger both a context pop and the following routines.) // Not true: need to pop and process compound contexts before performing type building for those operations.
+		SJContextElement ce = leaveSJContext(old, n, v);
+        // Does type checking for compound operations and session-try, etc.
+        // Basically, doesn't do anything (no context is popped) for basic operations and so on (the stuff that follows this).
+        // So does it matter if we do context pops or the following stuff first?
+        // (Shouldn't do, there is no Node n that will trigger both a context pop and the following routines.)
+        // Not true: need to pop and process compound contexts before performing type building for those operations.
 		
 		/*if (n instanceof LocalDecl) // Channel fields currently not permitted. // Could make SJChannel/SocketDecl nodes.
 		{
@@ -414,7 +420,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 				
 				SJSessionType st = soe.sessionType(); // The implemented type, already built by SJSessionOperationTypeBuilder.
 				
-				so = (SJBasicOperation) checkSJBasicOperation(parent, (SJBasicOperation) so, sjname, expected, st);							
+				so = checkSJBasicOperation(parent, (SJBasicOperation) so, sjname, expected, st);
 			}
 			else if (so instanceof SJCompoundOperation) // The compound operation context has already been popped (and checked) so no need to (re)check expected, and `st' will still have SJUnknownType body (we're going to build it now).
 			{								
@@ -516,7 +522,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	
 	private SJCopy checkSJCopy(SJCopy c, String sjname, SJSessionType expected, SJSessionType st) throws SemanticException // FIXME: this is actually redundant now (pass is the delegation operation now).
 	{				
-		Expr arg = (Expr) c.arguments().get(1); // Factor out constant.
+		Expr arg = (Expr) c.arguments().get(0); // Factor out constant.
 		
 		if (arg instanceof SJChannelVariable)
 		{
@@ -545,7 +551,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		
 	private SJPass checkSJPass(SJPass p, String sjname, SJSessionType expected, SJSessionType st) throws SemanticException // Includes SJSend (and SJCopy).
 	{						
-		Expr arg = (Expr) p.arguments().get(1); // Factor out constant.
+		Expr arg = (Expr) p.arguments().get(0); // Factor out constant.
 		
 		if (arg instanceof SJChannelVariable)
 		{
@@ -574,7 +580,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		
 		if (!expected.isSubtype(st))
 		{
-			throw new SemanticException(getVisitorName() + " Expected " + expected + ", not: " + st);
+            throw new SemanticException(getVisitorName() + " Expected " + expected + ", not: " + st);
 		}
 	
 		return p;
@@ -677,34 +683,29 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		s = (SJSpawn) checkProcedureCall(s, true);
 		
 		List<SJSessionType> sts = new LinkedList<SJSessionType>();
-		
-		for (Iterator i = s.arguments().iterator(); i.hasNext(); ) // Maybe, in the current implementation, this routine belongs better in SJNoAliasTypeChecker - but in general, belongs better here?
-		{
-			SJVariable v = (SJVariable) i.next();
-			SJSessionType st;
-			
-			if (v instanceof SJLocalChannel)
-			{
-				if (!((SJLocalChannel) v).localInstance().flags().isFinal())
-				{
-					throw new SemanticException(getVisitorName() + " SJThread-spawn channel arguments must be na-final: " + v);	
-				}
-				
-				st = sjcontext.findChannel(v.sjname()); // Actually a bit pointless, or maybe just doesn't make sense?
-			}
-			else
-			{
-				if (((SJLocalSocket) v).localInstance().flags().isFinal())
-				{
-					throw new SemanticException(getVisitorName() + " Cannot spawn session threads for final session sockets: " + v);	
-				}
-				
-				//st = sjts.SJSendType(sjcontext.delegateSession(v.sjname())); // Why a send type?
-				st = sjts.SJDelegatedType(sjcontext.delegateSession(v.sjname()));
-			}
-			
-			sts.add(st);
-		}
+
+         // Maybe, in the current implementation, this routine belongs better in SJNoAliasTypeChecker - but in general, belongs better here?
+        for (Object o : s.arguments()) {
+            SJVariable v = (SJVariable) o;
+            SJSessionType st;
+
+            if (v instanceof SJLocalChannel) {
+                if (!((SJLocalChannel) v).localInstance().flags().isFinal()) {
+                    throw new SemanticException(getVisitorName() + " SJThread-spawn channel arguments must be na-final: " + v);
+                }
+
+                st = sjcontext.findChannel(v.sjname()); // Actually a bit pointless, or maybe just doesn't make sense?
+            } else {
+                if (((SJLocalSocket) v).localInstance().flags().isFinal()) {
+                    throw new SemanticException(getVisitorName() + " Cannot spawn session threads for final session sockets: " + v);
+                }
+
+                //st = sjts.SJSendType(sjcontext.delegateSession(v.sjname())); // Why a send type?
+                st = sjts.SJDelegatedType(sjcontext.delegateSession(v.sjname()));
+            }
+
+            sts.add(st);
+        }
 		
 		/*for (String sjname : s.sjnames())
 		{								

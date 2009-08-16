@@ -1,33 +1,26 @@
 package sessionj.visit;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.Job;
-import polyglot.types.*;
-import polyglot.util.Position;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
-
-import sessionj.ast.*;
-import sessionj.ast.protocoldecls.*;
-import sessionj.ast.sessops.*;
-import sessionj.ast.sessops.basicops.*;
-import sessionj.ast.sesstry.*;
-import sessionj.ast.sessvars.*;
-import sessionj.ast.typenodes.*;
-import sessionj.extension.*;
-import sessionj.types.*;
-import sessionj.types.sesstypes.*;
-import sessionj.types.typeobjects.*;
-
 import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.SJSpawn;
+import sessionj.ast.sessops.SJSessionOperation;
+import sessionj.ast.sesstry.SJTry;
+import sessionj.ast.sessvars.SJVariable;
+import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class SJVariableParser extends ContextVisitor
 {
-	private SJTypeSystem sjts = (SJTypeSystem) typeSystem();
-	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();	
+    private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 
 	public SJVariableParser(Job job, TypeSystem ts, NodeFactory nf)
 	{
@@ -119,57 +112,42 @@ public class SJVariableParser extends ContextVisitor
 	// Session operation targets currently not visited by base passes.
 	private SJTry parseSJTry(SJTry st) throws SemanticException
 	{										
-		st = (SJTry) st.targets(parseSocketList(st.targets(), false));
-		
-		return st;
+		return st.targets(parseSocketList(st.targets(), false));
 	}
 		
 	// Currently duplicated with SJTry (could make SJTry a SJNamed).
 	private SJSessionOperation parseSJSessionOperation(SJSessionOperation so) throws SemanticException
 	{
-		so = (SJSessionOperation) so.targets(parseSocketList(so.targets(), false));
-		
-		return so;
+		return so.targets(parseSocketList(so.targets(), false));
 	}	
 	
 	private SJSpawn parseSJSpawn(SJSpawn s) throws SemanticException // Based on parseSJSessionOperation.
 	{
-		s = (SJSpawn) s.targets(parseSocketList(s.targets(), true));
-		
-		return s;
+		return s.targets(parseSocketList(s.targets(), true));		
 	}	
 	
 	// Should check no repeated sockets for session-try and session operations. // Now also optionally does channels (for SJSpawn).
 	private List<SJVariable> parseSocketList(List l, boolean channelsAllowed) throws SemanticException
 	{
 		List<SJVariable> targets = new LinkedList<SJVariable>();
-		
-		for (Iterator i = l.iterator(); i.hasNext(); )
-		{
-			Receiver r = (Receiver) buildAndCheckTypes(job(), this, (Receiver) i.next()); // Runs AmbiguityRemover. 
-			
-			Type t = r.type();
-			
-			if (r instanceof Local)
-			{
-				if (t.isSubtype(SJ_SOCKET_INTERFACE_TYPE) || t.isSubtype(SJ_SERVER_INTERFACE_TYPE))
-				{
-					targets.add((SJVariable) parseSJLocal((Local) r));	 
-				}
-				else if (channelsAllowed && t.isSubtype(SJ_CHANNEL_TYPE))
-				{
-					targets.add((SJVariable) parseSJLocal((Local) r));	 
-				}
-				else 
-				{
-					throw new SemanticException("[SJVariableParser] Expected session socket or server variable, not: " + r);
-				}
-			}
-			else
-			{
-				throw new SemanticException("[SJVariableParser] Expected local variable, not: " + r);
-			}					
-		}
+
+        for (Object aL : l) {
+            Receiver r = (Receiver) buildAndCheckTypes(job(), this, (Receiver) aL); // Runs AmbiguityRemover.
+
+            Type t = r.type();
+
+            if (r instanceof Local) {
+                if (t.isSubtype(SJ_SOCKET_INTERFACE_TYPE) || t.isSubtype(SJ_SERVER_INTERFACE_TYPE)) {
+                    targets.add((SJVariable) parseSJLocal((Local) r));
+                } else if (channelsAllowed && t.isSubtype(SJ_CHANNEL_TYPE)) {
+                    targets.add((SJVariable) parseSJLocal((Local) r));
+                } else {
+                    throw new SemanticException("[SJVariableParser] Expected session socket or server variable, not: " + r);
+                }
+            } else {
+                throw new SemanticException("[SJVariableParser] Expected local variable, not: " + r);
+            }
+        }
 		
 		return targets;
 	}	

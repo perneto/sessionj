@@ -1,24 +1,18 @@
 package sessionj.visit;
 
-import java.util.*;
-
-import polyglot.ast.*;
+import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
 import polyglot.frontend.Job;
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.*;
-
-import sessionj.ast.*;
-import sessionj.ast.sessvars.*;
-import sessionj.ast.sessops.*;
-import sessionj.ast.sessops.basicops.*;
-import sessionj.ast.sessops.compoundops.*;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
+import polyglot.visit.ContextVisitor;
+import polyglot.visit.NodeVisitor;
+import sessionj.ast.sessops.SJSessionOperation;
+import sessionj.ast.sessops.basicops.SJBasicOperation;
 import sessionj.types.SJTypeSystem;
-import sessionj.types.sesstypes.*;
-import sessionj.util.*;
 
-import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 
@@ -30,11 +24,8 @@ import static sessionj.util.SJCompilerUtils.*;
 public class SJUnicastOptimiser extends ContextVisitor
 {
 	private SJTypeSystem sjts = (SJTypeSystem) typeSystem();
-	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 
-	private SJTypeEncoder sjte = new SJTypeEncoder(sjts);
-
-	public SJUnicastOptimiser(Job job, TypeSystem ts, NodeFactory nf)
+    public SJUnicastOptimiser(Job job, TypeSystem ts, NodeFactory nf)
 	{
 		super(job, ts, nf);
 	}
@@ -54,20 +45,14 @@ public class SJUnicastOptimiser extends ContextVisitor
 	
 	private SJBasicOperation translateBasicOperation(SJBasicOperation n)
 	{
-		List args = n.arguments();
-
-		List sockets = ((NewArray) n.arguments().get(0)).init().elements();
+		List sockets = n.targets();
 		
 		if (sockets.size() == 1)
 		{
 			List newargs = new LinkedList();
-			
+
+            newargs.addAll(n.realArgs());
 			newargs.add(sockets.get(0));
-			
-			for (int i = 1; i < args.size(); i++)
-			{
-				newargs.add(args.get(i));
-			}
 			
 			n = (SJBasicOperation) n.arguments(newargs);
 		}

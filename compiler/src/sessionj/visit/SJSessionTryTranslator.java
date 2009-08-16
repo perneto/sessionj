@@ -1,24 +1,25 @@
 package sessionj.visit;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.Job;
-import polyglot.qq.*;
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.*;
-
-import sessionj.ast.*;
-import sessionj.ast.sesstry.*;
-import sessionj.ast.sessvars.*;
-import sessionj.types.*;
-import sessionj.types.contexts.SJTypeBuildingContext;
-import sessionj.types.contexts.SJTypeBuildingContext_c;
-import sessionj.util.*;
-
+import polyglot.qq.QQ;
+import polyglot.types.Flags;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
+import polyglot.util.Position;
+import polyglot.visit.NodeVisitor;
 import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.sesstry.SJServerTry;
+import sessionj.ast.sesstry.SJSessionTry;
+import sessionj.ast.sesstry.SJTry;
+import sessionj.ast.sessvars.SJLocalSocket;
+import sessionj.ast.sessvars.SJServerVariable;
+import sessionj.types.SJTypeSystem;
+import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 
@@ -83,24 +84,41 @@ public class SJSessionTryTranslator extends SJSessionVisitor
 	
 	private SJSessionTry translateSJSessionTry(SJSessionTry st) throws SemanticException
 	{
-		List<Local> sockets = new LinkedList<Local>(); // Not bothering to make SJLocalSockets at this stage of compilation. And no need to build SJ type information. // Now, can be needed since we have the SJSessionVisitor framework. But for the close operations, maybe not needed.				
-		
-		for (Iterator i = st.targets().iterator(); i.hasNext(); ) // Might be better if SJSessionTry had a suitable ext object. Also for SJContext_c.pushSJSessionTry.
-		{
-			SJLocalSocket ls = (SJLocalSocket) i.next();
-			
-			try
-			{
-				sjcontext.findSocket(ls.sjname());				
-				
-				sockets.add(sjnf.Local(ls.position(), ls.id())); // noalias session method parameters are registered as sockets when the MethodBody context is pushed.
-			}
-			catch (SemanticException se)
-			{
-				// Session is a na-final session method parameter. Even if the argument actually passed is noalias, we don't need to close here because the argument isn't nulled at the Call, so the original close will be invoked.
-			}
-		}
-		
+		List<Local> sockets = new LinkedList<Local>();
+        // Not bothering to make SJLocalSockets at this stage of compilation. And no need to build SJ type information.
+        // Now, can be needed since we have the SJSessionVisitor framework.
+        // But for the close operations, maybe not needed.
+
+        for (Object o : st.targets()) {
+            SJLocalSocket ls = (SJLocalSocket) o;
+
+            try {
+                sjcontext.findSocket(ls.sjname());
+
+                sockets.add(sjnf.Local(ls.position(), ls.id()));
+                // noalias session method parameters are registered as sockets
+                // when the MethodBody context is pushed.
+            }
+            catch (SemanticException se) {
+                // Session is a na-final session method parameter.
+                // Even if the argument actually passed is noalias, we don't need to close here because
+                // the argument isn't nulled at the Call, so the original close will be invoked.
+            }
+        }
+
+        for (Object o : st.targets()) {
+            SJLocalSocket ls = (SJLocalSocket) o;
+
+            try {
+                sjcontext.findSocket(ls.sjname());
+
+                sockets.add(sjnf.Local(ls.position(), ls.id())); // noalias session method parameters are registered as sockets when the MethodBody context is pushed.
+            }
+            catch (SemanticException se) {
+                // Session is a na-final session method parameter. Even if the argument actually passed is noalias, we don't need to close here because the argument isn't nulled at the Call, so the original close will be invoked.
+            }
+        }
+
 		if (sockets.size() > 0)
 		{
 			Position pos = st.position();		
@@ -110,16 +128,16 @@ public class SJSessionTryTranslator extends SJSessionVisitor
 			List<Object> mapping = new LinkedList<Object>();				
 			
 			Expr x;
-			
+
 			if (sockets.size() == 1)
 			{
 				x = sockets.get(0);
 			}
 			else
 			{
-				x = sjnf.NewArray(pos, sjnf.CanonicalTypeNode(pos, SJ_SOCKET_INTERFACE_TYPE), 1, sjnf.ArrayInit(pos, sockets));				
+				x = sjnf.NewArray(pos, sjnf.CanonicalTypeNode(pos, SJ_SOCKET_INTERFACE_TYPE), 1, sjnf.ArrayInit(pos, sockets));
 			}
-			
+
 			translation += "%T.close(%E);"; // Could make close an SJInternalOperation.
 			mapping.add(sjnf.CanonicalTypeNode(pos, SJ_RUNTIME_TYPE));
 			mapping.add(x);

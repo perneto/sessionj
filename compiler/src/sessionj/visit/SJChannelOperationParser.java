@@ -1,23 +1,24 @@
 package sessionj.visit;
 
-import java.util.*;
-
-import polyglot.ast.*;
+import polyglot.ast.Call;
+import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
+import polyglot.ast.Receiver;
 import polyglot.frontend.Job;
-import polyglot.types.*;
-import polyglot.util.Position;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
+import static sessionj.SJConstants.SJ_CHANNEL_TYPE;
+import static sessionj.SJConstants.SJ_KEYWORD_REQUEST;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.chanops.SJRequest;
+import sessionj.ast.createops.SJChannelCreate;
+import sessionj.ast.sessvars.SJChannelVariable;
+import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
 
-import sessionj.ast.*;
-import sessionj.ast.createops.*;
-import sessionj.ast.chanops.*;
-import sessionj.ast.sessops.basicops.*;
-import sessionj.ast.sessvars.*;
-import sessionj.extension.*;
-
-import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 
@@ -82,7 +83,7 @@ public class SJChannelOperationParser extends ContextVisitor
 			{						
 				if (target instanceof SJChannelVariable || target instanceof SJChannelCreate) // FIXME: could also support "inline" channel-receive as a request target. For this purpose, could make a e.g. SJChannelReturn operation.
 				{
-					SJRequest r = sjnf.SJRequest(c.position(), c.target(), c.arguments()); // Maybe should instead change the factory method to create the proper NewArray argument directly. 			
+					SJRequest r = sjnf.SJRequest(c.position(), c.target(), c.arguments());			
 					r = (SJRequest) buildAndCheckTypes(job(), this, r);
 					
 					c = r;

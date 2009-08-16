@@ -1,23 +1,22 @@
 package sessionj.visit;
 
-import java.util.*;
-
-import polyglot.ast.*;
+import polyglot.ast.Call;
+import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
+import polyglot.ast.Receiver;
 import polyglot.frontend.Job;
-import polyglot.types.*;
-import polyglot.util.Position;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
+import static sessionj.SJConstants.SJ_KEYWORD_ACCEPT;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.servops.SJAccept;
+import sessionj.ast.sessvars.SJServerVariable;
+import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
 
-import sessionj.ast.*;
-import sessionj.ast.createops.*;
-import sessionj.ast.servops.*;
-import sessionj.ast.sessops.basicops.*;
-import sessionj.ast.sessvars.*;
-import sessionj.extension.*;
-
-import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 
@@ -62,7 +61,7 @@ public class SJServerOperationParser extends ContextVisitor
 		{		
 			if (c.name().equals(SJ_KEYWORD_ACCEPT)) 
 			{							
-				SJAccept a = sjnf.SJAccept(c.position(), c.target(), c.arguments()); // Maybe should instead change the factory method to create the proper NewArray argument directly. 			
+				SJAccept a = sjnf.SJAccept(c.position(), c.target(), c.arguments()); 			
 				a = (SJAccept) buildAndCheckTypes(job(), this, a);
 				
 				c = a;

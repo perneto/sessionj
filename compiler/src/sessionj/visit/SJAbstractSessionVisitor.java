@@ -3,41 +3,42 @@
  */
 package sessionj.visit;
 
-import java.util.*;
-
 import polyglot.ast.*;
-import polyglot.frontend.*;
+import polyglot.frontend.Job;
 import polyglot.types.*;
-import polyglot.visit.*;
-
-import sessionj.ast.*;
-import sessionj.ast.createops.*;
-import sessionj.ast.protocoldecls.*;
-import sessionj.ast.servops.*;
-import sessionj.ast.sesstry.*;
-import sessionj.ast.sessvars.*;
-import sessionj.ast.chanops.*;
+import polyglot.visit.ContextVisitor;
+import polyglot.visit.NodeVisitor;
+import static sessionj.SJConstants.*;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.SJSpawn;
+import sessionj.ast.chanops.SJChannelOperation;
+import sessionj.ast.chanops.SJRequest;
+import sessionj.ast.createops.SJChannelCreate;
+import sessionj.ast.createops.SJServerCreate;
+import sessionj.ast.servops.SJAccept;
+import sessionj.ast.servops.SJServerOperation;
 import sessionj.ast.sesscasts.SJChannelCast;
 import sessionj.ast.sesscasts.SJSessionCast;
-import sessionj.ast.sesscasts.SJSessionTypeCast;
-import sessionj.ast.sessformals.SJSessionFormal;
-import sessionj.ast.sessops.*;
-import sessionj.ast.sessops.basicops.*;
+import sessionj.ast.sessops.SJInternalOperation;
+import sessionj.ast.sessops.SJSessionOperation;
+import sessionj.ast.sessops.basicops.SJPass;
 import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.typenodes.SJTypeNode;
-import sessionj.extension.*;
-import sessionj.extension.noalias.*;
-import sessionj.extension.sessops.SJSessionOperationExt;
-import sessionj.types.*;
-import sessionj.types.contexts.*;
-import sessionj.types.sesstypes.*;
+import sessionj.ast.sesstry.SJServerTry;
+import sessionj.ast.sesstry.SJSessionTry;
+import sessionj.ast.sesstry.SJTry;
+import sessionj.ast.sessvars.*;
+import sessionj.extension.SJExtFactory;
+import sessionj.types.SJTypeSystem;
+import sessionj.types.contexts.SJContext;
+import sessionj.types.contexts.SJContextElement;
+import sessionj.types.contexts.SJContext_c;
+import sessionj.types.sesstypes.SJDelegatedType;
+import sessionj.types.sesstypes.SJSessionType;
 import sessionj.types.typeobjects.*;
-import sessionj.types.noalias.*;
-import sessionj.util.SJLabel;
-import sessionj.util.noalias.*;
-
-import static sessionj.SJConstants.*;
 import static sessionj.util.SJCompilerUtils.*;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Raymond
@@ -78,8 +79,11 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 	{		
 		n = sjLeaveCall(parent, old, n, v); // Want the Visitor to do stuff whilst in the current context, i.e. before it is popped. 
 		
-		SJContextElement ce = leaveSJContext(old, n, v); // We don't need the popped context for anything (just needed to pop it). But we need to pop and process compound contexts before performing type building etc. for those operations.		
-		
+		// We don't need the popped context for anything (just needed to pop it).
+        // But we need to pop and process compound contexts before performing type building etc.
+        // for those operations.
+        leaveSJContext(old, n, v);
+        		
 		if (n instanceof SJSessionOperation) // Must come before Expr, SJBasicOperations are Exprs.
 		{
 			if (!(n instanceof SJInternalOperation))

@@ -1,11 +1,11 @@
 package sessionj.ast.sessops.basicops;
 
-import java.util.*;
-
 import polyglot.ast.Call;
-
+import polyglot.ast.Expr;
+import polyglot.ast.NewArray;
 import sessionj.ast.sessops.SJSessionOperation;
-import sessionj.ast.sessvars.SJSocketVariable;
+
+import java.util.List;
 
 /**
  * 
@@ -17,4 +17,8 @@ import sessionj.ast.sessvars.SJSocketVariable;
 public interface SJBasicOperation extends Call, SJSessionOperation
 {
 	public SJBasicOperation targets(List targets);
+    
+    List<Expr> realArgs();
+
+    NewArray dummyArray();
 }

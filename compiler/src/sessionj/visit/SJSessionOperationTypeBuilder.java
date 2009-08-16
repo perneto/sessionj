@@ -3,39 +3,41 @@
  */
 package sessionj.visit;
 
-import java.util.*;
-
-import polyglot.ast.*;
-import polyglot.frontend.*;
-import polyglot.types.*;
-import polyglot.visit.*;
-
-import sessionj.ast.*;
-import sessionj.ast.createops.*;
-import sessionj.ast.protocoldecls.*;
-import sessionj.ast.sessvars.*;
+import polyglot.ast.Cast;
+import polyglot.ast.Expr;
+import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
+import polyglot.frontend.Job;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
+import polyglot.visit.ContextVisitor;
+import polyglot.visit.NodeVisitor;
+import static sessionj.SJConstants.*;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.SJSpawn;
 import sessionj.ast.sesscasts.SJSessionTypeCast;
-import sessionj.ast.sessops.*;
+import sessionj.ast.sessops.SJInternalOperation;
+import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.typenodes.SJMessageCommunicationNode;
-import sessionj.ast.typenodes.SJProtocolDualNode;
+import sessionj.ast.sessvars.SJChannelVariable;
+import sessionj.ast.sessvars.SJLocalChannel;
+import sessionj.ast.sessvars.SJSocketVariable;
+import sessionj.ast.sessvars.SJVariable;
 import sessionj.ast.typenodes.SJProtocolNode;
-import sessionj.ast.typenodes.SJProtocolRefNode;
 import sessionj.ast.typenodes.SJTypeNode;
-import sessionj.extension.*;
-import sessionj.extension.noalias.*;
-import sessionj.types.*;
-import sessionj.types.contexts.*;
+import sessionj.extension.SJExtFactory;
+import sessionj.types.SJTypeSystem;
 import sessionj.types.sesstypes.SJCBeginType;
 import sessionj.types.sesstypes.SJInbranchType;
 import sessionj.types.sesstypes.SJSessionType;
-import sessionj.types.typeobjects.*;
-import sessionj.types.noalias.*;
-import sessionj.util.noalias.*;
+import sessionj.types.typeobjects.SJNamedInstance;
+import static sessionj.util.SJCompilerUtils.getSJSessionOperationExt;
+import static sessionj.util.SJCompilerUtils.setSJSessionOperationExt;
 
-import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 
@@ -140,7 +142,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 	
 	private SJCopy buildSJCopy(SJCopy c) throws SemanticException
 	{				
-		Expr arg = (Expr) c.arguments().get(1); // Factor out constant.
+		Expr arg = (Expr) c.arguments().get(0); // Factor out constant.
 		
 		if (arg instanceof SJChannelVariable /*|| arg instanceof SJSocketVariable*/) // Only SJCopy can accept na-final args.
 		{
@@ -159,9 +161,9 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 	
 	private SJPass buildSJPass(SJPass p) throws SemanticException
 	{		
-		Expr arg = (Expr) p.arguments().get(1); // Factor out constant.
+		Expr arg = p.argument();
 		
-		Type messageType = null;
+		Type messageType;
 		
 		if (arg instanceof SJSocketVariable) 
 		{
@@ -171,12 +173,12 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		}
 		else
 		{
-			messageType = ((Expr) p.arguments().get(1)).type(); // Factor out constant.
+			messageType = arg.type();
 		}
 
 		SJSessionType st = sjts.SJSendType(messageType);
 		
-		p = (SJPass) buildSJPassAux(p, st);
+		p = buildSJPassAux(p, st);
 		
 		return p;
 	}
@@ -346,20 +348,16 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 	private static List<String> getTargetNames(List targets, boolean channelsAllowed)
 	{
 		List<String> sjnames = new LinkedList<String>();
-		
-		for (Iterator i = targets.iterator(); i.hasNext(); )
-		{
-			SJVariable v = (SJVariable) i.next();
-			
-			if (channelsAllowed && v instanceof SJLocalChannel)
-			{
-				sjnames.add(((SJLocalChannel) v).sjname());
-			}
-			else
-			{
-				sjnames.add(((SJSocketVariable) v).sjname());
-			}
-		} 
+
+        for (Object target : targets) {
+            SJVariable v = (SJVariable) target;
+
+            if (channelsAllowed && v instanceof SJLocalChannel) {
+                sjnames.add(v.sjname());
+            } else {
+                sjnames.add(v.sjname());
+            }
+        }
 		
 		return sjnames;
 	}

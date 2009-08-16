@@ -1,23 +1,24 @@
 package sessionj.runtime.net;
 
-import java.net.*;
-import java.util.*;
-
 import polyglot.types.SemanticException;
-
 import sessionj.ExtensionInfo;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
+import sessionj.runtime.session.SJManualSerializer;
+import sessionj.runtime.session.SJSerializer;
+import sessionj.runtime.session.SJStreamSerializer;
+import sessionj.runtime.transport.*;
+import sessionj.runtime.util.SJClassResolver;
+import sessionj.runtime.util.SJRuntimeTypeEncoder;
 import sessionj.types.SJTypeSystem;
 import sessionj.types.sesstypes.SJSessionType;
 
-import sessionj.runtime.*;
-import sessionj.runtime.session.*;
-import sessionj.runtime.transport.*;
-import sessionj.runtime.util.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.*;
 
 public class SJRuntime 
 {
-	//private static final SJRuntime runtime = new SJRuntime_c(); 
-	
 	private	static final ExtensionInfo extInfo;
 	private static final SJTypeSystem sjts;
 	private static final SJClassResolver sjcr;
@@ -63,12 +64,12 @@ public class SJRuntime
 		return sjtm;
 	}*/	
 	
-	public static final SJTypeSystem getTypeSystem()
+	public static SJTypeSystem getTypeSystem()
 	{
 		return sjts;
 	}
 	
-	public static final SJRuntimeTypeEncoder getTypeEncoder()
+	public static SJRuntimeTypeEncoder getTypeEncoder()
 	{
 		return sjte;
 	}
@@ -113,7 +114,8 @@ public class SJRuntime
 	
 	private static final Set<Integer> portsInUse = new HashSet<Integer>();
 	
-	private static final Map<SJPort, SJAcceptorThreadGroup> reservedPorts = new HashMap<SJPort, SJAcceptorThreadGroup>(); // FIXME: need to free up unclaimed ports.
+	private static final Map<SJPort, SJAcceptorThreadGroup> reservedPorts = new HashMap<SJPort, SJAcceptorThreadGroup>();
+    // FIXME: need to free up unclaimed ports.
 	
 	//private static final Map<Integer, DatagramSocket> servers = new HashMap<Integer, DatagramSocket>();
 	
@@ -152,12 +154,16 @@ public class SJRuntime
 		return reserveFreeSJPort(SJSessionParameters.DEFAULT_PARAMETERS);
 	}
 	
-	public static SJPort reserveFreeSJPort(SJSessionParameters params) throws SJIOException // Unlike takeFreeSJPort, this actually reserves the setups (guarantees port is open).
+	public static SJPort reserveFreeSJPort(SJSessionParameters params) throws SJIOException
+    // Unlike takeFreeSJPort, this actually reserves the setups (guarantees port is open).
 	{
 		SJPort p = null;
 		
-		//SJAcceptorThreadGroup atg = getFreshAcceptorThreadGroup(); // Doesn't work because getFreshAcceptorThreadGroup uses takeFreePort, which registers the port as in use, and then when we get a conflict when we create the SJPort. 			
-		SJAcceptorThreadGroup atg = null;
+		//SJAcceptorThreadGroup atg = getFreshAcceptorThreadGroup();
+        // Doesn't work because getFreshAcceptorThreadGroup uses takeFreePort, which registers the port as in use,
+        // and then when we get a conflict when we create the SJPort. 			
+
+        SJAcceptorThreadGroup atg = null;
 		
 		int attempts = 100; // Following adapted from takeFreePort and getFreshAcceptorThreadGroup.
 		
@@ -207,19 +213,17 @@ public class SJRuntime
 		if (sjPort == null || !reservedPorts.containsKey(sjPort)) // Need synchronization?
 		{
 			int port = ss.getLocalPort();
-			
-			Integer p = new Integer(port);
 
 			synchronized (portsInUse)
 			{
-				if (portsInUse.contains(p))
+				if (portsInUse.contains(port))
 				{
 					throw new SJIOException("[SJRuntime] Port already in use: " + port);
 				}
 				
 				ss.setAcceptorGroup(sjtm.openAcceptorGroup(port, ss.getParameters()));		
 				
-				portsInUse.add(p);
+				portsInUse.add(port);
 			}
 		}
 		else
@@ -234,12 +238,10 @@ public class SJRuntime
 	public static void closeServerSocket(SJServerSocket ss) 
 	{
 		int port = ss.getLocalPort();
-		
-		Integer p = new Integer(port);
-		
-		synchronized (portsInUse)
+
+        synchronized (portsInUse)
 		{
-			portsInUse.remove(p);
+			portsInUse.remove(port);
 		}
 		
 		sjtm.closeAcceptorGroup(port);
@@ -334,29 +336,23 @@ public class SJRuntime
 
 	public static void close(SJSocket s)
 	{
-		if (s != null) 
-		{
-			s.close();
-		}
+		if (s != null) s.close();
 	}	
 	
-	public static void close(SJSocket[] sockets)
+	public static void close(SJSocket... sockets)
 	{
 		for (SJSocket s : sockets)
 		{
-			if (s != null) 
-			{
-				s.close();
-			}
+			if (s != null) s.close();
 		}
-	}	
-	
-	public static void send(SJSocket s, Object obj) throws SJIOException
+	}
+
+	public static void send(Object obj, SJSocket s) throws SJIOException
 	{
 		s.send(obj);
 	}
-	
-	public static void send(SJSocket[] sockets, Object obj) throws SJIOException
+
+	public static void send(Object obj, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
@@ -364,12 +360,12 @@ public class SJRuntime
 		}
 	}
 
-	public static void send(SJSocket s, int i) throws SJIOException
+	public static void send(int i, SJSocket s) throws SJIOException
 	{
 		s.sendInt(i);
 	}
-	
-	public static void send(SJSocket[] sockets, int i) throws SJIOException
+
+	public static void send(int i, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
@@ -377,12 +373,12 @@ public class SJRuntime
 		}
 	}
 
-	public static void send(SJSocket s, boolean b) throws SJIOException
+	public static void send(boolean b, SJSocket s) throws SJIOException
 	{
 		s.sendBoolean(b);
 	}
-	
-	public static void send(SJSocket[] sockets, boolean b) throws SJIOException
+
+	public static void send(boolean b, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
@@ -390,12 +386,12 @@ public class SJRuntime
 		}
 	}
 	
-	public static void send(SJSocket s, double d) throws SJIOException
+	public static void send(double d, SJSocket s) throws SJIOException
 	{
 		s.sendDouble(d);
 	}
-	
-	public static void send(SJSocket[] sockets, double d) throws SJIOException
+
+	public static void send(double d, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
@@ -403,26 +399,25 @@ public class SJRuntime
 		}
 	}
 	
-	public static void pass(SJSocket s, Object obj) throws SJIOException
+	public static void pass(Object obj, SJSocket s) throws SJIOException
 	{
 		s.pass(obj);
 	}
-	
-	public static void pass(SJSocket[] sockets, Object obj) throws SJIOException
+
+	public static void pass(Object obj, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
-			//s.send(obj);
 			s.pass(obj);
 		}
 	}
 	
-	public static void copy(SJSocket s, Object obj) throws SJIOException
+	public static void copy(Object obj, SJSocket s) throws SJIOException
 	{
 		s.copy(obj);
 	}
-	
-	public static void copy(SJSocket[] sockets, Object obj) throws SJIOException
+
+	public static void copy(Object obj, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
@@ -455,103 +450,94 @@ public class SJRuntime
 			s.copyDouble(d);
 		}
 	}*/
-	
+
+    private static boolean isValidResult(Object res, Class<?> expectedClass) {
+        if (expectedClass == null) return !(res instanceof Throwable);
+        else return res.getClass().isInstance(expectedClass);
+    }
+
+    private static Object timedReceive(int timeout, SJSocket s, int typeCode, String typeName, Class<?> expectedClass, Object[] args) throws SJIOException {
+        Object[] res = new Object[1];
+
+        new SJRuntimeReceiveTimeout(Thread.currentThread(), s, res, typeCode, args).start();
+
+        try
+		{
+			Thread.sleep(timeout);
+        }
+        catch (InterruptedException ie)
+        {
+            // res is passed as a parameter to the SJRuntimeReceiveTimeout constructor,
+            // hence is properly shared even though it's a local variable
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (res)
+            {
+                if (isValidResult(res[0], expectedClass))
+                {
+                    return res[0];
+                }
+                else if (res[0] instanceof SJIOException)
+                {
+                    throw (SJIOException) res[0];
+                }
+                else if (res[0] instanceof RuntimeException)
+				{
+					throw (RuntimeException) res[0];
+				}
+                else
+                {
+                    throw new RuntimeException("Unexpected type for received message: " + res[0]);
+                }
+            }
+        }
+        // We only want to close it if there was a timeout and we're aborting the session.
+        ((SJAbstractSocket) s).getSerializer().close();
+        // Is this a good idea? (Want to bypass FIN protocol).
+        // FIXME: could try to send our FIN somehow, but maybe not possible (if it is though, should factor out a terminal early-close routine).
+
+        throw new SJTimeoutException("[SJRuntime] receive" + typeName + " timed out: " + timeout);
+    }
+
 	public static Object receive(SJSocket s) throws SJIOException, ClassNotFoundException // Remove array in a compiler pass.
 	{
 		return s.receive();
 	}
-	
-	public static Object receive(SJSocket[] sockets) throws SJIOException, ClassNotFoundException // Remove array in a compiler pass.
+    // FIXME: only half done so far. Need to do for remaining ops.: accept, compound ops., etc.
+    // Currently relies on implicit close to terminate the SJRuntimeReceiveTimeout thread that is still blocked on the receive operation -
+    // need to check this works for all transports (check that an exception from early close is propagated up properly).
+    // Also, need more work on making SJTimeout a terminal exception - don't do FIN protocol (on our side at least).
+	public static Object receive(int timeout, SJSocket s) throws SJIOException
 	{
-		return sockets[0].receive();
-	}
-
-	public static Object receive(SJSocket s, int timeout) throws SJIOException // FIXME: only half done so far. Need to do for remaining ops.: accept, compound ops., etc. Currently relies on implicit close to terminate the SJRuntimeReceiveTimeout thread that is still blocked on the receive operation - need to check this works for all transports (check that an exception from early close is propagated up properly). Also, need more work on making SJTimeout a terminal exception - don't do FIN protocol (on our side at least).  
-	{
-		Object[] res = new Object[1];
-		
-		new SJRuntimeReceiveTimeout(Thread.currentThread(), s, res, SJRuntimeReceiveTimeout.OBJECT).start();
-		
-		try
-		{
-			Thread.sleep(timeout);			
-		}
-		catch (InterruptedException ie)
-		{
-			synchronized (res)
-			{
-				if (!(res[0] instanceof Exception))
-				{
-					return res[0];
-				}
-				else if (res[0] instanceof SJIOException)
-				{
-					throw (SJIOException) res[0];
-				}
-				else
-				{
-					throw (RuntimeException) res[0];
-				}
-			}
-		}
-		
-		((SJAbstractSocket) s).getSerializer().close(); // Is this a good idea? (Want to bypass FIN protocol). // FIXME: could try to send our FIN somehow, but maybe not possible (if it is though, should factor out a terminal early-close routine).
-		
-		throw new SJTimeoutException("[SJRuntime] receiveObject timed out: " + timeout);
+		return timedReceive(timeout, s, SJRuntimeReceiveTimeout.OBJECT, "Object", Object.class, null);
 	}
 	
-	public static Object receive(SJSocket[] sockets, int timeout) throws SJIOException
+	public static Object receive(int timeout, SJSocket... sockets) throws SJIOException
 	{
-		return receive(sockets[0], timeout);
+        // TODO multi-socket
+		return receive(timeout, sockets[0]);
 	}
 	
 	public static int receiveInt(SJSocket s) throws SJIOException
 	{
 		return s.receiveInt();
+        // TODO multi-socket
 	}
 	
-	public static int receiveInt(SJSocket[] sockets) throws SJIOException
+	public static int receiveInt(SJSocket... sockets) throws SJIOException
 	{
 		return sockets[0].receiveInt();
+        // TODO multi-socket
 	}
 	
-	public static int receiveInt(SJSocket s, int timeout) throws SJIOException
+	public static int receiveInt(int timeout, SJSocket s) throws SJIOException
 	{
-		Object[] res = new Object[1];
-		
-		new SJRuntimeReceiveTimeout(Thread.currentThread(), s, res, SJRuntimeReceiveTimeout.INT).start();
-		
-		try
-		{
-			Thread.sleep(timeout);			
-		}
-		catch (InterruptedException ie)
-		{
-			synchronized (res)
-			{
-				if (res[0] instanceof Integer)
-				{
-					return ((Integer) res[0]).intValue();
-				}
-				else if (res[0] instanceof SJIOException)
-				{
-					throw (SJIOException) res[0];
-				}
-				else
-				{
-					throw (RuntimeException) res[0];
-				}
-			}
-		}
-		
-		((SJAbstractSocket) s).getSerializer().close(); 
-		
-		throw new SJTimeoutException("[SJRuntime] receiveInt timed out: " + timeout);
-	}
+        return (Integer) timedReceive(timeout, s, SJRuntimeReceiveTimeout.INT, "Int", Integer.class, null);
+    }
 	
-	public static int receiveInt(SJSocket[] sockets, int timeout) throws SJIOException
+	public static int receiveInt(int timeout, SJSocket... sockets) throws SJIOException
 	{
-		return receiveInt(sockets[0], timeout);
+		return receiveInt(timeout, sockets[0]);
+        // TODO mulit-socket        
 	}
 	
 	public static boolean receiveBoolean(SJSocket s) throws SJIOException
@@ -559,105 +545,52 @@ public class SJRuntime
 		return s.receiveBoolean();
 	}
 	
-	public static boolean receiveBoolean(SJSocket[] sockets) throws SJIOException
+	public static boolean receiveBoolean(SJSocket... sockets) throws SJIOException
 	{
 		return sockets[0].receiveBoolean();
+        // TODO multi-socket
 	}
 	
-	public static boolean receiveBoolean(SJSocket s, int timeout) throws SJIOException
+	public static boolean receiveBoolean(int timeout, SJSocket s) throws SJIOException
 	{
-		Object[] res = new Object[1];
-		
-		new SJRuntimeReceiveTimeout(Thread.currentThread(), s, res, SJRuntimeReceiveTimeout.BOOLEAN).start();
-		
-		try
-		{
-			Thread.sleep(timeout);			
-		}
-		catch (InterruptedException ie)
-		{
-			synchronized (res)
-			{
-				if (res[0] instanceof Boolean)
-				{
-					return ((Boolean) res[0]).booleanValue();
-				}
-				else if (res[0] instanceof SJIOException)
-				{
-					throw (SJIOException) res[0];
-				}
-				else
-				{
-					throw (RuntimeException) res[0];
-				}
-			}
-		}
-		
-		((SJAbstractSocket) s).getSerializer().close(); 
-		
-		throw new SJTimeoutException("[SJRuntime] receiveBoolean timed out: " + timeout);
+        return (Boolean) timedReceive(timeout, s, SJRuntimeReceiveTimeout.BOOLEAN, "Boolean", Boolean.class, null);
 	}
 	
-	public static boolean receiveBoolean(SJSocket[] sockets, int timeout) throws SJIOException
+	public static boolean receiveBoolean(int timeout, SJSocket... sockets) throws SJIOException
 	{
-		return receiveBoolean(sockets[0], timeout);
+		return receiveBoolean(timeout, sockets[0]);
+        // TODO multi-socket        
 	}
-	
+
 	public static double receiveDouble(SJSocket s) throws SJIOException
 	{
 		return s.receiveDouble();
 	}
-	
-	public static double receiveDouble(SJSocket[] sockets) throws SJIOException
+
+	public static double receiveDouble(SJSocket... sockets) throws SJIOException
 	{
 		return sockets[0].receiveDouble();
+        // TODO multi-socket                
+	}
+
+	public static double receiveDouble(int timeout, SJSocket s) throws SJIOException
+	{
+        return (Double) timedReceive(timeout, s, SJRuntimeReceiveTimeout.DOUBLE, "Double", Double.class, null);
+	}
+
+	public static double receiveDouble(int timeout, SJSocket... sockets) throws SJIOException
+	{
+		return receiveDouble(timeout, sockets[0]);
+        // TODO multi-socket
 	}
 	
-	public static double receiveDouble(SJSocket s, int timeout) throws SJIOException
+	public static boolean recurse(String lab, SJSocket s) throws SJIOException
 	{
-		Object[] res = new Object[1];
-		
-		new SJRuntimeReceiveTimeout(Thread.currentThread(), s, res, SJRuntimeReceiveTimeout.DOUBLE).start();
-		
-		try
-		{
-			Thread.sleep(timeout);			
-		}
-		catch (InterruptedException ie)
-		{
-			synchronized (res)
-			{
-				if (res[0] instanceof Double)
-				{
-					return ((Double) res[0]).doubleValue();
-				}
-				else if (res[0] instanceof SJIOException)
-				{
-					throw (SJIOException) res[0];
-				}
-				else
-				{
-					throw (RuntimeException) res[0];
-				}
-			}
-		}
-		
-		((SJAbstractSocket) s).getSerializer().close(); 
-		
-		throw new SJTimeoutException("[SJRuntime] receiveDouble timed out: " + timeout);
-	}
-		
-	public static double receiveDouble(SJSocket[] sockets, int timeout) throws SJIOException
-	{
-		return receiveDouble(sockets[0], timeout);
-	}
-	
-	public static boolean recurse(SJSocket s, String lab) throws SJIOException // Session-level recurse to a label is translated to a boolean value.
-	{
+        // Session-level recurse to a label is translated to a boolean value.
 		return true;
 	}
-	
-	public static boolean recurse(SJSocket[] sockets, String lab) throws SJIOException
+   
+	public static boolean recurse(String lab, SJSocket... sockets) throws SJIOException
 	{
 		return true;
 	}
@@ -667,15 +600,24 @@ public class SJRuntime
 		t.spawn(...);
 	}*/
 
+    public static boolean outsync(boolean cond, SJSocket s) throws SJIOException
+	{
+		s.outsync(cond);
+		return cond;
+	}
+
     public static boolean outsync(boolean cond, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
 			s.outsync(cond);
 		}		
-		
 		return cond;
 	}
+
+    public static boolean insync(SJSocket s) throws SJIOException {
+        return s.insync();
+    }
 
 	public static boolean insync(SJSocket... sockets) throws SJIOException
 	{
@@ -694,12 +636,14 @@ public class SJRuntime
 	    return !allFalse;
     }
 	
-	public static void outlabel(SJSocket s, String lab) throws SJIOException // FIXME: this should be automatically eligible for reference passing, need to check how it is currently performed - labels cannot be user modified, and are immutable Strings anyway.
+	public static void outlabel(String lab, SJSocket s) throws SJIOException
+    // FIXME: this should be automatically eligible for reference passing, need to check how it is
+    // currently performed - labels cannot be user modified, and are immutable Strings anyway.
 	{
-		s.outlabel(lab);			
+		s.outlabel(lab);
 	}
-	
-	public static void outlabel(SJSocket[] sockets, String lab) throws SJIOException
+
+	public static void outlabel(String lab, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
@@ -711,198 +655,157 @@ public class SJRuntime
 	{	
 		return s.inlabel();
 	}
-	
-	public static String inlabel(SJSocket[] sockets) throws SJIOException
-	{	
+
+	public static String inlabel(SJSocket... sockets) throws SJIOException
+	{
 		return sockets[0].inlabel();
+        // TODO multi-socket
 	}
 
 	public static boolean recursionEnter(SJSocket s)
 	{
 		return false;
 	}
-	
-	public static boolean recursionEnter(SJSocket[] sockets)
+
+	public static boolean recursionEnter(SJSocket... sockets)
 	{
 		return false;
 	}
 
 	public static void recursionExit(SJSocket s)
 	{
-		
 	}
-	
-	public static void recursionExit(SJSocket[] sockets)
-	{
 
+	public static void recursionExit(SJSocket... sockets)
+	{
 	}
 	
 	/*public static void sendChannel(SJSocket[] sockets, SJService c) throws SJIOException // Channel objects should be immutable, so can be passed. // Remove array in a compiler pass
 	{
 		sockets[0].sendChannel(c);
 	}*/
-	
-	public static void copy(SJSocket s, Object obj, String encoded) throws SJIOException // Shared-channel passing.
+
+	public static void copy(Object obj, String encoded, SJSocket s) throws SJIOException
+    // Shared-channel passing.
 	{
-		s.sendChannel((SJService) obj, encoded); // Could just extract the session type from the SJService.
+		s.sendChannel((SJService) obj, encoded);
+        // Could just extract the session type from the SJService.
 	}
-	
-	public static void copy(SJSocket[] sockets, Object obj, String encoded) throws SJIOException
+
+	public static void copy(Object obj, String encoded, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
 			s.sendChannel((SJService) obj, encoded);
 		}
 	}
-	
-	public static SJService receiveChannel(SJSocket s, String encoded) throws SJIOException, ClassNotFoundException // Needs a different name to session-receive - arguments are the same. // No ClassNotFoundException means runtime errors (from malicious peers) due to receiving unexpected and unknown object classes must be converted to IO errors. // Actually, no ClassNotFoundException here doesn't seem to make much difference, the base type checker uses the "ordinary" receive. // Actually, no ClassNotFoundException here breaks the code generation javac pass...  
+
+	public static SJService receiveChannel(String encoded, SJSocket s) throws SJIOException, ClassNotFoundException
+    // Needs a different name to session-receive - arguments are the same.
+    // No ClassNotFoundException means runtime errors (from malicious peers) due to receiving unexpected
+    // and unknown object classes must be converted to IO errors.
+    // Actually, no ClassNotFoundException here doesn't seem to make much difference, the base type checker uses the "ordinary" receive.
+    // Actually, no ClassNotFoundException here breaks the code generation javac pass...
 	{
 		return s.receiveChannel(encoded);
 	}
 	
-	public static SJService receiveChannel(SJSocket[] sockets, String encoded) throws SJIOException, ClassNotFoundException // Needs a different name to session-receive - arguments are the same.
+	public static SJService receiveChannel(String encoded, SJSocket... sockets) throws SJIOException, ClassNotFoundException
+    // Needs a different name to session-receive - arguments are the same.
 	{
 		return sockets[0].receiveChannel(encoded);
+        // TODO multi-socket
 	}
 	
-	public static SJService receiveChannel(SJSocket s, String encoded, int timeout) throws SJIOException, ClassNotFoundException // Session-receive.
+	public static SJService receiveChannel(String encoded, int timeout, SJSocket s) throws SJIOException, ClassNotFoundException
+    // Session-receive.
 	{
-		Object[] res = new Object[1];
-		
-		new SJRuntimeReceiveTimeout(Thread.currentThread(), s, res, SJRuntimeReceiveTimeout.CHANNEL, new Object[] { encoded }).start();
-		
-		try
-		{
-			Thread.sleep(timeout);			
-		}
-		catch (InterruptedException ie)
-		{
-			synchronized (res)
-			{
-				if (!(res[0] instanceof Exception))
-				{
-					return (SJService) res[0];
-				}
-				else if (res[0] instanceof SJIOException)
-				{
-					throw (SJIOException) res[0];
-				}
-				else
-				{
-					throw (RuntimeException) res[0];
-				}
-			}
-		}
-		
-		((SJAbstractSocket) s).getSerializer().close(); // Is this a good idea? (Want to bypass FIN protocol.) // FIXME: could try to send our FIN somehow, but maybe not possible (if it is though, should factor out a terminal early-close routine).
-		
-		throw new SJTimeoutException("[SJRuntime] receiveObject timed out: " + timeout);
+		return (SJService) timedReceive(timeout, s, SJRuntimeReceiveTimeout.CHANNEL, "Channel", null, new Object[] { encoded });
 	}
 	
-	public static SJService receiveChannel(SJSocket[] sockets, String encoded, int timeout) throws SJIOException, ClassNotFoundException
+	public static SJService receiveChannel(String encoded, int timeout, SJSocket... sockets) throws SJIOException, ClassNotFoundException
 	{
-		return receiveChannel(sockets[0], encoded, timeout);
+		return receiveChannel(encoded, timeout, sockets[0]);
+        // TODO multi-session
 	}
-	
-	public static void pass(SJSocket s, Object obj, String encoded) throws SJIOException // Session delegation. Probably better to rename to something more obvious here as well.
+
+	public static void pass(Object obj, String encoded, SJSocket s) throws SJIOException
+    // Session delegation. Probably better to rename to something more obvious here as well.
 	{
 		s.delegateSession((SJAbstractSocket) obj, encoded);
 	}
-	
-	public static void pass(SJSocket[] sockets, Object obj, String encoded) throws SJIOException
+
+	public static void pass(Object obj, String encoded, SJSocket... sockets) throws SJIOException
 	{
 		sockets[0].delegateSession((SJAbstractSocket) obj, encoded);
+        // TODO multi-session        
 	}
 
-	public static SJAbstractSocket receive(SJSocket s, String encoded) throws SJIOException, ClassNotFoundException // Session-receive.
+	public static SJAbstractSocket receive(String encoded, SJSocket s) throws SJIOException, ClassNotFoundException
+    // Session-receive.
 	{
-		return receive(s, encoded, SJSessionParameters.DEFAULT_PARAMETERS);
+		return receive(encoded, SJSessionParameters.DEFAULT_PARAMETERS, s);
 	}
 	
-	public static SJAbstractSocket receive(SJSocket[] sockets, String encoded) throws SJIOException, ClassNotFoundException
+	public static SJAbstractSocket receive(String encoded, SJSocket... sockets) throws SJIOException, ClassNotFoundException
 	{
-		return receive(sockets[0], encoded, SJSessionParameters.DEFAULT_PARAMETERS);
+		return receive(encoded, SJSessionParameters.DEFAULT_PARAMETERS, sockets[0]);
+        // TODO multi-session                
 	}
 	
-	public static SJAbstractSocket receive(SJSocket s, String encoded, SJSessionParameters params) throws SJIOException, ClassNotFoundException // Session-receive.
+	public static SJAbstractSocket receive(String encoded, SJSessionParameters params, SJSocket s) throws SJIOException, ClassNotFoundException // Session-receive.
 	{
 		return s.receiveSession(encoded, params);
 	}
-	
-	public static SJAbstractSocket receive(SJSocket[] sockets, String encoded, SJSessionParameters params) throws SJIOException, ClassNotFoundException
+
+	public static SJAbstractSocket receive(String encoded, SJSessionParameters params, SJSocket... sockets) throws SJIOException, ClassNotFoundException
 	{
 		return sockets[0].receiveSession(encoded, params);
+        // TODO multi-session                        
 	}
-	
-	public static SJAbstractSocket receive(SJSocket s, String encoded, int timeout) throws SJIOException, ClassNotFoundException // Session-receive.
+
+	public static SJAbstractSocket receive(int timeout, SJSocket s, String encoded) throws SJIOException, ClassNotFoundException // Session-receive.
 	{
-		return receive(s, encoded, SJSessionParameters.DEFAULT_PARAMETERS, timeout);
+		return receive(encoded, SJSessionParameters.DEFAULT_PARAMETERS, timeout, s);
 	}
-	
-	public static SJAbstractSocket receive(SJSocket[] sockets, String encoded, int timeout) throws SJIOException, ClassNotFoundException
+
+	public static SJAbstractSocket receive(String encoded, int timeout, SJSocket... sockets) throws SJIOException, ClassNotFoundException
 	{
-		return receive(sockets[0], encoded, SJSessionParameters.DEFAULT_PARAMETERS, timeout);
+		return receive(encoded, SJSessionParameters.DEFAULT_PARAMETERS, timeout, sockets[0]);
+        // TODO multi-session                                
 	}
-	
-	public static SJAbstractSocket receive(SJSocket s, String encoded, SJSessionParameters params, int timeout) throws SJIOException, ClassNotFoundException // Session-receive.
+
+	public static SJAbstractSocket receive(String encoded, SJSessionParameters params, int timeout, SJSocket s) throws SJIOException, ClassNotFoundException // Session-receive.
 	{
-		Object[] res = new Object[1];
-		
-		new SJRuntimeReceiveTimeout(Thread.currentThread(), s, res, SJRuntimeReceiveTimeout.SESSION, new Object[] { encoded, params }).start();
-		
-		try
-		{
-			Thread.sleep(timeout);			
-		}
-		catch (InterruptedException ie)
-		{
-			synchronized (res)
-			{
-				if (!(res[0] instanceof Exception))
-				{
-					return (SJAbstractSocket) res[0];
-				}
-				else if (res[0] instanceof SJIOException)
-				{
-					throw (SJIOException) res[0];
-				}
-				else
-				{
-					throw (RuntimeException) res[0];
-				}
-			}
-		}
-		
-		((SJAbstractSocket) s).getSerializer().close(); // Is this a good idea? (Want to bypass FIN protocol). // FIXME: could try to send our FIN somehow, but maybe not possible (if it is though, should factor out a terminal early-close routine).
-		
-		throw new SJTimeoutException("[SJRuntime] receiveObject timed out: " + timeout);
+		return (SJAbstractSocket) timedReceive(timeout, s, SJRuntimeReceiveTimeout.SESSION, "Session", null, new Object[] {encoded, params});
 	}
 	
-	public static SJAbstractSocket receive(SJSocket[] sockets, String encoded, SJSessionParameters params, int timeout) throws SJIOException, ClassNotFoundException 
+	public static SJAbstractSocket receive(String encoded, SJSessionParameters params, int timeout, SJSocket... sockets) throws SJIOException, ClassNotFoundException
 	{
-		return receive(sockets[0], encoded, params, timeout);
+		return receive(encoded, params, timeout, sockets[0]);
+        // TODO multi-session
 	}
 	
-	public static Object receive(SJSocket[] sockets, SJSessionParameters params) throws SJIOException // Dummy compiler targets for session-receive (pre-translation).
+	public static Object receive(SJSessionParameters params, SJSocket... sockets) throws SJIOException // Dummy compiler targets for session-receive (pre-translation).
 	{
 		throw new SJRuntimeException("[SJRuntime] Shouldn't get in here.");
 	}
 
-	public static Object receive(SJSocket s, SJSessionParameters params) throws SJIOException
-	{
-		throw new SJRuntimeException("[SJRuntime] Shouldn't get in here.");
-	}
-	
-	public static Object receive(SJSocket[] sockets, SJSessionParameters params, int timeout) throws SJIOException // Dummy compiler targets for session-receive (pre-translation).
+	public static Object receive(SJSessionParameters params, SJSocket s) throws SJIOException
 	{
 		throw new SJRuntimeException("[SJRuntime] Shouldn't get in here.");
 	}
 
-	public static Object receive(SJSocket s, SJSessionParameters params, int timeout) throws SJIOException
+	public static Object receive(SJSessionParameters params, int timeout, SJSocket... sockets) throws SJIOException // Dummy compiler targets for session-receive (pre-translation).
 	{
 		throw new SJRuntimeException("[SJRuntime] Shouldn't get in here.");
 	}
-	
+
+	public static Object receive(SJSessionParameters params, int timeout, SJSocket s) throws SJIOException
+	{
+		throw new SJRuntimeException("[SJRuntime] Shouldn't get in here.");
+	}
+
 	public static SJTransportManager getTransportManager()
 	{
 		return sjtm;
@@ -944,7 +847,11 @@ public class SJRuntime
 		throw new SJIOException("[SJRuntime] No free port found.");
 	}	
 	
-	public static int takeFreePort() throws SJIOException // FIXME: what we need is a routine that finds the port and opens the server immediately to reduce the chance that another process will steal e.g. the TCP port. // Should use something like getFreshAcceptorThreadGroup to ensure we have a fresh port, return the port value, and cache the AcceptorThreadGroup somewhere until the port is actually used.  
+	public static int takeFreePort() throws SJIOException
+    // FIXME: what we need is a routine that finds the port and opens the server immediately
+    // to reduce the chance that another process will steal e.g. the TCP port.
+    // Should use something like getFreshAcceptorThreadGroup to ensure we have a fresh port,
+    // return the port value, and cache the AcceptorThreadGroup somewhere until the port is actually used.
 	{
 		Random rand = new Random();
 		
@@ -955,12 +862,10 @@ public class SJRuntime
 			while (retries-- > 0)
 			{
 				int port = rand.nextInt(UPPER_PORT_LIMIT - LOWER_PORT_LIMIT) + LOWER_PORT_LIMIT;
-				
-				Integer p = new Integer(port);
-				
-				if (!portsInUse.contains(p))
+
+                if (!portsInUse.contains(port))
 				{
-					portsInUse.add(p);
+					portsInUse.add(port);
 					
 					return port;
 				}
@@ -970,7 +875,8 @@ public class SJRuntime
 		throw new SJIOException("[SJRuntime] No free port found.");
 	}	
 	
-	public static SJPort takeFreeSJPort() throws SJIOException // Rename to getFreeSJPort, to better distinguish from reserveFreeSJPort.  
+	public static SJPort takeFreeSJPort() throws SJIOException
+    // Rename to getFreeSJPort, to better distinguish from reserveFreeSJPort.
 	{
 		Random rand = new Random();
 		
@@ -981,10 +887,8 @@ public class SJRuntime
 			while (retries-- > 0)
 			{
 				int port = rand.nextInt(UPPER_PORT_LIMIT - LOWER_PORT_LIMIT) + LOWER_PORT_LIMIT;
-				
-				Integer p = new Integer(port);
-				
-				if (!portsInUse.contains(p))
+
+                if (!portsInUse.contains(port))
 				{
 					return new SJPort(port); // Uses take port to record for portsInUse.
 				}
@@ -994,7 +898,9 @@ public class SJRuntime
 		throw new SJIOException("[SJRuntime] No free port found.");
 	}
 	
-	public static void takePort(int port) throws SJIOException // FIXME: a bit confusing with takeFreePort and takeFreshSessionPort. // Other routines in this class should be modified to use this operation.
+	public static void takePort(int port) throws SJIOException
+    // FIXME: a bit confusing with takeFreePort and takeFreshSessionPort.
+    // Other routines in this class should be modified to use this operation.
 	{
 		synchronized (portsInUse)
 		{
@@ -1003,7 +909,7 @@ public class SJRuntime
 				throw new SJIOException("[SJRuntime] Port already taken: " + port);
 			}
 			
-			portsInUse.add(new Integer(port));
+			portsInUse.add(port);
 		}
 	}
 	
@@ -1070,7 +976,9 @@ public class SJRuntime
 	}*/	
 }
 
-class SJRuntimeReceiveTimeout extends Thread // This is a bit of a hack - maybe better to have timeout operations directly supported by each transport, by adding them to the ATI. This scheme currently relies on the implicit socket close to terminate this thread (if it's still blocking) after a timeout.
+class SJRuntimeReceiveTimeout extends Thread
+// This is a bit of a hack - maybe better to have timeout operations directly supported by each transport,
+// by adding them to the ATI. This scheme currently relies on the implicit socket close to terminate this thread (if it's still blocking) after a timeout.
 {
 	public static final int OBJECT = 11;
 	public static final int INT = 12;
@@ -1082,20 +990,11 @@ class SJRuntimeReceiveTimeout extends Thread // This is a bit of a hack - maybe 
 
 	private Thread t;
 	private SJSocket s;
-	private Object[] res;
+	private final Object[] res;
 	private int op;
 	private Object[] args;
 	
-	public SJRuntimeReceiveTimeout(Thread t, SJSocket s, Object[] res, int op) 
-	{
-		this.t = t;
-		this.s = s;
-		this.res = res;
-		this.op = op;
-		this.args = null;
-	}
-	
-	public SJRuntimeReceiveTimeout(Thread t, SJSocket s, Object[] res, int op, Object[] args) // Maybe arg should be extended to Object[].
+	public SJRuntimeReceiveTimeout(Thread t, SJSocket s, Object[] res, int op, Object[] args)
 	{
 		this.t = t;
 		this.s = s;
@@ -1106,7 +1005,7 @@ class SJRuntimeReceiveTimeout extends Thread // This is a bit of a hack - maybe 
 	
 	public void run()
 	{
-		Object o = new SJRuntimeException("[SJRuntimeReceiveTimeout] Shouldn't get in here.");
+		Object o;
 		
 		try
 		{						
@@ -1118,15 +1017,15 @@ class SJRuntimeReceiveTimeout extends Thread // This is a bit of a hack - maybe 
 				}
 				case INT:
 				{
-					o = new Integer(s.receiveInt()); break;
+					o = s.receiveInt(); break;
 				}
 				case BOOLEAN:
 				{
-					o = new Boolean(s.receiveBoolean()); break;
+					o = s.receiveBoolean(); break;
 				}
 				case DOUBLE:
 				{
-					o = new Double(s.receiveDouble()); break;
+					o = s.receiveDouble(); break;
 				}
 				case CHANNEL:
 				{

@@ -12,7 +12,7 @@ public class Test
 {		
 	public static void main(String[] args) throws Exception
 	{
-		final noalias protocol p1 { cbegin.?[!<int>]* }
+		final noalias protocol p1 { cbegin.![!<int>]* }
 		final noalias protocol p2 { cbegin.?[!<int>]* }
 		
 		final noalias SJService c1 = SJService.create(p1, "", 1234);
@@ -24,9 +24,11 @@ public class Test
 		{
 			s1 = c1.request();
 			s2 = c2.request();
-			
-			<s1, s2>.inwhile()
+
+			int i=0;
+			s1.outwhile(s2.inwhile() ; i<10)
 			{
+			    ++i;
 				<s1, s2>.send(123);
 			}
 		}

@@ -3,26 +3,30 @@
  */
 package sessionj.util;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.visit.*;
-
 import sessionj.SJConstants;
-import sessionj.ast.*;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.SJSpawn;
+import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.typenodes.*;
-import sessionj.ast.sessops.*;
-import sessionj.extension.*;
-import sessionj.extension.noalias.*;
-import sessionj.extension.sessops.*;
-import sessionj.extension.sesstypes.*;
-import sessionj.types.*;
-import sessionj.types.noalias.*;
+import sessionj.extension.SJExtFactory;
+import sessionj.extension.noalias.SJNoAliasExprExt;
+import sessionj.extension.noalias.SJNoAliasExt;
+import sessionj.extension.noalias.SJNoAliasFinalExt;
+import sessionj.extension.noalias.SJNoAliasVariablesExt;
+import sessionj.extension.sessops.SJSessionOperationExt;
+import sessionj.extension.sesstypes.SJNamedExt;
+import sessionj.extension.sesstypes.SJTypeableExt;
+import sessionj.types.SJTypeSystem;
 import sessionj.types.sesstypes.*;
 import sessionj.types.typeobjects.*;
 import sessionj.visit.SJProtocolDeclTypeBuilder;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Raymond 
@@ -35,15 +39,14 @@ public class SJCompilerUtils
 	public static void updateSJFieldInstance(FieldInstance fi, SJFieldInstance sjfi)
 	{
 		SJParsedClassType pct = (SJParsedClassType) fi.container();
-		List<FieldInstance> fields = new LinkedList<FieldInstance>();	
-		
-		for (Iterator i = pct.fields().iterator(); i.hasNext(); )
-		{
-			fields.add((FieldInstance) i.next());
-		}
+		List<FieldInstance> fields = new LinkedList<FieldInstance>();
+
+        for (Object o : pct.fields()) {
+            fields.add((FieldInstance) o);
+        }
 		
 		fields.remove(fi); // Done like this, just to be uniform with ConstructorDecl and MethodDecl.
-		fields.add((FieldInstance) sjfi);
+		fields.add(sjfi);
 		
 		pct.setFields(fields); // Works because ParsedClassType is mutable (no need to reassign defensive copy).
 	}
@@ -54,7 +57,7 @@ public class SJCompilerUtils
 		List<ConstructorInstance> constructors = (List<ConstructorInstance>) copyProcedureInstanceList(pct.constructors());
 		
 		constructors.remove(ci); 
-		constructors.add((ConstructorInstance) sjci);
+		constructors.add(sjci);
 		
 		pct.setConstructors(constructors); 
 	} 
@@ -65,12 +68,12 @@ public class SJCompilerUtils
 		List<MethodInstance> methods = (List<MethodInstance>) copyProcedureInstanceList(pct.methods());
 		
 		methods.remove(mi); 
-		methods.add((MethodInstance) sjmi);
+		methods.add(sjmi);
 		
 		pct.setMethods(methods); 
 	} 
 	
-	public static final SJTypeableExt getSJTypeableExt(Node n)
+	public static SJTypeableExt getSJTypeableExt(Node n)
 	{
 		if (n.ext(2) == null) // SJCompoundOperation.
 		{
@@ -82,27 +85,27 @@ public class SJCompilerUtils
 		}
 	}
 	
-	public static final Node setSJTypeableExt(SJExtFactory sjef, Node n, SJSessionType st)
+	public static Node setSJTypeableExt(SJExtFactory sjef, Node n, SJSessionType st)
 	{
 		return n.ext(2, sjef.SJTypeableExt(st)); // Factor out constant. // Won't be a SJCompoundOperation (so should have a SJNoAliasExt.
 	}
 	
-	public static final SJNamedExt getSJNamedExt(Node n)
+	public static SJNamedExt getSJNamedExt(Node n)
 	{
 		return (SJNamedExt) getSJTypeableExt(n); 
 	}
 	
-	public static final Node setSJNamedExt(SJExtFactory sjef, Node n, SJSessionType st, String sjname)
+	public static Node setSJNamedExt(SJExtFactory sjef, Node n, SJSessionType st, String sjname)
 	{
 		return n.ext(2, sjef.SJNamedExt(st, sjname)); // Factor out constant. // Won't be a SJCompoundOperation.			
 	}
 	
-	public static final SJSessionOperationExt getSJSessionOperationExt(SJSessionOperation so)
+	public static SJSessionOperationExt getSJSessionOperationExt(SJSessionOperation so)
 	{
 		return (SJSessionOperationExt) getSJTypeableExt(so);		
 	}
 	
-	public static final Node setSJSessionOperationExt(SJExtFactory sjef, SJSessionOperation so, SJSessionType st, List<String> sjnames)
+	public static Node setSJSessionOperationExt(SJExtFactory sjef, SJSessionOperation so, SJSessionType st, List<String> sjnames)
 	{
 		if (so.ext(1) == null) // SJCompoundOperation.
 		{
@@ -114,7 +117,7 @@ public class SJCompilerUtils
 		}
 	}
 	
-	public static final Node setSJSessionOperationExt(/*SJExtFactory sjef, */SJSpawn s, List<String> sjnames, List<SJSessionType> sts) // FIXME: SJSpawn is an example of multiply typed session operations.
+	public static Node setSJSessionOperationExt(/*SJExtFactory sjef, */SJSpawn s, List<String> sjnames, List<SJSessionType> sts) // FIXME: SJSpawn is an example of multiply typed session operations.
 	{
 		/*if (s.ext(1) == null) // Not possible for SJSpawn. 
 		{
@@ -139,34 +142,34 @@ public class SJCompilerUtils
 		return getSJNamedExt(n).sjname();
 	}
 	
-	public static final SJNoAliasExt getSJNoAliasExt(Node n) // First ext link is for noalias.
+	public static SJNoAliasExt getSJNoAliasExt(Node n) // First ext link is for noalias.
 	{
 		return (SJNoAliasExt) n.ext(1); // Factor out constant.
 	}
 	
-	public static final Node setSJNoAliasExt(SJExtFactory sjef, Node n, boolean isNoAlias)
+	public static Node setSJNoAliasExt(SJExtFactory sjef, Node n, boolean isNoAlias)
 	{
 		return n.ext(1, sjef.SJNoAliasExt(isNoAlias)); // Factor out constant.
 	}
 
-	public static final SJNoAliasFinalExt getSJNoAliasFinalExt(Node n) 
+	public static SJNoAliasFinalExt getSJNoAliasFinalExt(Node n)
 	{
 		return (SJNoAliasFinalExt) getSJNoAliasExt(n);
 	}
 	
-	public static final Node setSJNoAliasFinalExt(SJExtFactory sjef, Node n, boolean isNoAlias, boolean isFinal)
+	public static Node setSJNoAliasFinalExt(SJExtFactory sjef, Node n, boolean isNoAlias, boolean isFinal)
 	{
 		SJNoAliasFinalExt nafe = sjef.SJNoAliasFinalExt(isNoAlias, isFinal);
 
 		return n.ext(1, nafe);
 	}
 	
-	public static final SJNoAliasVariablesExt getSJNoAliasVariablesExt(Node n) // First ext link is for noalias.
+	public static SJNoAliasVariablesExt getSJNoAliasVariablesExt(Node n) // First ext link is for noalias.
 	{
 		return (SJNoAliasVariablesExt) n.ext(1);
 	}
 	
-	public static final Node setSJNoAliasVariablesExt(SJExtFactory sjef, Node n, List<Field> fields, List<Local> locals, List<ArrayAccess> arrayAccesses)
+	public static Node setSJNoAliasVariablesExt(SJExtFactory sjef, Node n, List<Field> fields, List<Local> locals, List<ArrayAccess> arrayAccesses)
 	{
 		SJNoAliasVariablesExt nave = sjef.SJNoAliasVariablesExt();
 		
@@ -177,12 +180,12 @@ public class SJCompilerUtils
 		return n.ext(1, nave);
 	}
 	
-	public static final SJNoAliasExprExt getSJNoAliasExprExt(Node n) // First ext link is for noalias.
+	public static SJNoAliasExprExt getSJNoAliasExprExt(Node n) // First ext link is for noalias.
 	{
 		return (SJNoAliasExprExt) getSJNoAliasExt(n);
 	}
 	
-	public static final Node setSJNoAliasExprExt(SJExtFactory sjef, Node n, boolean isNoAlias, boolean isExpr, List<Field> fields, List<Local> locals, List<ArrayAccess> arrayAccesses)
+	public static Node setSJNoAliasExprExt(SJExtFactory sjef, Node n, boolean isNoAlias, boolean isExpr, List<Field> fields, List<Local> locals, List<ArrayAccess> arrayAccesses)
 	{
 		SJNoAliasExprExt naee = sjef.SJNoAliasExprExt(isNoAlias, isExpr);
 		
@@ -194,13 +197,13 @@ public class SJCompilerUtils
 	}
 	
 	//Only works post disambiguation pass. Prior to that, represented by SJAmbNoAliasTypeNode.
-	public static final boolean isNoAlias(Node n) 
+	public static boolean isNoAlias(Node n)
 	{
 		if (n instanceof TypeNode) // Ext object can be null for regular TypeNodes.*/
 		{
 			SJNoAliasExt nae = getSJNoAliasExt(n);		
 			
-			return (nae == null) ? false : nae.isNoAlias(); 
+			return (nae != null) && nae.isNoAlias();
 		}
 		else
 		{
@@ -209,7 +212,7 @@ public class SJCompilerUtils
 		}			
 	}
 
-	public static final boolean isFinal(Node n) 
+	public static boolean isFinal(Node n)
 	{		
 		return getSJNoAliasFinalExt(n).isFinal();
 		//return e.type() instanceof SJNoAliasReferenceType;
@@ -430,7 +433,7 @@ public class SJCompilerUtils
 				
 				SJFieldInstance fi = (SJFieldInstance) sjts.findField((ReferenceType) f.target().type(), f.name(), cv.context().currentClass());
 				
-				if (fi instanceof SJFieldInstance)
+				if (fi != null)
 				{
 					if (!(fi instanceof SJFieldProtocolInstance)) // Similar mutually recursive lookahead routine to that of SJNoAliasTypeBuilder/SJNoAliasProcedureChecker. Also similar in that we build ahead, but cannot store the result, so have to do again later. 
 					{
@@ -509,7 +512,8 @@ public class SJCompilerUtils
 	}
 	
 	private static SJSessionType dualSessionType(SJSessionType st) throws SemanticException
-	{			
+	{
+        // TODO Should be in SJSessionType
 		SJTypeSystem sjts = null;
 		
 		if (st != null) // Only needed for badly-typed programs (i.e. something went wrong)?
@@ -602,42 +606,37 @@ public class SJCompilerUtils
 		return dual;
 	}
 	
-	public static final ClassDecl findClassDecl(SourceFile sf, String name)
+	public static ClassDecl findClassDecl(SourceFile sf, String name)
 	{
-		for (Iterator i = sf.decls().iterator(); i.hasNext(); )
-		{
-			ClassDecl cd = findClassDecl((ClassDecl) i.next(), name); // ClassDecl is the only subtype of TopLevelDecl.
-			
-			if (cd != null)
-			{
-				return cd;
-			}
-		}
+        for (Object o : sf.decls()) {
+            ClassDecl cd = findClassDecl((ClassDecl) o, name); // ClassDecl is the only subtype of TopLevelDecl.
+
+            if (cd != null) {
+                return cd;
+            }
+        }
 		
 		return null;
 	}
 	
-	private static final ClassDecl findClassDecl(ClassDecl cd, String name)
+	private static ClassDecl findClassDecl(ClassDecl cd, String name)
 	{
 		if (cd.name().equals(name))
 		{
 			return cd;
 		}
-		
-		for (Iterator i = cd.body().members().iterator(); i.hasNext(); )
-		{
-			ClassMember cm = (ClassMember) i.next();
-			
-			if (cm instanceof ClassDecl)
-			{
-				ClassDecl res = findClassDecl((ClassDecl) cm, name);
-				
-				if (res != null)
-				{
-					return res;
-				}
-			}
-		}
+
+        for (Object o : cd.body().members()) {
+            ClassMember cm = (ClassMember) o;
+
+            if (cm instanceof ClassDecl) {
+                ClassDecl res = findClassDecl((ClassDecl) cm, name);
+
+                if (res != null) {
+                    return res;
+                }
+            }
+        }
 		
 		return null;
 	}	
@@ -646,16 +645,15 @@ public class SJCompilerUtils
 	public static List<Type> getArgumentTypes(List arguments)
 	{
 		List<Type> argumentTypes = new LinkedList<Type>();
-		
-		for (Iterator i = arguments.iterator(); i.hasNext(); )
-		{
-			argumentTypes.add(((Expr) i.next()).type());
-		}
+
+        for (Object argument : arguments) {
+            argumentTypes.add(((Expr) argument).type());
+        }
 		
 		return argumentTypes;
 	}
 	
-	public static final void debugPrint(String m)
+	public static void debugPrint(String m)
 	{
 		if (SJConstants.SJ_DEBUG_PRINT)
 		{
@@ -663,7 +661,7 @@ public class SJCompilerUtils
 		}
 	}
 	
-	public static final void debugPrintln(String m)
+	public static void debugPrintln(String m)
 	{
 		debugPrint(m + "\n");
 	}
@@ -671,11 +669,10 @@ public class SJCompilerUtils
 	private static List<? extends ProcedureInstance> copyProcedureInstanceList(List procedures)
 	{		
 		List<ProcedureInstance> copy = new LinkedList<ProcedureInstance>();
-		
-		for (Iterator i = procedures.iterator(); i.hasNext(); )
-		{
-			copy.add((ProcedureInstance) i.next());
-		}			
+
+        for (Object procedure : procedures) {
+            copy.add((ProcedureInstance) procedure);
+        }
 	
 		return copy;
 	}	

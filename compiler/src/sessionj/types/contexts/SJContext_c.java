@@ -3,25 +3,30 @@
  */
 package sessionj.types.contexts;
 
-import java.util.*;
-
 import polyglot.ast.Formal;
 import polyglot.ast.MethodDecl;
-import polyglot.types.*;
+import polyglot.types.MethodInstance;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
 import polyglot.visit.ContextVisitor;
-
 import sessionj.ast.sessformals.SJChannelFormal;
-import sessionj.ast.sessformals.SJFormal;
 import sessionj.ast.sessformals.SJSessionFormal;
 import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.sesstry.*;
-import sessionj.ast.sessvars.*;
-import sessionj.types.*;
+import sessionj.ast.sesstry.SJServerTry;
+import sessionj.ast.sesstry.SJSessionTry;
+import sessionj.ast.sessvars.SJServerVariable;
+import sessionj.ast.sessvars.SJSocketVariable;
+import sessionj.types.SJTypeSystem;
 import sessionj.types.sesstypes.*;
-import sessionj.types.typeobjects.*;
-import sessionj.util.*;
+import sessionj.types.typeobjects.SJLocalInstance;
+import sessionj.types.typeobjects.SJMethodInstance;
+import sessionj.types.typeobjects.SJNamedInstance;
+import static sessionj.util.SJCompilerUtils.getSJSessionOperationExt;
+import sessionj.util.SJLabel;
 
-import static sessionj.util.SJCompilerUtils.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Raymond
@@ -97,7 +102,10 @@ public class SJContext_c extends SJContext
 		SJSessionType active = sessionExpected(sjname);		
 		SJSessionType implemented = sessionImplemented(sjname);
 		
-		if (st instanceof SJDelegatedType) // Needed e.g. when popping a compound operation context, but the session is still active - if it was delegated within the popped context, the single trailing SJDelegationType element must be enough to clear the remaining active type. 
+		if (st instanceof SJDelegatedType)
+        // Needed e.g. when popping a compound operation context, but the session is still active
+        // - if it was delegated within the popped context, the single trailing SJDelegationType element
+        // must be enough to clear the remaining active type. 
 		{
 			setSessionActive(sjname, null);
 		}
@@ -119,8 +127,7 @@ public class SJContext_c extends SJContext
 	
 	public SJSessionType delegateSession(String sjname) throws SemanticException
 	{
-		SJSessionType active = sessionExpected(sjname);		
-		SJSessionType implemented = sessionImplemented(sjname);
+        SJSessionType implemented = sessionImplemented(sjname);
 		SJSessionType remaining = sessionRemaining(sjname);		
 		
 		SJSessionType st = sjts.SJDelegatedType(remaining);
@@ -240,7 +247,7 @@ public class SJContext_c extends SJContext
 				
 				if (t instanceof SJSessionType)
 				{
-					String sjname = ((SJFormal) f).name();
+					String sjname = f.name();
 					SJLocalInstance li = (SJLocalInstance) f.localInstance();
 					SJSessionType st = (SJSessionType) t;					
 					
@@ -274,49 +281,41 @@ public class SJContext_c extends SJContext
 		tc.clearSessions();
 		
 		List<String> sjnames = new LinkedList<String>();
-		
-		for (Iterator i = st.targets().iterator(); i.hasNext(); )
-		{
-			String sjname = ((SJSocketVariable) i.next()).sjname();
-			
-			for (int v = contexts().size() - 1; v >= 0; v--)
-			{
-				SJContextElement ce = contexts().get(v);
-	
-				if (ce.sessionActive(sjname)) // "Pushing" a session into an inner scope.
-				{				
-					if (ce.sessionInScope(sjname))
-					{
-						tc.setSession(sjname, ce.getActive(sjname));
-						
-						break;
-					}										
-					else
-					{
-						try
-						{
-							findSocket(sjname); // Hacky? We're using the sockets to identify whether the session is one that has already been opened and has been passsed as a method argument. Will also use this to work out whether a session parameter needs to be closed or not (i.e. if it's final).
-						}
-						catch (SemanticException se) // noalias session method parameters.						 
-						{
-							tc.setSession(sjname, ce.getActive(sjname));
-							
-							break;
-						}
-					}
-				}											
-				else
-				{
-					SJNamedInstance ni = getSocket(sjname); // Socket is in context.
-					
-					tc.setSession(sjname, ni.sessionType()); // Should be SJUnknownType.
-					
-					break;
-				}
-			}
-			
-			sjnames.add(sjname);
-		}
+
+        for (Object o : st.targets()) {
+            String sjname = ((SJSocketVariable) o).sjname();
+
+            for (int v = contexts().size() - 1; v >= 0; v--) {
+                SJContextElement ce = contexts().get(v);
+
+                if (ce.sessionActive(sjname)) // "Pushing" a session into an inner scope.
+                {
+                    if (ce.sessionInScope(sjname)) {
+                        tc.setSession(sjname, ce.getActive(sjname));
+
+                        break;
+                    } else {
+                        try {
+                            findSocket(sjname); // Hacky? We're using the sockets to identify whether the session is one that has already been opened and has been passsed as a method argument. Will also use this to work out whether a session parameter needs to be closed or not (i.e. if it's final).
+                        }
+                        catch (SemanticException se) // noalias session method parameters.
+                        {
+                            tc.setSession(sjname, ce.getActive(sjname));
+
+                            break;
+                        }
+                    }
+                } else {
+                    SJNamedInstance ni = getSocket(sjname); // Socket is in context.
+
+                    tc.setSession(sjname, ni.sessionType()); // Should be SJUnknownType.
+
+                    break;
+                }
+            }
+
+            sjnames.add(sjname);
+        }
 		
 		tc.setSessions(sjnames);
 		
@@ -330,15 +329,14 @@ public class SJContext_c extends SJContext
 		tc.clearSessions(); // No need to clear services.
 		
 		List<String> sjnames = new LinkedList<String>();
-		
-		for (Iterator i = st.targets().iterator(); i.hasNext(); )
-		{
-			String sjname = ((SJServerVariable) i.next()).sjname();								
-			
-			tc.setService(sjname, getServer(sjname).sessionType()); // Should be SJUnknownType.
-			
-			sjnames.add(sjname);
-		}		
+
+        for (Object o : st.targets()) {
+            String sjname = ((SJServerVariable) o).sjname();
+
+            tc.setService(sjname, getServer(sjname).sessionType()); // Should be SJUnknownType.
+
+            sjnames.add(sjname);
+        }
 		
 		tc.setServers(sjnames);
 		
@@ -434,9 +432,8 @@ public class SJContext_c extends SJContext
 		for (String sjname : sjnames)
 		{
 			SJSessionType st = current.getActive(sjname);
-			SJLabel lab = r.label();
-			
-			openSession(sjname, ((SJRecursionType) st).body());
+
+            openSession(sjname, ((SJRecursionType) st).body());
 		}
 	}
 	
