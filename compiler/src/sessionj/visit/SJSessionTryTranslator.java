@@ -106,19 +106,6 @@ public class SJSessionTryTranslator extends SJSessionVisitor
             }
         }
 
-        for (Object o : st.targets()) {
-            SJLocalSocket ls = (SJLocalSocket) o;
-
-            try {
-                sjcontext.findSocket(ls.sjname());
-
-                sockets.add(sjnf.Local(ls.position(), ls.id())); // noalias session method parameters are registered as sockets when the MethodBody context is pushed.
-            }
-            catch (SemanticException se) {
-                // Session is a na-final session method parameter. Even if the argument actually passed is noalias, we don't need to close here because the argument isn't nulled at the Call, so the original close will be invoked.
-            }
-        }
-
 		if (sockets.size() > 0)
 		{
 			Position pos = st.position();		
