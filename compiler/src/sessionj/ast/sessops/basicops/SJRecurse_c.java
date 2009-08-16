@@ -1,18 +1,19 @@
 package sessionj.ast.sessops.basicops;
 
-import java.util.List;
-
-import polyglot.ast.*;
 import polyglot.util.Position;
+import static sessionj.SJConstants.SJ_SOCKET_RECURSE;
+import sessionj.ast.SJNodeFactory;
 import sessionj.util.SJLabel;
+
+import java.util.List;
 
 public class SJRecurse_c extends SJBasicOperation_c implements SJRecurse 
 {	
 	private SJLabel lab;
 	
-	public SJRecurse_c(Position pos, Receiver target, Id name, List arguments, List targets, SJLabel lab)
+	public SJRecurse_c(Position pos, SJNodeFactory nf, List arguments, List targets, SJLabel lab)
 	{
-		super(pos, target, name, arguments, targets);
+		super(pos, nf, SJ_SOCKET_RECURSE, arguments, targets);
 		
 		this.lab = lab;
 	}

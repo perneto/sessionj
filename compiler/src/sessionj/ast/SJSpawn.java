@@ -1,12 +1,9 @@
 package sessionj.ast;
 
-import java.util.List;
-
 import polyglot.ast.Call;
-
-import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.types.sesstypes.SJSessionType;
-import sessionj.util.*;
+
+import java.util.List;
 
 /**
  * 

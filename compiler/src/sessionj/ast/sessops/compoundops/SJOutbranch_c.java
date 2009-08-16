@@ -1,11 +1,11 @@
 package sessionj.ast.sessops.compoundops;
 
-import java.util.List;
-
-import polyglot.ast.*;
+import polyglot.ast.Block_c;
+import polyglot.ast.Receiver;
 import polyglot.util.Position;
-
 import sessionj.util.SJLabel;
+
+import java.util.List;
 
 public class SJOutbranch_c extends Block_c implements SJOutbranch
 {
@@ -13,7 +13,7 @@ public class SJOutbranch_c extends Block_c implements SJOutbranch
 	
 	private SJLabel lab;
 
-	public SJOutbranch_c(Position pos, List statements, SJLabel lab, List targets)
+	public SJOutbranch_c(Position pos, List statements, SJLabel lab, List<Receiver> targets)
 	{
 		super(pos, statements);
 

@@ -3,10 +3,12 @@
  */
 package sessionj.types.contexts;
 
-import java.util.*;
+import sessionj.types.sesstypes.SJSessionType;
+import sessionj.types.sesstypes.SJUnknownType;
+import sessionj.types.typeobjects.SJNamedInstance;
 
-import sessionj.types.sesstypes.*;
-import sessionj.types.typeobjects.*;
+import java.util.HashMap;
+import java.util.Set;
 
 /**
  * @author Raymond
@@ -89,7 +91,9 @@ public class SJContextElement_c implements SJContextElement
 	
 	public SJSessionType getActive(String sjname)
 	{
-		return active.get(sjname);
+		SJSessionType t = active.get(sjname);
+        System.out.println("type: [" + t + "]");
+        return t;
 	}
 	
 	public SJSessionType getImplemented(String sjname)

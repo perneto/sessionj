@@ -45,6 +45,9 @@
     <!-- distribution directory -->
     <property name="dist" location="${basedir}/dist" />
 
+    <property name="unittest.src" location="${basedir}/tests/unit"/>
+    <property name="unittest.classes" location="${basedir}/tests/unit-classes"/>
+
     <property name="compiler.sh" location="${bin.dir}/${compiler.name}"/>
     <property name="compiler.bat" location="${bin.dir}/${compiler.name}.bat"/>
     <property name="interp.sh" location="${bin.dir}/${interp.sh.name}"/>
@@ -445,5 +448,26 @@
         <antcall target="compile-ext" />
     </target>
 
+    <taskdef name="testng" classpathref="standard.classpath"
+              classname="org.testng.TestNGAntTask" />
+
+    <target name="compile-unittest">
+        <mkdir dir="${unittest.classes}" />
+        <javac source="1.5" target="1.5" srcdir="${unittest.src}" destdir="${unittest.classes}" debug="on">
+            <classpath refid="standard.classpath" />
+        </javac>
+    </target>
+
+    <target name="unittest" depends="compile-unittest,compile-all">
+        <path id="unittests.classpath">
+            <pathelement location="${runtime.classes}"/>
+            <pathelement location="${compiler.classes}"/>
+            <pathelement location="${unittest.classes}"/>
+        </path>
+        <testng verbose="2" classpathref="unittests.classpath">
+            <classfileset dir="${unittest.classes}" includes="**/*.class"/>
+        </testng>
+     </target>
+     
 </project>
 

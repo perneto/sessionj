@@ -1,27 +1,37 @@
 package sessionj.ast;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.ExtensionInfo;
-import polyglot.types.*;
-import polyglot.util.*;
-
-import sessionj.ast.createops.*;
-import sessionj.ast.noalias.*;
-import sessionj.ast.protocoldecls.*;
-import sessionj.ast.chanops.*;
-import sessionj.ast.sesscasts.*;
-import sessionj.ast.sessformals.*;
+import polyglot.types.Flags;
+import polyglot.util.Position;
+import sessionj.ast.chanops.SJRequest;
+import sessionj.ast.createops.SJChannelCreate;
+import sessionj.ast.createops.SJServerCreate;
+import sessionj.ast.createops.SJSocketCreate;
+import sessionj.ast.noalias.SJAmbNoAliasTypeNode;
+import sessionj.ast.noalias.SJNoAliasArrayTypeNode;
+import sessionj.ast.noalias.SJNoAliasCanonicalTypeNode;
+import sessionj.ast.protocoldecls.SJFieldProtocolDecl;
+import sessionj.ast.protocoldecls.SJLocalProtocolDecl;
+import sessionj.ast.servops.SJAccept;
+import sessionj.ast.sesscasts.SJAmbiguousCast;
+import sessionj.ast.sesscasts.SJChannelCast;
+import sessionj.ast.sesscasts.SJSessionCast;
+import sessionj.ast.sessformals.SJChannelFormal;
+import sessionj.ast.sessformals.SJSessionFormal;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.servops.*;
-import sessionj.ast.sesstry.*;
-import sessionj.ast.sessvars.*;
+import sessionj.ast.sesstry.SJAmbiguousTry;
+import sessionj.ast.sesstry.SJServerTry;
+import sessionj.ast.sesstry.SJSessionTry;
+import sessionj.ast.sessvars.SJLocalChannel;
+import sessionj.ast.sessvars.SJLocalServer;
+import sessionj.ast.sessvars.SJLocalSocket;
 import sessionj.ast.typenodes.*;
-//import sessionj.del.*;
-import sessionj.extension.*;
+import sessionj.extension.SJExtFactory;
 import sessionj.util.SJLabel;
+
+import java.util.List;
 
 /**
  * NodeFactory for sessionj extension.
@@ -72,26 +82,25 @@ public interface SJNodeFactory extends NodeFactory
 	public SJSend SJSend(Position pos, List arguments, List targets);
 	public SJPass SJPass(Position pos, List arguments, List targets);
 	public SJCopy SJCopy(Position pos, List arguments, List targets);
-	public SJReceive SJReceive(Position pos, List arguments, List targets);
-	public SJReceive SJReceiveInt(Position pos, List arguments, List targets);
-	public SJReceive SJReceiveBoolean(Position pos, List arguments, List targets);
-	public SJReceive SJReceiveDouble(Position pos, List arguments, List targets);
+	public SJReceive SJReceive(Position pos, List<Expr> arguments, List targets);
+	public SJReceive SJReceiveInt(Position pos, List<Expr> arguments, List targets);
+	public SJReceive SJReceiveBoolean(Position pos, List<Expr> arguments, List targets);
+	public SJReceive SJReceiveDouble(Position pos, List<Expr> arguments, List targets);
 	public SJRecurse SJRecurse(Position pos, SJLabel lab, List targets);
 	
 	public SJSpawn SJSpawn(Position pos, New w, List targets);
 	
 	public SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets);
 	public SJInlabel SJInlabel(Position pos, List arguments, List targets);
-	public SJInsync SJInsync(Position pos, List arguments, List targets);
 	public SJRecursionEnter SJRecursionEnter(Position pos, List targets);
 	public SJRecursionExit SJRecursionExit(Position pos, List targets);
 	
-	public SJOutbranch SJOutbranch(Position pos, List stmts, SJLabel lab, List targets);
+	public SJOutbranch SJOutbranch(Position pos, List<Stmt> stmts, SJLabel lab, List<Receiver> targets);
 	public SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets);
 	public SJInbranchCase SJInbranchCase(Position pos, List stmts, SJLabel lab);
 	public SJOutwhile SJOutwhile(Position pos, Expr condition, Stmt body, List targets);
 	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition);
-	public SJInwhile SJInwhile(Position pos, List arguments, Stmt body, List targets);
+	public SJInwhile SJInwhile(Position pos, Stmt body, List targets);
 	//public SJRecursion SJRecursion(SJTypeSystem ts, Position pos, List stmts, SJLabel lab, List targets);
 	public SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets);
 	

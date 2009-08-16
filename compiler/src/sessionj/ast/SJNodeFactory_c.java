@@ -1,34 +1,40 @@
 package sessionj.ast;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.ExtensionInfo;
-import polyglot.qq.*;
-import polyglot.types.*;
-import polyglot.util.*;
-
+import polyglot.qq.QQ;
+import polyglot.types.Flags;
+import polyglot.util.Position;
 import sessionj.SJConstants;
-import sessionj.ast.noalias.*;
-import sessionj.ast.protocoldecls.*;
+import static sessionj.SJConstants.*;
+import sessionj.ast.chanops.SJRequest;
+import sessionj.ast.chanops.SJRequest_c;
 import sessionj.ast.createops.*;
-import sessionj.ast.chanops.*;
+import sessionj.ast.noalias.*;
+import sessionj.ast.protocoldecls.SJFieldProtocolDecl;
+import sessionj.ast.protocoldecls.SJFieldProtocolDecl_c;
+import sessionj.ast.protocoldecls.SJLocalProtocolDecl;
+import sessionj.ast.protocoldecls.SJLocalProtocolDecl_c;
+import sessionj.ast.servops.SJAccept;
+import sessionj.ast.servops.SJAccept_c;
 import sessionj.ast.sesscasts.*;
-import sessionj.ast.sessformals.*;
-import sessionj.ast.sessops.*;
-import sessionj.ast.servops.*;
+import sessionj.ast.sessformals.SJChannelFormal;
+import sessionj.ast.sessformals.SJChannelFormal_c;
+import sessionj.ast.sessformals.SJSessionFormal;
+import sessionj.ast.sessformals.SJSessionFormal_c;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sesstry.*;
 import sessionj.ast.sessvars.*;
 import sessionj.ast.typenodes.*;
-//import sessionj.del.*;
-import sessionj.extension.*;
-import sessionj.types.SJTypeSystem;
-import sessionj.util.*;
+import sessionj.extension.SJExtFactory;
+import sessionj.extension.SJExtFactory_c;
+import static sessionj.util.SJCompilerUtils.setSJNoAliasFinalExt;
+import sessionj.util.SJLabel;
 
-import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * NodeFactory for sessionj extension.
@@ -72,28 +78,22 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	
 	public SJAmbNoAliasTypeNode SJAmbNoAliasTypeNode(Position pos, AmbTypeNode atn)
 	{
-		SJAmbNoAliasTypeNode n = new SJAmbNoAliasTypeNode_c(pos, atn);
-
-		// n = (SJAmbNoAliasTypeNode) n.ext(extFactory().SJNoAliasExt()); // No
+        // n = (SJAmbNoAliasTypeNode) n.ext(extFactory().SJNoAliasExt()); // No
 		// point: is discarded by disambiguation pass, and is not actually needed
 		// before then. So is now made and attached to the (new unambiguous) node by
 		// the disambiguation pass.
 
-		return n;
+		return new SJAmbNoAliasTypeNode_c(pos, atn);
 	}
 
 	public SJNoAliasArrayTypeNode SJNoAliasArrayTypeNode(Position pos, ArrayTypeNode atn)
 	{
-		SJNoAliasArrayTypeNode n = new SJNoAliasArrayTypeNode_c(pos, atn);
-
-		return n;
+        return new SJNoAliasArrayTypeNode_c(pos, atn);
 	}
 
 	public SJNoAliasCanonicalTypeNode SJNoAliasCanonicalTypeNode(Position pos, CanonicalTypeNode ctn)
 	{
-		SJNoAliasCanonicalTypeNode n = new SJNoAliasCanonicalTypeNode_c(pos, ctn);
-
-		return n;
+        return new SJNoAliasCanonicalTypeNode_c(pos, ctn);
 	}
 	
 	public SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoAlias)
@@ -194,11 +194,9 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_CHANNEL_TYPE);
 		Id name = Id(pos, SJ_CHANNEL_CREATE);
 
-		SJChannelCreate n = new SJChannelCreate_c(pos, target, name, arguments);
-
-		//return (SJChannelCreate) n.ext(extFactory().SJCreateOperationExt());
+        //return (SJChannelCreate) n.ext(extFactory().SJCreateOperationExt());
 		
-		return n;
+		return new SJChannelCreate_c(pos, target, name, arguments);
 	}
 
 	public SJSocketCreate SJSocketCreate(Position pos, List arguments)
@@ -206,11 +204,9 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_SOCKET_INTERFACE_TYPE);
 		Id name = Id(pos, SJ_SOCKET_CREATE);
 
-		SJSocketCreate n = new SJSocketCreate_c(pos, target, name, arguments);
-
-		//return (SJSocketCreate) n.ext(extFactory().SJCreateOperationExt());
+        //return (SJSocketCreate) n.ext(extFactory().SJCreateOperationExt());
 		
-		return n;
+		return new SJSocketCreate_c(pos, target, name, arguments);
 	}	
 	
 	public SJServerCreate SJServerCreate(Position pos, List arguments)
@@ -218,163 +214,90 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_SERVER_TYPE);
 		Id name = Id(pos, SJ_SERVER_CREATE);
 
-		SJServerCreate n = new SJServerCreate_c(pos, target, name, arguments);
-
-		//return (SJServerCreate) n.ext(extFactory().SJCreateOperationExt());
+        //return (SJServerCreate) n.ext(extFactory().SJCreateOperationExt());
 		
-		return n;
+		return new SJServerCreate_c(pos, target, name, arguments);
 	}
 	
 	public SJLocalChannel SJLocalChannel(Position pos, Id name)
 	{
-		SJLocalChannel lc = new SJLocalChannel_c(pos, name);
-		
-		return lc;
+        return new SJLocalChannel_c(pos, name);
 	}
 	
 	public SJLocalSocket SJLocalSocket(Position pos, Id name)
 	{
-		SJLocalSocket ls = new SJLocalSocket_c(pos, name);
-		
-		return ls;		
+        return new SJLocalSocket_c(pos, name);
 	}
 
 	public SJLocalServer SJLocalServer(Position pos, Id name)
 	{
-		SJLocalServer ls = new SJLocalServer_c(pos, name);
-		
-		return ls;		
+        return new SJLocalServer_c(pos, name);
 	}
 	
 	public SJAmbiguousTry SJAmbiguousTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets)
 	{
-		SJAmbiguousTry n = new SJAmbiguousTry_c(pos, tryBlock, catchBlocks, finallyBlock, targets);
-		
-		return n;
+        return new SJAmbiguousTry_c(pos, tryBlock, catchBlocks, finallyBlock, targets);
 	}
 	
 	public SJSessionTry SJSessionTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets)
 	{
-		SJSessionTry n = new SJSessionTry_c(pos, tryBlock, catchBlocks, finallyBlock, targets);
-		
-		return n;
+        return new SJSessionTry_c(pos, tryBlock, catchBlocks, finallyBlock, targets);
 	}
 	
 	public SJServerTry SJServerTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets)
 	{
-		SJServerTry n = new SJServerTry_c(pos, tryBlock, catchBlocks, finallyBlock, targets);
-		
-		return n;
+        return new SJServerTry_c(pos, tryBlock, catchBlocks, finallyBlock, targets);
 	}
 	
 	public SJRequest SJRequest(Position pos, Receiver target, List arguments)
 	{	
-		Id name = Id(pos, SJ_CHANNEL_REQUEST);				  
-		
-		SJRequest n = new SJRequest_c(pos, target, name, arguments);
-		
-		return n;
+		Id name = Id(pos, SJ_CHANNEL_REQUEST);
+
+        return new SJRequest_c(pos, target, name, arguments);
 	}
 	
 	public SJSend SJSend(Position pos, List arguments, List targets)
-	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_SEND); // FIXME: the name shouldn't associated with the socket but rather the runtime.						
-				
-		arguments.add(0, makeSocketsArray(pos, targets.size()));   
-		
-		SJSend n = new SJSend_c(pos, target, name, arguments, targets);
-		
-		return n;
+	{	 
+        // FIXME: the name shouldn't associated with the socket but rather the runtime.
+		return new SJSend_c(pos, this, arguments, targets);
 	}
 	
 	public SJPass SJPass(Position pos, List arguments, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_PASS);						
-				
-		arguments.add(0, makeSocketsArray(pos, targets.size()));   
-		
-		SJPass n = new SJPass_c(pos, target, name, arguments, targets);
-		
-		return n;
+		return new SJPass_c(pos, this, SJ_SOCKET_PASS, arguments, targets);
 	}
 	
 	public SJCopy SJCopy(Position pos, List arguments, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_COPY);						
-				
-		arguments.add(0, makeSocketsArray(pos, targets.size()));   
-		
-		SJCopy n = new SJCopy_c(pos, target, name, arguments, targets);
-		
-		return n;
+		return new SJCopy_c(pos, this, arguments, targets);
 	}
 	
 	// This is called by SJSessionOperationParser, not the parser, so the target has already been disambiguated and the ArrayInit could be created directly here.
-	public SJReceive SJReceive(Position pos, List arguments, List targets)
+	public SJReceive SJReceive(Position pos, List<Expr> arguments, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_RECEIVE);	
-		
-		arguments.add(0, makeSocketsArray(pos, targets.size()));
-		
-		SJReceive n = new SJReceive_c(pos, target, name, arguments, targets);
-		
-		return n;
+		return new SJReceive_c(pos, this, SJ_SOCKET_RECEIVE, arguments, targets);
 	}	
 
-	public SJReceive SJReceiveInt(Position pos, List arguments, List targets) // FIXME: a bit hacky when it comes to type building - need to explicitly distinguish primitive and object type usage of the single SJReceive node class. 
+	public SJReceive SJReceiveInt(Position pos, List<Expr> arguments, List targets)
+    // FIXME: a bit hacky when it comes to type building - need to explicitly distinguish primitive
+    // and object type usage of the single SJReceive node class. 
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_RECEIVEINT);	
-		
-		arguments.add(0, makeSocketsArray(pos, targets.size()));
-		
-		SJReceive n = new SJReceive_c(pos, target, name, arguments, targets);
-		
-		return n;
+		return new SJReceive_c(pos, this, SJ_SOCKET_RECEIVEINT, arguments, targets);
 	}	
 	
-	public SJReceive SJReceiveBoolean(Position pos, List arguments, List targets)
+	public SJReceive SJReceiveBoolean(Position pos, List<Expr> arguments, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_RECEIVEBOOLEAN);	
-		
-		arguments.add(0, makeSocketsArray(pos, targets.size()));
-		
-		SJReceive n = new SJReceive_c(pos, target, name, arguments, targets);
-		
-		return n;
+		return new SJReceive_c(pos, this, SJ_SOCKET_RECEIVEBOOLEAN, arguments, targets);
 	}
 	
-	public SJReceive SJReceiveDouble(Position pos, List arguments, List targets)
+	public SJReceive SJReceiveDouble(Position pos, List<Expr> arguments, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_RECEIVEDOUBLE);	
-		
-		arguments.add(0, makeSocketsArray(pos, targets.size()));
-		
-		SJReceive n = new SJReceive_c(pos, target, name, arguments, targets);
-		
-		return n;
+		return new SJReceive_c(pos, this, SJ_SOCKET_RECEIVEDOUBLE, arguments, targets);
 	}
 	
-	//public SJRecurse SJRecurse(Position pos, List arguments, List targets)
-	public SJRecurse SJRecurse(Position pos, SJLabel lab, List targets)
+	public SJRecurse SJRecurse(final Position pos, final SJLabel lab, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_RECURSE);						
-				
-		List arguments = new LinkedList();
-		
-		arguments.add(0, makeSocketsArray(pos, targets.size())); 
-		arguments.add(1, StringLit(pos, lab.labelValue()));
-		
-		SJRecurse n = new SJRecurse_c(pos, target, name, arguments, targets, lab);
-		
-		return n;
+		return new SJRecurse_c(pos, this, asLinkedList(StringLit(pos, lab.labelValue())), targets, lab);
 	}
 
 	public SJSpawn SJSpawn(Position pos, New w, List targets)
@@ -387,147 +310,85 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		{
 			arguments.add(i.next());
 		}*/
+
+        //n = (SJSpawn) n.del(sjdf.SJSpawnDel()); // Had some type checking problems (because new arguments are inserted) due to a previously missing but needed barrier between SJThreadParsing (generate the target spawn method in the SJThread and build types for the class) and SJSessionOperationParsing (translate the spawn call and type check against the target method).
 		
-		SJSpawn n = new SJSpawn_c(pos, w, name, arguments, targets);
-		
-		//n = (SJSpawn) n.del(sjdf.SJSpawnDel()); // Had some type checking problems (because new arguments are inserted) due to a previously missing but needed barrier between SJThreadParsing (generate the target spawn method in the SJThread and build types for the class) and SJSessionOperationParsing (translate the spawn call and type check against the target method).
-		
-		return n;
+		return new SJSpawn_c(pos, w, name, arguments, targets);
 	}
-	
-	public SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets)
+
+    private <T> List<T> asLinkedList(T... elem) {
+        List<T> l = new LinkedList<T>();
+        Collections.addAll(l, elem);
+        return l;
+    }
+
+	public SJOutlabel SJOutlabel(final Position pos, final SJLabel lab, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_OUTLABEL);						
-				
-		List arguments = new LinkedList();
-		
-		arguments.add(makeSocketsArray(pos, targets.size()));
-		arguments.add(StringLit(pos, lab.labelValue()));
-		
-		SJOutlabel n = new SJOutlabel_c(pos, target, name, arguments, targets);
-		
-		return n;
+		return new SJOutlabel_c(pos, this, asLinkedList(StringLit(pos, lab.labelValue())), targets);
 	}
 	
 	public SJInlabel SJInlabel(Position pos, List arguments, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_INLABEL);						
-				
-		arguments.add(0, makeSocketsArray(pos, targets.size()));   
-		
-		SJInlabel n = new SJInlabel_c(pos, target, name, arguments, targets);
-		
-		return n;
+		return new SJInlabel_c(pos, this, arguments, targets);
 	}
 	
-	public SJOutsync SJOutsync(Position pos, Expr condition, List targets)
+	public SJOutsync SJOutsync(Position pos, final Expr condition, List targets)
 	{	
-		List arguments = new LinkedList();
-        arguments.add(condition);
-        arguments.add(makeSocketsArray(pos, targets.size()));
-
-        return new SJOutsync_c(this, pos, arguments, targets);
+		return new SJOutsync_c(this, pos, asLinkedList(condition), targets);
 	}
 	
-	public SJInsync SJInsync(Position pos, List arguments, List targets)
-	{	
-		arguments.add(0, makeSocketsArray(pos, targets.size()));
-
-        return new SJInsync_c(this, pos, arguments, targets);
+	private SJInsync SJInsync(Position pos, List targets)
+	{
+		return new SJInsync_c(this, pos, targets);
 	}
 	
 	public SJRecursionEnter SJRecursionEnter(Position pos, List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_RECURSIONENTER);						
-				
-		List arguments = new LinkedList();
-		
-		arguments.add(0, makeSocketsArray(pos, targets.size()));   
-		
-		SJRecursionEnter n = new SJRecursionEnter_c(pos, target, name, arguments, targets);
-		
-		return n;
+		return new SJRecursionEnter_c(pos, this, SJ_SOCKET_RECURSIONENTER, targets);
 	}
 	
-	public SJRecursionExit SJRecursionExit(Position pos, List targets)
+	public SJRecursionExit SJRecursionExit(Position pos, final List targets)
 	{	
-		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SOCKET_RECURSIONEXIT);						
-				
-		List arguments = new LinkedList();
-		
-		if (targets.size() > 1) // Hacky? SJCompoundOperationTranslator currently needs to come after SJUnicastOptimiser.
-		{
-			NewArray na = makeSocketsArray(pos, targets.size());
-			
-			ArrayInit ai = ArrayInit(pos, targets); // Duplicated from SJSessionParser, SJRecursionExit only used by SJCompoundOperationTranslator - i.e. targets already disambiguated. 
-			
-			na = na.init(ai);
-			na = na.dims(Collections.EMPTY_LIST); 
-			na = na.additionalDims(1); // Factor out constant?		
-			
-			arguments.add(0, na);
-		}
-		else
-		{
-			arguments.add(targets.get(0));
-		}
-		
-		SJRecursionExit n = new SJRecursionExit_c(pos, target, name, arguments, targets);
-		
-		return n;
+		return new SJRecursionExit_c(pos, this, SJ_SOCKET_RECURSIONEXIT, targets);
 	}
 		
-	public SJOutbranch SJOutbranch(Position pos, List stmts, SJLabel lab, List targets)
+	public SJOutbranch SJOutbranch(final Position pos, final List<Stmt> stmts, SJLabel lab, List<Receiver> targets)
 	{
-		SJOutlabel os = SJOutlabel(pos, lab, targets); 
+		final SJOutlabel os = SJOutlabel(pos, lab, targets);
 		
-		List foo = new LinkedList();
+		List<Stmt> stmtList = new LinkedList<Stmt>() {{
+            add(Eval(pos, os));
+            addAll(stmts);                    
+        }};
 		
-		foo.add(Eval(pos, os));
-		foo.addAll(stmts);
-		
-		SJOutbranch n = new SJOutbranch_c(pos, foo, lab, targets);
-
-		//n = (SJOutbranch) n.del(delFactory().SJStructuralOperationDel());
-		//n = (SJOutbranch) n.ext(extFactory().SJStructuralOperationExt(target));
-		
-		return n;
+		return new SJOutbranch_c(pos, stmtList, lab, targets);
 	}
 	
 	public SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets)
 	{
 		SJInlabel il = SJInlabel(pos, arguments, targets);
-		
-		SJInbranch ib = new SJInbranch_c(pos, branchCases, il);
-		
-		return ib;
+
+        return new SJInbranch_c(pos, branchCases, il);
 	}
 	
 	public SJInbranchCase SJInbranchCase(Position pos, List stmts, SJLabel lab)
 	{
-		SJInbranchCase ibc = new SJInbranchCase_c(pos, stmts, lab);
-		
-		return ibc;
+        return new SJInbranchCase_c(pos, stmts, lab);
 	}
 	
 	public SJOutwhile SJOutwhile(Position pos, Expr condition, Stmt body, List targets)
 	{
-		SJOutsync os = SJOutsync(pos, condition, targets); 		
-		SJOutwhile n = new SJOutwhile_c(pos, os, body, targets);
+		SJOutsync os = SJOutsync(pos, condition, targets);
 
-		//n = (SJOutwhile) n.del(delFactory().SJStructuralOperationDel());
+        //n = (SJOutwhile) n.del(delFactory().SJStructuralOperationDel());
 		//n = (SJOutwhile) n.ext(extFactory().SJStructuralOperationExt(target));
 
-		return n;
+		return new SJOutwhile_c(pos, os, body, targets);
 	}
 
 	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition)
 	{
-		SJInsync is = SJInsync(pos, new LinkedList(), sources); // Factor out constants.
+		SJInsync is = SJInsync(pos, sources); // Factor out constants.
 		SJOutsync os = SJOutsync(pos, is, targets);
         Expr completeCond;
         if (condition != null) {
@@ -541,22 +402,17 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
         return new SJOutInwhile_c(pos, completeCond, body, all);
 	}
 	
-	public SJInwhile SJInwhile(Position pos, List arguments, Stmt body, List targets)
+	public SJInwhile SJInwhile(Position pos, Stmt body, List targets)
 	{
-		SJInsync is = SJInsync(pos, arguments, targets);		
-		SJInwhile n = new SJInwhile_c(pos, is, body, targets);
-
-		//n = (SJInwhile) n.del(delFactory().SJStructuralOperationDel());
-		//n = (SJInwhile) n.ext(extFactory().SJStructuralOperationExt(target));
-
-		return n;
+		SJInsync is = SJInsync(pos, targets);
+        return new SJInwhile_c(pos, is, body, targets);
 	}
 
 	public SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets) // Inconvenient to ...
 	{
 		QQ qq = new QQ(extInfo, pos);
 		
-		String translation = null;
+		String translation;
 		List<Object> mapping = new LinkedList<Object>();
 		
 		translation = "for ( ; new Boolean(false).booleanValue(); ) { }"; // Dummy condition later replaced by SJCompoundOperationTranslator. Used because we cannot give the intended loop-variable the correct name yet (targets are ambiguous). 
@@ -571,40 +427,33 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		Eval e = (Eval) qq.parseStmt(translation, mapping.toArray());
 		
 		body = body.prepend(e);
-		
-		SJRecursion n = new SJRecursion_c(pos, f.inits(), f.cond(), body, lab, targets);
 
-		return n;
+        return new SJRecursion_c(pos, f.inits(), f.cond(), body, lab, targets);
 	}
 	
 	public SJAccept SJAccept(Position pos, Receiver target, List arguments)
 	{	
-		Id name = Id(pos, SJ_SERVER_ACCEPT);				  
-		
-		SJAccept n = new SJAccept_c(pos, target, name, arguments);
-		
-		return n;
+		Id name = Id(pos, SJ_SERVER_ACCEPT);
+
+        return new SJAccept_c(pos, target, name, arguments);
 	}	
 
 	public SJChannelCast SJChannelCast(Position pos, Expr expr, SJTypeNode tn)
 	{
-		SJChannelCast n = new SJChannelCast_c(pos, CanonicalTypeNode(pos, SJConstants.SJ_CHANNEL_TYPE), expr, tn);
-		
-		return n;
+
+        return new SJChannelCast_c(pos, CanonicalTypeNode(pos, SJConstants.SJ_CHANNEL_TYPE), expr, tn);
 	}
 	
 	public SJSessionCast SJSessionCast(Position pos, Expr expr, SJTypeNode tn)
 	{
-		SJSessionCast n = new SJSessionCast_c(pos, CanonicalTypeNode(pos, SJConstants.SJ_SOCKET_INTERFACE_TYPE), expr, tn);
-		
-		return n;
+
+        return new SJSessionCast_c(pos, CanonicalTypeNode(pos, SJConstants.SJ_SOCKET_INTERFACE_TYPE), expr, tn);
 	}
 	
 	public SJAmbiguousCast SJAmbiguousCast(Position pos, Expr expr, SJTypeNode tn)
 	{
-		SJAmbiguousCast n = new SJAmbiguousCast_c(pos, CanonicalTypeNode(pos, SJConstants.SJ_CHANNEL_SOCKET_HACK_TYPE), expr, tn);
-		
-		return n;
+
+        return new SJAmbiguousCast_c(pos, CanonicalTypeNode(pos, SJConstants.SJ_CHANNEL_SOCKET_HACK_TYPE), expr, tn);
 	}
 	
 	public SJChannelFormal SJChannelFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias) // Based on SJSessionFormal. 
@@ -637,19 +486,9 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		
 		return n;
 	}*/
-	
-	
-	private NewArray makeSocketsArray(Position pos, int size)
-	{
-		CanonicalTypeNode base = CanonicalTypeNode(pos, SJ_SOCKET_INTERFACE_TYPE);
-		
-		List<Expr> dims = new LinkedList<Expr>();
-		dims.add(IntLit(pos, IntLit.INT, size));
-		
-		return NewArray(pos, base, dims, 0, null); // Cannot add actual targets (sockets) to an ArrayInit until after disambiguation, when the targets are resolved from Receivers to Exprs.		
-	}
-	
-	private TypeNode convertToNoAliasTypeNode(TypeNode tn, boolean isFinal)
+
+
+    private TypeNode convertToNoAliasTypeNode(TypeNode tn, boolean isFinal)
 	{		
 		if (tn instanceof AmbTypeNode)
 		{

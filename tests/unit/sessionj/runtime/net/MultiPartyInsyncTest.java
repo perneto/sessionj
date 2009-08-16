@@ -112,25 +112,25 @@ public class MultiPartyInsyncTest {
     }
 
     @BeforeTest
-    void createSockets() {
+    public void createSockets() {
         sockContinue = new DummySocket(true);
         sockStop = new DummySocket(false);
     }
 
     @Test
-    void allSocketsContinue() throws SJIOException {
+    public void allSocketsContinue() throws SJIOException {
         sockets = new SJSocket[] {sockContinue, sockContinue, sockContinue};
         assert SJRuntime.insync(sockets);
     }
 
     @Test
-    void allSocketsStop() throws SJIOException {
+    public void allSocketsStop() throws SJIOException {
         sockets = new SJSocket[] {sockStop, sockStop, sockStop};
         assert !SJRuntime.insync(sockets);
     }
 
     @Test(expectedExceptions = SJIOException.class)
-    void oneSocketStopOthersContinue() throws SJIOException {
+    public void oneSocketStopOthersContinue() throws SJIOException {
         sockets = new SJSocket[] {sockStop, sockContinue, sockStop};
         SJRuntime.insync(sockets);
     }

@@ -1,24 +1,31 @@
 package sessionj.visit;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.Job;
-import polyglot.types.*;
-import polyglot.qq.*;
-import polyglot.util.*;
-import polyglot.visit.*;
-
-import sessionj.ast.*;
-import sessionj.ast.sessvars.SJSocketVariable;
-import sessionj.ast.sessops.basicops.*;
-import sessionj.ast.sessops.compoundops.*;
+import polyglot.qq.QQ;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
+import polyglot.util.Position;
+import polyglot.visit.ContextVisitor;
+import polyglot.visit.NodeVisitor;
+import static sessionj.SJConstants.*;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.sessops.basicops.SJRecurse;
+import sessionj.ast.sessops.compoundops.SJCompoundOperation;
+import sessionj.ast.sessops.compoundops.SJInbranch;
+import sessionj.ast.sessops.compoundops.SJInbranchCase;
+import sessionj.ast.sessops.compoundops.SJRecursion;
 import sessionj.extension.sessops.SJSessionOperationExt;
 import sessionj.types.SJTypeSystem;
-import sessionj.util.*;
+import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
+import static sessionj.util.SJCompilerUtils.getSJSessionOperationExt;
+import sessionj.util.SJCounter;
+import sessionj.util.SJLabel;
 
-import static sessionj.SJConstants.*; 
-import static sessionj.util.SJCompilerUtils.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Stack;
 
 /**
  * 
@@ -95,11 +102,10 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 		translation += "%s = %E";
 		mapping.add(getRecursionBooleanName(getSJSessionOperationExt(r).sjnames(), r.label()));		
 		mapping.add(r);
+
+        //a = (Assign) buildAndCheckTypes(job(), this, a); // Can't build the types now because the assignment target variable is not in the context - but it will be built when we translate the outer(most) recursion statement.
 		
-		Assign a = (Assign) qq.parseExpr(translation, mapping.toArray());					
-		//a = (Assign) buildAndCheckTypes(job(), this, a); // Can't build the types now because the assignment target variable is not in the context - but it will be built when we translate the outer(most) recursion statement.  		
-		
-		return a;
+		return (Assign) qq.parseExpr(translation, mapping.toArray());
 	}
 	
 	private Stmt translateSJInbranch(SJInbranch ib) throws SemanticException 

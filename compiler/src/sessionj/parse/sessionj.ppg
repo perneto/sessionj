@@ -405,29 +405,17 @@ sj_try_statement ::=
 ;
 
 extend method_invocation ::= // Unicast basic operations done here. 
-	name:a DOT SJ_SEND:b LPAREN argument_list_opt:c RPAREN:d // Not sure why has to be name, doesn't work for primary. But should be OK to use name, session sockets can only be locals. 
+	name:tgt DOT SJ_SEND:b LPAREN argument_list_opt:arg RPAREN:end // Not sure why has to be name, doesn't work for primary. But should be OK to use name, session sockets can only be locals.
 	{: 
-		List targets = new LinkedList();
-
-		targets.add(a.toReceiver()); 
-
-		RESULT = parser.nf.SJSend(parser.pos(a, d), c, targets); 
+		RESULT = parser.nf.SJSend(parser.pos(tgt, end), arg, parser.asRecvList(tgt));
 	:}
 |	name:a DOT SJ_PASS:b LPAREN argument_list_opt:c RPAREN:d 
 	{: 
-		List targets = new LinkedList();
-	
-		targets.add(a.toReceiver()); 
-	
-		RESULT = parser.nf.SJPass(parser.pos(a, d), c, targets); 
+		RESULT = parser.nf.SJPass(parser.pos(a, d), c, parser.asRecvList(a));
 	:}
 |	name:a DOT SJ_COPY:b LPAREN argument_list_opt:c RPAREN:d 
 	{: 		
-		List targets = new LinkedList();
-	
-		targets.add(a.toReceiver()); 
-	
-		RESULT = parser.nf.SJCopy(parser.pos(a, d), c, targets); 
+		RESULT = parser.nf.SJCopy(parser.pos(a, d), c, parser.asRecvList(a));
 	:}
 | sj_receive_operation:a 
 	{: 		
@@ -448,11 +436,7 @@ extend method_invocation ::= // Unicast basic operations done here.
 //|	name:a DOT SJ_RECURSE LPAREN argument_list_opt:b RPAREN:c
 |	name:a DOT SJ_RECURSE LPAREN IDENTIFIER:b RPAREN:c
 	{: 	
-		List targets = new LinkedList();
-	
-		targets.add(a.toReceiver()); 
-	
-		RESULT = parser.nf.SJRecurse(parser.pos(a, c), new SJLabel(b.getIdentifier()), targets); 
+		RESULT = parser.nf.SJRecurse(parser.pos(a, c), new SJLabel(b.getIdentifier()), parser.asRecvList(a)); 
 	:}		
 |	name:a DOT SJ_SPAWN LPAREN class_instance_creation_expression:b RPAREN:c 	
 	{: 	
@@ -462,11 +446,7 @@ extend method_invocation ::= // Unicast basic operations done here.
 			throw new RuntimeException("[SJParser] Unsupported spawn target: " + b);
 		}
 		
-		List targets = new LinkedList();
-		
-		targets.add(a.toReceiver()); 
-		
-		RESULT = parser.nf.SJSpawn(parser.pos(a, c), (New) b, targets); 
+		RESULT = parser.nf.SJSpawn(parser.pos(a, c), (New) b, parser.asRecvList(a)); 
 	:}
 ;
 
@@ -502,9 +482,9 @@ sj_basic_operation ::= // For parsing the full multi-target operations, so recei
 ;
 
 sj_send_operation ::=
-	LT:a sj_socket_list:b GT DOT SJ_SEND LPAREN argument_list_opt:c RPAREN:d
+	LT:a sj_socket_list:tgtLst GT DOT SJ_SEND LPAREN argument_list_opt:arg RPAREN:d
 	{: 	
-		RESULT = parser.nf.SJSend(parser.pos(a, d), c, b); 
+		RESULT = parser.nf.SJSend(parser.pos(a, d), arg, tgtLst); 
 	:}
 ;
 
@@ -547,44 +527,28 @@ sj_spawn_operation ::=
 sj_receive_operation ::=
 	name:a DOT SJ_RECEIVE LPAREN argument_list_opt:b RPAREN:c // Using sj_socket doesn't seem to work?
 	{: 		
-		List targets = new LinkedList();
-	
-		targets.add(a.toReceiver());
-	
-		RESULT = parser.nf.SJReceive(parser.pos(a, c), b, targets);
+		RESULT = parser.nf.SJReceive(parser.pos(a, c), b, parser.asRecvList(a));
 	:}
 ;
 
 sj_receiveboolean_operation ::=
 	name:a DOT SJ_RECEIVEBOOLEAN LPAREN argument_list_opt:b RPAREN:c 
 	{: 		
-		List targets = new LinkedList();
-	
-		targets.add(a.toReceiver());
-	
-		RESULT = parser.nf.SJReceiveBoolean(parser.pos(a, c), b, targets);
+		RESULT = parser.nf.SJReceiveBoolean(parser.pos(a, c), b, parser.asRecvList(a));
 	:}
 ;
 
 sj_receivedouble_operation ::=
 	name:a DOT SJ_RECEIVEDOUBLE LPAREN argument_list_opt:b RPAREN:c 
 	{: 		
-		List targets = new LinkedList();
-	
-		targets.add(a.toReceiver());
-	
-		RESULT = parser.nf.SJReceiveDouble(parser.pos(a, c), b, targets);
+		RESULT = parser.nf.SJReceiveDouble(parser.pos(a, c), b, parser.asRecvList(a));
 	:}
 ;
 
 sj_receive_operation ::=
 	name:a DOT SJ_RECEIVEINT LPAREN argument_list_opt:b RPAREN:c // Using sj_socket doesn't seem to work?
 	{: 		
-		List targets = new LinkedList();
-	
-		targets.add(a.toReceiver());
-	
-		RESULT = parser.nf.SJReceiveInt(parser.pos(a, c), b, targets);
+		RESULT = parser.nf.SJReceiveInt(parser.pos(a, c), b, parser.asRecvList(a));
 	:}
 ;
 
@@ -663,22 +627,15 @@ sj_outbranch_statement ::=
 	:} 	
 |	name:a DOT SJ_OUTBRANCH LPAREN IDENTIFIER:b RPAREN block:c
 	{: 
-		List targets = new LinkedList();
-
-		targets.add(a.toReceiver());
-		
-		RESULT = parser.nf.SJOutbranch(parser.pos(a, c), c.statements(), new SJLabel(b.getIdentifier()), targets);
+		RESULT = parser.nf.SJOutbranch(parser.pos(a, c), c.statements(),
+		            new SJLabel(b.getIdentifier()), parser.asRecvList(a));
 	:}
 ;
 
 sj_inbranch_statement ::=
 	name:a DOT SJ_INBRANCH LPAREN argument_list_opt:b RPAREN LBRACE sj_inbranch_cases:c RBRACE:d
 	{: 
-		List targets = new LinkedList();
-
-		targets.add(a.toReceiver());
-		
-		RESULT = parser.nf.SJInbranch(parser.pos(a, d), b, c, targets); // Hacked position, for when no cases.
+		RESULT = parser.nf.SJInbranch(parser.pos(a, d), b, c, parser.asRecvList(a)); // Hacked position, for when no cases.
 	:}
 ;
 
@@ -713,11 +670,7 @@ sj_outwhile_statement ::=
 	:} 
 | name:a DOT SJ_OUTWHILE LPAREN expression:b RPAREN statement:c 
 	{: 
-		List targets = new LinkedList();
-
-		targets.add(a.toReceiver());
-		
-		RESULT = parser.nf.SJOutwhile(parser.pos(a, c), b, c, targets);
+		RESULT = parser.nf.SJOutwhile(parser.pos(a, c), b, c, parser.asRecvList(a));
 	:}  
 ;
 
@@ -742,21 +695,36 @@ sj_outinwhile_statement ::=
     {:
         RESULT = parser.nf.SJOutInwhile(parser.pos(lt, body), body, parser.asRecvList(src), tgtLst, cond);
     :}
-  // TODO: multi-source
+  // multi-targets, multi-source, no condition
+| LT:lt sj_socket_list:tgtLst GT DOT SJ_OUTWHILE LPAREN LT sj_socket_list:srcLst GT DOT SJ_INWHILE LPAREN RPAREN RPAREN statement:body
+    {:
+        RESULT = parser.nf.SJOutInwhile(parser.pos(lt, body), body, srcLst, tgtLst, null);
+    :}
+  // single target, multi-source, no condition
+| name:tgt DOT DOT SJ_OUTWHILE LPAREN LT sj_socket_list:srcLst GT DOT SJ_INWHILE LPAREN RPAREN SEMICOLON expression:cond RPAREN statement:body
+    {:
+        RESULT = parser.nf.SJOutInwhile(parser.pos(tgt, body), body, srcLst, parser.asRecvList(tgt), null);
+    :}
+  // multi-targets, multi-source, with condition
+| LT:lt sj_socket_list:tgtLst GT DOT SJ_OUTWHILE LPAREN LT sj_socket_list:srcLst GT DOT SJ_INWHILE LPAREN RPAREN SEMICOLON expression:cond RPAREN statement:body
+    {:
+        RESULT = parser.nf.SJOutInwhile(parser.pos(lt, body), body, srcLst, tgtLst, cond);
+    :}
+  // single target, multi-source, with condition
+| name:tgt DOT SJ_OUTWHILE LPAREN LT sj_socket_list:srcLst GT DOT SJ_INWHILE LPAREN RPAREN SEMICOLON expression:cond RPAREN statement:body
+    {:
+        RESULT = parser.nf.SJOutInwhile(parser.pos(tgt, body), body, srcLst, parser.asRecvList(tgt), cond);
+    :}
 ;
 
 sj_inwhile_statement ::=
-	LT:a sj_socket_list:b GT DOT SJ_INWHILE LPAREN argument_list_opt:c RPAREN statement:d
+	LT:lt sj_socket_list:tgtLst GT DOT SJ_INWHILE LPAREN RPAREN statement:body
 	{: 
-		RESULT = parser.nf.SJInwhile(parser.pos(a, d), c, d, b); 			
+		RESULT = parser.nf.SJInwhile(parser.pos(lt, body), body, tgtLst);
 	:} 
-| name:a DOT SJ_INWHILE LPAREN argument_list_opt:b RPAREN statement:c 
+| name:tgt DOT SJ_INWHILE LPAREN RPAREN statement:body 
 	{: 
-		List targets = new LinkedList();
-	
-		targets.add(a.toReceiver());
-		
-		RESULT = parser.nf.SJInwhile(parser.pos(a, c), b, c, targets); 
+		RESULT = parser.nf.SJInwhile(parser.pos(tgt, body), body, parser.asRecvList(tgt));
 	:}  
 ;
 
@@ -767,11 +735,7 @@ sj_recursion_statement ::=
 	:}
 |	name:a DOT SJ_RECURSION LPAREN IDENTIFIER:b RPAREN block:c
 	{:
-		List targets = new LinkedList();
-	
-		targets.add(a.toReceiver());		
-		
-		RESULT = parser.nf.SJRecursion(parser.pos(a, c), c, new SJLabel(b.getIdentifier()), targets);
+		RESULT = parser.nf.SJRecursion(parser.pos(a, c), c, new SJLabel(b.getIdentifier()), parser.asRecvList(a));
 	:}
 ;
 

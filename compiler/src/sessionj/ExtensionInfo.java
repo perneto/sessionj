@@ -1,22 +1,27 @@
 package sessionj;
 
-import java.io.*;
-import java.util.*;
-
-import polyglot.ast.*;
+import polyglot.ast.NodeFactory;
 import polyglot.frontend.*;
 import polyglot.frontend.goals.*;
 import polyglot.lex.Lexer;
-import polyglot.main.*;
-import polyglot.types.*;
-import polyglot.util.*;
-import polyglot.visit.*;
-
-import sessionj.parse.*;
-import sessionj.ast.*;
-import sessionj.types.*;
+import polyglot.types.TypeSystem;
+import polyglot.util.ErrorQueue;
+import polyglot.visit.NodeVisitor;
+import sessionj.ast.SJNodeFactory_c;
+import sessionj.parse.Grm;
+import sessionj.parse.Lexer_c;
+import sessionj.types.SJTypeSystem_c;
 import sessionj.visit.*;
-import sessionj.visit.noalias.*;
+import sessionj.visit.noalias.SJNoAliasExprBuilder;
+import sessionj.visit.noalias.SJNoAliasTranslator;
+import sessionj.visit.noalias.SJNoAliasTypeBuilder;
+import sessionj.visit.noalias.SJNoAliasTypeChecker;
+
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Extension information for sessionj extension.
@@ -24,7 +29,7 @@ import sessionj.visit.noalias.*;
 public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 	static {
 	    // force Topics to load
-	    Topics t = new Topics();
+	    new Topics();
 	}
 	
 	public String defaultFileExtension() {
@@ -103,402 +108,141 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 		// ReachabilityChecked phase (post TypeChecked).
 		public Goal SJCreateOperationParsing(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJCreateOperationParser(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(scheduler.TypeChecked(job)); // Copied from ReachabilityChecked pass.
-						l.add(scheduler.ConstantsChecked(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+            return createGoal(job, SJCreateOperationParser.class, TypeChecked(job), ConstantsChecked(job));
 		}
-	
-		/*public Goal PolyglotToSJBarrier(final Job job)
-		{
-			Goal g = internGoal(new Barrier(this)
-				{
-					public Goal goalForJob(Job j) // Brings all jobs (compilation units, i.e. source files) up this barrier (i.e. the first SJ noalias type building pass is completed) before proceeding with the subsequent passes. 
-					{
-						return ((SJScheduler) scheduler).SJCreateOperationParsing(j);
-					}
-				}
-			);
-	
-			return g;
-		}*/
+
+        private Goal createGoal(final Job job, Class<? extends NodeVisitor> visitorClass, final Goal... prereq) {
+            TypeSystem ts = job.extensionInfo().typeSystem();
+            NodeFactory nf = job.extensionInfo().nodeFactory();
+
+            return internGoal(new VisitorGoal(job, createInstance(job, visitorClass, ts, nf))
+                {
+                    public Collection prerequisiteGoals(Scheduler scheduler)
+                    {
+                        return Arrays.asList(prereq);
+                    }
+                }
+            );
+        }
+
+        private NodeVisitor createInstance(Job job, Class<? extends NodeVisitor> visitorClass, TypeSystem ts, NodeFactory nf) {
+            try {
+                return visitorClass.getConstructor(Job.class, TypeSystem.class, NodeFactory.class).newInstance(job, ts, nf);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        /*public Goal PolyglotToSJBarrier(final Job job)
+          {
+              Goal g = internGoal(new Barrier(this)
+                  {
+                      public Goal goalForJob(Job j) // Brings all jobs (compilation units, i.e. source files) up this barrier (i.e. the first SJ noalias type building pass is completed) before proceeding with the subsequent passes.
+                      {
+                          return ((SJScheduler) scheduler).SJCreateOperationParsing(j);
+                      }
+                  }
+              );
+
+              return g;
+          }*/
 		
 		public Goal SJVariableParsing(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJVariableParser(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJCreateOperationParsing(job));
-						//l.add(PolyglotToSJBarrier(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJVariableParser.class, SJCreateOperationParsing(job));
 		}
 	
 		public Goal SJSessionTryDisambiguation(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJSessionTryDisambiguator(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJVariableParsing(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJSessionTryDisambiguator.class, SJVariableParsing(job));
 		}	
 		
 		public Goal SJThreadParsing(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJThreadParser(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJSessionTryDisambiguation(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJThreadParser.class, SJSessionTryDisambiguation(job));
 		}
 		
-		public Goal SJThreadParsingBarrier(final Job job) 
+		public Goal SJThreadParsingBarrier() 
 		{
-			Goal g = internGoal(new Barrier(this)
-				{
-					public Goal goalForJob(Job j)  
-					{
-						return ((SJScheduler) scheduler).SJThreadParsing(j);
-					}
-				}
-			);
-	
-			return g;
+            return internGoal(new Barrier(SJScheduler.this)
+                {
+                    public Goal goalForJob(Job j)
+                    {
+                        return ((SJScheduler) scheduler).SJThreadParsing(j);
+                    }
+                }
+            );
 		}
 		
 		public Goal SJChannelOperationParsing(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJChannelOperationParser(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						//l.add(SJSessionTryDisambiguation(job));
-						//l.add(SJThreadParsing(job));
-						l.add(SJThreadParsingBarrier(job));
-						
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJChannelOperationParser.class, SJThreadParsingBarrier());
 		}	
 		
 		public Goal SJServerOperationParsing(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJServerOperationParser(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJChannelOperationParsing(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJServerOperationParser.class, SJChannelOperationParsing(job));
 		}	
 		
 		public Goal SJSessionOperationParsing(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJSessionOperationParser(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJServerOperationParsing(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJSessionOperationParser.class, SJServerOperationParsing(job));
 		}		
-		
-		/*public Goal SJNoAliasTypeBuilding1(final Job job)
-		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJNoAliasTypeBuilder1(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJSessionOperationParsing(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
-		}*/		
-		
-		/*public Goal SJNoAliasTypeBuildingBarrier1(final Job job)
-		{
-			Goal g = internGoal(new Barrier(this)
-				{
-					public Goal goalForJob(Job j) // Brings all jobs (compilation units, i.e. source files) up this barrier (i.e. the first SJ noalias type building pass is completed) before proceeding with the subsequent passes. 
-					{
-						return ((SJScheduler) scheduler).SJNoAliasTypeBuilding1(j);
-					}
-				}
-			);
-	
-			return g;
-		}*/
 		
 		public Goal SJNoAliasTypeBuilding(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJNoAliasTypeBuilder(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						//l.add(SJSessionOperationParsing(job));
-						l.add(SJSessionOperationParsing(job));
-						//l.add(SJNoAliasTypeBuilding1(job));
-						//l.add(SJNoAliasTypeBuildingBarrier1(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJNoAliasTypeBuilder.class, SJSessionOperationParsing(job));
 		}
 	
-		public Goal SJNoAliasTypeBuildingBarrier(final Job job)
+		public Goal SJNoAliasTypeBuildingBarrier()
 		{
-			Goal g = internGoal(new Barrier(this)
-				{
-					public Goal goalForJob(Job j) // Brings all jobs (compilation units, i.e. source files) up this barrier (i.e. the first SJ noalias type building pass is completed) before proceeding with the subsequent passes. 
-					{
-						return ((SJScheduler) scheduler).SJNoAliasTypeBuilding(j);
-					}
-				}
-			);
-	
-			return g;
+
+            return internGoal(new Barrier(SJScheduler.this)
+                {
+                    public Goal goalForJob(Job j) // Brings all jobs (compilation units, i.e. source files) up this barrier (i.e. the first SJ noalias type building pass is completed) before proceeding with the subsequent passes.
+                    {
+                        return ((SJScheduler) scheduler).SJNoAliasTypeBuilding(j);
+                    }
+                }
+            );
 		}
-		
+
 		public Goal SJNoAliasExprBuilding(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJNoAliasExprBuilder(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJNoAliasTypeBuildingBarrier(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJNoAliasExprBuilder.class, SJNoAliasTypeBuildingBarrier());
 		}
 
 		public Goal SJProtocolDeclTypeBuilding(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJProtocolDeclTypeBuilder(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJNoAliasExprBuilding(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJProtocolDeclTypeBuilder.class, SJNoAliasExprBuilding(job));
 		}
 		
-		public Goal SJProtocolDeclTypeBuildingBarrier(final Job job)
+		public Goal SJProtocolDeclTypeBuildingBarrier()
 		{
-			Goal g = internGoal(new Barrier(this)
-				{
-					public Goal goalForJob(Job j) // Brings all jobs (compilation units, i.e. source files) up this barrier (i.e. the first SJ noalias type building pass is completed) before proceeding with the subsequent passes. 
-					{
-						return ((SJScheduler) scheduler).SJProtocolDeclTypeBuilding(j);
-					}
-				}
-			);
-	
-			return g;
+
+            return internGoal(new Barrier(SJScheduler.this)
+                {
+                    public Goal goalForJob(Job j) // Brings all jobs (compilation units, i.e. source files) up this barrier (i.e. the first SJ noalias type building pass is completed) before proceeding with the subsequent passes.
+                    {
+                        return ((SJScheduler) scheduler).SJProtocolDeclTypeBuilding(j);
+                    }
+                }
+            );
 		}		
 	
 		public Goal SJSessionMethodTypeBuilding(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJSessionMethodTypeBuilder(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJProtocolDeclTypeBuildingBarrier(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJSessionMethodTypeBuilder.class, SJProtocolDeclTypeBuildingBarrier());
 		}
 		
 		public Goal SJChannelDeclTypeBuilding(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJChannelDeclTypeBuilder(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						//l.add(SJProtocolDeclTypeBuildingBarrier(job));
-						l.add(SJSessionMethodTypeBuilding(job));
-						
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJChannelDeclTypeBuilder.class, SJSessionMethodTypeBuilding(job));
 		}		
 		
 		public Goal SJServerDeclTypeBuilding(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJServerDeclTypeBuilder(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJChannelDeclTypeBuilding(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJServerDeclTypeBuilder.class, SJChannelDeclTypeBuilding(job));
 		}				
 		
 		/*public Goal SJChannelDeclTypeBuildingBarrier(final Job job) // Not needed because channels (and servers) can only be locals.
@@ -517,198 +261,72 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 	
 		public Goal SJSocketDeclTypeBuilding(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJSocketDeclTypeBuilder(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						//l.add(SJChannelDeclTypeBuilding(job)); 
-						//l.add(SJChannelDeclTypeBuildingBarrier(job)); // Barrier not needed, dealing with locals only.
-						l.add(SJServerDeclTypeBuilding(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+            // SJChannelDeclTypeBuildingBarrier(job) // Barrier not needed, dealing with locals only.
+			return createGoal(job, SJSocketDeclTypeBuilder.class, SJServerDeclTypeBuilding(job));
 		}		
 		
 		public Goal SJSessionOperationTypeBuilding(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJSessionOperationTypeBuilder(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJSocketDeclTypeBuilding(job)); // Barrier not needed, dealing with locals only.
-						//l.add(SJChannelDeclTypeBuildingBarrier(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJSessionOperationTypeBuilder.class, SJSocketDeclTypeBuilding(job));
 		}	
 		
-		public Goal SJTypeBuildingBarrier(final Job job) // Maybe not needed?
+		public Goal SJTypeBuildingBarrier() // Maybe not needed?
 		{
-			Goal g = internGoal(new Barrier(this)
-				{
-					public Goal goalForJob(Job j) // Brings all jobs (compilation units, i.e. source files) up this barrier (i.e. the first SJ noalias type building pass is completed) before proceeding with the subsequent passes. 
-					{
-						return ((SJScheduler) scheduler).SJSessionOperationTypeBuilding(j);
-					}
-				}
-			);
-	
-			return g;
+            return internGoal(new Barrier(SJScheduler.this)
+                {
+                    public Goal goalForJob(Job j) // Brings all jobs (compilation units, i.e. source files) up this barrier (i.e. the first SJ noalias type building pass is completed) before proceeding with the subsequent passes.
+                    {
+                        return ((SJScheduler) scheduler).SJSessionOperationTypeBuilding(j);
+                    }
+                }
+            );
 		}
 		
 		public Goal SJNoAliasTypeChecking(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJNoAliasTypeChecker(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJTypeBuildingBarrier(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJNoAliasTypeChecker.class, SJTypeBuildingBarrier());
 		}
 			
 		// Maybe put a barrier between these two, so that session type checking can really count on linearity.
 		
 		public Goal SJSessionTypeChecking(final Job job) // Doing this after noalias type checking means session linearity is already checked.
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJSessionTypeChecker(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJNoAliasTypeChecking(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJSessionTypeChecker.class, SJNoAliasTypeChecking(job));
 		}
 		
 		public Goal ReachabilityChecked(final Job job)
 		{
 			TypeSystem ts = extInfo.typeSystem();
 			NodeFactory nf = extInfo.nodeFactory();
-	
-			Goal g = internGoal(new ReachabilityChecked(job, ts, nf)
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJSessionTypeChecking(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+
+            return internGoal(new ReachabilityChecked(job, ts, nf)
+                {
+                    public Collection prerequisiteGoals(Scheduler scheduler)
+                    {
+                        List l = new ArrayList();
+
+                        l.addAll(super.prerequisiteGoals(scheduler));
+                        l.add(SJSessionTypeChecking(job));
+
+                        return l;
+                    }
+                }
+            );
 		}
 		// End of ReachabilityChecked phase.
 	
 		// Start of Serialized phase.
 		public Goal SJSessionVisiting(final Job job) // All session type has been information built, checked and recorded.
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJSessionVisitor(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-		        l.add(scheduler.TypeChecked(job));
-		        l.add(scheduler.ConstantsChecked(job));
-		        l.add(scheduler.ReachabilityChecked(job));
-		        l.add(scheduler.ExceptionsChecked(job));
-		        l.add(scheduler.ExitPathsChecked(job));
-		        l.add(scheduler.InitializationsChecked(job));
-		        l.add(scheduler.ConstructorCallsChecked(job));
-		        l.add(scheduler.ForwardReferencesChecked(job));													
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJSessionVisitor.class,
+                    TypeChecked(job), ConstantsChecked(job), ReachabilityChecked(job),
+                    ExceptionsChecked(job), ExitPathsChecked(job), InitializationsChecked(job),
+                    ConstructorCallsChecked(job), ForwardReferencesChecked(job));
 		}		
 		
 		public Goal SJSendTranslation(final Job job) // Needs to come before noalias translation.
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJSendTranslator(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-		        /*l.add(scheduler.TypeChecked(job));
-		        l.add(scheduler.ConstantsChecked(job));
-		        l.add(scheduler.ReachabilityChecked(job));
-		        l.add(scheduler.ExceptionsChecked(job));
-		        l.add(scheduler.ExitPathsChecked(job));
-		        l.add(scheduler.InitializationsChecked(job));
-		        l.add(scheduler.ConstructorCallsChecked(job));
-		        l.add(scheduler.ForwardReferencesChecked(job));*/
-						l.add(SJSessionVisiting(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJSendTranslator.class, SJSessionVisiting(job));
 		}
 		
 		/*public Goal SJSessionVisiting2(final Job job) // All session type has been information built, checked and recorded.
@@ -736,150 +354,36 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 		
 		public Goal SJNoAliasTranslation(final Job job)
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJNoAliasTranslator(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						//l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJSendTranslation(job));
-						//l.add(SJSessionVisiting2(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJNoAliasTranslator.class, SJSendTranslation(job));
 		}
 	
 		public Goal SJProtocolDeclTranslation(final Job job) // Doing this after noalias type checking means session linearity is already checked.
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJProtocolDeclTranslator(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJNoAliasTranslation(job));
-		
-						return l;
-					}
-				}
-			);
-			
-			return g;
+			return createGoal(job, SJProtocolDeclTranslator.class, SJNoAliasTranslation(job));
 		}
 		
 		public Goal SJSessionTryTranslation(final Job job) // Doing this after noalias type checking means session linearity is already checked.
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJSessionTryTranslator(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						//l.add(SJNoAliasTranslation(job));
-						l.add(SJProtocolDeclTranslation(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJSessionTryTranslator.class, SJProtocolDeclTranslation(job));
 		}		
 
 		public Goal SJHigherOrderTranslation(final Job job) // Doing this after noalias type checking means session linearity is already checked.
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJHigherOrderTranslator(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						//l.add(SJProtocolDeclTranslation(job));
-						l.add(SJSessionTryTranslation(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
-		}
-		
-		public Goal SJUnicastOptimisation(final Job job) // Currently need to do this before compound operation translation, because the latter destroys the inbranch node and we don't have explicit nodes for the compound socket operations. 
-		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJUnicastOptimiser(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						l.add(SJHigherOrderTranslation(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
+			return createGoal(job, SJHigherOrderTranslator.class, SJSessionTryTranslation(job));
 		}
 		
 		public Goal SJCompoundOperationTranslation(final Job job) 
 		{
-			TypeSystem ts = job.extensionInfo().typeSystem();
-			NodeFactory nf = job.extensionInfo().nodeFactory();
-	
-			Goal g = internGoal(new VisitorGoal(job, new SJCompoundOperationTranslator(job,
-			    ts, nf))
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						// l.addAll(super.prerequisiteGoals(scheduler));
-						//l.add(SJNoAliasTranslation(job));
-						//l.add(SJProtocolDeclTranslation(job));
-						//l.add(SJSessionTryTranslation(job));
-						//l.add(SJHigherOrderTranslation(job));
-						l.add(SJUnicastOptimisation(job));
-		
-						return l;
-					}
-				}
-			);
-	
-			return g;
-		}		
-		
-		public Goal Serialized(final Job job)
+            return createGoal(job, SJCompoundOperationTranslator.class, SJUnicastOptimization(job));
+		}
+
+        private Goal SJUnicastOptimization(Job job) {
+            // Currently need to do this before compound operation translation, because the latter
+            // destroys the inbranch node and we don't have explicit nodes for the compound socket operations.
+            return createGoal(job, SJUnicastOptimiser.class, SJHigherOrderTranslation(job));
+        }
+
+        public Goal Serialized(final Job job)
 		{
 			/*TypeSystem ts = extInfo.typeSystem();
 			NodeFactory nf = extInfo.nodeFactory();
@@ -887,22 +391,21 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 			polyglot.main.Version v = extInfo.version();*/
 	
 			//Goal g = internGoal(new VisitorGoal(job, new ClassSerializer(ts, nf, job.source().lastModified(), eq, v))
-			Goal g = internGoal(new Serialized(job)
-				{
-					public Collection prerequisiteGoals(Scheduler scheduler)
-					{
-						List l = new ArrayList();
-		
-						l.addAll(super.prerequisiteGoals(scheduler));								
-						//l.add(SJNoAliasTranslation(job));
-						l.add(SJCompoundOperationTranslation(job));
-		
-						return l;
-					}
-				}
-			);
-		
-			return g;
+
+            return internGoal(new Serialized(job)
+                {
+                    public Collection prerequisiteGoals(Scheduler scheduler)
+                    {
+                        List l = new ArrayList();
+
+                        l.addAll(super.prerequisiteGoals(scheduler));
+                        //l.add(SJNoAliasTranslation(job));
+                        l.add(SJCompoundOperationTranslation(job));
+
+                        return l;
+                    }
+                }
+            );
 		}
 		// End of Serialized phase.			
 	}

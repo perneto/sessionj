@@ -3,28 +3,27 @@
  */
 package sessionj.visit.noalias;
 
-import java.util.*;
-
 import polyglot.ast.*;
-import polyglot.frontend.*;
+import polyglot.frontend.Job;
 import polyglot.types.*;
-import polyglot.visit.*;
-
+import polyglot.visit.ContextVisitor;
+import polyglot.visit.NodeVisitor;
 import sessionj.ast.SJNodeFactory;
-import sessionj.ast.SJSpawn;
-import sessionj.ast.chanops.*;
-import sessionj.ast.createops.*;
-import sessionj.ast.sessops.*;
-import sessionj.ast.sessops.basicops.*;
+import sessionj.ast.chanops.SJRequest;
+import sessionj.ast.createops.SJCreateOperation;
+import sessionj.ast.servops.SJAccept;
+import sessionj.ast.sessops.basicops.SJBasicOperation;
+import sessionj.ast.sessops.basicops.SJReceive;
 import sessionj.ast.sessvars.SJLocalSocket;
-import sessionj.ast.servops.*;
-import sessionj.extension.*;
-import sessionj.extension.noalias.*;
-import sessionj.types.*;
+import sessionj.extension.SJExtFactory;
+import sessionj.extension.noalias.SJNoAliasExprExt;
+import sessionj.extension.noalias.SJNoAliasVariablesExt;
+import sessionj.types.SJTypeSystem;
+import sessionj.types.noalias.SJNoAliasReferenceType;
 import sessionj.types.typeobjects.*;
-import sessionj.types.noalias.*;
-
 import static sessionj.util.SJCompilerUtils.*;
+
+import java.util.*;
 
 /**
  * @author Raymond
@@ -285,15 +284,13 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 			
 			if (((SJParsedClassType) pct).noAliasThroughThis() && sjci.noAliasThroughThis())
 			{
-				for (Iterator i = n.arguments().iterator(); i.hasNext(); )
-				{
-					if (!isNoAlias((Expr) i.next()))
-					{						
-						isNoAlias = false;
-						
-						break;
-					}
-				}						
+                for (Object o : n.arguments()) {
+                    if (!isNoAlias((Expr) o)) {
+                        isNoAlias = false;
+
+                        break;
+                    }
+                }
 			}
 			else
 			{
@@ -310,15 +307,14 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		List<Field> fields = new LinkedList<Field>();
 		List<Local> locals = new LinkedList<Local>();
 		List<ArrayAccess> arrayAccesses = new LinkedList<ArrayAccess>();
-		
-		for (Iterator i = n.arguments().iterator(); i.hasNext(); )
-		{
-			SJNoAliasExprExt naee = getSJNoAliasExprExt((Expr) i.next());
-			
-			fields.addAll(naee.fields());
-			locals.addAll(naee.locals());
-			arrayAccesses.addAll(naee.arrayAccesses());
-		}
+
+        for (Object o : n.arguments()) {
+            SJNoAliasExprExt naee = getSJNoAliasExprExt((Expr) o);
+
+            fields.addAll(naee.fields());
+            locals.addAll(naee.locals());
+            arrayAccesses.addAll(naee.arrayAccesses());
+        }
 		
 		n = (New) setSJNoAliasExprExt(sjef, n, isNoAlias, false, fields, locals, arrayAccesses);	
 		
@@ -361,8 +357,9 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 	{
 		Receiver target = c.target();
 		ParsedClassType pct = (ParsedClassType) target.type();
-		
-		MethodInstance mi = sjts.findMethod(pct, c.name(), getArgumentTypes(c.arguments()), context().currentClass());
+
+        List argsList = c.arguments();
+        MethodInstance mi = sjts.findMethod(pct, c.name(), getArgumentTypes(argsList), context().currentClass());
 		Type t = mi.returnType();
 		
 		boolean isNoAlias = false;	
@@ -374,7 +371,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 
 			if (pct instanceof SJParsedClassType && mi instanceof SJMethodInstance)
 			{			
-				c = c.methodInstance((SJMethodInstance) mi);			
+				c = c.methodInstance(mi);
 			}			
 		}
 		else
@@ -403,15 +400,14 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		List<Field> fields = new LinkedList<Field>();
 		List<Local> locals = new LinkedList<Local>();
 		List<ArrayAccess> arrayAccesses = new LinkedList<ArrayAccess>();
-		
-		for (Iterator i = c.arguments().iterator(); i.hasNext(); )
-		{
-			SJNoAliasExprExt naee = getSJNoAliasExprExt((Expr) i.next());
-			
-			fields.addAll(naee.fields());
-			locals.addAll(naee.locals());
-			arrayAccesses.addAll(naee.arrayAccesses());
-		}		
+
+        for (Object anArgsList : argsList) {
+            SJNoAliasExprExt naee = getSJNoAliasExprExt((Expr) anArgsList);
+
+            fields.addAll(naee.fields());
+            locals.addAll(naee.locals());
+            arrayAccesses.addAll(naee.arrayAccesses());
+        }
 		
 		if (target instanceof Expr)
 		{		
@@ -435,7 +431,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		//if (c instanceof SJSessionOperation) // Needed since session sockets don't need to be final anymore (and because session (edit: not session, but basic - not compound because c is a Call) operations are already translated to static SJRuntime calls).
 		if (c instanceof SJBasicOperation)
 		{							
-			args = ((ArrayInit) ((NewArray) c.arguments().get(0)).init()).elements(); // Unicast optimisation of session operations comes later.
+			args = ((SJBasicOperation)c).targets(); // Unicast optimisation of session operations comes later.
 		}
 		/*else if (c instanceof SJSpawn) // Incorrect: we want spawned sessions to become null.
 		{
@@ -566,15 +562,14 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		List<Field> fields = new LinkedList<Field>();
 		List<Local> locals = new LinkedList<Local>();
 		List<ArrayAccess> arrayAccesses = new LinkedList<ArrayAccess>();
-		
-		for (Iterator i = cc.arguments().iterator(); i.hasNext(); )
-		{
-			SJNoAliasExprExt naee = getSJNoAliasExprExt((Expr) i.next());
-			
-			fields.addAll(naee.fields());
-			locals.addAll(naee.locals());
-			arrayAccesses.addAll(naee.arrayAccesses());
-		}
+
+        for (Object o : cc.arguments()) {
+            SJNoAliasExprExt naee = getSJNoAliasExprExt((Expr) o);
+
+            fields.addAll(naee.fields());
+            locals.addAll(naee.locals());
+            arrayAccesses.addAll(naee.arrayAccesses());
+        }
 		
 		// Could check that fields is empty here instead of in JSNoAliasTypeChecker.
 		cc = (ConstructorCall) setSJNoAliasVariablesExt(sjef, cc, fields, locals, arrayAccesses);  
@@ -702,15 +697,14 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		List<Field> fields = new LinkedList<Field>();
 		List<Local> locals = new LinkedList<Local>();
 		List<ArrayAccess> arrayAccesses = new LinkedList<ArrayAccess>();
-		
-		for (Iterator i = ai.elements().iterator(); i.hasNext(); )
-		{
-			SJNoAliasExprExt naee = getSJNoAliasExprExt((Expr) i.next());
-			
-			fields.addAll(naee.fields());
-			locals.addAll(naee.locals());
-			arrayAccesses.addAll(naee.arrayAccesses());
-		}
+
+        for (Object o : ai.elements()) {
+            SJNoAliasExprExt naee = getSJNoAliasExprExt((Expr) o);
+
+            fields.addAll(naee.fields());
+            locals.addAll(naee.locals());
+            arrayAccesses.addAll(naee.arrayAccesses());
+        }
 		
 		ai = (ArrayInit) setSJNoAliasExprExt(sjef, ai, true, false, fields, locals, arrayAccesses); // ArrayInits are implicitly noalias in the same way that Lits are?
 		
@@ -757,9 +751,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		{
 			throw new SemanticException("[SJNoAliasExprBuilder] Call target not yet supported: " + target);
 		}
-		
-		return;
-	}
+    }
 	
 	private void findAssigned(Expr e, Set<Variable> vars) throws SemanticException
 	{
@@ -804,7 +796,5 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		{
 			throw new SemanticException("[SJNoAliasExprBuilder] Expr not yet supported: " + e);
 		}
-		
-		return;
 	}
 }

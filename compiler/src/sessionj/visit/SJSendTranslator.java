@@ -1,27 +1,26 @@
 package sessionj.visit;
 
-import java.util.*;
-
-import polyglot.ast.*;
+import polyglot.ast.Expr;
+import polyglot.ast.Node;
+import polyglot.ast.NodeFactory;
 import polyglot.frontend.Job;
-import polyglot.types.*;
-import polyglot.qq.*;
-import polyglot.util.*;
-import polyglot.visit.*;
-
-import sessionj.ast.*;
-import sessionj.ast.sessvars.SJSocketVariable;
-import sessionj.ast.sessops.basicops.*;
-import sessionj.ast.sessops.compoundops.*;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
+import polyglot.visit.ContextVisitor;
+import polyglot.visit.NodeVisitor;
+import sessionj.ast.SJNodeFactory;
+import sessionj.ast.sessops.basicops.SJPass;
+import sessionj.ast.sessops.basicops.SJSend;
 import sessionj.extension.SJExtFactory;
 import sessionj.extension.noalias.SJNoAliasExprExt;
 import sessionj.extension.sessops.SJSessionOperationExt;
 import sessionj.extension.sesstypes.SJTypeableExt;
 import sessionj.types.SJTypeSystem;
-import sessionj.util.*;
-
-import static sessionj.SJConstants.*; 
 import static sessionj.util.SJCompilerUtils.*;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 
@@ -53,22 +52,19 @@ public class SJSendTranslator extends ContextVisitor //ErrorHandlingVisitor
 
 	private SJPass translateSJSend(SJSend s) throws SemanticException
 	{				
-		List arguments = s.arguments();
-		Expr e = (Expr) arguments.get(1); // Factor out constant.
-		
-		SJPass p = null;
+		Expr e = s.argument();
+
+		SJPass p;
 		
 		if (isNoAlias(e) && !e.type().isPrimitive())
 		{
-			List args = new LinkedList();
-			
-			args.add(e);
-			
-			p = sjnf.SJPass(s.position(), args, s.targets());
-			
-			args = new LinkedList(p.arguments());
-			args.remove(0);
-			args.add(0, arguments.get(0));
+			p = sjnf.SJPass(s.position(), Arrays.asList(e), s.targets());
+
+            // Need to grab the NewArray from the original SJSend,
+            // as it has already been filled in with translated targets
+            // in SJSessionOperationParser.
+            List args = new LinkedList(p.arguments());
+			args.add(s.dummyArray());
 			
 			p = (SJPass) p.arguments(args);			
 			

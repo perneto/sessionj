@@ -3,22 +3,20 @@
  */
 package sessionj.visit.noalias;
 
-import java.util.*;
-
 import polyglot.ast.*;
-import polyglot.frontend.*;
+import polyglot.frontend.Job;
 import polyglot.types.*;
-import polyglot.visit.*;
-
+import polyglot.visit.ContextVisitor;
+import polyglot.visit.NodeVisitor;
 import sessionj.ast.SJNodeFactory;
-import sessionj.extension.*;
-import sessionj.extension.noalias.*;
-import sessionj.types.*;
+import sessionj.extension.SJExtFactory;
+import sessionj.types.SJTypeSystem;
 import sessionj.types.typeobjects.*;
-import sessionj.types.noalias.*;
-import sessionj.util.noalias.*;
-
 import static sessionj.util.SJCompilerUtils.*;
+import sessionj.util.noalias.SJNoAliasProcedureChecker;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Raymond
@@ -300,39 +298,30 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 	private boolean checkClassBodyAndSuper(ClassBody cb, SJParsedClassType pct)
 	{
 		boolean noAliasThroughThis = true;
-		
-		for (Iterator i = cb.members().iterator(); i.hasNext(); )
-		{
-			ClassMember cm = (ClassMember) i.next();
-			
-			if (cm instanceof FieldDecl)
-			{
-				if (!isNoAlias(cm)) // Includes primitive types. Also recursive dependency, e.g. field type is the parent class, OK?
-				{
-					if (noAliasThroughThis)
-					{
-						noAliasThroughThis = false;
-					}
-				}
-			}
-			else if (cm instanceof ProcedureDecl)
-			{
-				ProcedureInstance pi = ((ProcedureDecl) cm).procedureInstance();			
-				
-				if (pi instanceof SJMethodInstance)
-				{					
-					noAliasThroughThis = noAliasThroughThis ? ((SJMethodInstance) pi).noAliasThroughThis() : false; // Constructors checked on use (although type built in this pass).
-				}
-				else if (!(pi instanceof SJConstructorInstance))
-				{
-					throw new RuntimeException("[SJNoAliasTypeBuilder] Shouldn't get here: " + cm); // If we're type building for this ClassDecl, then it must be a SJParsedClassType?
-				}
-			}
-			else if (!(cm instanceof ClassDecl)) // ClassDecl members don't matter. 
-			{
-				throw new RuntimeException("[SJNoAliasTypeBuilder] ClassMember type not supported yet: " + cm);
-			}
-		}		
+
+        for (Object o : cb.members()) {
+            ClassMember cm = (ClassMember) o;
+
+            if (cm instanceof FieldDecl) {
+                if (!isNoAlias(cm)) // Includes primitive types. Also recursive dependency, e.g. field type is the parent class, OK?
+                {
+                    if (noAliasThroughThis) {
+                        noAliasThroughThis = false;
+                    }
+                }
+            } else if (cm instanceof ProcedureDecl) {
+                ProcedureInstance pi = ((ProcedureDecl) cm).procedureInstance();
+
+                if (pi instanceof SJMethodInstance) {
+                    noAliasThroughThis = noAliasThroughThis && ((SJMethodInstance) pi).noAliasThroughThis(); // Constructors checked on use (although type built in this pass).
+                } else if (!(pi instanceof SJConstructorInstance)) {
+                    throw new RuntimeException("[SJNoAliasTypeBuilder] Shouldn't get here: " + cm); // If we're type building for this ClassDecl, then it must be a SJParsedClassType?
+                }
+            } else if (!(cm instanceof ClassDecl)) // ClassDecl members don't matter.
+            {
+                throw new RuntimeException("[SJNoAliasTypeBuilder] ClassMember type not supported yet: " + cm);
+            }
+        }
 		
 		// Check immediate superclass.
 		if (noAliasThroughThis)
@@ -356,29 +345,24 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 	{
 		List formals = pd.formals();
 		List<Type> naft = new LinkedList<Type>();
-			
-		for (Iterator i = formals.iterator(); i.hasNext(); )
-		{
-			Formal f = (Formal) i.next();
-			Type t = f.type().type();
-			
-			if (isNoAlias(f))
-			//if (t instanceof SJNoAliasReferenceType)
-			{
-				if (t.isPrimitive()) // Can't be void.
-				{
-					naft.add(t);
-				}
-				else
-				{
-					naft.add(sjts.SJNoAliasFinalReferenceType((ReferenceType) t, f.flags().isFinal())); // The SJNoAliasReferenceTypes are just wrappers that point to the concrete Polyglot type objects.
-				}
-			}
-			else
-			{
-				naft.add(t);
-			}
-		}
+
+        for (Object formal : formals) {
+            Formal f = (Formal) formal;
+            Type t = f.type().type();
+
+            if (isNoAlias(f))
+            //if (t instanceof SJNoAliasReferenceType)
+            {
+                if (t.isPrimitive()) // Can't be void.
+                {
+                    naft.add(t);
+                } else {
+                    naft.add(sjts.SJNoAliasFinalReferenceType((ReferenceType) t, f.flags().isFinal())); // The SJNoAliasReferenceTypes are just wrappers that point to the concrete Polyglot type objects.
+                }
+            } else {
+                naft.add(t);
+            }
+        }
 		
 		((SJProcedureInstance) pd.procedureInstance()).setNoAliasFormalTypes(naft);
 		
