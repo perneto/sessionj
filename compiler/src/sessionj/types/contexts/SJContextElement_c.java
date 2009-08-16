@@ -91,9 +91,7 @@ public class SJContextElement_c implements SJContextElement
 	
 	public SJSessionType getActive(String sjname)
 	{
-		SJSessionType t = active.get(sjname);
-        System.out.println("type: [" + t + "]");
-        return t;
+        return active.get(sjname);
 	}
 	
 	public SJSessionType getImplemented(String sjname)
