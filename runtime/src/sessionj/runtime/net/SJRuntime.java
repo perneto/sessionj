@@ -341,9 +341,18 @@ public class SJRuntime
 	
 	public static void close(SJSocket... sockets)
 	{
-		for (SJSocket s : sockets)
+		for (final SJSocket s : sockets)
 		{
-			if (s != null) s.close();
+			// Need arbitrary interleaving of close() calls, as there
+            // is a handshake with the other party in the close protocol.
+            if (s != null) {
+                Runnable closer = new Runnable() {
+                    public void run() {
+                        s.close();
+                    }
+                };
+                new Thread(closer).start();
+            }
 		}
 	}
 
