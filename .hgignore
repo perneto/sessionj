@@ -5,3 +5,12 @@ syntax: glob
 *.iml
 *.iws
 *.cup
+out
+compiler/src/sessionj/parse/Grm.java
+compiler/src/sessionj/parse/Lexer_c.java
+compiler/src/sessionj/parse/sym.java
+lib/sessionj-rt.jar
+lib/sessionj.jar
+tests/classes
+compiler/classes
+runtime/classes
