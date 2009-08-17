@@ -502,6 +502,15 @@ public class SJRuntime
 	{
 		return s.receive();
 	}
+	
+	//RAY
+	// Copied from cvs version. Need dummy target with sockets array to satisfy initial base typing pass before SJUnicastOptimiser is run (assuming that pass is still needed to convert the singleton array).  
+	public static Object receive(SJSocket[] sockets) throws SJIOException, ClassNotFoundException // Remove array in a compiler pass.
+	{
+		return sockets[0].receive();
+	}
+	//YAR
+	
     // FIXME: only half done so far. Need to do for remaining ops.: accept, compound ops., etc.
     // Currently relies on implicit close to terminate the SJRuntimeReceiveTimeout thread that is still blocked on the receive operation -
     // need to check this works for all transports (check that an exception from early close is propagated up properly).
