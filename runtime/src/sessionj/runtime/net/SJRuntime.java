@@ -516,7 +516,7 @@ public class SJRuntime
 	// Copied from cvs version. Need dummy target with sockets array to satisfy initial base typing pass before SJUnicastOptimiser is run (assuming that pass is still needed to convert the singleton array).  
 	public static Object receive(SJSocket[] sockets) throws SJIOException, ClassNotFoundException // Remove array in a compiler pass.
 	{
-		throw new SJRuntimeException("[SJRuntime] Shouldn't get into here:" + sockets);
+		throw new SJRuntimeException("[SJRuntime] Shouldn't get into here: " + sockets);
 	}
 	//YAR
 	
