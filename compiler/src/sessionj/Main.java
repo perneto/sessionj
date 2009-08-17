@@ -11,11 +11,12 @@ public class Main
       polyglot.main.Main polyglotMain = new polyglot.main.Main();
 
       try {
-          polyglotMain.start(args, new sessionj.ExtensionInfo());
+          polyglotMain.start(args, new ExtensionInfo());
       }
-      catch (polyglot.main.Main.TerminationException e) {
-          System.err.println(e.getMessage());
-          System.exit(1);
+      catch (polyglot.main.Main.TerminationException te) {
+          if (te.getMessage() != null)
+              (te.exitCode==0 ? System.out : System.err).println(te.getMessage());
+          System.exit(te.exitCode);
       }
   }
 }
