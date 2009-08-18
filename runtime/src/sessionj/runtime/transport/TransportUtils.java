@@ -1,16 +1,15 @@
-//$ bin/sessionjc tests/src/util/TransportUtils.sj -d tests/classes/
+package sessionj.runtime.transport;
 
-package util;
+import sessionj.runtime.net.SJRuntime;
+import sessionj.runtime.net.SJSessionParameters;
+import sessionj.runtime.transport.httpservlet.SJHTTPServlet;
+import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
+import sessionj.runtime.transport.sharedmem.SJFifoPair;
+import sessionj.runtime.transport.tcp.SJManualTCP;
+import sessionj.runtime.transport.tcp.SJStreamTCP;
 
-import java.util.*;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
-import sessionj.runtime.transport.*;
-import sessionj.runtime.transport.tcp.*;
-import sessionj.runtime.transport.sharedmem.*;
-import sessionj.runtime.transport.tcp.*;
-import sessionj.runtime.transport.httpservlet.*;
+import java.util.LinkedList;
+import java.util.List;
 
 public class TransportUtils
 {
@@ -70,42 +69,30 @@ public class TransportUtils
 
 		char[] cs = transports.toCharArray();
 
-		for (int i = 0; i < cs.length; i++)
-		{
-			switch (cs[i])
-			{
-				case 'f':
-				{
-					ts.add(new SJFifoPair());
+        for (char c : cs) {
+            switch (c) {
+                case 'f':
+                    ts.add(new SJFifoPair());
 
-					break;
-				}
-				case 'b':
-				{
-					ts.add(new SJBoundedFifoPair());
+                    break;
+                case 'b':
+                    ts.add(new SJBoundedFifoPair());
 
-					break;
-				}
-				case 's':
-				{
-					ts.add(new SJStreamTCP());
+                    break;
+                case 's':
+                    ts.add(new SJStreamTCP());
 
-					break;
-				}					
-				case 'm':
-				{			
-					ts.add(new SJManualTCP());
+                    break;
+                case 'm':
+                    ts.add(new SJManualTCP());
 
-					break;
-				}					
-				case 'h':
-				{			
-					ts.add(new SJHTTPServlet());
+                    break;
+                case 'h':
+                    ts.add(new SJHTTPServlet());
 
-					break;
-				}
-			}
-		}					
+                    break;
+            }
+        }
 	}
 	
 	public static void configureTransports(String setups, String transports)
