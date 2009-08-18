@@ -1,4 +1,4 @@
-<project name="sessionj" default="compile-all" basedir=".">
+<project name="sessionj" default="jar" basedir=".">
     <description>
       SessionJ build file
     </description>
@@ -46,7 +46,11 @@
     <property name="dist" location="${basedir}/dist" />
 
     <property name="unittest.src" location="${basedir}/tests/unit"/>
-    <property name="unittest.classes" location="${basedir}/tests/unit-classes"/>
+    <property name="unittest.classes" location="${basedir}/tests/build/unit"/>
+
+    <property name="functionaltest.src" location="${basedir}/tests/functional"/>
+    <property name="functionaltest.classes" location="${basedir}/tests/build/functional"/>
+
 
     <property name="compiler.sh" location="${bin.dir}/${compiler.name}"/>
     <property name="compiler.bat" location="${bin.dir}/${compiler.name}.bat"/>
@@ -57,6 +61,13 @@
     <!-- set the prefix for accessing environment variables -->
     <property environment="env" />
 
+    <!-- jar files in the lib directory, excluding generated jars -->
+    <fileset id="lib.jars" dir="${lib.dir}">
+        <include name="*.jar" />
+        <exclude name="${name}.jar" />
+        <exclude name="${name}-rt.jar" />
+    </fileset>
+
     <!-- the standard classpath -->
     <path id="standard.classpath">
         <!-- our generated classes -->
@@ -66,14 +77,9 @@
         <!-- the java classpath -->
         <pathelement path="${java.class.path}" />
 
-        <!-- jar files in the lib directory, excluding generated jars -->
-        <fileset dir="${lib.dir}">
-            <include name="*.jar" />
-            <exclude name="${name}.jar" />
-            <exclude name="${name}-rt.jar" />
-        </fileset>
-    	
-       	<!-- RAY: dependencies obtained from my neighbouring Polyglot Eclipse project -->
+        <fileset refid="lib.jars"/>
+        
+        <!-- RAY: dependencies obtained from my neighbouring Polyglot Eclipse project -->
        	<pathelement location="../polyglot-2.3.0-src/classes" />
     	  <pathelement location="../polyglot-2.3.0-src/lib/java_cup.jar" />
   	    <pathelement location="../polyglot-2.3.0-src/lib/JFlex.jar" />	
@@ -186,7 +192,7 @@
        Javadoc and distribution targets
        ****************************************  -->
 
-    <target name="jar" depends="compile-all">
+    <target name="jar" depends="compile-all" description="Build the SJ jar files required to run the compiler and runtime">
         <jar jarfile="${compiler.jar}" basedir="${compiler.classes}" includes="${package.dir}/**" />
         <jar jarfile="${runtime.jar}" basedir="${runtime.classes}" includes="${package.dir}/**" />
     </target>
@@ -259,8 +265,7 @@
     -->
     <target name="compile-ext">
     	  <!-- RAY: changed to 1.5 -->
-        <!-- <javac source="1.4" target="1.4" srcdir="${compiler.src}" destdir="${compiler.classes}" debug="on" includes="${ext.pkg}/**"> -->
-    	  <javac source="1.5" target="1.5" srcdir="${compiler.src}" destdir="${compiler.classes}" debug="on" includes="${ext.pkg}/**">
+        <javac source="1.5" target="1.5" srcdir="${compiler.src}" destdir="${compiler.classes}" debug="on" includes="${ext.pkg}/**">
             <classpath refid="standard.classpath" />
         </javac>
     </target>
@@ -453,21 +458,38 @@
 
     <target name="compile-unittest">
         <mkdir dir="${unittest.classes}" />
-        <javac source="1.5" target="1.5" srcdir="${unittest.src}" destdir="${unittest.classes}" debug="on">
-            <classpath refid="standard.classpath" />
-        </javac>
+        <javac source="1.5" target="1.5" srcdir="${unittest.src}"
+               destdir="${unittest.classes}" debug="on" classpathref="standard.classpath"/>        
     </target>
 
-    <target name="unittest" depends="compile-unittest,compile-all">
-        <path id="unittests.classpath">
-            <pathelement location="${runtime.classes}"/>
-            <pathelement location="${compiler.classes}"/>
-            <pathelement location="${unittest.classes}"/>
-        </path>
-        <testng verbose="2" classpathref="unittests.classpath">
+    <target name="unittest" depends="compile-unittest,compile-all" description="run unit tests">
+        <testng verbose="2">
             <classfileset dir="${unittest.classes}" includes="**/*.class"/>
+            <classpath>
+                <path refid="standard.classpath"/>
+                <pathelement location="${unittest.classes}"/>
+            </classpath>                    
         </testng>
-     </target>
-     
+    </target>
+
+    <target name="compile-functionaltest">
+        <mkdir dir="${functionaltest.classes}" />
+        <javac source="1.5" target="1.5" srcdir="${functionaltest.src}"
+               destdir="${functionaltest.classes}" debug="on" classpathref="standard.classpath"/>
+    </target>
+    
+    <target name="functionaltest" depends="compile-functionaltest,compile-all" description="run functional tests">
+        <tempfile destdir="${java.io.tmpdir}" property="tempdir.name"/>
+        <mkdir dir="${tempdir.name}"/>
+        <testng>
+            <sysproperty key="sessionj.test.functional.classesdir" value="${tempdir.name}"/>
+            <xmlfileset dir="${functionaltest.src}" includes="testng.xml"/>
+            <classpath>
+                <path refid="standard.classpath"/>
+                <pathelement location="${functionaltest.classes}"/>
+            </classpath>
+       </testng>
+   </target>
+
 </project>
 
