@@ -1,4 +1,4 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/simplechat/client/ClientWriter.sj -d tests/classes/ -d tests/classes/
+//$ bin/sessionjc -cp tests/classes/ tests/src/simplechat/client/ClientWriter.sj -d tests/classes/ 
 //$ bin/sessionj -cp tests/classes/ simplechat.client.ClientWriter localhost 8888 ray
 
 package simplechat.client;

@@ -1,4 +1,4 @@
-//$ bin/sessionjc tests/src/simplechat/ClientViewer.sj -d tests/classes/
+//$ bin/sessionjc tests/src/simplechat/SimpleChatProtocols.sj -d tests/classes/
 
 package simplechat;
 

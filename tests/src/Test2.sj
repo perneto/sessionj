@@ -8,20 +8,52 @@ import java.util.*;
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 
-public class Test2 extends SJThread 
+public class Test2  
 {	
-	private Test dummy;
-	
-	public void srun(noalias @(Test.p) s)
-	//public void srun(noalias !<String> s)
-	//public void srun(noalias !<int> s)
-	{
-		try (s)
+	/*public void problem1() throws Exception
+	{	
+		final noalias protocol p1 { cbegin.!{L1:![!<int>]*} }
+		//final noalias protocol p2 { cbegin.?[!<int>]* }
+		
+		final noalias SJService c1 = SJService.create(p1, "", 1234);
+		//final noalias SJService c2 = SJService.create(p2, "", 1234);
+		
+		noalias SJSocket s1;//, s2;
+		
+		try (s1)//, s2)
 		{
-			s.send("");
-			//s.send(123);
+			s1 = c1.request();
+			//s2 = c2.request();
+	
+			s1.outbranch(L1)
+			{
+				s1.outwhile(true)
+				{
+					s1.send(123);
+				}
+			}
 		}
-		catch (Exception x)
+		finally
+		{
+			
+		}
+	}*/
+	
+	public void problem2() throws Exception
+	{
+		final noalias protocol p1 { cbegin.!<int> }
+		
+		final noalias SJService c1 = SJService.create(p1, "", 1234);
+		
+		noalias SJSocket s1;
+		
+		try (s1)
+		{
+			s1 = c1.request();
+	
+			s1.send(123);
+		}
+		finally
 		{
 			
 		}

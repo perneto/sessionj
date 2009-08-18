@@ -1,4 +1,4 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/simplechat/client/ClientReader.sj -d tests/classes/ -d tests/classes/
+//$ bin/sessionjc -cp tests/classes/ tests/src/simplechat/client/ClientReader.sj -d tests/classes/ 
 //$ bin/sessionj -cp tests/classes/ simplechat.client.ClientReader localhost 8888 
 
 package simplechat.client;
