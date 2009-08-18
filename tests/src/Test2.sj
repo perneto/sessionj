@@ -10,7 +10,7 @@ import sessionj.runtime.net.*;
 
 public class Test2  
 {	
-	/*public void problem1() throws Exception
+	public void problem1() throws Exception
 	{	
 		final noalias protocol p1 { cbegin.!{L1:![!<int>]*} }
 		//final noalias protocol p2 { cbegin.?[!<int>]* }
@@ -37,9 +37,9 @@ public class Test2
 		{
 			
 		}
-	}*/
+	}
 	
-	public void problem2() throws Exception
+	/*public void problem2() throws Exception
 	{
 		final noalias protocol p1 { cbegin.!<int> }
 		
@@ -57,5 +57,5 @@ public class Test2
 		{
 			
 		}
-	}
+	}*/
 }
