@@ -1,0 +1,11 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="SJ Functional Tests" verbose="2" thread-count="2">
+    <test name="Compiler" parallel="true">
+        <classes>
+            <class name="sessionj.test.functional.CompileErrorsTestFactory"/>
+            <class name="sessionj.test.functional.ValidTestFactory"/>
+        </classes>
+    </test>
+
+</suite>
