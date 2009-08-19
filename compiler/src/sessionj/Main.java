@@ -1,6 +1,7 @@
 package sessionj;
 
 import java.io.PrintStream;
+import java.util.Arrays;
 
 /**
  * Main is the main program of the compiler extension.
@@ -16,9 +17,10 @@ public class Main
 
     public static int start(String[] args, PrintStream out, PrintStream err) {
         polyglot.main.Main polyglotMain = new polyglot.main.Main();
-
+        String[] newArgs = Arrays.copyOf(args, args.length + 1);
+        newArgs[args.length] = "-assert";
         try {
-            polyglotMain.start(args, new ExtensionInfo());
+            polyglotMain.start(newArgs, new ExtensionInfo());
         }
         catch (polyglot.main.Main.TerminationException te) {
             if (te.getMessage() != null)
