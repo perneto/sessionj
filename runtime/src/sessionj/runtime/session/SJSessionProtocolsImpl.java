@@ -3,16 +3,20 @@
  */
 package sessionj.runtime.session;
 
-import java.net.*;
-import java.util.*;
-
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJProtocol;
+import sessionj.runtime.SJRuntimeException;
+import sessionj.runtime.net.*;
+import static sessionj.runtime.session.SJMessage.*;
+import sessionj.runtime.transport.SJAcceptorThreadGroup;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJTransportManager;
 import sessionj.types.sesstypes.SJSessionType;
 
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
-import sessionj.runtime.transport.*;
-
-import static sessionj.runtime.session.SJMessage.*;  
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author Raymond
@@ -209,15 +213,8 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 					{
 						o = m.getContent();
 					}
-					else if (t == SJ_CONTROL)
-					{
-						throw (SJControlSignal) m.getContent();
-					} 
-					else
-					{
-						throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
-					}
-				}					
+					else handleMessage(m, t);
+                }
 				
 				return o;
 			}
@@ -250,15 +247,8 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 					{
 						b = m.getByteValue();
 					}
-					else if (t == SJ_CONTROL)
-					{
-						throw (SJControlSignal) m.getContent();
-					}
-					else 
-					{
-						throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
-					}					
-				}				
+					else handleMessage(m, t);
+                }
 					
 				return b; 
 			}
@@ -291,15 +281,8 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 					{
 						i = m.getIntValue();
 					}
-					else if (t == SJ_CONTROL)
-					{
-						throw (SJControlSignal) m.getContent();
-					}
-					else 
-					{
-						throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
-					}					
-				}			
+					else return handleMessage(m, t);
+                }
 				
 				return i;
 			}
@@ -309,8 +292,19 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 			}
 		}
 	}
-	
-	public boolean receiveBoolean() throws SJIOException
+
+    private int handleMessage(SJMessage m, byte t) throws SJControlSignal, SJIOException {
+        if (t == SJ_CONTROL)
+        {
+            throw (SJControlSignal) m.getContent();
+        }
+        else
+        {
+            throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
+        }
+    }
+
+    public boolean receiveBoolean() throws SJIOException
 	{
 		boolean b = false;
 		
@@ -322,26 +316,24 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 				{				
 					b = ser.readBoolean();
 				}
-				{
-					SJMessage m = lostMessages.remove(0);
-					
-					byte t = m.getType();
-					
-					if (t == SJ_BOOLEAN)
-					{
-						b = m.getBooleanValue();
-					}
-					else if (t == SJ_CONTROL)
-					{
-						handleControlSignal((SJControlSignal) m.getContent());
-					}
-					else
-					{
-						throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
-					}					
-				}				
-				
-				return b;
+                SJMessage m = lostMessages.remove(0);
+
+                byte t = m.getType();
+
+                if (t == SJ_BOOLEAN)
+                {
+                    b = m.getBooleanValue();
+                }
+                else if (t == SJ_CONTROL)
+                {
+                    handleControlSignal((SJControlSignal) m.getContent());
+                }
+                else
+                {
+                    throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
+                }
+
+                return b;
 			}
 			catch (SJControlSignal cs)
 			{
@@ -352,13 +344,13 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 	
 	public double receiveDouble() throws SJIOException
 	{
-		double d = -1.0;
-		
-		while (true)
+
+        while (true)
 		{
 			try
 			{
-				if (lostMessages.isEmpty())
+                double d = 0;
+                if (lostMessages.isEmpty())
 				{
 					d = ser.readDouble();					
 				}
@@ -372,15 +364,8 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 					{
 						d = m.getIntValue();
 					}
-					else if (t == SJ_CONTROL)
-					{
-						throw (SJControlSignal) m.getContent();
-					}
-					else 
-					{
-						throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
-					}					
-				}			
+					else handleMessage(m, t);
+                }
 				
 				return d;
 			}
@@ -393,27 +378,24 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 	
 	public void outlabel(String lab) throws SJIOException 
 	{
-		if (!zeroCopySupported)
-		{
-			ser.writeObject(lab);
-		}
-		else
-		{
-			ser.writeReference(lab);
-		}
+        if (zeroCopySupported) {
+            ser.writeReference(lab);
+        } else {
+            ser.writeObject(lab);
+        }
 	}
 	
 	public String inlabel() throws SJIOException 
 	{
-		String lab = null;
-		
-		try
+
+        try
 		{
 			while (true)
 			{
 				try
 				{
-					if (lostMessages.isEmpty())					
+                    String lab = null;
+                    if (lostMessages.isEmpty())
 					{				
 						lab = (String) ser.readObject();
 					}
@@ -427,15 +409,8 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 						{
 							lab = (String) m.getContent();
 						}
-						else if (t == SJ_CONTROL)
-						{
-							throw (SJControlSignal) m.getContent();
-						}
-						else
-						{
-							throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
-						}					
-					}					
+						else handleMessage(m, t);
+                    }
 					
 					return lab;
 				}
@@ -453,18 +428,18 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 	
 	public void outsync(boolean b) throws SJIOException // FIXME: make support for zerocopy? (And other primitives?)
 	{
-		ser.writeBoolean(b);	
+		ser.writeBoolean(b);
 	}
 	
 	public boolean insync() throws SJIOException 
 	{
-		boolean b;
-		
-		while (true)
+
+        while (true)
 		{
 			try
 			{
-				if (lostMessages.isEmpty())			
+                boolean b = false;
+                if (lostMessages.isEmpty())
 				{			
 					b = ser.readBoolean();
 				}		
@@ -478,15 +453,8 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 					{
 						b = m.getBooleanValue();
 					}
-					else if (t == SJ_CONTROL)
-					{
-						throw (SJControlSignal) m.getContent();
-					}
-					else
-					{
-						throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
-					}					
-				}					
+					else handleMessage(m, t);
+                }
 				
 				return b;
 			}
