@@ -27,22 +27,6 @@ public class SJWhile_c extends While_c implements SJWhile
 		return (SJWhile) super.body(body);
 	}
 
-	// Is it actually necessary to override this method?
-	protected SJWhile_c reconstruct(Expr cond, Stmt body)
-	{
-		if (cond != this.cond || body != this.body)
-		{
-			SJWhile_c n = (SJWhile_c) copy();
-
-			n.cond = cond;
-			n.body = body;
-
-			return n;
-		}
-
-		return this;
-	}
-	
 	public List targets()
 	{
 		return targets; 
