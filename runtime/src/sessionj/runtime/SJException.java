@@ -2,22 +2,21 @@ package sessionj.runtime;
 
 public abstract class SJException extends Exception
 {
-	public SJException()
+	protected SJException()
 	{
-		super();
-	}
+    }
 
-	public SJException(String message)
+	protected SJException(String message)
 	{
 		super(message);
 	}
 
-	public SJException(String message, Throwable cause)
+	protected SJException(String message, Throwable cause)
 	{
 		super(message, cause);
 	}
 
-	public SJException(Throwable cause)
+	protected SJException(Throwable cause)
 	{
 		super(cause);
 	}

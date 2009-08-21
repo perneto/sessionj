@@ -620,8 +620,7 @@ public class SJRuntime
 
     public static boolean outsync(boolean cond, SJSocket s) throws SJIOException
 	{
-		s.outsync(cond);
-		return cond;
+		return s.outsync(cond);
 	}
 
     public static boolean outsync(boolean cond, SJSocket... sockets) throws SJIOException
@@ -647,11 +646,13 @@ public class SJRuntime
         }
         boolean oneFalse = false, allFalse = true;
         for (boolean b : hasMore) {
-            if (!b) oneFalse = true;
-            else allFalse = false;
+            if (b) allFalse = false;
+            else oneFalse = true;
         }
-        if (oneFalse && !allFalse) throw new SJIOException("multi-party insync: some of the sockets signalled end of transmission but not all");
-	    return !allFalse;
+        if (oneFalse && !allFalse) throw new SJIOException
+                ("multi-party inwhile: some of the sockets signalled end of transmission but not all");
+
+        return !allFalse;
     }
 	
 	public static void outlabel(String lab, SJSocket s) throws SJIOException

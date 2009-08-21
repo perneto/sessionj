@@ -3,15 +3,16 @@
  */
 package sessionj.runtime.session;
 
-import java.io.*;
-import java.util.Arrays;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
-import sessionj.runtime.transport.*;
-import sessionj.runtime.util.SJRuntimeUtils;
-
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJLocalConnection;
+import sessionj.runtime.transport.SJStreamConnection;
 import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 /**
  * @author Raymond
@@ -21,8 +22,8 @@ import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
  */
 public class SJStreamSerializer extends SJSerializer
 {		
-	private ObjectOutputStream oos = null; // These and the stream operations should be moved into the stream connection object.
-	private ObjectInputStream ois = null;
+	private final ObjectOutputStream oos; // These and the stream operations should be moved into the stream connection object.
+	private final ObjectInputStream ois;
 	
 	public SJStreamSerializer(SJConnection conn) throws SJIOException
 	{
@@ -84,7 +85,9 @@ public class SJStreamSerializer extends SJSerializer
 			oos.writeByte(SJ_OBJECT);
 			oos.writeObject(o);
 			
-			oos.reset(); // Does this affect performance? Would it be faster to make a new oos? (Probably not.) Should we manually keep track of which objects have been sent and reset only when necessary?
+			oos.reset();
+            // Does this affect performance? Would it be faster to make a new oos? (Probably not.)
+            // Should we manually keep track of which objects have been sent and reset only when necessary?
 		}
 		catch (IOException ioe)
 		{
@@ -183,7 +186,7 @@ public class SJStreamSerializer extends SJSerializer
 	
 	public byte readByte() throws SJIOException, SJControlSignal
 	{
-		byte b;
+		byte b = (byte) 0;
 		
 		try
 		{
@@ -193,22 +196,8 @@ public class SJStreamSerializer extends SJSerializer
 			{					
 				b = ois.readByte();
 			}
-			else if (flag == SJ_CONTROL)
-			{
-				try
-				{
-					throw ((SJControlSignal) ois.readObject());
-				}
-				catch (ClassNotFoundException cnfe)
-				{
-					throw new SJRuntimeException(cnfe);
-				}
-			}				
-			else
-			{
-				throw new SJRuntimeException("[SJDefaultSerializer] Unexpected flag: " + flag);
-			}
-		}
+			else handleFlag(flag);
+        }
 		catch (IOException ioe)
 		{
 			throw new SJIOException(ioe);
@@ -220,42 +209,46 @@ public class SJStreamSerializer extends SJSerializer
 	public int readInt() throws SJIOException, SJControlSignal
 	{
 		int i;
-		
+
 		try
 		{
 			byte flag = ois.readByte();
-			
+
 			if (flag == SJ_INT)
-			{					
+			{
 				i = ois.readInt();
 			}
-			else if (flag == SJ_CONTROL)
-			{
-				try
-				{
-					throw ((SJControlSignal) ois.readObject());
-				}
-				catch (ClassNotFoundException cnfe)
-				{
-					throw new SJRuntimeException(cnfe);
-				}
-			}				
-			else
-			{
-				throw new SJRuntimeException("[SJDefaultSerializer] Unexpected flag: " + flag);
-			}
-		}
+			else return handleFlag(flag);
+        }
 		catch (IOException ioe)
 		{
 			throw new SJIOException(ioe);
 		}
-		
+
 		return i;
 	}
-	
-	public boolean readBoolean() throws SJIOException, SJControlSignal
+
+    private int handleFlag(byte flag) throws SJControlSignal, IOException {
+        if (flag == SJ_CONTROL)
+        {
+            try
+            {
+                throw (SJControlSignal) ois.readObject();
+            }
+            catch (ClassNotFoundException cnfe)
+            {
+                throw new SJRuntimeException(cnfe);
+            }
+        }
+        else
+        {
+            throw new SJRuntimeException("[SJDefaultSerializer] Unexpected flag: " + flag);
+        }
+    }
+
+    public boolean readBoolean() throws SJIOException, SJControlSignal
 	{
-		boolean b;
+		boolean b = false;
 		
 		try
 		{
@@ -265,21 +258,7 @@ public class SJStreamSerializer extends SJSerializer
 			{					
 				b = ois.readBoolean();
 			}
-			else if (flag == SJ_CONTROL)
-			{
-				try
-				{
-					throw ((SJControlSignal) ois.readObject());
-				}
-				catch (ClassNotFoundException cnfe)
-				{
-					throw new SJRuntimeException(cnfe);
-				}
-			}				
-			else
-			{
-				throw new SJRuntimeException("[SJDefaultSerializer] Unexpected flag: " + flag);
-			}
+			else handleFlag(flag);
 		}
 		catch (IOException ioe)
 		{
@@ -291,7 +270,7 @@ public class SJStreamSerializer extends SJSerializer
 	
 	public double readDouble() throws SJIOException, SJControlSignal
 	{
-		double d;
+		double d = 0.0;
 		
 		try
 		{
@@ -301,22 +280,8 @@ public class SJStreamSerializer extends SJSerializer
 			{					
 				d = ois.readDouble();
 			}
-			else if (flag == SJ_CONTROL)
-			{
-				try
-				{
-					throw ((SJControlSignal) ois.readObject());
-				}
-				catch (ClassNotFoundException cnfe)
-				{
-					throw new SJRuntimeException(cnfe);
-				}
-			}				
-			else
-			{
-				throw new SJRuntimeException("[SJDefaultSerializer] Unexpected flag: " + flag);
-			}
-		}
+			else handleFlag(flag);
+        }
 		catch (IOException ioe)
 		{
 			throw new SJIOException(ioe);

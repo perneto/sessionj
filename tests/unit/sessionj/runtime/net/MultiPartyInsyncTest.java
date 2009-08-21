@@ -5,6 +5,7 @@ import org.testng.annotations.BeforeTest;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
 
+@SuppressWarnings({"ALL"})
 public class MultiPartyInsyncTest {
     private SJSocket sockContinue;
     private SJSocket[] sockets;
@@ -14,7 +15,7 @@ public class MultiPartyInsyncTest {
      * Only the insync() method is of interest for this test.
      */
     static class DummySocket implements SJSocket {
-        private boolean willContinue;
+        private final boolean willContinue;
 
         DummySocket(boolean willContinue) {
             this.willContinue = willContinue;

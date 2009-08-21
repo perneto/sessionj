@@ -21,20 +21,4 @@ public class SJInwhile_c extends SJWhile_c implements SJInwhile
 	{
 		return (SJInwhile) super.body(body);
 	}
-
-	// Is it actually necessary to override this method?
-	protected SJInwhile_c reconstruct(Expr cond, Stmt body)
-	{
-		if (cond != this.cond || body != this.body)
-		{
-			SJInwhile_c n = (SJInwhile_c) copy();
-
-			n.cond = cond;
-			n.body = body;
-
-			return n;
-		}
-
-		return this;
-	}
 }
