@@ -8,9 +8,7 @@ import sessionj.runtime.SJProtocol;
 import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.net.*;
 import static sessionj.runtime.session.SJMessage.*;
-import sessionj.runtime.transport.SJAcceptorThreadGroup;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJTransportManager;
+import sessionj.runtime.transport.*;
 import sessionj.types.sesstypes.SJSessionType;
 
 import java.net.InetAddress;
@@ -24,17 +22,25 @@ import java.util.List;
  * Currently, this class collects together init., delegation and close protocol (with corresponding signal handling) into one class, but can easily be separated.
  * 
  */
-public class SJSessionProtocolsImpl extends SJSessionProtocols
+public class SJSessionProtocolsImpl implements SJSessionProtocols
 {
 	private static final byte DELEGATION_START = -1; // Would be more uniform to be a control signal (although slower).
 	//private static final byte DELEGATION_ACK = -2;	
 
     /** Collects messages received after a session has been delegated. */
 	private List<SJMessage> lostMessages = new LinkedList<SJMessage>(); // Doesn't need synchronization, shouldn't be adding and removing in different threads.
-	
-	public SJSessionProtocolsImpl(SJAbstractSocket s, SJSerializer ser)
+    protected SJAbstractSocket s;
+    protected SJSerializer ser;
+    protected boolean zeroCopySupported;
+    protected boolean boundedBufferSupported;
+
+    public SJSessionProtocolsImpl(SJAbstractSocket s, SJSerializer ser)
 	{
-		super(s, ser);
+        this.s = s;
+        this.ser = ser;
+        zeroCopySupported = ser.zeroCopySupported();
+
+        boundedBufferSupported = s.getConnection() instanceof SJBoundedBufferConnection;
 	}
 
 	public void accept() throws SJIOException, SJIncompatibleSessionException
@@ -384,7 +390,6 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 	
 	public String inlabel() throws SJIOException 
 	{
-
         try
 		{
 			while (true)
@@ -460,8 +465,29 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 			}						
 		}
 	}
-		
-	public void sendChannel(SJService c, SJSessionType st) throws SJIOException // Can get encoded from c.
+
+    public boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException {
+        ser.writeBoolean(selfInterrupting);
+        return readBooleanHandleCS();
+    }
+
+    private boolean readBooleanHandleCS() throws SJIOException {
+        while (true) {
+            try {
+                return ser.readBoolean();
+            } catch (SJControlSignal controlSignal) {
+                handleControlSignal(controlSignal);
+            }
+        }
+    }
+
+    public boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException {
+        boolean isPeerInt = readBooleanHandleCS();
+        ser.writeBoolean(selfInterruptible);
+        return isPeerInt;
+    }
+
+    public void sendChannel(SJService c, SJSessionType st) throws SJIOException // Can get encoded from c.
 	{
 		// Maybe faster to use a custom protocol, such as !<host>.!<port>.!<encoded>.
 		
@@ -945,4 +971,15 @@ throw new SJRuntimeException("[SJSessionProtocolsImpl] Simultaneous delegation n
 			return true;
 		}		
 	}*/
+
+    public SJSerializer getSerializer()
+    {
+        return ser;
+    }
+
+    public void setSerializer(SJSerializer ser)
+    {
+        this.ser = ser;
+        zeroCopySupported = ser.zeroCopySupported();
+    }
 }
