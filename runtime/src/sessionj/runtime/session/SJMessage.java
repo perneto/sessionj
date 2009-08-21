@@ -12,7 +12,9 @@ import java.io.Serializable;
 public class SJMessage implements Serializable
 {
 	// These are independent from the flags used by the wire protocol.
-	public static final byte SJ_CONTROL = 1; // Maybe SJMessage shouldn't include control signals. Then nextMessage serializer routine should throw control signals instead of returning them.
+	public static final byte SJ_CONTROL = 1;
+    // Maybe SJMessage shouldn't include control signals. Then nextMessage serializer routine
+    // should throw control signals instead of returning them.
 	public static final byte SJ_OBJECT = 2; 
 	public static final byte SJ_REFERENCE = 3;
 	public static final byte SJ_BYTE = 4;
@@ -20,8 +22,8 @@ public class SJMessage implements Serializable
 	public static final byte SJ_BOOLEAN = 6;	
 	public static final byte SJ_DOUBLE = 7;
 	
-	private byte type;
-	private Object content;
+	private final byte type;
+	private final Object content;
 	
 	public SJMessage(byte type, Object content)
 	{
@@ -41,17 +43,17 @@ public class SJMessage implements Serializable
 	
 	public byte getByteValue()
 	{
-		return ((Byte) content).byteValue();
+		return (Byte) content;
 	}
 	
 	public int getIntValue()
 	{
-		return ((Integer) content).intValue();
+		return (Integer) content;
 	}
 	
 	public Boolean getBooleanValue()
 	{
-		return ((Boolean) content).booleanValue();
+		return (Boolean) content;
 	}
 	
 	public String toString()
