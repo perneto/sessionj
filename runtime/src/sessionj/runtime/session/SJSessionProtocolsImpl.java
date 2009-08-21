@@ -166,14 +166,11 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 	
 	public void pass(Object o) throws SJIOException
 	{
-		if (!zeroCopySupported)
-		{
-			ser.writeObject(o);
-		}
-		else
-		{
-			ser.writeReference(o);			
-		}
+        if (zeroCopySupported) {
+            ser.writeReference(o);
+        } else {
+            ser.writeObject(o);
+        }
 	}
 	
 	public void copy(Object o) throws SJIOException
@@ -261,13 +258,13 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 	
 	public int receiveInt() throws SJIOException
 	{
-		int i = -1;
-		
-		while (true)
+
+        while (true)
 		{
 			try
 			{
-				if (lostMessages.isEmpty())
+                int i;
+                if (lostMessages.isEmpty())
 				{
 					i = ser.readInt();					
 				}
@@ -293,7 +290,7 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 		}
 	}
 
-    private int handleMessage(SJMessage m, byte t) throws SJControlSignal, SJIOException {
+    private static int handleMessage(SJMessage m, byte t) throws SJControlSignal, SJIOException {
         if (t == SJ_CONTROL)
         {
             throw (SJControlSignal) m.getContent();
@@ -431,9 +428,8 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 		ser.writeBoolean(b);
 	}
 	
-	public boolean insync() throws SJIOException 
+	public boolean insync() throws SJIOException
 	{
-
         while (true)
 		{
 			try
@@ -470,13 +466,12 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 		// Maybe faster to use a custom protocol, such as !<host>.!<port>.!<encoded>.
 		
 		//if (ser.zeroCopySupported())
-		{	
-			pass(c); // OK to alias SJServices across threads, typing ensures they are na-final (they are also thread-safe).
-		}
-		/*else
-		{
-			send(c);
-		}*/
+        pass(c);
+        // OK to alias SJServices across threads, typing ensures they are na-final (they are also thread-safe).
+        /*else
+          {
+              send(c);
+          }*/
 	}
 	
 	public SJService receiveChannel(SJSessionType st) throws SJIOException
@@ -579,24 +574,20 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 				try
 				{
 					//origReq = receiveBoolean(); // Don't want to handle control messages.
-					
-					if (!lostMessages.isEmpty())
-					{
-						SJMessage m = lostMessages.remove(0);
-						
-						byte t = m.getType();
-						
-						if (t != SJ_BOOLEAN)
-						{
-							throw new SJIOException("[SJSessionProtocolsImpl] Expected boolean, not: " + t);
-						}
-						
-						origReq = m.getBooleanValue();
-					}
-					else
-					{
-						origReq = ser.readBoolean();
-					}
+
+                    if (lostMessages.isEmpty()) {
+                        origReq = ser.readBoolean();
+                    } else {
+                        SJMessage m = lostMessages.remove(0);
+
+                        byte t = m.getType();
+
+                        if (t != SJ_BOOLEAN) {
+                            throw new SJIOException("[SJSessionProtocolsImpl] Expected boolean, not: " + t);
+                        }
+
+                        origReq = m.getBooleanValue();
+                    }
 				}
 				catch (SJControlSignal cs)
 				{
@@ -813,68 +804,54 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 				
 				switch (type = m.getType())
 				{
-					case SJ_CONTROL: 
-					{
-						SJControlSignal cs = (SJControlSignal) m.getContent();
-						
-						/*if (cs instanceof SJDelegationSignal) // Double delegation.
-						{
-							throw new SJRuntimeException("[SJSessionProtocolsImpl] Simultaneous delegation not yet supported: " + cs);
-						}*/						
-						
-						s2.writeControlSignal(cs); 
-						
-						if (cs instanceof SJDelegationACK || cs instanceof SJFIN)
-						{
-							//System.out.println("[SJSessionProtocolsImpl] forwarded: " + cs);
-							
-							return;
-						}
-						
-						// RAY						
-						else if (cs instanceof SJDelegationSignal)
-						{
-							return;
-						}						
-						// YAR
-						
-						break;
-					}
-					case SJ_OBJECT: 
-					{
-						s2.writeObject(m.getContent()); 
-						
-						break;
-					}
-					case SJ_REFERENCE: 
-					{
-						s2.writeReference(m.getContent()); 
-						
-						break;
-					}
-					case SJ_BYTE: 
-					{
-						s2.writeByte(m.getByteValue()); 
-						
-						break;
-					}
-					case SJ_INT: 
-					{
-						s2.writeInt(m.getIntValue()); 
-						
-						break;
-					}
-					case SJ_BOOLEAN: 
-					{
-						s2.writeBoolean(m.getBooleanValue()); 
-						
-						break;
-					}
-					default: 
-					{
-						throw new SJIOException("[SJSessionProtocolsImpl] Unexpected message type: " + type);
-					}
-				}
+					case SJ_CONTROL:
+                        SJControlSignal cs = (SJControlSignal) m.getContent();
+
+                        /*if (cs instanceof SJDelegationSignal) // Double delegation.
+{
+throw new SJRuntimeException("[SJSessionProtocolsImpl] Simultaneous delegation not yet supported: " + cs);
+}*/
+
+                        s2.writeControlSignal(cs);
+
+                        if (cs instanceof SJDelegationACK || cs instanceof SJFIN)
+                        {
+                            //System.out.println("[SJSessionProtocolsImpl] forwarded: " + cs);
+
+                            return;
+                        }
+
+                        // RAY
+                        else if (cs instanceof SJDelegationSignal)
+                        {
+                            return;
+                        }
+                        // YAR
+
+                        break;
+                    case SJ_OBJECT:
+                        s2.writeObject(m.getContent());
+
+                        break;
+                    case SJ_REFERENCE:
+                        s2.writeReference(m.getContent());
+
+                        break;
+                    case SJ_BYTE:
+                        s2.writeByte(m.getByteValue());
+
+                        break;
+                    case SJ_INT:
+                        s2.writeInt(m.getIntValue());
+
+                        break;
+                    case SJ_BOOLEAN:
+                        s2.writeBoolean(m.getBooleanValue());
+
+                        break;
+                    default:
+                        throw new SJIOException("[SJSessionProtocolsImpl] Unexpected message type: " + type);
+                }
 				
 				//System.out.println("[SJSessionProtocolsImpl] forwarded: " + m);
 			}			
@@ -920,7 +897,7 @@ public class SJSessionProtocolsImpl extends SJSessionProtocols
 				
 				//System.out.println("[SJSessionProtocolsImpl] Buffered lost message: " + m);
 				
-				if ((t == SJ_CONTROL) && (m.getContent() instanceof SJFIN))
+				if (t == SJ_CONTROL && m.getContent() instanceof SJFIN)
 				{							
 					break;
 				}				
