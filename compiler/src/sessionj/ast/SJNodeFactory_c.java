@@ -5,7 +5,6 @@ import polyglot.frontend.ExtensionInfo;
 import polyglot.qq.QQ;
 import polyglot.types.Flags;
 import polyglot.util.Position;
-import sessionj.SJConstants;
 import static sessionj.SJConstants.*;
 import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.chanops.SJRequest_c;
@@ -31,8 +30,8 @@ import sessionj.extension.SJExtFactory;
 import sessionj.extension.SJExtFactory_c;
 import static sessionj.util.SJCompilerUtils.setSJNoAliasFinalExt;
 import sessionj.util.SJLabel;
+import sessionj.util.SJCompilerUtils;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -295,9 +294,9 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJReceive_c(pos, this, SJ_SOCKET_RECEIVEDOUBLE, arguments, targets);
 	}
 	
-	public SJRecurse SJRecurse(final Position pos, final SJLabel lab, List targets)
-	{	
-		return new SJRecurse_c(pos, this, asLinkedList(StringLit(pos, lab.labelValue())), targets, lab);
+	public SJRecurse SJRecurse(Position pos, SJLabel lab, List targets)
+	{
+		return new SJRecurse_c(pos, this, SJCompilerUtils.asLinkedList(StringLit(pos, lab.labelValue())), targets, lab);
 	}
 
 	public SJSpawn SJSpawn(Position pos, New w, List targets)
@@ -316,15 +315,9 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJSpawn_c(pos, w, name, arguments, targets);
 	}
 
-    private <T> List<T> asLinkedList(T... elem) {
-        List<T> l = new LinkedList<T>();
-        Collections.addAll(l, elem);
-        return l;
-    }
-
-	public SJOutlabel SJOutlabel(final Position pos, final SJLabel lab, List targets)
+    public SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets)
 	{	
-		return new SJOutlabel_c(pos, this, asLinkedList(StringLit(pos, lab.labelValue())), targets);
+		return new SJOutlabel_c(pos, this, SJCompilerUtils.asLinkedList(StringLit(pos, lab.labelValue())), targets);
 	}
 	
 	public SJInlabel SJInlabel(Position pos, List arguments, List targets)
@@ -332,14 +325,14 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJInlabel_c(pos, this, arguments, targets);
 	}
 	
-	public SJOutsync SJOutsync(Position pos, final Expr condition, List targets)
+	public SJOutsync SJOutsync(Position pos, Expr condition, List targets)
 	{	
-		return new SJOutsync_c(this, pos, asLinkedList(condition), targets);
+		return new SJOutsync_c(this, pos, condition, targets);
 	}
 	
-	private SJInsync SJInsync(Position pos, List targets)
+	private SJInsync SJInsync(Position pos, Expr condition, List targets)
 	{
-		return new SJInsync_c(this, pos, targets);
+		return new SJInsync_c(this, pos, condition, targets);
 	}
 	
 	public SJRecursionEnter SJRecursionEnter(Position pos, List targets)
@@ -347,7 +340,7 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJRecursionEnter_c(pos, this, SJ_SOCKET_RECURSIONENTER, targets);
 	}
 	
-	public SJRecursionExit SJRecursionExit(Position pos, final List targets)
+	public SJRecursionExit SJRecursionExit(Position pos, List targets)
 	{	
 		return new SJRecursionExit_c(pos, this, SJ_SOCKET_RECURSIONEXIT, targets);
 	}
@@ -388,23 +381,17 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 
 	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition)
 	{
-		SJInsync is = SJInsync(pos, sources); // Factor out constants.
-		SJOutsync os = SJOutsync(pos, is, targets);
-        Expr completeCond;
-        if (condition != null) {
-            completeCond = new Binary_c(pos,os,Binary.COND_AND, condition);
-        } else {
-            completeCond = os;
-        }
+        Expr insync = SJInsync(pos, condition, targets);
 
+        SJOutsync os = SJOutsync(pos, insync, targets);
         List<Receiver> all = new LinkedList<Receiver>(sources);
         all.addAll(targets);
-        return new SJOutInwhile_c(pos, completeCond, body, all);
+        return new SJOutInwhile_c(pos, os, body, all);
 	}
 	
 	public SJInwhile SJInwhile(Position pos, Stmt body, List targets)
 	{
-		SJInsync is = SJInsync(pos, targets);
+		SJInsync is = SJInsync(pos, null, targets);
         return new SJInwhile_c(pos, is, body, targets);
 	}
 
@@ -415,7 +402,9 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		String translation;
 		List<Object> mapping = new LinkedList<Object>();
 		
-		translation = "for ( ; new Boolean(false).booleanValue(); ) { }"; // Dummy condition later replaced by SJCompoundOperationTranslator. Used because we cannot give the intended loop-variable the correct name yet (targets are ambiguous). 
+		translation = "for ( ; new Boolean(false).booleanValue(); ) { }";
+        // Dummy condition later replaced by SJCompoundOperationTranslator.
+        // Used because we cannot give the intended loop-variable the correct name yet (targets are ambiguous).
 		
 		For f = (For) qq.parseStmt(translation, mapping.toArray());
 		
@@ -441,24 +430,24 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	public SJChannelCast SJChannelCast(Position pos, Expr expr, SJTypeNode tn)
 	{
 
-        return new SJChannelCast_c(pos, CanonicalTypeNode(pos, SJConstants.SJ_CHANNEL_TYPE), expr, tn);
+        return new SJChannelCast_c(pos, CanonicalTypeNode(pos, SJ_CHANNEL_TYPE), expr, tn);
 	}
 	
 	public SJSessionCast SJSessionCast(Position pos, Expr expr, SJTypeNode tn)
 	{
 
-        return new SJSessionCast_c(pos, CanonicalTypeNode(pos, SJConstants.SJ_SOCKET_INTERFACE_TYPE), expr, tn);
+        return new SJSessionCast_c(pos, CanonicalTypeNode(pos, SJ_SOCKET_INTERFACE_TYPE), expr, tn);
 	}
 	
 	public SJAmbiguousCast SJAmbiguousCast(Position pos, Expr expr, SJTypeNode tn)
 	{
 
-        return new SJAmbiguousCast_c(pos, CanonicalTypeNode(pos, SJConstants.SJ_CHANNEL_SOCKET_HACK_TYPE), expr, tn);
+        return new SJAmbiguousCast_c(pos, CanonicalTypeNode(pos, SJ_CHANNEL_SOCKET_HACK_TYPE), expr, tn);
 	}
 	
 	public SJChannelFormal SJChannelFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias) // Based on SJSessionFormal. 
 	{
-		SJChannelFormal n = new SJChannelFormal_c(pos, flags, CanonicalTypeNode(pos, SJConstants.SJ_CHANNEL_TYPE), name, tn);
+		SJChannelFormal n = new SJChannelFormal_c(pos, flags, CanonicalTypeNode(pos, SJ_CHANNEL_TYPE), name, tn);
 		
 		if (isNoalias) // Redundant: session variables are required by design to be noalias. Parser should enforce this.
 		{
@@ -470,7 +459,7 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	
 	public SJSessionFormal SJSessionFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias) // Based on SJProtocolDecl. // The choice is between modifying the base types to signal noalias, or make a separate (sub)class for noalias session formals. Going with the former, as for SJProtocolDecls.
 	{
-		SJSessionFormal n = new SJSessionFormal_c(pos, flags, CanonicalTypeNode(pos, SJConstants.SJ_SOCKET_INTERFACE_TYPE), name, tn);
+		SJSessionFormal n = new SJSessionFormal_c(pos, flags, CanonicalTypeNode(pos, SJ_SOCKET_INTERFACE_TYPE), name, tn);
 		
 		if (isNoalias) // Redundant: session variables are required by design to be noalias. Parser should enforce this.
 		{
