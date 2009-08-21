@@ -27,6 +27,7 @@ import sessionj.visit.SJProtocolDeclTypeBuilder;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Collections;
 
 /**
  * @author Raymond 
@@ -675,5 +676,11 @@ public class SJCompilerUtils
         }
 	
 		return copy;
-	}	
+	}
+
+    public static <T> List<T> asLinkedList(T... elem) {
+        List<T> l = new LinkedList<T>();
+        Collections.addAll(l, elem);
+        return l;
+    }
 }
