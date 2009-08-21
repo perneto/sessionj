@@ -22,7 +22,7 @@ public class Server
 	public static final noalias protocol p_serverToClient_body { ?{WRITE: @(p_receive), READ: @(p_send)} }
 	public static final noalias protocol p_serverToClient { sbegin.@(p_serverToClient_body) }		
 		
-	public static final noalias protocol p_selector { {@(p_serverToClient), @(p_send), @(p_receive)} } // Session set type (needs syntax extension).
+	public static final noalias protocol p_selector { {@(p_serverToClient_body), @(p_send), @(p_receive)} } // Session set type (needs syntax extension).
 	
 	private static final String transports = "d";
 
@@ -79,7 +79,7 @@ public class Server
 		}
 	}
 	
-	private void setupSession(final noalias @(p_selector) SJSelector selector, noalias @(p_serverToClient_body) s)
+	private void setupSession(final noalias @(p_selector) selector, noalias @(p_serverToClient_body) s)
 	{
 		try (s)
 		{
@@ -101,38 +101,13 @@ public class Server
 		}
 	}
 	
-	private void receiveAndForwardMessage(final noalias @(p_selector) SJSelector selector, noalias @(p_receive) s)
+	private void receiveAndForwardMessage(final noalias @(p_selector) selector, noalias @(p_receive) s)
 	{
 		try (s)
 		{
 			String msg = (String) s.receive(); // Need to unroll @(p_receive) to ?(String).@(p_receive). Recursive unrolling not yet supported (we don't have full subtyping yet).
 			
-			noalias SJSocket[] sa; // It seems this extension to support session socket arrays will be the best way to support our needs here. 
-			
-			try (sa)
-			{
-				sa = selector.selectAll(SJSelector.SEND); // Selecting all sessions ready for send; original @(p_select) will be filtered accordingly.
-				
-				foreach (sa : s1) // Overload foreach for our session typing purposes (although Polyglot does not actually support foreach yet).
-				{
-					try (s1)
-					{
-						typecase (s1)
-						{
-							case @(p_send): 
-							{
-								s1.send(msg); // Need to unroll @(p_send) to ?(String).@(p_send).
-								
-								selector.register(s1, SJSelector.SEND);
-							}
-						}
-					}
-					catch (SJIOException ioe)
-					{
-						
-					}
-				}
-			}
+			sendToAll(selector, msg);
 			
 			selector.register(s, SJSelector.RECEIVE);
 		}
@@ -140,6 +115,36 @@ public class Server
 		{
 			
 		}		
+	}
+	
+	private void sendToAll(final noalias @(p_selector) selector, String msg) throws SJIOException
+	{
+		noalias SJSocket[] sa; // It seems this extension to support session socket arrays will be the best way to support our needs here. 
+		
+		try (sa)
+		{
+			sa = selector.selectAll(SJSelector.SEND); // Selecting all sessions ready for send; original @(p_select) will be filtered accordingly.
+			
+			foreach (sa : s) // Overload foreach for our session typing purposes (although Polyglot does not actually support foreach yet).
+			{
+				try (s)
+				{
+					typecase (s)
+					{
+						case @(p_send): 
+						{
+							s.send(msg); // Need to unroll @(p_send) to ?(String).@(p_send).
+							
+							selector.register(s, SJSelector.SEND);
+						}
+					}
+				}
+				catch (SJIOException ioe)
+				{
+					
+				}
+			}
+		}
 	}
 	
 	public static void main(String[] args) throws Exception
