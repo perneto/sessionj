@@ -145,6 +145,10 @@ public class Server
 				}
 			}
 		}
+		catch (SJIOException ioe)
+		{
+			
+		}
 	}
 	
 	public static void main(String[] args) throws Exception
