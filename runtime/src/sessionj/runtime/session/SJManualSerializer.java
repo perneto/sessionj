@@ -3,13 +3,7 @@
  */
 package sessionj.runtime.session;
 
-import java.io.*;
-import java.util.Arrays;
-
-import org.omg.CORBA.OBJ_ADAPTER;
-
 import sessionj.runtime.*;
-import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
 import sessionj.runtime.util.SJRuntimeUtils;
 
@@ -23,7 +17,7 @@ import static sessionj.runtime.util.SJRuntimeUtils.*;
  * FIXME: make clear that SJStreamSerializer and SJManualSerializer are just different implementations of the *same* protocol.  
  *
  */
-public class SJManualSerializer extends SJSerializer
+public class SJManualSerializer extends SJAbstractSerializer
 {	
 	private static final byte FALSE = 0;
 	private static final byte TRUE = 1;
@@ -33,7 +27,7 @@ public class SJManualSerializer extends SJSerializer
 		super(conn);
 	}
 	
-	protected boolean zeroCopySupported()
+	public boolean zeroCopySupported()
 	{
 		return conn instanceof SJLocalConnection;
 	}
@@ -278,7 +272,7 @@ public class SJManualSerializer extends SJSerializer
 		return cs;
 	}
 	
-	protected SJMessage nextMessage() throws SJIOException, ClassNotFoundException//, SJControlSignal
+	public SJMessage nextMessage() throws SJIOException, ClassNotFoundException//, SJControlSignal
 	{
 		byte type;
 		Object o;

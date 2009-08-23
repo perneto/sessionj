@@ -2,14 +2,10 @@ package sessionj.runtime.net;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.*;
-
-import sessionj.types.sesstypes.SJSessionType;
 
 import sessionj.runtime.*;
 import sessionj.runtime.session.*;
 import sessionj.runtime.transport.*;
-import sessionj.runtime.util.*;
 
 abstract public class SJAbstractSocket implements SJSocket
 {
@@ -56,18 +52,18 @@ abstract public class SJAbstractSocket implements SJSocket
 	{
 		this.conn = conn;
 		//this.ser = new SJDefaultSerializer(conn); // FIXME: should be...
-		this.ser = SJRuntime.getSerializer(conn);
-		this.sp = new SJSessionProtocolsImpl(this, ser); // ... user configurable.		
+        ser = SJRuntime.getSerializer(conn);
+        sp = new SJSessionProtocolsImpl(this, ser); // ... user configurable.
 	}	
 	
-	protected void reconnect(SJConnection conn) throws SJIOException
+	public void reconnect(SJConnection conn) throws SJIOException
 	{
-		this.ser.close();
+        ser.close();
 		
 		this.conn = conn;
 		//this.ser = new SJDefaultSerializer(conn);
-		this.ser = SJRuntime.getSerializer(conn);
-		this.sp.setSerializer(ser);
+        ser = SJRuntime.getSerializer(conn);
+        sp.setSerializer(ser);
 	}
 	
 	protected void accept() throws SJIOException, SJIncompatibleSessionException
@@ -194,23 +190,39 @@ abstract public class SJAbstractSocket implements SJSocket
 	{
 		return sp.insync();
 	}
-		
-	public void sendChannel(SJService c, String encoded) throws SJIOException
+
+    public boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException {
+        return sp.isPeerInterruptibleOut(selfInterrupting);
+    }
+
+    public boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException {
+        return sp.isPeerInterruptingIn(selfInterruptible);
+    }
+
+    public boolean interruptibleOutsync(boolean condition) throws SJIOException {
+        return sp.interruptibleOutsync(condition);
+    }
+
+    public boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException {
+        return sp.interruptingInsync(condition, peerInterruptible);
+    }
+
+    public void sendChannel(SJService c, String encoded) throws SJIOException
 	{
 		//sp.sendChannel(c, SJRuntime.getTypeEncoder().decode(c.getProtocol().encoded()));
-		sp.sendChannel(c, SJRuntime.getTypeEncoder().decode(encoded));
+		sp.sendChannel(c, SJRuntime.decodeType(encoded));
 	}
 	
 	public SJService receiveChannel(String encoded) throws SJIOException
 	{
-		return sp.receiveChannel(SJRuntime.getTypeEncoder().decode(encoded));
+		return sp.receiveChannel(SJRuntime.decodeType(encoded));
 	}
 	
 	public void delegateSession(SJAbstractSocket s, String encoded) throws SJIOException
 	{
 		//throw new SJRuntimeException("[SJDelegateSession] Operation not yet supported.");
 		
-		sp.delegateSession(s, SJRuntime.getTypeEncoder().decode(encoded));
+		sp.delegateSession(s, SJRuntime.decodeType(encoded));
 	}
 	
 	//public SJAbstractSocket receiveSession(String encoded) throws SJIOException
@@ -218,12 +230,12 @@ abstract public class SJAbstractSocket implements SJSocket
 	{
 		//throw new SJRuntimeException("[SJSessionProtocolsImpl] Operation not yet supported.");
 		
-		return sp.receiveSession(SJRuntime.getTypeEncoder().decode(encoded), params);
+		return sp.receiveSession(SJRuntime.decodeType(encoded), params);
 	}
 	
 	public boolean isActive()
 	{
-		return this.isActive;
+		return isActive;
 	}
 
 	protected void setActive(boolean isActive)

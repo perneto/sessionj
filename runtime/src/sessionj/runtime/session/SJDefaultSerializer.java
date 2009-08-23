@@ -4,12 +4,8 @@
 package sessionj.runtime.session;
 
 import java.io.*;
-import java.util.Arrays;
-
-import org.omg.CORBA.OBJ_ADAPTER;
 
 import sessionj.runtime.*;
-import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
 import sessionj.runtime.util.SJRuntimeUtils;
 
@@ -22,7 +18,7 @@ import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
  * FIXME: use SJRuntime as a factory to create an appropriate serializer (based on connection and user parameters). Also for session protocols object.
  *
  */
-public class SJDefaultSerializer extends SJSerializer
+public class SJDefaultSerializer extends SJAbstractSerializer
 {	
 	private static final byte FALSE = 0;
 	private static final byte TRUE = 1;
@@ -60,7 +56,7 @@ public class SJDefaultSerializer extends SJSerializer
 		}
 	}
 	
-	protected boolean zeroCopySupported()
+	public boolean zeroCopySupported()
 	{
 		return conn instanceof SJLocalConnection;
 	}
@@ -382,22 +378,8 @@ public class SJDefaultSerializer extends SJSerializer
 				{					
 					b = ois.readBoolean();
 				}
-				else if (flag == SJ_CONTROL)
-				{
-					try
-					{
-						throw ((SJControlSignal) ois.readObject());
-					}
-					catch (ClassNotFoundException cnfe)
-					{
-						throw new SJRuntimeException(cnfe);
-					}
-				}				
-				else
-				{
-					throw new SJRuntimeException("[SJDefaultSerializer] Unexpected flag: " + flag);
-				}
-			}
+				else return handleControlSignal(flag);
+            }
 			catch (IOException ioe)
 			{
 				throw new SJIOException(ioe);
@@ -423,10 +405,28 @@ public class SJDefaultSerializer extends SJSerializer
 		
 		return b;
 	}
-	
-	public double readDouble() throws SJIOException, SJControlSignal
+
+    private boolean handleControlSignal(byte flag) throws SJControlSignal, IOException {
+        if (flag == SJ_CONTROL)
+        {
+            try
+            {
+                throw (SJControlSignal) ois.readObject();
+            }
+            catch (ClassNotFoundException cnfe)
+            {
+                throw new SJRuntimeException(cnfe);
+            }
+        }
+        else
+        {
+            throw new SJRuntimeException("[SJDefaultSerializer] Unexpected flag: " + flag);
+        }
+    }
+
+    public double readDouble() throws SJIOException, SJControlSignal
 	{
-		double d;
+		double d = 0.0;
 		
 		if (ois != null)
 		{
@@ -438,22 +438,8 @@ public class SJDefaultSerializer extends SJSerializer
 				{					
 					d = ois.readDouble();
 				}
-				else if (flag == SJ_CONTROL)
-				{
-					try
-					{
-						throw ((SJControlSignal) ois.readObject());
-					}
-					catch (ClassNotFoundException cnfe)
-					{
-						throw new SJRuntimeException(cnfe);
-					}
-				}				
-				else
-				{
-					throw new SJRuntimeException("[SJDefaultSerializer] Unexpected flag: " + flag);
-				}
-			}
+				else handleControlSignal(flag);
+            }
 			catch (IOException ioe)
 			{
 				throw new SJIOException(ioe);
@@ -639,7 +625,7 @@ public class SJDefaultSerializer extends SJSerializer
 		return cs;
 	}
 	
-	protected SJMessage nextMessage() throws SJIOException, ClassNotFoundException//, SJControlSignal
+	public SJMessage nextMessage() throws SJIOException, ClassNotFoundException//, SJControlSignal
 	{
 		byte flag;
 		byte type;
@@ -654,54 +640,40 @@ public class SJDefaultSerializer extends SJSerializer
 				switch (flag)
 				{
 					case SJ_CONTROL:
-					{
-						//throw (SJControlSignal) ois.readObject();
-						
-						type = SJMessage.SJ_CONTROL;
-						o = ois.readObject(); 
-						
-						break;
-					}
-					case SJ_OBJECT: 
-					{
-						type = SJMessage.SJ_OBJECT;
-						o = ois.readObject(); 
-						
-						break;
-					}
-					case SJ_REFERENCE: 
-					{
-						type = SJMessage.SJ_REFERENCE;
-						o = ((SJLocalConnection) conn).readReference();
-						
-						break;
-					}
-					case SJ_BYTE: 
-					{
-						type = SJMessage.SJ_BYTE;
-						o = new Byte(ois.readByte()); 
-						
-						break;
-					}
-					case SJ_INT: 
-					{
-						type = SJMessage.SJ_INT;
-						o = new Integer(ois.readInt()); 
-						
-						break;
-					}
-					case SJ_BOOLEAN: 
-					{
-						type = SJMessage.SJ_BOOLEAN;
-						o = new Boolean(ois.readBoolean()); 
-						
-						break;
-					}
-					default: 
-					{
-						throw new SJRuntimeException("[SJDefaultSerializer] Unsupported flag: " + flag);
-					}
-				}
+                        //throw (SJControlSignal) ois.readObject();
+
+                        type = SJMessage.SJ_CONTROL;
+                        o = ois.readObject();
+
+                        break;
+                    case SJ_OBJECT:
+                        type = SJMessage.SJ_OBJECT;
+                        o = ois.readObject();
+
+                        break;
+                    case SJ_REFERENCE:
+                        type = SJMessage.SJ_REFERENCE;
+                        o = ((SJLocalConnection) conn).readReference();
+
+                        break;
+                    case SJ_BYTE:
+                        type = SJMessage.SJ_BYTE;
+                        o = ois.readByte();
+
+                        break;
+                    case SJ_INT:
+                        type = SJMessage.SJ_INT;
+                        o = ois.readInt();
+
+                        break;
+                    case SJ_BOOLEAN:
+                        type = SJMessage.SJ_BOOLEAN;
+                        o = ois.readBoolean();
+
+                        break;
+                    default:
+                        throw new SJRuntimeException("[SJDefaultSerializer] Unsupported flag: " + flag);
+                }
 			}
 			catch (IOException ioe)
 			{
@@ -715,54 +687,40 @@ public class SJDefaultSerializer extends SJSerializer
 			switch (flag)
 			{
 				case SJ_CONTROL:
-				{
-					//throw (SJControlSignal) readObjectFromConn();
-					
-					type = SJMessage.SJ_CONTROL;
-					o = readObjectFromConn(); 
-					
-					break;
-				}			
-				case SJ_OBJECT: 
-				{
-					type = SJMessage.SJ_OBJECT;
-					o = readObjectFromConn(); 
-					
-					break;
-				}
-				case SJ_REFERENCE: 
-				{
-					type = SJMessage.SJ_REFERENCE;
-					o = ((SJLocalConnection) conn).readReference(); 
-					
-					break;
-				}
-				case SJ_BYTE: 
-				{
-					type = SJMessage.SJ_BYTE;
-					o = new Byte(conn.readByte()); 
-					
-					break;
-				}
-				case SJ_INT: 
-				{
-					type = SJMessage.SJ_INT;
-					o = new Integer(readIntFromConn()); 
-					
-					break;
-				}
-				case SJ_BOOLEAN: 
-				{
-					type = SJMessage.SJ_BOOLEAN;
-					o = new Boolean(deserializeBoolean(conn.readByte())); 
-					
-					break;
-				}
-				default: 
-				{
-					throw new SJRuntimeException("[SJDefaultSerializer] Unsupported flag: " + flag);
-				}
-			}			
+                    //throw (SJControlSignal) readObjectFromConn();
+
+                    type = SJMessage.SJ_CONTROL;
+                    o = readObjectFromConn();
+
+                    break;
+                case SJ_OBJECT:
+                    type = SJMessage.SJ_OBJECT;
+                    o = readObjectFromConn();
+
+                    break;
+                case SJ_REFERENCE:
+                    type = SJMessage.SJ_REFERENCE;
+                    o = ((SJLocalConnection) conn).readReference();
+
+                    break;
+                case SJ_BYTE:
+                    type = SJMessage.SJ_BYTE;
+                    o = conn.readByte();
+
+                    break;
+                case SJ_INT:
+                    type = SJMessage.SJ_INT;
+                    o = readIntFromConn();
+
+                    break;
+                case SJ_BOOLEAN:
+                    type = SJMessage.SJ_BOOLEAN;
+                    o = deserializeBoolean(conn.readByte());
+
+                    break;
+                default:
+                    throw new SJRuntimeException("[SJDefaultSerializer] Unsupported flag: " + flag);
+            }
 		}			
 		
 		return new SJMessage(type, o);
@@ -776,8 +734,7 @@ public class SJDefaultSerializer extends SJSerializer
 		conn.writeBytes(bs);
 	}
 	
-	private Object readObjectFromConn() throws SJIOException, ClassNotFoundException
-	{		
+	private Object readObjectFromConn() throws SJIOException {
 		byte[] bs = new byte[readIntFromConn()];
 		
 		conn.readBytes(bs);
@@ -796,15 +753,8 @@ public class SJDefaultSerializer extends SJSerializer
 	
 	private Object readObjectFromConnNoCNFE() throws SJIOException
 	{
-		try
-		{
-			return readObjectFromConn();
-		}
-		catch (ClassNotFoundException cnfe)
-		{
-			throw new SJRuntimeException(cnfe);
-		}		
-	}
+        return readObjectFromConn();
+    }
 	
 	private static byte[] serializeObject(Object o) throws SJIOException
 	{
@@ -816,8 +766,7 @@ public class SJDefaultSerializer extends SJSerializer
 		return SJRuntimeUtils.serializeInt(i);
 	}	
 	
-	private static byte serializeBoolean(boolean b) throws SJIOException
-	{
+	private static byte serializeBoolean(boolean b) {
 		return b ? TRUE : FALSE;
 	}
 	
@@ -831,8 +780,7 @@ public class SJDefaultSerializer extends SJSerializer
 		return SJRuntimeUtils.deserializeInt(bs);		
 	}		
 	
-	private static boolean deserializeBoolean(byte b) throws SJIOException
-	{
-		return (b == TRUE);
+	private static boolean deserializeBoolean(byte b) {
+		return b == TRUE;
 	}
 }

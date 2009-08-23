@@ -29,18 +29,13 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 
     /** Collects messages received after a session has been delegated. */
 	private List<SJMessage> lostMessages = new LinkedList<SJMessage>(); // Doesn't need synchronization, shouldn't be adding and removing in different threads.
-    protected SJAbstractSocket s;
+    protected SJSocket s;
     protected SJSerializer ser;
-    protected boolean zeroCopySupported;
-    protected boolean boundedBufferSupported;
 
-    public SJSessionProtocolsImpl(SJAbstractSocket s, SJSerializer ser)
+    public SJSessionProtocolsImpl(SJSocket s, SJSerializer ser)
 	{
         this.s = s;
         this.ser = ser;
-        zeroCopySupported = ser.zeroCopySupported();
-
-        boundedBufferSupported = s.getConnection() instanceof SJBoundedBufferConnection;
 	}
 
 	public void accept() throws SJIOException, SJIncompatibleSessionException
@@ -172,7 +167,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	
 	public void pass(Object o) throws SJIOException
 	{
-        if (zeroCopySupported) {
+        if (ser.zeroCopySupported()) {
             ser.writeReference(o);
         } else {
             ser.writeObject(o);
@@ -381,7 +376,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	
 	public void outlabel(String lab) throws SJIOException 
 	{
-        if (zeroCopySupported) {
+        if (ser.zeroCopySupported()) {
             ser.writeReference(lab);
         } else {
             ser.writeObject(lab);
@@ -466,9 +461,31 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
 	}
 
+    public boolean interruptibleOutsync(boolean condition) throws SJIOException {
+        ser.writeBoolean(condition);
+        return condition && readBooleanWrapCS();
+    }
+
+    public boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException {
+        boolean peerContinues = readBooleanWrapCS();
+        if (peerContinues && peerInterruptible) ser.writeBoolean(condition);
+        if (!condition && !peerInterruptible && peerContinues) 
+            throw new SJOutsyncInterruptedException
+                    ("Insync attempted to interrupt, but outsync peer does not support interruption");
+        return peerContinues && condition;
+    }
+
     public boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException {
         ser.writeBoolean(selfInterrupting);
         return readBooleanHandleCS();
+    }
+
+    private boolean readBooleanWrapCS() throws SJIOException {
+        try {
+            return ser.readBoolean();
+        } catch (SJControlSignal signal) {
+            throw wrapControlSignal(signal);
+        }
     }
 
     private boolean readBooleanHandleCS() throws SJIOException {
@@ -627,7 +644,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 				
 				/*SJAcceptorThreadGroup atg = sjtm.openAcceptorGroup(port); // FIXME: It's not just the session-port that we have to check is free - we need to make sure that the *setup* transports can be opened for that session port (e.g. some other non-SJ process may have opened a TCP port there already).*/
 				
-				p = new SJProtocol(SJRuntime.getTypeEncoder().encode(st));
+				p = new SJProtocol(SJRuntime.encode(st));
 				
 				//SJAcceptorThreadGroup atg = SJRuntime.getFreshAcceptorThreadGroup(SJSessionParameters.DEFAULT_PARAMETERS); // FIXME: need to decide about session parameters.
 				//SJAcceptorThreadGroup atg = SJRuntime.getFreshAcceptorThreadGroup(s.getParameters());
@@ -747,7 +764,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{			
 			reconnectToDelegationTarget((SJDelegationSignal) cs);						
 		}
-		else if (cs instanceof SJFIN)
+		else throw wrapControlSignal(cs);
+	}
+
+    private SJIOException wrapControlSignal(SJControlSignal signal) {
+        if (signal instanceof SJFIN)
 		{
 			/*try // Duplicated from close protocol. // No need, close will be done in finally.
 			{
@@ -755,22 +776,22 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 			}
 			catch (SJIOException ioe)
 			{
-				
+
 			}
 			finally
 			{
 				ser.close(); // Doesn't close the underlying connection.
-			
-				SJRuntime.closeSocket(s);*/ 
-				
-				throw new SJIOException("[SJSessionProtocolsImpl] Session prematurely terminated by peer: " + cs);
-			//}										
+
+				SJRuntime.closeSocket(s);*/
+
+				return new SJIOException("[SJSessionProtocolsImpl] Session prematurely terminated by peer: " + signal);
+			//}
 		}
 		else
 		{
-			throw new SJIOException("[SJSessionProtocolsImpl] Unsupported control signal: " + cs);			
+			return new SJIOException("[SJSessionProtocolsImpl] Unsupported control signal: " + signal);			
 		}
-	}
+    }
 	
 	//private static void dualityCheck(SJSerializer ser, String encoded) throws SJIOException, SJIncompatibleSessionException
 	private void dualityCheck(String encoded) throws SJIOException, SJIncompatibleSessionException
@@ -980,6 +1001,5 @@ throw new SJRuntimeException("[SJSessionProtocolsImpl] Simultaneous delegation n
     public void setSerializer(SJSerializer ser)
     {
         this.ser = ser;
-        zeroCopySupported = ser.zeroCopySupported();
     }
 }

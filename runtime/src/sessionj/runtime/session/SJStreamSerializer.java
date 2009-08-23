@@ -20,7 +20,7 @@ import java.io.ObjectOutputStream;
  * FIXME: use SJRuntime as a factory to create an appropriate serializer (based on connection and user parameters). Also for session protocols object.
  *
  */
-public class SJStreamSerializer extends SJSerializer
+public class SJStreamSerializer extends SJAbstractSerializer
 {		
 	private final ObjectOutputStream oos; // These and the stream operations should be moved into the stream connection object.
 	private final ObjectInputStream ois;
@@ -57,7 +57,7 @@ public class SJStreamSerializer extends SJSerializer
 		}
 	}
 	
-	protected boolean zeroCopySupported()
+	public boolean zeroCopySupported()
 	{
 		return conn instanceof SJLocalConnection; // False?
 	}
@@ -390,7 +390,7 @@ public class SJStreamSerializer extends SJSerializer
 		return cs;
 	}
 	
-	protected SJMessage nextMessage() throws SJIOException, ClassNotFoundException//, SJControlSignal
+	public SJMessage nextMessage() throws SJIOException, ClassNotFoundException//, SJControlSignal
 	{
 		byte type;
 		Object o;
