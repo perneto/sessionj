@@ -6,8 +6,8 @@ import sessionj.util.SJLabel;
 
 public interface SJRecursion extends For, SJLoopOperation // But does not need a SJSocketOperation.
 {
-	public SJLabel label();
-	public SJRecursion label(SJLabel lab);
+	SJLabel label();
+	SJRecursion label(SJLabel lab);
 	
-	public Block body();
+	Block body();
 }
