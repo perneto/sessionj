@@ -8,8 +8,7 @@ public class SJIOException extends SJException
 
 	public SJIOException()
 	{
-		super();
-	}
+    }
 
 	public SJIOException(String message)
 	{

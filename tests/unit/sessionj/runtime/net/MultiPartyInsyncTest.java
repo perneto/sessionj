@@ -4,6 +4,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeTest;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
+import sessionj.runtime.transport.SJConnection;
 
 @SuppressWarnings({"ALL"})
 public class MultiPartyInsyncTest {
@@ -73,6 +74,22 @@ public class MultiPartyInsyncTest {
             return willContinue;
         }
 
+        public boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException {
+            return false;
+        }
+
+        public boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException {
+            return false;
+        }
+
+        public boolean interruptibleOutsync(boolean condition) throws SJIOException {
+            return false;
+        }
+
+        public boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException {
+            return false;
+        }
+
         public void sendChannel(SJService c, String encoded) throws SJIOException {
         }
 
@@ -109,6 +126,19 @@ public class MultiPartyInsyncTest {
 
         public SJSessionParameters getParameters() {
             return null;
+        }
+
+        public SJConnection getConnection() {
+            return null;
+        }
+
+        public void reconnect(SJConnection connection) throws SJIOException {
+        }
+
+        public void setHostName(String hostAddress) {
+        }
+
+        public void setPort(int port) {
         }
     }
 

@@ -69,11 +69,14 @@ public class SJRuntime
 		return sjts;
 	}
 	
-	public static SJRuntimeTypeEncoder getTypeEncoder()
-	{
-		return sjte;
+	public static SJSessionType decodeType(String encoded) throws SJIOException {
+		return sjte.decode(encoded);
 	}
-	
+
+    public static String encode(SJSessionType st) throws SJIOException {
+        return sjte.encode(st);
+    }
+
 	/*abstract public void openServerSocket(SJServerSocket ss) throws SJIOException;	
 	abstract public void closeServerSocket(SJServerSocket ss);
 	
@@ -280,7 +283,7 @@ public class SJRuntime
 		s.setLocalPort(takeFreePort());
 	}
 
-	public static void reconnectSocket(SJAbstractSocket s, String hostName, int port) throws SJIOException
+	public static void reconnectSocket(SJSocket s, String hostName, int port) throws SJIOException
 	{		
 		closeSocket(s);
 		
@@ -299,7 +302,7 @@ public class SJRuntime
 		}
 	}
 	
-	public static void closeSocket(SJAbstractSocket s) 
+	public static void closeSocket(SJSocket s)
 	{
 		SJConnection conn = s.getConnection();
 				
@@ -634,6 +637,33 @@ public class SJRuntime
 
     public static boolean insync(SJSocket s) throws SJIOException {
         return s.insync();
+    }
+
+    public interface BooleanFunction {
+        boolean call(boolean arg) throws SJIOException;
+    }
+    public static BooleanFunction negotiateOutsync(boolean selfInterruptible, final SJSocket s) throws SJIOException {
+        if (s.isPeerInterruptingIn(selfInterruptible))
+            return new BooleanFunction() {
+                public boolean call(boolean arg) throws SJIOException {
+                    return s.interruptibleOutsync(arg);
+                }
+            };
+        else
+            return new BooleanFunction() {
+                public boolean call(boolean arg) throws SJIOException {
+                    return s.outsync(arg);
+                }
+            };
+    }
+
+    public static BooleanFunction negotiateInsync(boolean selfInterrupting, final SJSocket s) throws SJIOException {
+        final boolean peerInterruptible = s.isPeerInterruptibleOut(selfInterrupting);
+        return new BooleanFunction() {
+            public boolean call(boolean arg) throws SJIOException {
+                return s.interruptingInsync(arg, peerInterruptible);
+            }
+        };
     }
 
 	public static boolean insync(SJSocket... sockets) throws SJIOException

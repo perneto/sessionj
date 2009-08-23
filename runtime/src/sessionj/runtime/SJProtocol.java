@@ -26,7 +26,7 @@ public class SJProtocol implements Serializable
 	{
 		try
 		{
-			return SJRuntime.getTypeEncoder().decode(encoded).toString();
+			return SJRuntime.decodeType(encoded).toString();
 		}
 		catch (SJIOException ioe)
 		{

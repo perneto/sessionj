@@ -47,6 +47,8 @@ public interface SJSessionProtocols
 	boolean insync() throws SJIOException;
     boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException;
     boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException;
+    boolean interruptibleOutsync(boolean condition) throws SJIOException;
+    boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException;
 
 	// Higher-order.
     void sendChannel(SJService c, SJSessionType st) throws SJIOException;

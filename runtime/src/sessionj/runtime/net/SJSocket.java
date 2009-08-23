@@ -1,6 +1,7 @@
 package sessionj.runtime.net;
 
 import sessionj.runtime.*;
+import sessionj.runtime.transport.SJConnection;
 
 public interface SJSocket 
 {	
@@ -34,7 +35,11 @@ public interface SJSocket
 	String inlabel() throws SJIOException;
 	boolean outsync(boolean condition) throws SJIOException;
 	boolean insync() throws SJIOException;
-	
+    boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException;
+    boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException;
+    boolean interruptibleOutsync(boolean condition) throws SJIOException;
+    boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException;
+
 	// Higher-order.
 	//public void sendChannel(SJService c) throws SJIOException;
     void sendChannel(SJService c, String encoded) throws SJIOException;
@@ -58,4 +63,12 @@ public interface SJSocket
 	//Hacks for bounded-buffer communication.
 	
 	//public boolean recurseBB(String lab) throws SJIOException;
+
+    SJConnection getConnection();
+
+    void reconnect(SJConnection connection) throws SJIOException;
+
+    void setHostName(String hostAddress);
+
+    void setPort(int port);
 }
