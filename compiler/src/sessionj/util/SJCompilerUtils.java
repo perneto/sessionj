@@ -51,30 +51,8 @@ public class SJCompilerUtils
 		
 		pct.setFields(fields); // Works because ParsedClassType is mutable (no need to reassign defensive copy).
 	}
-	
-	public static void updateSJConstructorInstance(ConstructorInstance ci, SJConstructorInstance sjci)
-	{
-		SJParsedClassType pct = (SJParsedClassType) ci.container();
-		List<ConstructorInstance> constructors = (List<ConstructorInstance>) copyProcedureInstanceList(pct.constructors());
-		
-		constructors.remove(ci); 
-		constructors.add(sjci);
-		
-		pct.setConstructors(constructors); 
-	} 
 
-	public static void updateSJMethodInstance(MethodInstance mi, SJMethodInstance sjmi)
-	{
-		SJParsedClassType pct = (SJParsedClassType) mi.container();
-		List<MethodInstance> methods = (List<MethodInstance>) copyProcedureInstanceList(pct.methods());
-		
-		methods.remove(mi); 
-		methods.add(sjmi);
-		
-		pct.setMethods(methods); 
-	} 
-	
-	public static SJTypeableExt getSJTypeableExt(Node n)
+    public static SJTypeableExt getSJTypeableExt(Node n)
 	{
 		if (n.ext(2) == null) // SJCompoundOperation.
 		{
@@ -330,7 +308,7 @@ public class SJCompilerUtils
 
 			if (mtn instanceof SJTypeNode)
 			{
-				mtn = (SJTypeNode) disambiguateSJTypeNode(job, cv, (SJTypeNode) mtn);
+				mtn = disambiguateSJTypeNode(job, cv, (SJTypeNode) mtn);
 			}
 			else
 			{
@@ -354,7 +332,7 @@ public class SJCompilerUtils
 		}
 		else if (tn instanceof SJBranchNode)
 		{	
-			SJBranchType bt = null;
+			SJBranchType bt;
 			
 			if (tn instanceof SJOutbranchNode)
 			{
@@ -465,9 +443,9 @@ public class SJCompilerUtils
 			}
 			else if (target instanceof Local)
 			{
-				String protocol = ((Local) target).name(); 
+				String protocol = ((NamedVariable) target).name();
 				
-				st = ((SJNamedInstance) cv.context().findLocal(protocol)).sessionType(); // No clone, immutable.
+				st = ((SJTypeableInstance) cv.context().findLocal(protocol)).sessionType(); // No clone, immutable.
 			}
 			else //if (target instanceof ArrayAccess)
 			{
@@ -576,14 +554,14 @@ public class SJCompilerUtils
 				
 				//if (st instanceof SJWhileType)
 				//{
-					if (st instanceof SJOutwhileType)
-					{
-						next = sjts.SJInwhileType();
-					}
-					else if (st instanceof SJInwhileType)
-					{
-						next = sjts.SJOutwhileType();
-					}
+                if (st instanceof SJOutwhileType)
+                {
+                    next = sjts.SJInwhileType();
+                }
+                else if (st instanceof SJInwhileType)
+                {
+                    next = sjts.SJOutwhileType();
+                }
 				//}
 				else //if (st instanceof SJRecursionType)
 				{
@@ -601,7 +579,7 @@ public class SJCompilerUtils
 				throw new SemanticException("[SJCompilerUtils.dualSessionType] Unsupported session type: " + st);
 			}	
 			
-			dual = (dual == null) ? next : dual.append(next);
+			dual = dual == null ? next : dual.append(next);
 		}
 		
 		return dual;
@@ -664,18 +642,7 @@ public class SJCompilerUtils
 	
 	public static void debugPrintln(String m)
 	{
-		debugPrint(m + "\n");
-	}
-	
-	private static List<? extends ProcedureInstance> copyProcedureInstanceList(List procedures)
-	{		
-		List<ProcedureInstance> copy = new LinkedList<ProcedureInstance>();
-
-        for (Object procedure : procedures) {
-            copy.add((ProcedureInstance) procedure);
-        }
-	
-		return copy;
+		debugPrint(m + System.getProperty("line.separator"));
 	}
 
     public static <T> List<T> asLinkedList(T... elem) {

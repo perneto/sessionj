@@ -22,10 +22,7 @@ import static sessionj.util.SJCompilerUtils.getSJSessionOperationExt;
 import sessionj.util.SJCounter;
 import sessionj.util.SJLabel;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * 
@@ -64,9 +61,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 		{
 			SJCompoundOperation so = (SJCompoundOperation) n;
 
-			Position pos = so.position();
-
-			if (so instanceof SJInbranch)
+            if (so instanceof SJInbranch)
 			{	
 				compounds.pop(); // We're only using this to tell if we're dealing with the outermost inbranch/recursion for type checking purposes.
 				
@@ -87,8 +82,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 		return n;
 	}
 
-	private Assign translateSJRecurse(Node parent, SJRecurse r) throws SemanticException
-	{
+	private Assign translateSJRecurse(Node parent, SJRecurse r) {
 		if (!(parent instanceof Eval))
 		{
 			throw new RuntimeException("[SJCompoundOperationTranslator] Shouldn't get here.");			
@@ -113,12 +107,12 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 		Position pos = ib.position();		
 		QQ qq = new QQ(sjts.extensionInfo(), pos);
 		
-		String translation = "{ ";
-		List<Object> mapping = new LinkedList<Object>();
+		StringBuilder translation = new StringBuilder("{ ");
+		Collection<Object> mapping = new LinkedList<Object>();
 		
 		String labVar = SJ_INBRANCH_LABEL_FIELD_PREFIX + sjc.nextValue();
 		
-		translation += "%T %s = %E; ";
+		translation.append("%T %s = %E; ");
 		mapping.add(qq.parseType(SJ_LABEL_CLASS));
 		mapping.add(labVar);
 		mapping.add(ib.inlabel());
@@ -128,7 +122,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 			SJInbranchCase ibc = i.next();
 			
 			//translation += "if (%s.equals(\"%s\")) { %LS } ";
-			translation += "if (%s.equals(%E)) { %LS } ";
+			translation.append("if (%s.equals(%E)) { %LS } ");
 			mapping.add(labVar);
 			//mapping.add(ibc.label().labelValue());
 			mapping.add(sjnf.StringLit(pos, ibc.label().labelValue()));
@@ -136,13 +130,13 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 			
 			if (i.hasNext())
 			{
-				translation += "else ";
+				translation.append("else ");
 			}
 		}
 		
-		translation += "}";
+		translation.append('}');
 		
-		Stmt s = qq.parseStmt(translation, mapping.toArray());		
+		Stmt s = qq.parseStmt(translation.toString(), mapping.toArray());		
 		
 		if (compounds.isEmpty())
 		{
@@ -158,17 +152,16 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 		
 		Position pos = r.position();
 		QQ qq = new QQ(sjts.extensionInfo(), pos);
-		
-		String translation = null;
-		List<Object> mapping = new LinkedList<Object>();
+
+        Collection<Object> mapping = new LinkedList<Object>();
 		
 		String bname = getRecursionBooleanName(soe.sjnames(), r.label());
-		
-		translation = "for (boolean %s = true; %s; ) { }";
+
+        mapping.add(bname);
 		mapping.add(bname);
-		mapping.add(bname);
-		
-		For f = (For) qq.parseStmt(translation, mapping.toArray());
+
+        String translation = "for (boolean %s = true; %s; ) { }";
+        For f = (For) qq.parseStmt(translation, mapping.toArray());
 		
 		mapping.clear();
 		
@@ -206,13 +199,13 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 		return b;
 	}
 	
-	private String getRecursionBooleanName(List<String> sjnames, SJLabel lab)
+	private String getRecursionBooleanName(Iterable<String> sjnames, SJLabel lab)
 	{
-		String bname = SJ_RECURSION_PREFIX;
+		StringBuilder bname = new StringBuilder(SJ_RECURSION_PREFIX);
 		
 		for (String sjname : sjnames)
 		{
-			bname += sjname + "_"; 
+			bname.append(sjname).append('_'); 
 		}
 		
 		return bname + lab.labelValue();		
