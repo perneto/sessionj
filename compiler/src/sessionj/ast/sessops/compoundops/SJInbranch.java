@@ -1,16 +1,14 @@
 package sessionj.ast.sessops.compoundops;
 
-import java.util.List;
-
-import polyglot.ast.*;
-
 import sessionj.ast.sessops.basicops.SJInlabel;
 
-public interface SJInbranch extends CompoundStmt, SJBranchOperation
+import java.util.List;
+
+public interface SJInbranch extends SJBranchOperation
 {
-	public List<SJInbranchCase> branchCases();
-	public SJInbranch branchCases(List<SJInbranchCase> branchCases);
+	List<SJInbranchCase> branchCases();
+	SJInbranch branchCases(List<SJInbranchCase> branchCases);
 	
-	public SJInlabel inlabel();
-	public SJInbranch inlabel(SJInlabel il);
+	SJInlabel inlabel();
+	SJInbranch inlabel(SJInlabel il);
 }

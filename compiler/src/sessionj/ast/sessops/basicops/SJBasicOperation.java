@@ -16,7 +16,7 @@ import java.util.List;
  */
 public interface SJBasicOperation extends Call, SJSessionOperation
 {
-	public SJBasicOperation targets(List targets);
+	SJBasicOperation targets(List targets);
     
     List<Expr> realArgs();
 

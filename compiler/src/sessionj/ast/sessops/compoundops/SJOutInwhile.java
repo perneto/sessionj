@@ -15,6 +15,6 @@ import polyglot.ast.*;
  */
 public interface SJOutInwhile extends SJWhile
 {
-	public SJOutInwhile cond(Expr cond);	
-	public SJOutInwhile body(Stmt body);
+	SJOutInwhile cond(Expr cond);
+	SJOutInwhile body(Stmt body);
 }
