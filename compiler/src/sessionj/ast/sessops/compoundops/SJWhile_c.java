@@ -1,10 +1,11 @@
 package sessionj.ast.sessops.compoundops;
 
-import java.util.List;
-
-import polyglot.ast.*;
+import polyglot.ast.Expr;
+import polyglot.ast.Stmt;
+import polyglot.ast.While_c;
 import polyglot.util.Position;
-import sessionj.ast.sessops.basicops.SJBasicOperation;
+
+import java.util.List;
 
 public class SJWhile_c extends While_c implements SJWhile
 {

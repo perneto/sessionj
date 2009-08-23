@@ -31,14 +31,15 @@ import java.util.*;
  * Also translates basic recurse operation.
  *
  */
-public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlingVisitor
+public class SJCompoundOperationTranslator extends ContextVisitor
 {
-	private SJTypeSystem sjts = (SJTypeSystem) typeSystem();
-	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
+	private final TypeSystem sjts = typeSystem();
+	private final SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 
-	private SJCounter sjc = new SJCounter();
+	private final SJCounter sjc = new SJCounter();
 
-	private Stack<SJCompoundOperation> compounds = new Stack<SJCompoundOperation>(); // Actually, only SJInbranch and SJRecursion.
+	private final Stack<SJCompoundOperation> compounds = new Stack<SJCompoundOperation>();
+    // Actually, only SJInbranch and SJRecursion.
 	
 	public SJCompoundOperationTranslator(Job job, TypeSystem ts, NodeFactory nf)
 	{
@@ -63,7 +64,9 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 
             if (so instanceof SJInbranch)
 			{	
-				compounds.pop(); // We're only using this to tell if we're dealing with the outermost inbranch/recursion for type checking purposes.
+				compounds.pop();
+                // We're only using this to tell if we're dealing with the
+                // outermost inbranch/recursion for type checking purposes.
 				
 				n = translateSJInbranch((SJInbranch) so);
 			}
@@ -97,7 +100,9 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 		mapping.add(getRecursionBooleanName(getSJSessionOperationExt(r).sjnames(), r.label()));		
 		mapping.add(r);
 
-        //a = (Assign) buildAndCheckTypes(job(), this, a); // Can't build the types now because the assignment target variable is not in the context - but it will be built when we translate the outer(most) recursion statement.
+        //a = (Assign) buildAndCheckTypes(job(), this, a); 
+        // Can't build the types now because the assignment target variable is not in the context
+        //  - but it will be built when we translate the outer(most) recursion statement.
 		
 		return (Assign) qq.parseExpr(translation, mapping.toArray());
 	}
@@ -121,10 +126,8 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 		{
 			SJInbranchCase ibc = i.next();
 			
-			//translation += "if (%s.equals(\"%s\")) { %LS } ";
 			translation.append("if (%s.equals(%E)) { %LS } ");
 			mapping.add(labVar);
-			//mapping.add(ibc.label().labelValue());
 			mapping.add(sjnf.StringLit(pos, ibc.label().labelValue()));
 			mapping.add(ibc.statements());
 			
@@ -140,13 +143,18 @@ public class SJCompoundOperationTranslator extends ContextVisitor //ErrorHandlin
 		
 		if (compounds.isEmpty())
 		{
-			s = (Stmt) buildAndCheckTypes(job(), this, s); // (Re-)building types might erase previously built SJ type information. Maybe we don't need to rebuild types in translation phase. Or maybe no important SJ type information is lost (e.g. protocol fields, method signatures, etc.).
+			s = (Stmt) buildAndCheckTypes(job(), this, s);
+            // (Re-)building types might erase previously built SJ type information.
+            // Maybe we don't need to rebuild types in translation phase.
+            // Or maybe no important SJ type information is lost
+            // (e.g. protocol fields, method signatures, etc.).
 		}
 		
 		return s;
 	}
 	
-	private Block translateSJRecursion(SJRecursion r) throws SemanticException // recursionEnter inserted by node factory, but translation is finished here..
+	private Block translateSJRecursion(SJRecursion r) throws SemanticException
+    // recursionEnter inserted by node factory, but translation is finished here..
 	{
 		SJSessionOperationExt soe = getSJSessionOperationExt(r);
 		

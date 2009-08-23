@@ -6,6 +6,10 @@ import sessionj.ast.SJTypeable;
 
 public interface SJSessionOperation extends SJTypeable
 {
-	public List targets(); // First (ambiguous) Receivers and later SJSocketVariables. Aliases the actual AST nodes.
-	public SJSessionOperation targets(List target);
+	/**
+     * First (ambiguous) Receivers and later SJSocketVariables.
+     * Aliases the actual AST nodes.
+     */
+    List targets();
+	SJSessionOperation targets(List target);
 }
