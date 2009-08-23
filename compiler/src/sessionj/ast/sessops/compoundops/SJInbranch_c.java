@@ -28,7 +28,7 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
 		super(pos);
 
 		this.branchCases = TypedList.copyAndCheck(branchCases, SJInbranchCase.class, true); // Is this check necessary?
-		this.targets = il.targets();
+        targets = il.targets();
 		this.il = il;
 	}
 
@@ -91,23 +91,21 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
 
 	public String toString()
 	{
-		return targetsToString() + "." + SJ_KEYWORD_INBRANCH + "() { ... }";
+		return targetsToString() + '.' + SJ_KEYWORD_INBRANCH + "() { ... }";
 	}
 	
 	// The following are adapted from Switch_c.
 	public void prettyPrint(CodeWriter w, PrettyPrinter tr) // This is largely redundant (except for debugging) due to later translation.
 	{
-		w.write(targetsToString() + "." + SJ_KEYWORD_INBRANCH + "()"); // Should use the SJCompilerUtils operation.
+		w.write(targetsToString() + '.' + SJ_KEYWORD_INBRANCH + "()"); // Should use the SJCompilerUtils operation.
 		w.write(" {");
 		w.allowBreak(4, " ");
 		w.begin(0);
 
-		for (Iterator<SJInbranchCase> i = branchCases.iterator(); i.hasNext(); )
-		{
-			SJInbranchCase s = (SJInbranchCase) i.next();
-			w.allowBreak(4, " ");
-			print(s, w, tr);
-		}
+        for (SJInbranchCase s : branchCases) {
+            w.allowBreak(4, " ");
+            print(s, w, tr);
+        }
 
 		w.end();
 		w.allowBreak(0, " ");
@@ -160,15 +158,15 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
 		for (SJInbranchCase ibc : branchCases)
 		{
 			cases.add(ibc);
-			entry.add(new Integer(ENTRY));
+			entry.add(ENTRY);
 		}
 
 		cases.add(this);
-    entry.add(new Integer(EXIT));
+    entry.add(EXIT);
 		
 		v.visitCFG(inlabel(), FlowGraph.EDGE_KEY_OTHER, cases, entry); // entry...
 		
-		v.push(this).visitCFGList(branchCases, this, Term.EXIT); // ...and exit points?
+		v.push(this).visitCFGList(branchCases, this, EXIT); // ...and exit points?
 		
 		return succs;
 	}
@@ -177,6 +175,6 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
 	{
 		String m = targets().toString();
 		
-		return "<" + m.substring(1, m.length() - 1) + ">";	
+		return '<' + m.substring(1, m.length() - 1) + '>';
 	}	
 }

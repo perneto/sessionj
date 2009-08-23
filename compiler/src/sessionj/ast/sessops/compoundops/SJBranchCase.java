@@ -13,5 +13,5 @@ import sessionj.util.SJLabel;
  */
 public interface SJBranchCase extends Block
 {
-	public SJLabel label();
+	SJLabel label();
 }

@@ -367,5 +367,38 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 		((SJProcedureInstance) pd.procedureInstance()).setNoAliasFormalTypes(naft);
 		
 		return pd;
-	}	
+	}
+
+    public static void updateSJConstructorInstance(ConstructorInstance ci, SJConstructorInstance sjci)
+    {
+        SJParsedClassType pct = (SJParsedClassType) ci.container();
+        List<ConstructorInstance> constructors = (List<ConstructorInstance>) copyProcedureInstanceList(pct.constructors());
+
+        constructors.remove(ci);
+        constructors.add(sjci);
+
+        pct.setConstructors(constructors);
+    }
+
+    public static void updateSJMethodInstance(MethodInstance mi, SJMethodInstance sjmi)
+    {
+        SJParsedClassType pct = (SJParsedClassType) mi.container();
+        List<MethodInstance> methods = (List<MethodInstance>) copyProcedureInstanceList(pct.methods());
+
+        methods.remove(mi);
+        methods.add(sjmi);
+
+        pct.setMethods(methods);
+    }
+
+    private static List<? extends ProcedureInstance> copyProcedureInstanceList(List procedures)
+    {
+        List<ProcedureInstance> copy = new LinkedList<ProcedureInstance>();
+
+        for (Object procedure : procedures) {
+            copy.add((ProcedureInstance) procedure);
+        }
+
+        return copy;
+    }
 }
