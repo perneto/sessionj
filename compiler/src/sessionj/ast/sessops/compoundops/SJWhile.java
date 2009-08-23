@@ -4,6 +4,6 @@ import polyglot.ast.*;
 
 public interface SJWhile extends While, SJLoopOperation
 {
-	public SJWhile cond(Expr cond);	
-	public SJWhile body(Stmt body);
+	SJWhile cond(Expr cond);
+	SJWhile body(Stmt body);
 }
