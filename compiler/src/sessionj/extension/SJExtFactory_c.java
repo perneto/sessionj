@@ -13,12 +13,7 @@ import sessionj.types.sesstypes.*;
 public class SJExtFactory_c extends AbstractExtFactory_c implements
     SJExtFactory
 {
-	public SJExtFactory_c()
-	{
-		super();
-	}
-	
-	public SJNoAliasExt SJNoAliasExt(boolean isNoAlias)
+    public SJNoAliasExt SJNoAliasExt(boolean isNoAlias)
 	{
 		return new SJNoAliasExt_c(isNoAlias);
 	}
