@@ -138,7 +138,7 @@ public class SJSessionOperationParser extends ContextVisitor
 	
 	private SJBasicOperation fixSJBasicOperationArguments(final SJBasicOperation bo) throws SemanticException
 	{
-		final List targets = bo.targets(); // Already type built and checked by SJVariableParser.
+		List targets = bo.targets(); // Already type built and checked by SJVariableParser.
 		
 		List<LocalInstance> seen = new LinkedList<LocalInstance>();
 
@@ -161,7 +161,7 @@ public class SJSessionOperationParser extends ContextVisitor
         ai = (ArrayInit) buildAndCheckTypes(job(), this, ai);
         final NewArray na = bo.dummyArray()
                 .init(ai)
-                .dims(Collections.EMPTY_LIST)
+                .dims(Collections.emptyList())
                 .additionalDims(1);
 
         List<Expr> newArgs = new LinkedList<Expr>() {{
