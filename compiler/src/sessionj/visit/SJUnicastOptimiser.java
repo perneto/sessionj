@@ -9,7 +9,6 @@ import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessops.basicops.SJBasicOperation;
-import sessionj.types.SJTypeSystem;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -23,8 +22,6 @@ import java.util.List;
  */
 public class SJUnicastOptimiser extends ContextVisitor
 {
-	private SJTypeSystem sjts = (SJTypeSystem) typeSystem();
-
     public SJUnicastOptimiser(Job job, TypeSystem ts, NodeFactory nf)
 	{
 		super(job, ts, nf);
