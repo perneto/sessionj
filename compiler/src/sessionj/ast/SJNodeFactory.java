@@ -40,82 +40,79 @@ public interface SJNodeFactory extends NodeFactory
 {
     // TODO: Declare any factory methods for new AST nodes.
 	
-	public void setExtensionInfo(ExtensionInfo extInfo); // For QQ.
+	void setExtensionInfo(ExtensionInfo extInfo); // For QQ.
 	
-	public SJExtFactory extFactory();
+	SJExtFactory extFactory();
 	//public SJDelFactory delFactory();
 
-	public SJAmbNoAliasTypeNode SJAmbNoAliasTypeNode(Position pos, AmbTypeNode atn);
-	public SJNoAliasArrayTypeNode SJNoAliasArrayTypeNode(Position pos, ArrayTypeNode atn);
-	public SJNoAliasCanonicalTypeNode SJNoAliasCanonicalTypeNode(Position pos, CanonicalTypeNode ctn);
+	SJAmbNoAliasTypeNode SJAmbNoAliasTypeNode(Position pos, AmbTypeNode atn);
+	SJNoAliasArrayTypeNode SJNoAliasArrayTypeNode(Position pos, ArrayTypeNode atn);
+	SJNoAliasCanonicalTypeNode SJNoAliasCanonicalTypeNode(Position pos, CanonicalTypeNode ctn);
 	
-	public SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoAlias);
-	public SJLocalProtocolDecl SJLocalProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoAlias);
+	SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoAlias);
+	SJLocalProtocolDecl SJLocalProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoAlias);
 	
-	public SJCBeginNode SJCBeginNode(Position pos);
-	public SJSBeginNode SJSBeginNode(Position pos);
-	public SJSendNode SJSendNode(Position pos, TypeNode messageType);
-	public SJReceiveNode SJReceiveNode(Position pos, TypeNode messageType);
-	public SJOutbranchNode SJOutbranchNode(Position pos, List<SJBranchCaseNode> branchCases);
-	public SJInbranchNode SJInbranchNode(Position pos, List<SJBranchCaseNode> branchCases);
-	public SJBranchCaseNode SJBranchCaseNode(Position pos, SJLabel lab, SJTypeNode body);	
-	public SJOutwhileNode SJOutwhileNode(Position pos, SJTypeNode body);
-	public SJInwhileNode SJInwhileNode(Position pos, SJTypeNode body);
-	public SJRecursionNode SJRecursionNode(Position pos, SJLabel lab, SJTypeNode body);
-	public SJRecurseNode SJRecurseNode(Position pos, SJLabel lab);
-	public SJProtocolRefNode SJProtocolRefNode(Position pos, Receiver target);	
-	public SJProtocolDualNode SJProtocolDualNode(Position pos, Receiver target);
+	SJCBeginNode SJCBeginNode(Position pos);
+	SJSBeginNode SJSBeginNode(Position pos);
+	SJSendNode SJSendNode(Position pos, TypeNode messageType);
+	SJReceiveNode SJReceiveNode(Position pos, TypeNode messageType);
+	SJOutbranchNode SJOutbranchNode(Position pos, List<SJBranchCaseNode> branchCases);
+	SJInbranchNode SJInbranchNode(Position pos, List<SJBranchCaseNode> branchCases);
+	SJBranchCaseNode SJBranchCaseNode(Position pos, SJLabel lab, SJTypeNode body);
+	SJOutwhileNode SJOutwhileNode(Position pos, SJTypeNode body);
+	SJInwhileNode SJInwhileNode(Position pos, SJTypeNode body);
+	SJRecursionNode SJRecursionNode(Position pos, SJLabel lab, SJTypeNode body);
+	SJRecurseNode SJRecurseNode(Position pos, SJLabel lab);
+	SJProtocolRefNode SJProtocolRefNode(Position pos, Receiver target);
+	SJProtocolDualNode SJProtocolDualNode(Position pos, Receiver target);
 	
-	public SJChannelCreate SJChannelCreate(Position pos, List arguments);
-	public SJSocketCreate SJSocketCreate(Position pos, List arguments);
-	public SJServerCreate SJServerCreate(Position pos, List arguments);
+	SJChannelCreate SJChannelCreate(Position pos, List arguments);
+	SJSocketCreate SJSocketCreate(Position pos, List arguments);
+	SJServerCreate SJServerCreate(Position pos, List arguments);
 	
-	public SJLocalChannel SJLocalChannel(Position pos, Id name);
-	public SJLocalSocket SJLocalSocket(Position pos, Id name);
-	public SJLocalServer SJLocalServer(Position pos, Id name);
+	SJLocalChannel SJLocalChannel(Position pos, Id name);
+	SJLocalSocket SJLocalSocket(Position pos, Id name);
+	SJLocalServer SJLocalServer(Position pos, Id name);
 	
-	public SJAmbiguousTry SJAmbiguousTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
-	public SJSessionTry SJSessionTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
-	public SJServerTry SJServerTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
+	SJAmbiguousTry SJAmbiguousTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
+	SJSessionTry SJSessionTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
+	SJServerTry SJServerTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
 	
-	public SJRequest SJRequest(Position pos, Receiver target, List arguments);
-	public SJSend SJSend(Position pos, List arguments, List targets);
-	public SJPass SJPass(Position pos, List arguments, List targets);
-	public SJCopy SJCopy(Position pos, List arguments, List targets);
-	public SJReceive SJReceive(Position pos, List<Expr> arguments, List targets);
-	public SJReceive SJReceiveInt(Position pos, List<Expr> arguments, List targets);
-	public SJReceive SJReceiveBoolean(Position pos, List<Expr> arguments, List targets);
-	public SJReceive SJReceiveDouble(Position pos, List<Expr> arguments, List targets);
-	public SJRecurse SJRecurse(Position pos, SJLabel lab, List targets);
+	SJRequest SJRequest(Position pos, Receiver target, List arguments);
+	SJSend SJSend(Position pos, List arguments, List targets);
+	SJPass SJPass(Position pos, List arguments, List targets);
+	SJCopy SJCopy(Position pos, List arguments, List targets);
+	SJReceive SJReceive(Position pos, List<Expr> arguments, List targets);
+	SJReceive SJReceiveInt(Position pos, List<Expr> arguments, List targets);
+	SJReceive SJReceiveBoolean(Position pos, List<Expr> arguments, List targets);
+	SJReceive SJReceiveDouble(Position pos, List<Expr> arguments, List targets);
+	SJRecurse SJRecurse(Position pos, SJLabel lab, List targets);
 	
-	public SJSpawn SJSpawn(Position pos, New w, List targets);
+	SJSpawn SJSpawn(Position pos, New w, List targets);
 	
-	public SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets);
-	public SJInlabel SJInlabel(Position pos, List arguments, List targets);
-	public SJRecursionEnter SJRecursionEnter(Position pos, List targets);
-	public SJRecursionExit SJRecursionExit(Position pos, List targets);
+	SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets);
+	SJInlabel SJInlabel(Position pos, List arguments, List targets);
+	SJRecursionEnter SJRecursionEnter(Position pos, List targets);
+	SJRecursionExit SJRecursionExit(Position pos, List targets);
 	
-	public SJOutbranch SJOutbranch(Position pos, List<Stmt> stmts, SJLabel lab, List<Receiver> targets);
-	public SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets);
-	public SJInbranchCase SJInbranchCase(Position pos, List stmts, SJLabel lab);
-	public SJOutwhile SJOutwhile(Position pos, Expr condition, Stmt body, List targets);
-	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition);
-	public SJInwhile SJInwhile(Position pos, Stmt body, List targets);
-	//public SJRecursion SJRecursion(SJTypeSystem ts, Position pos, List stmts, SJLabel lab, List targets);
-	public SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets);
+	SJOutbranch SJOutbranch(Position pos, List<Stmt> stmts, SJLabel lab, List<Receiver> targets);
+	SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets);
+	SJInbranchCase SJInbranchCase(Position pos, List stmts, SJLabel lab);
+	SJOutwhile SJOutwhile(Position pos, Expr condition, Stmt body, List targets);
+    SJOutwhile SJNewOutwhile(Position pos, Expr condition, Stmt body, List targets);
+	SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition);
+	SJInwhile SJInwhile(Position pos, Stmt body, List targets);
+	//SJRecursion SJRecursion(SJTypeSystem ts, Position pos, List stmts, SJLabel lab, List targets);
+	SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets);
 	
-	public SJAccept SJAccept(Position pos, Receiver target, List arguments);
+	SJAccept SJAccept(Position pos, Receiver target, List arguments);
 	
-	public SJChannelCast SJChannelCast(Position pos, Expr expr, SJTypeNode tn);
-	public SJSessionCast SJSessionCast(Position pos, Expr expr, SJTypeNode tn);
-	public SJAmbiguousCast SJAmbiguousCast(Position pos, Expr expr, SJTypeNode tn);
+	SJChannelCast SJChannelCast(Position pos, Expr expr, SJTypeNode tn);
+	SJSessionCast SJSessionCast(Position pos, Expr expr, SJTypeNode tn);
+	SJAmbiguousCast SJAmbiguousCast(Position pos, Expr expr, SJTypeNode tn);
 	
-	public SJChannelFormal SJChannelFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias);
-	public SJSessionFormal SJSessionFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias);
+	SJChannelFormal SJChannelFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias);
+	SJSessionFormal SJSessionFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias);
 
-    /*private Flags makeFinal(Flags flags)
-{
-return (!flags.isFinal()) ? flags.Final() : flags;
-}*/
     NewArray makeSocketsArray(Position pos, int size);
 }
