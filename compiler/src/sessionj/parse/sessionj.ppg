@@ -443,7 +443,7 @@ extend method_invocation ::= // Unicast basic operations done here.
 	{: 	
 		if (!(b instanceof New))
 		{
-			//throw new SJRuntimeException("[SJParser] Unsupported spawn target: " + b); // Doesn't work for fresh build - sessionj.runtime classes not built yet.
+			// Not using SJRuntimeException: Doesn't work for fresh build - sessionj.runtime classes not built yet.
 			throw new RuntimeException("[SJParser] Unsupported spawn target: " + b);
 		}
 		
@@ -557,8 +557,6 @@ sj_socket_list ::= // Move the angled brackets from the individual operations in
 	sj_socket:a 
 	{:
 		List sockets = new LinkedList();
-		
-		//sockets.add(a.toReceiver());
 		sockets.add(a);
 		
 		RESULT = sockets;

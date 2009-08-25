@@ -599,7 +599,7 @@ public class SJRuntime
         return s.insync();
     }
 
-    public static LoopCondition negociateOutsync(boolean selfInterruptible, final SJSocket[] sockets) throws SJIOException {
+    public static LoopCondition negotiateOutsync(boolean selfInterruptible, final SJSocket[] sockets) throws SJIOException {
         boolean[] results = new boolean[sockets.length];
         for (int i=0; i<sockets.length; ++i) {
             results[i] = sockets[i].isPeerInterruptingIn(selfInterruptible);
@@ -631,7 +631,7 @@ public class SJRuntime
         for (SJSocket s : sockets) s.isPeerInterruptibleOut(false);
     }
 
-    public static boolean negociateInterruptingInwhile(SJSocket[] sockets) throws SJIOException {
+    public static boolean negotiateInterruptingInwhile(SJSocket[] sockets) throws SJIOException {
         boolean[] results = new boolean[sockets.length];
         for (int i=0; i<sockets.length; ++i) {
             results[i] = sockets[i].isPeerInterruptibleOut(true);
