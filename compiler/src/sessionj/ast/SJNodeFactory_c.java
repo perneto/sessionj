@@ -372,10 +372,14 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	
 	public SJOutwhile SJOutwhile(Position pos, Expr condition, Stmt body, List targets)
 	{
-		return new SJOutwhile_c(pos, condition, body, targets);
+		return new SJOutwhile_c(pos, condition, body, targets, false);
 	}
 
-	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition)
+    public SJOutwhile SJNewOutwhile(Position pos, Expr condition, Stmt body, List targets) {
+        return new SJOutwhile_c(pos, condition, body, targets, true);
+    }
+
+    public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition)
 	{
         return new SJOutInwhile_c(pos, condition, body, targets, sources);
 	}

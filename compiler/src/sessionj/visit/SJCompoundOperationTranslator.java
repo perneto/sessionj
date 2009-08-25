@@ -98,12 +98,14 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         String unique = UniqueID.newID("loopCond");
         Expr sockArray = buildNewArray(outwhile.position(), outwhile.targets());
 
+        BooleanLit interruptible = new BooleanLit_c(outwhile.position(), outwhile.isInterruptible());
         Stmt block = qq.parseStmt(
 "{ sessionj.runtime.net.LoopCondition %s = " +
-"sessionj.runtime.net.SJRuntime.negociateOutsync(false, %E);" +
+"sessionj.runtime.net.SJRuntime.negociateOutsync(%E, %E);" +
 " while (%s.call(%E)) %S }",
-                unique, sockArray, unique, 
-                outwhile.cond(), outwhile.body()
+                unique,
+                interruptible, sockArray,
+                unique, outwhile.cond(), outwhile.body()
         );
         buildAndCheckTypes(job(), this, block);
         return block;

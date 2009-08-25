@@ -7,10 +7,13 @@ import polyglot.util.Position;
 
 public class SJOutwhile_c extends SJWhile_c implements SJOutwhile
 {
-	public SJOutwhile_c(Position pos, Expr cond, Stmt body, List targets)
+    private final boolean interruptible;
+
+    public SJOutwhile_c(Position pos, Expr cond, Stmt body, List targets, boolean interruptible)
 	{
 		super(pos, cond, body, targets);
-	}
+        this.interruptible = interruptible;
+    }
 
 	public SJOutwhile cond(Expr cond)
 	{
@@ -21,4 +24,8 @@ public class SJOutwhile_c extends SJWhile_c implements SJOutwhile
 	{
 		return (SJOutwhile) super.body(body);
 	}
+
+    public boolean isInterruptible() {
+        return interruptible; 
+    }
 }

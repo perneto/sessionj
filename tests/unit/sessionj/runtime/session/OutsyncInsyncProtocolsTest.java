@@ -1,12 +1,11 @@
 package sessionj.runtime.session;
 
 import static org.easymock.EasyMock.*;
-import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.SJSocket;
-import sessionj.runtime.session.*;
 
 /**
  *

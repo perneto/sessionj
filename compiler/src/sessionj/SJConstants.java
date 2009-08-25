@@ -41,7 +41,8 @@ public class SJConstants
 
 	public static final String SJ_KEYWORD_OUTBRANCH = "outbranch";
 	public static final String SJ_KEYWORD_INBRANCH = "inbranch";
-	public static final String SJ_KEYWORD_OUTWHILE = "outwhile";	
+	public static final String SJ_KEYWORD_OUTWHILE = "outwhile";
+    public static final String SJ_KEYWORD_NEWOUTWHILE = "intoutwhile";	
 	public static final String SJ_KEYWORD_INWHILE = "inwhile";
 	public static final String SJ_KEYWORD_RECURSION = "recursion";
 	

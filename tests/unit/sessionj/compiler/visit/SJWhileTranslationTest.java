@@ -35,7 +35,7 @@ public class SJWhileTranslationTest {
         verifyBlock(
                 visitor.leaveCall(
                     null, null,
-                    new SJOutwhile_c(dummyPos, trueLit, emptyBlock, targets),
+                    new SJOutwhile_c(dummyPos, trueLit, emptyBlock, targets, false),
                     null),
                 Pattern.quote(
                 "{\n" +
@@ -51,11 +51,34 @@ public class SJWhileTranslationTest {
         );
     }
 
+    @Test
+    public void translateInterruptibleOutwhile() throws SemanticException, IOException {
+        verifyBlock(
+                visitor.leaveCall(
+                        null, null,
+                        new SJOutwhile_c(dummyPos, trueLit, emptyBlock, targets, true),
+                        null),
+                Pattern.quote(
+                        "{\n" +
+                                "    sessionj.runtime.net.LoopCondition ") +
+                        javaIdentifier() +
+                        Pattern.quote(" =\n" +
+                                "      sessionj.runtime.net.SJRuntime.negociateOutsync(\n" +
+                                "        true, new sessionj.runtime.net.SJSocket[] { tgtSock });\n" +
+                                "    while (") +
+                        "\\1" +
+                        Pattern.quote(".call(true)) {  }\n" +
+                                "}")
+        );
+    }
     private void verifyBlock(Node n, String expectedCode) throws IOException {
         assert n instanceof Block;
         assert n.isTypeChecked();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         n.prettyPrint(os);
+        // Handy for debugging.
+        //n.prettyPrint(System.out);
+        //System.out.flush();
         assert os.toString().matches(expectedCode);
         os.close();
     }

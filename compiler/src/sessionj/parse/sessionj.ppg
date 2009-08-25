@@ -86,6 +86,7 @@ terminal Token SJ_RECURSE;
 terminal Token SJ_OUTBRANCH;
 terminal Token SJ_INBRANCH;
 terminal Token SJ_OUTWHILE;
+terminal Token SJ_NEWOUTWHILE;
 terminal Token SJ_INWHILE;
 terminal Token SJ_RECURSION;
 
@@ -139,6 +140,7 @@ non terminal SJInbranch sj_inbranch_statement;
 non terminal List sj_inbranch_cases;
 non terminal SJInbranchCase sj_inbranch_case;
 non terminal SJOutwhile sj_outwhile_statement;
+non terminal SJOutwhile sj_newoutwhile_statement;
 non terminal SJOutInwhile sj_outinwhile_statement;
 non terminal SJInwhile sj_inwhile_statement;
 non terminal SJRecursion sj_recursion_statement;
@@ -433,7 +435,6 @@ extend method_invocation ::= // Unicast basic operations done here.
 {: 		
 	RESULT = a; 
 :}
-//|	name:a DOT SJ_RECURSE LPAREN argument_list_opt:b RPAREN:c
 |	name:a DOT SJ_RECURSE LPAREN IDENTIFIER:b RPAREN:c
 	{: 	
 		RESULT = parser.nf.SJRecurse(parser.pos(a, c), new SJLabel(b.getIdentifier()), parser.asRecvList(a)); 
@@ -606,6 +607,10 @@ sj_structural_operation ::=
 	{: 
 		RESULT = a; 
 	:}
+|	sj_newoutwhile_statement:a
+	{:
+		RESULT = a;
+	:}
 |	sj_outinwhile_statement:a
 	{: 
 		RESULT = a; 
@@ -672,6 +677,17 @@ sj_outwhile_statement ::=
 	{: 
 		RESULT = parser.nf.SJOutwhile(parser.pos(a, c), b, c, parser.asRecvList(a));
 	:}  
+;
+
+sj_newoutwhile_statement ::=
+	LT:a sj_socket_list:b GT DOT SJ_NEWOUTWHILE LPAREN expression:c RPAREN statement:d
+	{:
+		RESULT = parser.nf.SJNewOutwhile(parser.pos(a, d), c, d, b);
+	:}
+| name:a DOT SJ_NEWOUTWHILE LPAREN expression:b RPAREN statement:c
+	{:
+		RESULT = parser.nf.SJNewOutwhile(parser.pos(a, c), b, c, parser.asRecvList(a));
+	:}
 ;
 
 sj_outinwhile_statement ::=
