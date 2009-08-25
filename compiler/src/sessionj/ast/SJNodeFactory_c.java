@@ -330,13 +330,8 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	{	
 		return new SJOutsync_c(this, pos, condition, targets);
 	}
-	
-	private SJInsync SJInsync(Position pos, Expr condition, List targets)
-	{
-		return new SJInsync_c(this, pos, condition, targets);
-	}
-	
-	public SJRecursionEnter SJRecursionEnter(Position pos, List targets)
+
+    public SJRecursionEnter SJRecursionEnter(Position pos, List targets)
 	{	
 		return new SJRecursionEnter_c(pos, this, SJ_SOCKET_RECURSIONENTER, targets);
 	}
