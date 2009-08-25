@@ -6,8 +6,6 @@ import polyglot.ast.*;
 import polyglot.types.*;
 import polyglot.util.Position;
 import polyglot.frontend.*;
-import polyglot.frontend.Compiler;
-import polyglot.frontend.goals.Goal;
 import polyglot.main.Options;
 import sessionj.ExtensionInfo;
 import sessionj.SJConstants;
@@ -155,19 +153,8 @@ public class SJWhileTranslationTest {
     }
 
     private void initCompilerAndVisitor() throws SemanticException {
-        extInfo = new ExtensionInfo() {
-            @Override
-            public Scheduler createScheduler() {
-                return new SJScheduler(this) {
-                    @Override
-                    public Goal currentGoal() {
-                        return new DummyGoal();
-                    }
-                };
-            }
-        };
-        Compiler compiler = new Compiler(extInfo);
-        extInfo.initCompiler(compiler);
+        extInfo = new TestExtensionInfo();
+
         Options.global = new Options(extInfo);
         TypeSystem ts = extInfo.typeSystem();
         SJConstants.SJ_SOCKET_INTERFACE_TYPE = ts
