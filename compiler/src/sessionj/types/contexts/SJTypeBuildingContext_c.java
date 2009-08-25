@@ -5,8 +5,7 @@ package sessionj.types.contexts;
 
 import java.util.*;
 
-import polyglot.ast.Formal;
-import polyglot.ast.MethodDecl;
+import polyglot.ast.*;
 import polyglot.types.*;
 import polyglot.visit.ContextVisitor;
 
@@ -562,8 +561,6 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		
 		pushContextElement(slc);
 		
-		boolean firstIter = true; // The first target of SJOutInwhile is implicitly the single inwhile target.
-		
 		for (String sjname : sjnames)
 		{
 			SJSessionType st = current.getActive(sjname);
@@ -575,16 +572,19 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 					throw new SemanticException("[SJTypeBuildingContext_c] found outwhile, but expected: " + st);
 				}
 			}
-			else if (w instanceof SJOutInwhile) // FIXME: hacky.
+			else if (w instanceof SJOutInwhile)
 			{
-				if (firstIter)
+				Collection<String> sourceNames = new LinkedList<String>();
+                for (Object r : ((SJOutInwhile) w).insyncSources())
+                    sourceNames.add(((SJVariable) r).sjname());
+                
+                if (sourceNames.contains(sjname))
 				{
 					if (!(st instanceof SJInwhileType))
 					{
 						throw new SemanticException("[SJTypeBuildingContext_c] found inwhile, but expected: " + st);
 					} 
 					
-					firstIter = false;
 				}
 				else
 				{

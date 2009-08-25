@@ -19,6 +19,6 @@ public interface SJOutInwhile extends SJWhile
 {
 	SJOutInwhile cond(Expr cond);
 	SJOutInwhile body(Stmt body);
-    List outsyncTargets();
-    List insyncSources();
+    List<?> outsyncTargets();
+    List<?> insyncSources();
 }
