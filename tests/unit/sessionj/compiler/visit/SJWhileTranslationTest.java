@@ -143,6 +143,18 @@ public class SJWhileTranslationTest {
         dummyPos = new Position("", "");
         trueLit = new BooleanLit_c(dummyPos, true);
 
+        emptyBlock = new Block_c(dummyPos, new LinkedList());
+        SJVariable sockVar = sockVariable("tgtSock");
+        targets = new LinkedList();
+        targets.add(sockVar);
+        sources = new LinkedList();
+        SJVariable sockVar2 = sockVariable("srcSock");
+        sources.add(sockVar2);
+
+        initCompilerAndVisitor();
+    }
+
+    private void initCompilerAndVisitor() throws SemanticException {
         extInfo = new ExtensionInfo() {
             @Override
             public Scheduler createScheduler() {
@@ -160,25 +172,23 @@ public class SJWhileTranslationTest {
         TypeSystem ts = extInfo.typeSystem();
         SJConstants.SJ_SOCKET_INTERFACE_TYPE = ts
                 .typeForName(SJConstants.SJ_SOCKET_INTERFACE);
-        Job job = new Job(extInfo, extInfo.jobExt(), new Source("FakeFile.sj", "", new Date()), null);
+        Job job = new Job(extInfo, extInfo.jobExt(),
+                          new Source("FakeFile.sj", "", new Date()), null);
         visitor = new SJCompoundOperationTranslator
                 (job, ts, extInfo.nodeFactory());
         visitor.begin();
-        visitor = (SJCompoundOperationTranslator) visitor.context
-                (visitor.context().pushSource(new ImportTable(ts, new Package_c(ts, ""))));
         ParsedClassType scope = ts.createClassType();
         scope.name("TestClass");
         scope.kind(ClassType.TOP_LEVEL);
-        visitor = (SJCompoundOperationTranslator) visitor.context(
-                visitor.context().pushClass(scope, scope)
-        );
-        emptyBlock = new Block_c(dummyPos, new LinkedList());
-        SJVariable sockVar = new SJLocalSocket_c(dummyPos, new Id_c(dummyPos, "tgtSock"));
-        targets = new LinkedList();
-        targets.add(sockVar);
-        sources = new LinkedList();
-        SJVariable sockVar2 = new SJLocalSocket_c(dummyPos, new Id_c(dummyPos, "srcSock"));
-        sources.add(sockVar2);
+
+        Context context = visitor.context();
+        context = context.pushSource(new ImportTable(ts, new Package_c(ts, "")))
+                         .pushClass(scope, scope);
+        visitor = (SJCompoundOperationTranslator) visitor.context(context);
+    }
+
+    private SJVariable sockVariable(String id) {
+        return new SJLocalSocket_c(dummyPos, new Id_c(dummyPos, id));
     }
 
 }
