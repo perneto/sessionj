@@ -7,10 +7,16 @@ import polyglot.util.Position;
 
 public class SJInwhile_c extends SJWhile_c implements SJInwhile
 {
-	public SJInwhile_c(Position pos, Expr cond, Stmt body, List targets)
+	public SJInwhile_c(Position pos, Stmt body, List targets)
 	{
-		super(pos, cond, body, targets);
+        // The condition will be replaced in SJCompoundOperationTranslator.
+		super(pos, dummyCond(pos), body, targets);
 	}
+    
+    private static Expr dummyCond(Position pos) {
+        return new BooleanLit_c(pos, false);
+    }
+
 
 	public SJInwhile cond(Expr cond)
 	{

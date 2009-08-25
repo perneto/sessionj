@@ -106,7 +106,8 @@ public class SJConstants
 	public static final String SJ_STRING_DELEGATED_TYPE = "SJDelegatedType";
 	
 	public static final String SJ_INBRANCH_LABEL_FIELD_PREFIX = "_sjbranch_";
-	public static final String SJ_RECURSION_PREFIX = "_sjrecursion_";	
+    public static final String SJ_WHILE_PREFIX = "_sjwhile_";
+	public static final String SJ_RECURSION_PREFIX = "_sjrecursion_";
 
 	public static final String SJ_LABEL_EQUALITY_TEST = "equals";
 	

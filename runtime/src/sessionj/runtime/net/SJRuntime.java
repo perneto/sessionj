@@ -43,8 +43,11 @@ public class SJRuntime
 		
 		try
 		{
-			//localHostName = InetAddress.getLocalHost().getHostName(); // FIXME: problems for e.g. HZHL2 on IC-DoC. But we've starting using host names, so use them for now.
-			localHostName = InetAddress.getLocalHost().getHostAddress(); // FIXME: we're actually using IP addresses now, not host names.
+			//localHostName = InetAddress.getLocalHost().getHostName();
+            // // FIXME: problems for e.g. HZHL2 on IC-DoC.
+            // But we've starting using host names, so use them for now.
+			localHostName = InetAddress.getLocalHost().getHostAddress();
+            // FIXME: we're actually using IP addresses now, not host names.
 		}
 		catch (UnknownHostException uhe)
 		{
@@ -54,16 +57,6 @@ public class SJRuntime
 	
 	protected SJRuntime() { }
 
-	/*public static final SJRuntime getSJRuntime()
-	{
-		return runtime;
-	}*/
-	
-	/*public static final SJTransportManager getTransportManager()
-	{
-		return sjtm;
-	}*/	
-	
 	public static SJTypeSystem getTypeSystem()
 	{
 		return sjts;
@@ -77,39 +70,6 @@ public class SJRuntime
         return sjte.encode(st);
     }
 
-	/*abstract public void openServerSocket(SJServerSocket ss) throws SJIOException;	
-	abstract public void closeServerSocket(SJServerSocket ss);
-	
-	abstract public void connectSocket(SJRequestingSocket s) throws SJIOException;
-	abstract public void closeSocket(SJAbstractSocket s); 
-
-	abstract public void accept(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException;
-	abstract public void request(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException;
-	abstract public void close(SJAbstractSocket[] sockets);
-	
-	abstract public void send(SJAbstractSocket[] sockets, Object obj) throws SJIOException;
-	abstract public void send(SJAbstractSocket[] sockets, int i) throws SJIOException;
-	
-	abstract public void pass(SJAbstractSocket[] sockets, Object obj) throws SJIOException; // Explicit noalias primitives not possible, and anyway cannot be "passed".
-	
-	abstract public void copy(SJAbstractSocket[] sockets, Object obj) throws SJIOException;
-	abstract public void copy(SJAbstractSocket[] sockets, int i) throws SJIOException;
-	
-	abstract public Object receive(SJAbstractSocket[] sockets) throws SJIOException, ClassNotFoundException; // Remove array in a compiler pass.;	public static int receiveInt(SJAbstractSocket[] sockets) throws SJIOException;
-	
-	abstract public boolean recurse(SJAbstractSocket[] sockets) throws SJIOException;
-	abstract public boolean outsync(SJAbstractSocket[] sockets, boolean cond) throws SJIOException;
-	abstract public boolean insync(SJAbstractSocket[] sockets) throws SJIOException;
-	abstract public String outlabel(SJAbstractSocket[] sockets, String lab) throws SJIOException;
-	abstract public String inlabel(SJAbstractSocket[] sockets) throws SJIOException;
-	abstract public boolean recursionEnter(SJAbstractSocket[] sockets);
-	abstract public void recursionExit(SJAbstractSocket[] sockets);
-	
-	abstract public void sendChannel(SJAbstractSocket[] sockets, SJService c) throws SJIOException; // Channel objects should be immutable, so can be passed. // Remove array in a compiler pass.	
-	abstract public void delegateSession(SJAbstractSocket[] sockets, SJAbstractSocket s, String encoded) throws SJIOException; 	
-	abstract public SJService receiveChannel(SJAbstractSocket[] sockets, String encoded) throws SJIOException, ClassNotFoundException;
-	abstract public SJAbstractSocket receiveSession(SJAbstractSocket[] sockets, String encoded) throws SJIOException, ClassNotFoundException;*/
-	
 	private static final int LOWER_PORT_LIMIT = 1024;
 	private static final int UPPER_PORT_LIMIT = 65535;
 	
@@ -639,53 +599,75 @@ public class SJRuntime
         return s.insync();
     }
 
-    public interface BooleanFunction {
-        boolean call(boolean arg) throws SJIOException;
-    }
-    public static BooleanFunction negotiateOutsync(boolean selfInterruptible, final SJSocket s) throws SJIOException {
-        if (s.isPeerInterruptingIn(selfInterruptible))
-            return new BooleanFunction() {
-                public boolean call(boolean arg) throws SJIOException {
-                    return s.interruptibleOutsync(arg);
-                }
-            };
+    public static LoopCondition negociateOutsync(boolean selfInterruptible, final SJSocket[] sockets) throws SJIOException {
+        boolean[] results = new boolean[sockets.length];
+        for (int i=0; i<sockets.length; ++i) {
+            results[i] = sockets[i].isPeerInterruptingIn(selfInterruptible);
+        }
+        boolean interrupting = checkAllAgree
+                (results, "Multi-party outwhile: all peers need to be either interrupting or non-interrupting");
+        if (interrupting)
+                return new LoopCondition() {
+                    public boolean call(boolean arg) throws SJIOException {
+                        return interruptibleOutsync(arg, sockets);
+                    }
+                };
         else
-            return new BooleanFunction() {
+            return new LoopCondition() {
                 public boolean call(boolean arg) throws SJIOException {
-                    return s.outsync(arg);
+                    return outsync(arg, sockets);
                 }
             };
     }
 
-    public static BooleanFunction negotiateInsync(boolean selfInterrupting, final SJSocket s) throws SJIOException {
-        final boolean peerInterruptible = s.isPeerInterruptibleOut(selfInterrupting);
-        return new BooleanFunction() {
-            public boolean call(boolean arg) throws SJIOException {
-                return s.interruptingInsync(arg, peerInterruptible);
-            }
-        };
+    private static boolean interruptibleOutsync(boolean condition, SJSocket[] sockets) throws SJIOException {
+        for (SJSocket s : sockets) {
+            s.interruptibleOutsync(condition);
+        }
+        return condition;
     }
 
-	public static boolean insync(SJSocket... sockets) throws SJIOException
-	{
+    public static void negotiateNormalInwhile(SJSocket[] sockets) throws SJIOException {
+        for (SJSocket s : sockets) s.isPeerInterruptibleOut(false);
+    }
+
+    public static boolean negociateInterruptingInwhile(SJSocket[] sockets) throws SJIOException {
+        boolean[] results = new boolean[sockets.length];
+        for (int i=0; i<sockets.length; ++i) {
+            results[i] = sockets[i].isPeerInterruptibleOut(true);
+        }
+        return checkAllAgree(results,
+                "Multi-party inwhile: all peers need to either all support interruption or all reject it");
+    }
+
+    public static boolean interruptingInsync(boolean condition, boolean peersInterruptible, SJSocket[] sockets) throws SJIOException {
+        //Semantics: require all sockets to terminate at the same time, otherwise fail on all sockets.
+        boolean[] hasMore = new boolean[sockets.length];
+        for (int i=0; i<sockets.length; ++i) {
+            hasMore[i] = sockets[i].interruptingInsync(condition, peersInterruptible);
+        }
+        return checkAllAgree(hasMore, "Multi-party inwhile: some of the sockets signalled end of transmission but not all");
+    }
+
+	public static boolean insync(SJSocket... sockets) throws SJIOException {
 		//Semantics: require all sockets to terminate at the same time, otherwise fail on all sockets.
         boolean[] hasMore = new boolean[sockets.length];
-        Arrays.fill(hasMore, true);
         for (int i=0; i<sockets.length; ++i) {
             hasMore[i] = sockets[i].insync();
         }
-        boolean oneFalse = false, allFalse = true;
-        for (boolean b : hasMore) {
-            if (b) allFalse = false;
-            else oneFalse = true;
-        }
-        if (oneFalse && !allFalse) throw new SJIOException
-                ("multi-party inwhile: some of the sockets signalled end of transmission but not all");
-
-        return !allFalse;
+        return checkAllAgree(hasMore, "multi-party inwhile: some of the sockets signalled end of transmission but not all");
     }
-	
-	public static void outlabel(String lab, SJSocket s) throws SJIOException
+
+    private static boolean checkAllAgree(boolean[] hasMore, String message) throws SJIOException {
+        boolean allHaveMore = hasMore[0];
+        for (int i=1; i<hasMore.length; ++i) {
+            if (hasMore[i] ^ allHaveMore) throw new SJIOException(message);
+        }
+
+        return allHaveMore;
+    }
+
+    public static void outlabel(String lab, SJSocket s) throws SJIOException
     // FIXME: this should be automatically eligible for reference passing, need to check how it is
     // currently performed - labels cannot be user modified, and are immutable Strings anyway.
 	{

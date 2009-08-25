@@ -112,4 +112,10 @@ public interface SJNodeFactory extends NodeFactory
 	
 	public SJChannelFormal SJChannelFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias);
 	public SJSessionFormal SJSessionFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias);
+
+    /*private Flags makeFinal(Flags flags)
+{
+return (!flags.isFinal()) ? flags.Final() : flags;
+}*/
+    NewArray makeSocketsArray(Position pos, int size);
 }

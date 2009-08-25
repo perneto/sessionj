@@ -2,11 +2,9 @@ package sessionj.ast.sessops.basicops;
 
 import polyglot.ast.*;
 import polyglot.util.Position;
-import sessionj.SJConstants;
 import static sessionj.SJConstants.SJ_RUNTIME_TYPE;
 import sessionj.ast.SJNodeFactory;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -31,22 +29,12 @@ abstract public class SJBasicOperation_c extends Call_c implements SJBasicOperat
 		this.targets = targets;
 	}
 
-    private static NewArray makeSocketsArray(SJNodeFactory nf, Position pos, int size)
-    {
-        CanonicalTypeNode base = nf.CanonicalTypeNode(pos, SJConstants.SJ_SOCKET_INTERFACE_TYPE);
-
-        List<Expr> dims = new LinkedList<Expr>();
-        dims.add(nf.IntLit(pos, IntLit.INT, size));
-
-        return nf.NewArray(pos, base, dims, 0, null);
-        // Cannot add actual targets (sockets) to an ArrayInit until after disambiguation,
-        // when the targets are resolved from Receivers to Exprs.
-    }
-
     private static List<Expr> addDummyTargets(SJNodeFactory nf, Position pos, List<Expr> arguments, int tgtSize) {
         // Polyglot 2.4 does not support Java 5 varargs, so we need to
         // use NewArrays for the varargs parameters for the time being.
-        arguments.add(makeSocketsArray(nf,pos,tgtSize));
+        arguments.add(nf.makeSocketsArray(pos,tgtSize));
+        // Cannot add actual targets (sockets) to an ArrayInit until after disambiguation,
+        // when the targets are resolved from Receivers to Exprs.
         return arguments;
     }
 
