@@ -52,7 +52,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 	protected SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 	protected SJExtFactory sjef = sjnf.extFactory();
 	
-	protected SJContext sjcontext = new SJContext_c(this);
+	protected SJContext sjcontext = new SJContext_c(this, sjts);
 	
 	/**
 	 * 

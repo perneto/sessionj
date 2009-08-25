@@ -36,13 +36,13 @@ import java.util.List;
  */
 public class SJContext_c extends SJContext
 {
-	SJTypeSystem sjts;
+	private final SJTypeSystem sjts;
 	
-	public SJContext_c(ContextVisitor cv) 
+	public SJContext_c(ContextVisitor cv, SJTypeSystem sjts)
 	{
 		super(cv);
 		
-		this.sjts = (SJTypeSystem) cv.typeSystem();
+		this.sjts = sjts;
 	}
 	
 	public SJSessionType findProtocol(String sjname) throws SemanticException

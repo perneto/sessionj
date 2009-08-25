@@ -53,7 +53,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 	private SJExtFactory sjef = sjnf.extFactory();
 	
-	private SJTypeBuildingContext sjcontext = new SJTypeBuildingContext_c(this);
+	private SJTypeBuildingContext sjcontext = new SJTypeBuildingContext_c(this, sjts);
 	
 	public SJSessionTypeChecker(Job job, TypeSystem ts, NodeFactory nf)
 	{

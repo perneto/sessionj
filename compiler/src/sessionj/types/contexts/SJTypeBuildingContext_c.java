@@ -27,13 +27,13 @@ import static sessionj.util.SJCompilerUtils.*;
  */
 public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildingContext
 {
-	SJTypeSystem sjts;
+	private final SJTypeSystem sjts;
 	
-	public SJTypeBuildingContext_c(ContextVisitor cv) 
+	public SJTypeBuildingContext_c(ContextVisitor cv, SJTypeSystem sjts)
 	{
-		super(cv);
+		super(cv, sjts);
 		
-		this.sjts = (SJTypeSystem) cv.typeSystem();
+		this.sjts = sjts;
 	}
 	
 	/*public SJSessionType findProtocol(String sjname) throws SemanticException
