@@ -6,20 +6,16 @@ import polyglot.qq.QQ;
 import polyglot.types.SemanticException;
 import polyglot.types.TypeSystem;
 import polyglot.util.Position;
+import polyglot.util.UniqueID;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import static sessionj.SJConstants.*;
 import sessionj.ast.SJNodeFactory;
 import sessionj.ast.sessops.basicops.SJRecurse;
-import sessionj.ast.sessops.compoundops.SJCompoundOperation;
-import sessionj.ast.sessops.compoundops.SJInbranch;
-import sessionj.ast.sessops.compoundops.SJInbranchCase;
-import sessionj.ast.sessops.compoundops.SJRecursion;
+import sessionj.ast.sessops.compoundops.*;
 import sessionj.extension.sessops.SJSessionOperationExt;
-import sessionj.types.SJTypeSystem;
 import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
 import static sessionj.util.SJCompilerUtils.getSJSessionOperationExt;
-import sessionj.util.SJCounter;
 import sessionj.util.SJLabel;
 
 import java.util.*;
@@ -36,8 +32,6 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 	private final TypeSystem sjts = typeSystem();
 	private final SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 
-	private final SJCounter sjc = new SJCounter();
-
 	private final Stack<SJCompoundOperation> compounds = new Stack<SJCompoundOperation>();
     // Actually, only SJInbranch and SJRecursion.
 	
@@ -46,7 +40,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		super(job, ts, nf);
 	}
 
-	protected NodeVisitor enterCall(Node parent, Node n) throws SemanticException
+	public NodeVisitor enterCall(Node parent, Node n) throws SemanticException
 	{
 		if (n instanceof SJInbranch || n instanceof SJRecursion)
 		{
@@ -56,44 +50,106 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		return this;
 	}
 	
-	protected Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
+	public Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
 	{
-		if (n instanceof SJCompoundOperation)
-		{
+		if (n instanceof SJCompoundOperation) {
 			SJCompoundOperation so = (SJCompoundOperation) n;
 
-            if (so instanceof SJInbranch)
-			{	
+            if (so instanceof SJInbranch) {	
 				compounds.pop();
                 // We're only using this to tell if we're dealing with the
                 // outermost inbranch/recursion for type checking purposes.
 				
-				n = translateSJInbranch((SJInbranch) so);
-			}
-			else if (so instanceof SJRecursion)
-			{
+				return translateSJInbranch((SJInbranch) so, createQQ(so));
+			} else if (so instanceof SJRecursion) {
 				compounds.pop();
 				
-				n = translateSJRecursion((SJRecursion) so);
-			}
-		}
-		else if (n instanceof SJRecurse)
-		{
-			n = translateSJRecurse(parent, (SJRecurse) n);
+				return translateSJRecursion((SJRecursion) so, createQQ(so));
+			} else if (so instanceof SJOutwhile) {
+                return translateSJOutwhile((SJOutwhile) so, createQQ(so));
+            } else if (so instanceof SJInwhile) {
+                return translateSJInwhile((SJInwhile) so, createQQ(so));
+            } else if (so instanceof SJOutInwhile) {
+                return translateSJOutinwhile((SJOutInwhile) so, createQQ(so));
+            }
+
+		} else if (n instanceof SJRecurse) {
+			return translateSJRecurse(parent, (SJRecurse) n, createQQ(n));
 		}
 
 		return n;
 	}
 
-	private Assign translateSJRecurse(Node parent, SJRecurse r) {
+    private QQ createQQ(Node node) {
+        return new QQ(sjts.extensionInfo(), node.position());
+    }
+
+    private Expr buildNewArray(Position pos, List contents) {
+        NewArray na = sjnf.makeSocketsArray(pos, contents.size());
+
+        ArrayInit ai = sjnf.ArrayInit(pos, contents);
+        na = na.init(ai)
+               .dims(Collections.emptyList())
+               .additionalDims(1);
+        return na;
+    }
+
+    private Node translateSJOutwhile(SJOutwhile outwhile, QQ qq) throws SemanticException {
+        String unique = UniqueID.newID("loopCond");
+        Expr sockArray = buildNewArray(outwhile.position(), outwhile.targets());
+
+        Stmt block = qq.parseStmt(
+"{ sessionj.runtime.net.LoopCondition %s = " +
+"sessionj.runtime.net.SJRuntime.negociateOutsync(false, %E);" +
+" while (%s.call(%E)) %S }",
+                unique, sockArray, unique, 
+                outwhile.cond(), outwhile.body()
+        );
+        buildAndCheckTypes(job(), this, block);
+        return block;
+    }
+
+    private Node translateSJInwhile(SJInwhile inwhile, QQ qq) throws SemanticException {
+        Expr sockArray = buildNewArray(inwhile.position(), inwhile.targets());
+
+        Stmt block = qq.parseStmt(
+"{ sessionj.runtime.net.SJRuntime.negotiateNormalInwhile(%E);" +
+" while (sessionj.runtime.net.SJRuntime.insync(%E)) %S }",
+                sockArray, sockArray, inwhile.body()
+        );
+        buildAndCheckTypes(job(), this, block);
+        return block;
+    }
+
+    private Node translateSJOutinwhile(SJOutInwhile outinwhile, QQ qq) throws SemanticException {
+        Expr sourcesArray = buildNewArray(outinwhile.position(), outinwhile.insyncSources());
+        Expr targetsArray = buildNewArray(outinwhile.position(), outinwhile.outsyncTargets());
+        String loopCond = UniqueID.newID("loopCond");
+        String peerInterruptible = UniqueID.newID("peerInterruptible");
+        
+        Stmt block = qq.parseStmt(
+"{ sessionj.runtime.net.LoopCondition %s = " +
+"sessionj.runtime.net.SJRuntime.negotiateOutsync(false, %E); " +
+"boolean %s = sessionj.runtime.net.SJRuntime.negotiateInterruptingInwhile(%E); " +
+"while(%s.call(sessionj.runtime.net.SJRuntime.interruptingInsync(%E, %s, %E))) " +
+"%S  }",
+                loopCond,
+                targetsArray,
+                peerInterruptible, sourcesArray,
+                loopCond, outinwhile.cond(), peerInterruptible, sourcesArray,
+                outinwhile.body()
+        );
+        buildAndCheckTypes(job(), this, block);
+        return block;
+    }
+
+    private Assign translateSJRecurse(Node parent, SJRecurse r, QQ qq) {
 		if (!(parent instanceof Eval))
 		{
 			throw new RuntimeException("[SJCompoundOperationTranslator] Shouldn't get here.");			
 		}
-				
-		QQ qq = new QQ(sjts.extensionInfo(), r.position());		
-		
-		String translation = "";
+
+        String translation = "";
 		List<Object> mapping = new LinkedList<Object>();
 		
 		translation += "%s = %E";
@@ -107,15 +163,12 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		return (Assign) qq.parseExpr(translation, mapping.toArray());
 	}
 	
-	private Stmt translateSJInbranch(SJInbranch ib) throws SemanticException 
+	private Stmt translateSJInbranch(SJInbranch ib, QQ qq) throws SemanticException
 	{
-		Position pos = ib.position();		
-		QQ qq = new QQ(sjts.extensionInfo(), pos);
-		
-		StringBuilder translation = new StringBuilder("{ ");
+        StringBuilder translation = new StringBuilder("{ ");
 		Collection<Object> mapping = new LinkedList<Object>();
 		
-		String labVar = SJ_INBRANCH_LABEL_FIELD_PREFIX + sjc.nextValue();
+		String labVar = UniqueID.newID(SJ_INBRANCH_LABEL_FIELD_PREFIX);
 		
 		translation.append("%T %s = %E; ");
 		mapping.add(qq.parseType(SJ_LABEL_CLASS));
@@ -128,7 +181,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 			
 			translation.append("if (%s.equals(%E)) { %LS } ");
 			mapping.add(labVar);
-			mapping.add(sjnf.StringLit(pos, ibc.label().labelValue()));
+			mapping.add(sjnf.StringLit(ib.position(), ibc.label().labelValue()));
 			mapping.add(ibc.statements());
 			
 			if (i.hasNext())
@@ -152,14 +205,13 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		
 		return s;
 	}
-	
-	private Block translateSJRecursion(SJRecursion r) throws SemanticException
+
+    private Block translateSJRecursion(SJRecursion r, QQ qq) throws SemanticException
     // recursionEnter inserted by node factory, but translation is finished here..
 	{
 		SJSessionOperationExt soe = getSJSessionOperationExt(r);
 		
 		Position pos = r.position();
-		QQ qq = new QQ(sjts.extensionInfo(), pos);
 
         Collection<Object> mapping = new LinkedList<Object>();
 		
@@ -217,5 +269,5 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		}
 		
 		return bname + lab.labelValue();		
-	}	
+	}
 }

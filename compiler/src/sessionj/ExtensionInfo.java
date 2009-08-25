@@ -60,13 +60,13 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 		return new SJScheduler(this);
 	}
 	
-	static class SJScheduler extends JLScheduler
+	public static class SJScheduler extends JLScheduler
 	{
-		SJScheduler(ExtensionInfo extInfo)
+		public SJScheduler(ExtensionInfo extInfo)
 		{
 			super(extInfo);
 		}
-	
+
 		// TypesInitialized phase (post Parsed, pre TypeChecked).
 		/*public Goal SJThreadPreParsing(final Job job)
 		{
@@ -106,7 +106,7 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
     }*/
 		
 		// ReachabilityChecked phase (post TypeChecked).
-		public Goal SJCreateOperationParsing(final Job job)
+		public Goal SJCreateOperationParsing(Job job)
 		{
             return createGoal(job, SJCreateOperationParser.class, TypeChecked(job), ConstantsChecked(job));
 		}
@@ -147,17 +147,17 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
               return g;
           }*/
 		
-		public Goal SJVariableParsing(final Job job)
+		public Goal SJVariableParsing(Job job)
 		{
 			return createGoal(job, SJVariableParser.class, SJCreateOperationParsing(job));
 		}
 	
-		public Goal SJSessionTryDisambiguation(final Job job)
+		public Goal SJSessionTryDisambiguation(Job job)
 		{
 			return createGoal(job, SJSessionTryDisambiguator.class, SJVariableParsing(job));
 		}	
 		
-		public Goal SJThreadParsing(final Job job)
+		public Goal SJThreadParsing(Job job)
 		{
 			return createGoal(job, SJThreadParser.class, SJSessionTryDisambiguation(job));
 		}
@@ -174,22 +174,22 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
             );
 		}
 		
-		public Goal SJChannelOperationParsing(final Job job)
+		public Goal SJChannelOperationParsing(Job job)
 		{
 			return createGoal(job, SJChannelOperationParser.class, SJThreadParsingBarrier());
 		}	
 		
-		public Goal SJServerOperationParsing(final Job job)
+		public Goal SJServerOperationParsing(Job job)
 		{
 			return createGoal(job, SJServerOperationParser.class, SJChannelOperationParsing(job));
 		}	
 		
-		public Goal SJSessionOperationParsing(final Job job)
+		public Goal SJSessionOperationParsing(Job job)
 		{
 			return createGoal(job, SJSessionOperationParser.class, SJServerOperationParsing(job));
 		}		
 		
-		public Goal SJNoAliasTypeBuilding(final Job job)
+		public Goal SJNoAliasTypeBuilding(Job job)
 		{
 			return createGoal(job, SJNoAliasTypeBuilder.class, SJSessionOperationParsing(job));
 		}
@@ -207,12 +207,12 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
             );
 		}
 
-		public Goal SJNoAliasExprBuilding(final Job job)
+		public Goal SJNoAliasExprBuilding(Job job)
 		{
 			return createGoal(job, SJNoAliasExprBuilder.class, SJNoAliasTypeBuildingBarrier());
 		}
 
-		public Goal SJProtocolDeclTypeBuilding(final Job job)
+		public Goal SJProtocolDeclTypeBuilding(Job job)
 		{
 			return createGoal(job, SJProtocolDeclTypeBuilder.class, SJNoAliasExprBuilding(job));
 		}
@@ -230,17 +230,17 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
             );
 		}		
 	
-		public Goal SJSessionMethodTypeBuilding(final Job job)
+		public Goal SJSessionMethodTypeBuilding(Job job)
 		{
 			return createGoal(job, SJSessionMethodTypeBuilder.class, SJProtocolDeclTypeBuildingBarrier());
 		}
 		
-		public Goal SJChannelDeclTypeBuilding(final Job job)
+		public Goal SJChannelDeclTypeBuilding(Job job)
 		{
 			return createGoal(job, SJChannelDeclTypeBuilder.class, SJSessionMethodTypeBuilding(job));
 		}		
 		
-		public Goal SJServerDeclTypeBuilding(final Job job)
+		public Goal SJServerDeclTypeBuilding(Job job)
 		{
 			return createGoal(job, SJServerDeclTypeBuilder.class, SJChannelDeclTypeBuilding(job));
 		}				
@@ -259,13 +259,13 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 			return g;
 		}*/
 	
-		public Goal SJSocketDeclTypeBuilding(final Job job)
+		public Goal SJSocketDeclTypeBuilding(Job job)
 		{
             // SJChannelDeclTypeBuildingBarrier(job) // Barrier not needed, dealing with locals only.
 			return createGoal(job, SJSocketDeclTypeBuilder.class, SJServerDeclTypeBuilding(job));
 		}		
 		
-		public Goal SJSessionOperationTypeBuilding(final Job job)
+		public Goal SJSessionOperationTypeBuilding(Job job)
 		{
 			return createGoal(job, SJSessionOperationTypeBuilder.class, SJSocketDeclTypeBuilding(job));
 		}	
@@ -282,14 +282,14 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
             );
 		}
 		
-		public Goal SJNoAliasTypeChecking(final Job job)
+		public Goal SJNoAliasTypeChecking(Job job)
 		{
 			return createGoal(job, SJNoAliasTypeChecker.class, SJTypeBuildingBarrier());
 		}
 			
 		// Maybe put a barrier between these two, so that session type checking can really count on linearity.
 		
-		public Goal SJSessionTypeChecking(final Job job) // Doing this after noalias type checking means session linearity is already checked.
+		public Goal SJSessionTypeChecking(Job job) // Doing this after noalias type checking means session linearity is already checked.
 		{
 			return createGoal(job, SJSessionTypeChecker.class, SJNoAliasTypeChecking(job));
 		}
@@ -316,7 +316,7 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 		// End of ReachabilityChecked phase.
 	
 		// Start of Serialized phase.
-		public Goal SJSessionVisiting(final Job job) // All session type has been information built, checked and recorded.
+		public Goal SJSessionVisiting(Job job) // All session type has been information built, checked and recorded.
 		{
 			return createGoal(job, SJSessionVisitor.class,
                     TypeChecked(job), ConstantsChecked(job), ReachabilityChecked(job),
@@ -324,7 +324,7 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
                     ConstructorCallsChecked(job), ForwardReferencesChecked(job));
 		}		
 		
-		public Goal SJSendTranslation(final Job job) // Needs to come before noalias translation.
+		public Goal SJSendTranslation(Job job) // Needs to come before noalias translation.
 		{
 			return createGoal(job, SJSendTranslator.class, SJSessionVisiting(job));
 		}
@@ -352,27 +352,27 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 			return g;
 		}*/
 		
-		public Goal SJNoAliasTranslation(final Job job)
+		public Goal SJNoAliasTranslation(Job job)
 		{
 			return createGoal(job, SJNoAliasTranslator.class, SJSendTranslation(job));
 		}
 	
-		public Goal SJProtocolDeclTranslation(final Job job) // Doing this after noalias type checking means session linearity is already checked.
+		public Goal SJProtocolDeclTranslation(Job job) // Doing this after noalias type checking means session linearity is already checked.
 		{
 			return createGoal(job, SJProtocolDeclTranslator.class, SJNoAliasTranslation(job));
 		}
 		
-		public Goal SJSessionTryTranslation(final Job job) // Doing this after noalias type checking means session linearity is already checked.
+		public Goal SJSessionTryTranslation(Job job) // Doing this after noalias type checking means session linearity is already checked.
 		{
 			return createGoal(job, SJSessionTryTranslator.class, SJProtocolDeclTranslation(job));
 		}		
 
-		public Goal SJHigherOrderTranslation(final Job job) // Doing this after noalias type checking means session linearity is already checked.
+		public Goal SJHigherOrderTranslation(Job job) // Doing this after noalias type checking means session linearity is already checked.
 		{
 			return createGoal(job, SJHigherOrderTranslator.class, SJSessionTryTranslation(job));
 		}
 		
-		public Goal SJCompoundOperationTranslation(final Job job) 
+		public Goal SJCompoundOperationTranslation(Job job)
 		{
             return createGoal(job, SJCompoundOperationTranslator.class, SJUnicastOptimization(job));
 		}

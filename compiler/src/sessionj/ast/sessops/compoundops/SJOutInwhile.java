@@ -2,6 +2,8 @@ package sessionj.ast.sessops.compoundops;
 
 import polyglot.ast.*;
 
+import java.util.List;
+
 /**
  * 
  * @author Raymond
@@ -17,4 +19,6 @@ public interface SJOutInwhile extends SJWhile
 {
 	SJOutInwhile cond(Expr cond);
 	SJOutInwhile body(Stmt body);
+    List outsyncTargets();
+    List insyncSources();
 }

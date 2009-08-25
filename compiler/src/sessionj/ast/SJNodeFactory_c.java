@@ -31,6 +31,7 @@ import sessionj.extension.SJExtFactory_c;
 import static sessionj.util.SJCompilerUtils.setSJNoAliasFinalExt;
 import sessionj.util.SJLabel;
 import sessionj.util.SJCompilerUtils;
+import sessionj.SJConstants;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -371,28 +372,17 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	
 	public SJOutwhile SJOutwhile(Position pos, Expr condition, Stmt body, List targets)
 	{
-		SJOutsync os = SJOutsync(pos, condition, targets);
-
-        //n = (SJOutwhile) n.del(delFactory().SJStructuralOperationDel());
-		//n = (SJOutwhile) n.ext(extFactory().SJStructuralOperationExt(target));
-
-		return new SJOutwhile_c(pos, os, body, targets);
+		return new SJOutwhile_c(pos, condition, body, targets);
 	}
 
 	public SJOutInwhile SJOutInwhile(Position pos, Stmt body, List<Receiver> sources, List<Receiver> targets, Expr condition)
 	{
-        Expr insync = SJInsync(pos, condition, targets);
-
-        SJOutsync os = SJOutsync(pos, insync, targets);
-        List<Receiver> all = new LinkedList<Receiver>(sources);
-        all.addAll(targets);
-        return new SJOutInwhile_c(pos, os, body, all);
+        return new SJOutInwhile_c(pos, condition, body, targets, sources);
 	}
 	
 	public SJInwhile SJInwhile(Position pos, Stmt body, List targets)
 	{
-		SJInsync is = SJInsync(pos, null, targets);
-        return new SJInwhile_c(pos, is, body, targets);
+        return new SJInwhile_c(pos, body, targets);
 	}
 
 	public SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets) // Inconvenient to ...
@@ -498,5 +488,14 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	/*private Flags makeFinal(Flags flags)
 	{
 		return (!flags.isFinal()) ? flags.Final() : flags;
-	}*/	
+	}*/
+    public NewArray makeSocketsArray(Position pos, int size)
+    {
+        CanonicalTypeNode base = CanonicalTypeNode(pos, SJ_SOCKET_INTERFACE_TYPE);
+
+        List<Expr> dims = new LinkedList<Expr>();
+        dims.add(IntLit(pos, IntLit.INT, size));
+
+        return NewArray(pos, base, dims, 0, null);
+    }
 }
