@@ -9,22 +9,20 @@ import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 
 public class Test2  
-{	
+{
+
 	public void problem1() throws Exception
 	{	
 		final noalias protocol p1 { cbegin.!{L1:![!<int>]*} }
-		//final noalias protocol p2 { cbegin.?[!<int>]* }
-		
+
 		final noalias SJService c1 = SJService.create(p1, "", 1234);
-		//final noalias SJService c2 = SJService.create(p2, "", 1234);
+
+		noalias SJSocket s1;
 		
-		noalias SJSocket s1;//, s2;
-		
-		try (s1)//, s2)
+		try (s1)
 		{
 			s1 = c1.request();
-			//s2 = c2.request();
-	
+
 			s1.outbranch(L1)
 			{
 				s1.outwhile(true)
@@ -38,8 +36,8 @@ public class Test2
 			
 		}
 	}
-	
-	/*public void problem2() throws Exception
+/*
+	public void problem2() throws Exception
 	{
 		final noalias protocol p1 { cbegin.!<int> }
 		
@@ -57,5 +55,6 @@ public class Test2
 		{
 			
 		}
-	}*/
+	}
+*/	
 }
