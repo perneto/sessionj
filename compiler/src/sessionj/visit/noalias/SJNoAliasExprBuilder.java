@@ -426,7 +426,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 			for (ArrayAccess aa : naee.arrayAccesses()) if (!vars.contains(aa)) arrayAccesses.add(aa);
 		}
 
-        removeFinalSocketArguments(c, locals);
+        removeNonFinalSocketArguments(c, locals);
 		
 		if (!isNoAlias)
 		{
@@ -441,27 +441,28 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		return c;
 	}
 
-    private void removeFinalSocketArguments(Call c, List<Local> locals) {
-        List args = null;
+    private void removeNonFinalSocketArguments(Call c, List<Local> locals) {
+        List targets = null;
 
         //if (c instanceof SJSessionOperation) // Needed since session sockets don't need to be final anymore (and because session (edit: not session, but basic - not compound because c is a Call) operations are already translated to static SJRuntime calls).
         if (c instanceof SJBasicOperation)
         {
-            args = ((SJBasicOperation)c).targets(); // Unicast optimisation of session operations comes later.
+            targets = ((SJBasicOperation)c).targets(); // Unicast optimisation of session operations comes later.
         }
         /*else if (c instanceof SJSpawn) // Incorrect: we want spawned sessions to become null.
 {
-//args = c.arguments(); // Type checking will prevent these from being final.
+//targets = c.arguments(); // Type checking will prevent these from being final.
 }*/
 
-        if (args != null)
+        if (targets != null)
         {
-            for (Object o : args)
+            for (Object o : targets)
             {
                 SJLocalSocket s = (SJLocalSocket) o;
 
                 if (!s.localInstance().flags().isFinal() && locals.contains(s))
-                // Requires object identity for the SJRuntime method socket argument
+                // Requires that the SJLocalSocket found in targets and the one in locals be equals.
+                // Had to implement equals in SJLocalSocket_c, as parent classes come from Polyglot.
                 // (the target of the session operation) and assumes that delegating a session over itself is illegal.
                 {
                     locals.remove(s);
