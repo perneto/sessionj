@@ -101,7 +101,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         BooleanLit interruptible = new BooleanLit_c(outwhile.position(), outwhile.isInterruptible());
         Stmt block = qq.parseStmt(
 "{ sessionj.runtime.net.LoopCondition %s = " +
-"sessionj.runtime.net.SJRuntime.negociateOutsync(%E, %E);" +
+"sessionj.runtime.net.SJRuntime.negotiateOutsync(%E, %E);" +
 " while (%s.call(%E)) %S }",
                 unique,
                 interruptible, sockArray,

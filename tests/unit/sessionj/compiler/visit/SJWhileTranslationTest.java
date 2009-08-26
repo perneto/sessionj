@@ -40,7 +40,7 @@ public class SJWhileTranslationTest {
                 "    sessionj.runtime.net.LoopCondition ") +
                         javaIdentifier() +
                         Pattern.quote(" =\n" +
-                "      sessionj.runtime.net.SJRuntime.negociateOutsync(\n" +
+                "      sessionj.runtime.net.SJRuntime.negotiateOutsync(\n" +
                 "        false, new sessionj.runtime.net.SJSocket[] { tgtSock });\n" +
                 "    while (") +
                                 "\\1" +
@@ -61,7 +61,7 @@ public class SJWhileTranslationTest {
                                 "    sessionj.runtime.net.LoopCondition ") +
                         javaIdentifier() +
                         Pattern.quote(" =\n" +
-                                "      sessionj.runtime.net.SJRuntime.negociateOutsync(\n" +
+                                "      sessionj.runtime.net.SJRuntime.negotiateOutsync(\n" +
                                 "        true, new sessionj.runtime.net.SJSocket[] { tgtSock });\n" +
                                 "    while (") +
                         "\\1" +
