@@ -424,32 +424,9 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 			for (Field f : naee.fields()) if (!vars.contains(f)) fields.add(f);				
 			for (Local l : naee.locals()) if (!vars.contains(l)) locals.add(l);
 			for (ArrayAccess aa : naee.arrayAccesses()) if (!vars.contains(aa)) arrayAccesses.add(aa);
-		}				
-		
-		List args = null;
-		
-		//if (c instanceof SJSessionOperation) // Needed since session sockets don't need to be final anymore (and because session (edit: not session, but basic - not compound because c is a Call) operations are already translated to static SJRuntime calls).
-		if (c instanceof SJBasicOperation)
-		{							
-			args = ((SJBasicOperation)c).targets(); // Unicast optimisation of session operations comes later.
 		}
-		/*else if (c instanceof SJSpawn) // Incorrect: we want spawned sessions to become null.
-		{
-			//args = c.arguments(); // Type checking will prevent these from being final.
-		}*/
-			
-		if (args != null)
-		{
-			for (Object o : args)
-			{
-				SJLocalSocket s = (SJLocalSocket) o;
-				
-				if (!s.localInstance().flags().isFinal() && locals.contains(s)) // Requires object identity for the SJRuntime method socket argument (the target of the session operation) and assumes that delegating a session over itself is illegal.
-				{
-					locals.remove(s);
-				}
-			}
-		}	
+
+        removeFinalSocketArguments(c, locals);
 		
 		if (!isNoAlias)
 		{
@@ -463,8 +440,37 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		
 		return c;
 	}
-	
-	private Lit buildLit(Lit l)
+
+    private void removeFinalSocketArguments(Call c, List<Local> locals) {
+        List args = null;
+
+        //if (c instanceof SJSessionOperation) // Needed since session sockets don't need to be final anymore (and because session (edit: not session, but basic - not compound because c is a Call) operations are already translated to static SJRuntime calls).
+        if (c instanceof SJBasicOperation)
+        {
+            args = ((SJBasicOperation)c).targets(); // Unicast optimisation of session operations comes later.
+        }
+        /*else if (c instanceof SJSpawn) // Incorrect: we want spawned sessions to become null.
+{
+//args = c.arguments(); // Type checking will prevent these from being final.
+}*/
+
+        if (args != null)
+        {
+            for (Object o : args)
+            {
+                SJLocalSocket s = (SJLocalSocket) o;
+
+                if (!s.localInstance().flags().isFinal() && locals.contains(s))
+                // Requires object identity for the SJRuntime method socket argument
+                // (the target of the session operation) and assumes that delegating a session over itself is illegal.
+                {
+                    locals.remove(s);
+                }
+            }
+        }
+    }
+
+    private Lit buildLit(Lit l)
 	{
 		if (l instanceof NullLit || l instanceof StringLit || l instanceof BooleanLit || l instanceof NumLit || l instanceof FloatLit)				
 		{			
