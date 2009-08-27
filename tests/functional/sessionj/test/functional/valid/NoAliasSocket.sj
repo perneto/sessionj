@@ -34,7 +34,7 @@ public class NoAliasSocket extends AbstractValidTest {
 
 		try (ss)
 		{
-            ss = SJServerSocket.create(pB, 1234, params);
+            ss = SJServerSocket.create(pB, port, params);
             noalias SJSocket s;
             try (s) {
                 s = ss.accept();
