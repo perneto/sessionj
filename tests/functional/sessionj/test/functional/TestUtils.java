@@ -12,7 +12,7 @@ public class TestUtils {
         File compilationErrorDir = new File(TestConstants.TEST_DIR + dir);
         return compilationErrorDir.listFiles(new FilenameFilter() {
             public boolean accept(File file, String s) {
-                return s.endsWith(".sj");
+                return s.endsWith(".sj") && !s.startsWith("DISABLED");
             }
         });
     }
