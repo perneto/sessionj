@@ -12,7 +12,7 @@ import sessionj.runtime.transport.*;
  */
 public class NoAliasSocket extends AbstractValidTest {
 
-    public void client(int port, SJSessionParameters params) throws Exception {
+    public void client(int port) throws Exception {
         final noalias protocol pA { cbegin.!<int>.!<int> }
 
         final noalias SJService c = SJService.create(pA, "", port);
@@ -20,7 +20,7 @@ public class NoAliasSocket extends AbstractValidTest {
 
         try (s)
 		{
-			s = c.request(params);
+			s = c.request();
 
 			s.send(41);
 		    s.send(42);
@@ -28,13 +28,13 @@ public class NoAliasSocket extends AbstractValidTest {
 		}
     }
 
-    public void server(int port, SJSessionParameters params) throws Exception {
+    public void server(int port) throws Exception {
         final noalias protocol pB { sbegin.?(int).?(int) }
 		final noalias SJServerSocket ss;
 
 		try (ss)
 		{
-            ss = SJServerSocket.create(pB, port, params);
+            ss = SJServerSocket.create(pB, port);
             noalias SJSocket s;
             try (s) {
                 s = ss.accept();
