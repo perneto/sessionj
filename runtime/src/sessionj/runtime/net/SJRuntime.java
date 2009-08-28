@@ -16,8 +16,10 @@ import sessionj.types.sesstypes.SJSessionType;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.*;
 
-public class SJRuntime 
+@SuppressWarnings({"StaticMethodOnlyUsedInOneClass"})
+public class SJRuntime
 {
 	private	static final ExtensionInfo extInfo;
 	private static final SJTypeSystem sjts;
@@ -599,13 +601,13 @@ public class SJRuntime
         return s.insync();
     }
 
-    public static LoopCondition negotiateOutsync(boolean selfInterruptible, final SJSocket[] sockets) throws SJIOException {
-        boolean[] results = new boolean[sockets.length];
-        for (int i=0; i<sockets.length; ++i) {
-            results[i] = sockets[i].isPeerInterruptingIn(selfInterruptible);
-        }
-        boolean interrupting = checkAllAgree
-                (results, "Multi-party outwhile: all peers need to be either interrupting or non-interrupting");
+    public static LoopCondition negotiateOutsync(final boolean selfInterruptible, final SJSocket[] sockets) throws SJIOException {
+        boolean interrupting = checkAllAgree(new SJSocketTest() {
+                public boolean call(SJSocket s) throws SJIOException {
+                    return s.isPeerInterruptingIn(selfInterruptible);
+                }
+            }, sockets,
+           "Multi-party outwhile: all peers need to be either interrupting or non-interrupting");
         if (interrupting)
                 return new LoopCondition() {
                     public boolean call(boolean arg) throws SJIOException {
@@ -632,39 +634,65 @@ public class SJRuntime
     }
 
     public static boolean negotiateInterruptingInwhile(SJSocket[] sockets) throws SJIOException {
-        boolean[] results = new boolean[sockets.length];
-        for (int i=0; i<sockets.length; ++i) {
-            results[i] = sockets[i].isPeerInterruptibleOut(true);
-        }
-        return checkAllAgree(results,
-                "Multi-party inwhile: all peers need to either all support interruption or all reject it");
+        return checkAllAgree(new SJSocketTest() {
+                public boolean call(SJSocket s) throws SJIOException {
+                    return s.isPeerInterruptibleOut(true);
+                }
+            }, sockets,
+            "Multi-party inwhile: all peers need to either all support interruption or all reject it"
+        );
     }
 
-    public static boolean interruptingInsync(boolean condition, boolean peersInterruptible, SJSocket[] sockets) throws SJIOException {
+    public static boolean interruptingInsync(final boolean condition, final boolean peersInterruptible, SJSocket[] sockets) throws SJIOException {
         //Semantics: require all sockets to terminate at the same time, otherwise fail on all sockets.
-        boolean[] hasMore = new boolean[sockets.length];
-        for (int i=0; i<sockets.length; ++i) {
-            hasMore[i] = sockets[i].interruptingInsync(condition, peersInterruptible);
-        }
-        return checkAllAgree(hasMore, "Multi-party inwhile: some of the sockets signalled end of transmission but not all");
+        return checkAllAgree(new SJSocketTest() {
+                public boolean call(SJSocket s) throws SJIOException {
+                    return s.interruptingInsync(condition, peersInterruptible);
+                }
+            }, sockets,
+            "Multi-party inwhile: some of the sockets signalled end of transmission but not all"
+        );
     }
 
+    private interface SJSocketTest {
+        boolean call(SJSocket s) throws SJIOException;
+    }
+
+    private static final ExecutorService es = Executors.newCachedThreadPool();
+            
 	public static boolean insync(SJSocket... sockets) throws SJIOException {
 		//Semantics: require all sockets to terminate at the same time, otherwise fail on all sockets.
-        boolean[] hasMore = new boolean[sockets.length];
-        for (int i=0; i<sockets.length; ++i) {
-            hasMore[i] = sockets[i].insync();
-        }
-        return checkAllAgree(hasMore, "multi-party inwhile: some of the sockets signalled end of transmission but not all");
+        return checkAllAgree(new SJSocketTest() {
+                public boolean call(SJSocket s) throws SJIOException {
+                    return s.insync();
+                }
+            }, sockets,
+            "Multi-party inwhile: some of the sockets signalled end of transmission but not all"
+        );
     }
 
-    private static boolean checkAllAgree(boolean[] hasMore, String message) throws SJIOException {
-        boolean allHaveMore = hasMore[0];
-        for (int i=1; i<hasMore.length; ++i) {
-            if (hasMore[i] ^ allHaveMore) throw new SJIOException(message);
+    private static boolean checkAllAgree(final SJSocketTest test, SJSocket[] sockets, String message) throws SJIOException {
+        List<Future<Boolean>> values = new LinkedList<Future<Boolean>>();
+        for (final SJSocket s : sockets) {
+            values.add(es.submit(new Callable<Boolean>() {
+                public Boolean call() throws SJIOException {
+                    return test.call(s);
+                }
+            }));
+        }
+        boolean fold;
+        try {
+            fold = values.get(0).get();
+            for (int i=1; i<values.size(); ++i) {
+                if (values.get(i).get() ^ fold) throw new SJIOException(message);
+            }        
+        } catch (InterruptedException e) {
+            throw new SJIOException(e);
+        } catch (ExecutionException e) {
+            throw new SJIOException(e);
         }
 
-        return allHaveMore;
+        return fold;
     }
 
     public static void outlabel(String lab, SJSocket s) throws SJIOException
