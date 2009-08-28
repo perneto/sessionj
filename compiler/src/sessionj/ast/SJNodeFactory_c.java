@@ -99,7 +99,7 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	public SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoAlias)
 	{
 		//flags = makeFinal(flags); // To utilise base type checking.
-
+        assert pos != null;
 		SJFieldProtocolDecl n = new SJFieldProtocolDecl_c(pos, flags, CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn); // Null initialization overwritten by protocol declaration translation pass (dummy init. needed to satisfy base type checking).		
 		
 		if (isNoAlias) // Actually, the type system will enforce it to be na-final.
