@@ -60,6 +60,12 @@ parser Grm extends polyglot.parse.Grm {:
         l.add(n.toReceiver());
         return l;
     }
+
+    public Position pos(Object first, Object last) {
+        Position pos = super.pos(first, last);
+        if (pos == null) pos = Position.COMPILER_GENERATED;
+        return pos;
+    }
 :};
 
 terminal Token SJ_NOALIAS;
