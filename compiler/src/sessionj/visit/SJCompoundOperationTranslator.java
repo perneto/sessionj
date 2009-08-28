@@ -128,19 +128,38 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         Expr targetsArray = buildNewArray(outinwhile.position(), outinwhile.outsyncTargets());
         String loopCond = UniqueID.newID("loopCond");
         String peerInterruptible = UniqueID.newID("peerInterruptible");
+
+        List<Object> subst = new LinkedList<Object>(Arrays.asList(
+            loopCond, targetsArray
+        ));
+        String code =
+            "{ sessionj.runtime.net.LoopCondition %s = " +
+            "sessionj.runtime.net.SJRuntime.negotiateOutsync(false, %E); ";
+        if (outinwhile.hasCondition()) {
+            code += "boolean %s = ";
+            subst.add(peerInterruptible);              
+        }
+        code += "sessionj.runtime.net.SJRuntime.";
+        code += outinwhile.hasCondition() ?
+            "negotiateInterruptingInwhile" : "negotiateNormalInwhile";
+        code += "(%E); while(%s.call(sessionj.runtime.net.SJRuntime.";
+
+        subst.add(sourcesArray);
+        subst.add(loopCond);
         
-        Stmt block = qq.parseStmt(
-"{ sessionj.runtime.net.LoopCondition %s = " +
-"sessionj.runtime.net.SJRuntime.negotiateOutsync(false, %E); " +
-"boolean %s = sessionj.runtime.net.SJRuntime.negotiateInterruptingInwhile(%E); " +
-"while(%s.call(sessionj.runtime.net.SJRuntime.interruptingInsync(%E, %s, %E))) " +
-"%S  }",
-                loopCond,
-                targetsArray,
-                peerInterruptible, sourcesArray,
-                loopCond, outinwhile.cond(), peerInterruptible, sourcesArray,
-                outinwhile.body()
-        );
+        if (outinwhile.hasCondition()) {
+            code += "interruptingInsync(%E, %s, %E)";
+            subst.add(outinwhile.cond());
+            subst.add(peerInterruptible);
+            subst.add(sourcesArray);
+        } else {
+            code += "insync(%E)";
+            subst.add(sourcesArray);
+        }
+        code += ")) %S  }";
+        subst.add(outinwhile.body());
+
+        Stmt block = qq.parseStmt(code, subst);
         buildAndCheckTypes(job(), this, block);
         return block;
     }

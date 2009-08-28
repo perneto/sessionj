@@ -75,8 +75,8 @@ public class SJWhileTranslationTest {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         n.prettyPrint(os);
         // Handy for debugging.
-        //n.prettyPrint(System.out);
-        //System.out.flush();
+        n.prettyPrint(System.out);
+        System.out.flush();
         assert os.toString().matches(expectedCode);
         os.close();
     }
@@ -130,6 +130,33 @@ public class SJWhileTranslationTest {
                 "    }\n" +
                 "}")
         );
+    }
+
+    @Test
+    public void translateOutinwhileNoCond() throws SemanticException, IOException {
+        verifyBlock(
+                visitor.leaveCall(null, null,
+                        new SJOutInwhile_c(dummyPos, null, emptyBlock, targets, sources),
+                        null),
+                Pattern.quote(
+                "{\n" +
+                "    sessionj.runtime.net.LoopCondition ") +
+                        javaIdentifier() +
+                        Pattern.quote(" =\n" +
+                "      sessionj.runtime.net.SJRuntime.negotiateOutsync(\n" +
+                "        false, new sessionj.runtime.net.SJSocket[] { tgtSock });\n" +
+                "    sessionj.runtime.net.SJRuntime.negotiateNormalInwhile(\n" +
+                "      new sessionj.runtime.net.SJSocket[] { srcSock });\n" +
+                "    while (") +
+                                "\\1" +
+                        Pattern.quote(".call(\n" +
+                "             sessionj.runtime.net.SJRuntime.insync(\n" +               
+                "               new sessionj.runtime.net.SJSocket[] { srcSock }))) {\n" +
+                "        \n" +
+                "    }\n" +
+                "}")
+        );
+            
     }
 
     private String javaIdentifier() {
