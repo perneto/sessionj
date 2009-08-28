@@ -721,7 +721,7 @@ sj_outinwhile_statement ::=
         RESULT = parser.nf.SJOutInwhile(parser.pos(lt, body), body, srcLst, tgtLst, null);
     :}
   // single target, multi-source, no condition
-| name:tgt DOT DOT SJ_OUTWHILE LPAREN LT sj_socket_list:srcLst GT DOT SJ_INWHILE LPAREN RPAREN RPAREN statement:body
+| name:tgt DOT SJ_OUTWHILE LPAREN LT sj_socket_list:srcLst GT DOT SJ_INWHILE LPAREN RPAREN RPAREN statement:body
     {:
         RESULT = parser.nf.SJOutInwhile(parser.pos(tgt, body), body, srcLst, parser.asRecvList(tgt), null);
     :}
