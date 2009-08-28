@@ -1,8 +1,6 @@
 package sessionj.ast.sessops.compoundops;
 
-import polyglot.ast.Expr;
-import polyglot.ast.Stmt;
-import polyglot.ast.Receiver;
+import polyglot.ast.*;
 import polyglot.util.Position;
 import polyglot.parse.Name;
 
@@ -12,14 +10,23 @@ import java.util.List;
 public class SJOutInwhile_c extends SJWhile_c implements SJOutInwhile
 {
     private int sourcesStart;
+    private boolean hasCondition;
 
     public SJOutInwhile_c(Position pos, Expr cond, Stmt body, List targets, List sources)
 	{
-		super(pos, cond, body, addAllToList(targets, sources));
+		super(pos, ensureNotNull(pos, cond), body, addAllToList(targets, sources));
+        hasCondition = cond != null;
+        // The super() call has to be passed a non-null condition, but we need to keep track
+        // of whether there really was one or if we put a dummy one in.
         sourcesStart = targets.size();
         // This weird hack is because the SJVariableParser visitor comes over and changes the contents
         // of the targets() list - disambiguating from AmbReceivers to Exprs. So we can't really
         // use generics either, it makes things even more confusing...
+    }
+
+    private static Expr ensureNotNull(Position pos, Expr cond) {
+        if (cond == null) return new BooleanLit_c(pos, true);
+        return cond;
     }
 
     private static List addAllToList(List targets, List sources) {
@@ -45,4 +52,8 @@ public class SJOutInwhile_c extends SJWhile_c implements SJOutInwhile
 	{
 		return (SJOutInwhile) super.body(body);
 	}
+
+    public boolean hasCondition() {
+        return hasCondition;
+    }
 }
