@@ -25,7 +25,10 @@ public class SJOutInwhile_c extends SJWhile_c implements SJOutInwhile
     }
 
     private static Expr ensureNotNull(Position pos, Expr cond) {
-        if (cond == null) return new BooleanLit_c(pos, true);
+        // false, not true, so that we don't mess with reachability analysis
+        // (which is performed by Polyglot before we insert the real condition
+        // in SJCompoundOperationTranslator).
+        if (cond == null) return new BooleanLit_c(pos, false);
         return cond;
     }
 
