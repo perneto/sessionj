@@ -15,7 +15,6 @@ public class OutinwhileIssue9Issue14 extends AbstractValidTest3Peers {
     static final int VALUE = 42;
 
     public void peer1(int port) throws Exception {
-        System.out.println("Starting peer 1");
         final noalias SJServerSocket ss1, ss2;
         final noalias SJSocket s1, s2;
         int i = 0;
@@ -27,9 +26,7 @@ public class OutinwhileIssue9Issue14 extends AbstractValidTest3Peers {
                 try (s1,s2) {
                     s1 = ss1.accept();
                     s2 = ss2.accept();
-                                        System.out.println("peer1: sessions accepted");                    
                     <s1,s2>.outwhile(i < ITERATIONS) {
-                        System.out.println("peer1: im in ur outwhile");                        
                         i++;
                         <s1,s2>.send(VALUE);
                     }
@@ -43,8 +40,6 @@ public class OutinwhileIssue9Issue14 extends AbstractValidTest3Peers {
     }
 
     public void peer2(int port) throws Exception {
-                System.out.println("Starting peer 2");
-
         final noalias SJServerSocket ss1;
         final noalias SJSocket sIn1, sIn2, sOut;
         final noalias SJService c1 = SJService.create(pIn, "", port);
@@ -56,9 +51,7 @@ public class OutinwhileIssue9Issue14 extends AbstractValidTest3Peers {
                 sOut = ss1.accept();
                 sIn1 = c1.request();
                 sIn2 = c2.request();
-                System.out.println("peer2: sessions requested");
                 sOut.outwhile(<sIn1,sIn2>.inwhile()) {
-                    System.out.println("peer2: im in ur outwhile");
                     int i = sIn1.receiveInt();
                     int j = sIn2.receiveInt();
                     assert i == j;
@@ -71,17 +64,12 @@ public class OutinwhileIssue9Issue14 extends AbstractValidTest3Peers {
     }
 
     public void peer3(int port) throws Exception {
-                System.out.println("Starting peer 3");
-
         final noalias SJSocket sIn;
         final noalias SJService c = SJService.create(pIn, "", port+2);
         int count = 0;
         try (sIn) {
             sIn = c.request();
-                                System.out.println("peer3: session requested");
-
             sIn.inwhile() {
-                System.out.println("peer3: im in ur inwhile");                
                 int val = sIn.receiveInt();
                 assert val == VALUE;
                 count++;
