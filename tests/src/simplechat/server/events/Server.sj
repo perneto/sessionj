@@ -16,13 +16,14 @@ import util.*;
 
 public class Server   
 {		
-	public static final noalias protocol p_send { rec X[!<String>.#X] } // Changing to recursion makes things easier for now.
+	public static final noalias protocol p_send { rec X[!<String>.#X] }
+	// Should work the same way with ![!<String>]*.
 	public static final noalias protocol p_receive { rec X[?(String).#X] }
 	
 	public static final noalias protocol p_serverToClient_body { ?{WRITE: @(p_receive), READ: @(p_send)} }
 	public static final noalias protocol p_serverToClient { sbegin.@(p_serverToClient_body) }		
 		
-	public static final noalias protocol p_selector { {@(p_serverToClient_body), @(p_send), @(p_receive)} } // Session set type (needs syntax extension).
+	public static final noalias protocol p_selector { @(p_serverToClient_body), @(p_send), @(p_receive) } // Session set type (needs syntax extension).
 	
 	private static final String transports = "d";
 
@@ -37,45 +38,32 @@ public class Server
 	{
 		final noalias SJSelector selector = SJSelector.create(p_selector); // Has type @(p_selector).
 
-		noalias SJServerSocket ss; // Currently, SJServerSockets must be final-noalias, so this must be modified.
+		 ss; // Currently, SJServerSockets must be final-noalias, so this must be modified.
 		
 		SJSelectorKey ssKey = null; // Keys can be used to organise external data specific to each socket or session, but cannot be used for any actual session operations - so not session typed. 
 		
-		try (ss)
+		using (noalias SJServerSocket = = SJServerSocket.create(p_serverToClient, port, sparams))
 		{
-			ss = SJServerSocket.create(p_serverToClient, port, sparams);						
-			
-			ssKey = selector.register(ss, SJSelector.ACCEPT); // Passing session typed entities to selector registration typed in the same way as regular session argument passing (and spawn, delegation, etc.).   
+			ssKey = selector.registerAccept(ss); // Passing session typed entities to selector registration typed in the same way as regular session argument passing (and spawn, delegation, etc.).
 			
 			while (true)
 			{
-				noalias SJSocket s;
-				
-				try (s)
+				using (noalias SJSocket s = selector.select(SJSelector.ACCEPT | SJSelector.RECEIVE))
 				{
-					s = selector.select(SJSelector.ACCEPT, SJSelector.RECEIVE); // To avoid introducing even more extra syntax, select is made to return a SJSocket. So the server socket accept must be performed implicitly.
-					
+					// To avoid introducing even more extra syntax, select is made to return a SJSocket. So the server socket accept must be performed implicitly.
 					typecase (s) // The type of s should be p_selector fitered by the specified actions, i.e. ACCEPT and RECEIVE. So the selected type will be a subtype of the original type (that's nice).
 					{
-						case @(p_serverToClient_body): 
+						when (p_serverToClient_body):
 						{
 							setupSession(selector, s); // Passing session typed entities as arguments following existing rules for na-final (selector) and noalias (s) arguments.
 						}
-						case @(p_receive): 
+						when (p_receive): 
 						{
 							receiveAndForwardMessage(selector, s);
 						}						
 					}					
 				}
-				catch (SJIOException ioe) 
-				{
-					ioe.printStackTrace();
-				}
 			}
-		}
-		finally
-		{
-			//if (ssKey != null) ...
 		}
 	}
 	
@@ -87,11 +75,11 @@ public class Server
 			{
 				case WRITE:
 				{
-					SJSelectorKey skey = selector.register(s, SJSelector.RECEIVE); // Keys not used, but can be used to tag session-specific data and perhaps for session reflection. 
+					SJSelectorKey skey = selector.registerReceive(s); // Keys not used, but can be used to tag session-specific data and perhaps for session reflection.
 				}
 				case READ:
 				{
-					SJSelectorKey skey = selector.register(s, SJSelector.SEND);
+					SJSelectorKey skey = selector.registerSend(s);
 				}
 			}
 		}
