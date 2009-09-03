@@ -3,8 +3,6 @@
  */
 package sessionj.runtime.net;
 
-import sessionj.runtime.SJIOException;
-
 /**
  * @author Raymond
  *

@@ -64,7 +64,7 @@ public class SJVariableParser extends ContextVisitor
 	{
 		Type t = f.type();
 		
-		if (t.isSubtype(SJ_CHANNEL_TYPE) || t.isSubtype(SJ_SOCKET_INTERFACE_TYPE) || t.isSubtype(SJ_SERVER_INTERFACE_TYPE)) // Make a common supertype?
+		if (t.isSubtype(SJ_ABSTRACT_CHANNEL_TYPE))
 		{
 			throw new SemanticException("[SJVariableParser] Session-typed fields not yet supported: " + f);
 		}
@@ -101,7 +101,7 @@ public class SJVariableParser extends ContextVisitor
 	{
 		Type t = aa.type();
 		
-		if (t.isSubtype(SJ_CHANNEL_TYPE) || t.isSubtype(SJ_SOCKET_INTERFACE_TYPE) || t.isSubtype(SJ_SERVER_INTERFACE_TYPE))
+		if (t.isSubtype(SJ_ABSTRACT_CHANNEL_TYPE))
 		{
 			throw new SemanticException("[SJVariableParser] Session-typed array accesses not yet supported: " + aa);
 		}

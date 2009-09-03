@@ -32,9 +32,7 @@ parser Grm extends polyglot.parse.Grm {:
         ((SJNodeFactory) nf).setExtensionInfo(ts.extensionInfo());
         
     		try 
-    		{			
-    			//SJConstants.JAVA_EXCEPTION_TYPE = ts.typeForName(SJConstants.JAVA_EXCEPTION_CLASS);
-
+    		{
     			SJConstants.SJ_PROTOCOL_TYPE = ts.typeForName(SJConstants.SJ_PROTOCOL_CLASS);
     			SJConstants.SJ_CHANNEL_TYPE = ts.typeForName(SJConstants.SJ_CHANNEL_CLASS);
     			SJConstants.SJ_SOCKET_INTERFACE_TYPE = ts.typeForName(SJConstants.SJ_SOCKET_INTERFACE);		
@@ -42,10 +40,9 @@ parser Grm extends polyglot.parse.Grm {:
     			SJConstants.SJ_SERVER_INTERFACE_TYPE = ts.typeForName(SJConstants.SJ_SERVER_INTERFACE);		
     			SJConstants.SJ_SERVER_TYPE = ts.typeForName(SJConstants.SJ_SERVER_CLASS);
     			SJConstants.SJ_LABEL_TYPE = ts.typeForName(SJConstants.SJ_LABEL_CLASS);
-    			//SJConstants.SJ_RUNTIMEEXCEPTION_TYPE = ts.typeForName(SJConstants.SJ_RUNTIMEEXCEPTION_CLASS);
     			SJConstants.SJ_RUNTIME_TYPE = ts.typeForName(SJConstants.SJ_RUNTIME_CLASS);
     			SJConstants.SJ_THREAD_TYPE = ts.typeForName(SJConstants.SJ_THREAD_CLASS);
-    			
+    			SJConstants.SJ_ABSTRACT_CHANNEL_TYPE = ts.typeForName(SJConstants.SJ_ABSTRACT_CHANNEL_CLASS);
     			SJConstants.SJ_CHANNEL_SOCKET_HACK_TYPE = ts.typeForName(SJConstants.SJ_CHANNEL_SOCKET_HACK_CLASS);    			
     		}
     		catch (SemanticException se) 

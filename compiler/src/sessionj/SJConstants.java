@@ -112,6 +112,7 @@ public class SJConstants
 	
 	//Initialised by the parser (first pass).
 	public static Type SJ_PROTOCOL_TYPE;
+    public static Type SJ_ABSTRACT_CHANNEL_TYPE;
 	public static Type SJ_CHANNEL_TYPE;
 	public static Type SJ_SOCKET_INTERFACE_TYPE;
 	public static Type SJ_ABSTRACT_SOCKET_TYPE; 
@@ -123,6 +124,7 @@ public class SJConstants
 	
 	public static final String SJ_PROTOCOL_CLASS = "sessionj.runtime.SJProtocol";
 	public static final String SJ_CHANNEL_CLASS = "sessionj.runtime.net.SJService";
+    public static final String SJ_ABSTRACT_CHANNEL_CLASS = "sessionj.runtime.net.SJChannel";
 	public static final String SJ_SOCKET_INTERFACE = "sessionj.runtime.net.SJSocket";
 	public static final String SJ_ABSTRACT_SOCKET_CLASS = "sessionj.runtime.net.SJAbstractSocket"; 
 	public static final String SJ_SERVER_INTERFACE = "sessionj.runtime.net.SJServerSocket";	
