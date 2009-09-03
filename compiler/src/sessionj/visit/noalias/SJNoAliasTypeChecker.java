@@ -121,20 +121,18 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 		SJMethodInstance sjmi = (SJMethodInstance) md.methodInstance();
 		
 		// Adapted from MethodDecl typeCheck. 
-		for (Iterator i = sjmi.implemented().iterator(); i.hasNext(); ) // Includes the current method. 
-		{
-			MethodInstance mi = (MethodInstance) i.next();
-					
-			if (sjts.isAccessible(mi, context())) 
-			{
-				sjts.checkOverride(sjmi, mi); // Would it be enough to just check the closest (most recently overridden) parent method?
-			}						
-		}
+        for (Object o : sjmi.implemented()) {
+            MethodInstance mi = (MethodInstance) o;
+
+            if (sjts.isAccessible(mi, context())) {
+                sjts.checkOverride(sjmi, mi); // Would it be enough to just check the closest (most recently overridden) parent method?
+            }
+        }
 				
 		return md;
 	}
 	
-	private SJProtocolDecl checkSJProtocolDecl(SJProtocolDecl pd) throws SemanticException
+	private Node checkSJProtocolDecl(SJProtocolDecl pd) throws SemanticException
 	{
 		Flags flags;
 		
@@ -155,7 +153,7 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 		return pd;
 	}
 	
-	private FieldDecl checkFieldDecl(FieldDecl fd) throws SemanticException
+	private Node checkFieldDecl(FieldDecl fd) throws SemanticException
 	{
 		Expr init = fd.init();
 				
@@ -183,7 +181,7 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 		return fd;
 	}
 	
-	private LocalDecl checkLocalDecl(LocalDecl ld) throws SemanticException
+	private Node checkLocalDecl(LocalDecl ld) throws SemanticException
 	{
 		Type t = ld.declType();
 		Expr init = ld.init();
@@ -484,24 +482,25 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 	
 	private ProcedureCall checkNoAliasArguments(ProcedureCall pc) throws SemanticException
 	{
-		if (pc instanceof SJSend) // HACK: translation introduces repeated argument for e.g. s.send(s.receive()) => SJRuntime.send(..s.., s.receive());
+		if (pc instanceof SJSend)
+        // HACK: translation introduces repeated argument for e.g. s.send(s.receive()) =>
+        // SJRuntime.send(..s.., s.receive());
 		{
 			return pc;
 		}
 		
 		List<Variable> vars = new LinkedList<Variable>();
 		//SJNoAliasVariablesExt nave = getSJNoAliasVariablesExt(pc); // Includes ConstructorCalls.
-		
-		for (Iterator i = pc.arguments().iterator(); i.hasNext(); ) // Only want to check the arguments, not the call target.
-		{
-			Expr e = (Expr) i.next();
-			
-			SJNoAliasVariablesExt nave = getSJNoAliasVariablesExt(e);  
-			
-			vars.addAll(nave.fields());
-			vars.addAll(nave.locals());
-			vars.addAll(nave.arrayAccesses());		
-		}
+
+        for (Object o : pc.arguments()) {
+            Expr e = (Expr) o;
+
+            SJNoAliasVariablesExt nave = getSJNoAliasVariablesExt(e);
+
+            vars.addAll(nave.fields());
+            vars.addAll(nave.locals());
+            vars.addAll(nave.arrayAccesses());
+        }
 
 		Set <String> seen = new HashSet<String>(); // Should instead use VarInstance type objects?		
 		
