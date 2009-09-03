@@ -25,8 +25,7 @@ abstract public class SJServerSocket
 	
 	private SJSessionParameters params;
 	
-	protected SJServerSocket(SJProtocol protocol, int port, SJSessionParameters params) throws SJIOException
-	{
+	protected SJServerSocket(SJProtocol protocol, int port, SJSessionParameters params) {
 		this.protocol = protocol;
 		this.port = port;
 		this.params = params;

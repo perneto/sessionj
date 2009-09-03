@@ -75,8 +75,8 @@ public class SJWhileTranslationTest {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         n.prettyPrint(os);
         // Handy for debugging.
-        n.prettyPrint(System.out);
-        System.out.flush();
+        //n.prettyPrint(System.out);
+        //System.out.flush();
         assert os.toString().matches(expectedCode);
         os.close();
     }

@@ -89,12 +89,11 @@ public class SJServerDeclTypeBuilder extends ContextVisitor
 	{	
 		Type t = ld.declType();
 		SJLocalInstance li = (SJLocalInstance) ld.localInstance();
-		SJNamedInstance ni = null; 
-		
-		if (t.isSubtype(SJ_SERVER_INTERFACE_TYPE)) 
+
+        if (t.isSubtype(SJ_SERVER_INTERFACE_TYPE))
 		{
 			Expr init = ld.init();
-			SJSessionType st = null;
+			SJSessionType st;
 			String sjname = ld.name();
 									
 			if (init == null || init instanceof NullLit)

@@ -9,7 +9,7 @@ import sessionj.runtime.transport.*;
 
 import static sessionj.SJConstants.*;
 
-public interface SJServiceInterface extends Serializable
+public interface SJServiceInterface extends Serializable, SJChannel
 {
 	public SJRequestingSocket request() throws SJIOException, SJIncompatibleSessionException;
 	

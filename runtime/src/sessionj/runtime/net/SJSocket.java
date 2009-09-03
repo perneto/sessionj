@@ -3,7 +3,7 @@ package sessionj.runtime.net;
 import sessionj.runtime.*;
 import sessionj.runtime.transport.SJConnection;
 
-public interface SJSocket 
+public interface SJSocket extends SJChannel
 {	
 	void close();
 	
