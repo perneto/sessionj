@@ -18,10 +18,8 @@ import sessionj.extension.noalias.*;
 import sessionj.types.*;
 import sessionj.types.noalias.SJNoAliasFinalReferenceType;
 import sessionj.types.typeobjects.*;
-import sessionj.util.*;
 import sessionj.util.noalias.SJNoAliasVariableRenamer;
 
-import static sessionj.SJConstants.*;
 import static sessionj.util.SJCompilerUtils.*;
 
 /**
@@ -86,13 +84,10 @@ public class SJNoAliasTranslator extends ContextVisitor
 		}	
 		else if (n instanceof VarInit) 
 		{
-			if (n instanceof FieldDecl) 
+            // No translation needed (or possible) for FieldDecls.
+			if (n instanceof LocalDecl)
 			{
-				// No translation needed (or possible) for FieldDecls.
-			}
-			else //if (n instanceof LocalDecl)
-			{
-				n = translateLocalDecl(parent, (LocalDecl) n);
+				n = translateLocalDecl((LocalDecl) n);
 			}
 		}
 		else if (n instanceof Assign)
@@ -118,7 +113,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 		return n;
 	}
 	
-	private Node translateLocalDecl(Node parent, LocalDecl ld) throws SemanticException
+	private Node translateLocalDecl(LocalDecl ld) throws SemanticException
 	{					
 		if (ld.declType().isPrimitive())
 		{
@@ -198,7 +193,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 			if (!vars.isEmpty()) 
 			{		
 				QQ qq = new QQ(sjts.extensionInfo(), a.position());		 
-				LinkedList<Object> mapping = new LinkedList<Object>();			
+				List<Object> mapping = new LinkedList<Object>();			
 				
 				String translation = "{ ";
 				
@@ -234,7 +229,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 				QQ qq = new QQ(sjts.extensionInfo(), pc.position());
 				
 				String translation = "{ ";
-				LinkedList<Object> mapping = new LinkedList<Object>();			
+				List<Object> mapping = new LinkedList<Object>();			
 				
 				translation += nullOutTheVariables(qq, vars, mapping);
 				
@@ -247,14 +242,14 @@ public class SJNoAliasTranslator extends ContextVisitor
 				s = (Stmt) buildAndCheckTypes(job(), this, s);
 				//s = replaceStmt((Eval) parent, s);
 				
-				replacements.peek().put((Eval) parent, new TranslatedStmt(s));
+				replacements.peek().put((Stmt) parent, new TranslatedStmt(s));
 			}
 		}
 		
 		return pc;
 	}
 	
-	private Return translateReturn(Return r) throws SemanticException
+	private Node translateReturn(Return r) throws SemanticException
 	{		
 		Expr e = r.expr();
 		
@@ -301,12 +296,11 @@ public class SJNoAliasTranslator extends ContextVisitor
 		return e;
 	}
 	
-	private String nullOutTheVariables(QQ qq, Set<Variable> vars, List<Object> mapping) throws SemanticException
+	private String nullOutTheVariables(QQ qq, Iterable<Variable> vars, Collection<Object> mapping) throws SemanticException
 	{								
-		String translation = "";
-		int fields = 0;
-		
-		for (Variable v : vars)
+		StringBuilder translation = new StringBuilder();
+
+        for (Variable v : vars)
 		{						
 			Type t = v.type();
 			String tname;
@@ -330,16 +324,17 @@ public class SJNoAliasTranslator extends ContextVisitor
 			
 			String vname = SJNoAliasVariableRenamer.renameNoAliasVariable(v);
 			
-			translation += "%T %s = null; ";
+			translation.append("%T %s = null; ");
 			mapping.add(tn);
 			mapping.add(vname);
-		}	
-		
-		for (Variable v : vars)
+		}
+
+        int fields = 0;
+        for (Variable v : vars)
 		{
-			if (v instanceof Field || (v instanceof ArrayAccess && ((ArrayAccess) v).array() instanceof Field))
+			if (v instanceof Field || v instanceof ArrayAccess && ((ArrayAccess) v).array() instanceof Field)
 			{				
-				translation += "if (%E != null) { synchronized (%E) { ";
+				translation.append("if (%E != null) { synchronized (%E) { ");
 				mapping.add(v);
 				mapping.add(v);
 				
@@ -349,25 +344,25 @@ public class SJNoAliasTranslator extends ContextVisitor
 		
 		for (Variable v : vars)
 		{								
-			translation += "%s = %E; ";
+			translation.append("%s = %E; ");
 			mapping.add(SJNoAliasVariableRenamer.renameNoAliasVariable(v));
 			mapping.add(v);
 		}
 		
 		for (Variable v : vars)
 		{
-			translation += "%E = ";
+			translation.append("%E = ");
 			mapping.add(v);
 		}
 		
-		translation += "null; ";	
-		
-		for ( ; fields > 0; fields--)
-		{
-			translation += "} } ";
-		}
-		
-		return translation;
+		translation.append("null; ");
+
+        while (fields > 0) {
+			translation.append("} } ");
+            fields--;
+        }
+
+        return translation.toString();
 	}
 	
 	private Set<Variable> removeFinalParameters(ProcedureCall pc, Set<Variable> vars) throws SemanticException
@@ -465,9 +460,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 		{
 			throw new SemanticException("[SJNoAliasTranslator] Argument expression not yet supported: " + arg);
 		}
-		
-		return;
-	}
+    }
 	
 	private Set<Variable> removeFinalVariables(Set<Variable> vars)
 	{
@@ -545,26 +538,21 @@ public class SJNoAliasTranslator extends ContextVisitor
 	private Stmt insertStmtAfterStmt(Block b, Stmt s1, Stmt s2, Stmt s3) 
 	{		
 		//Block b = code.pop();
-		List<Stmt> ss = new LinkedList<Stmt>(); 
-		
-		for (Iterator i = b.statements().iterator(); i.hasNext(); )
-		{
-			Stmt s = (Stmt) i.next();
-			
-			if (s == s1)
-			{				
-				ss.add(s2);
-				
-				if (s3 != null)
-				{
-					ss.add(s3);
-				}
-			}
-			else
-			{
-				ss.add(s);
-			}
-		}
+		List<Stmt> ss = new LinkedList<Stmt>();
+
+        for (Object o : b.statements()) {
+            Stmt s = (Stmt) o;
+
+            if (s == s1) {
+                ss.add(s2);
+
+                if (s3 != null) {
+                    ss.add(s3);
+                }
+            } else {
+                ss.add(s);
+            }
+        }
 				
 		b = sjnf.Block(b.position(), ss);
 		//b = (Block) buildAndCheckTypes(job(), this, b); // Not needed, types already built for newly inserted Stmts.
@@ -578,12 +566,12 @@ class TranslatedStmt
 	private Stmt replace;
 	private Stmt insert;
 
-	public TranslatedStmt(Stmt replace)
+	TranslatedStmt(Stmt replace)
 	{
 		this.replace = replace;
 	}
 	
-	public TranslatedStmt(Stmt replace, Stmt insert)
+	TranslatedStmt(Stmt replace, Stmt insert)
 	{
 		this.replace = replace;
 		this.insert = insert;

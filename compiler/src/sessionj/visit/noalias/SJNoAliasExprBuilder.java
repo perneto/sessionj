@@ -54,11 +54,11 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 				{
 					if (n instanceof Field) 
 					{
-						n = buildField(parent, (Field) n);
+						n = buildField((Field) n);
 					}
 					else //if (n instanceof Local)
 					{
-						n = buildLocal(parent, (Local) n);
+						n = buildLocal((Local) n);
 					}
 				}
 				else if (n instanceof ArrayAccess)
@@ -153,7 +153,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		return n;
 	}
 	
-	private Field buildField(Node parent, Field f) throws SemanticException
+	private Node buildField(Field f) throws SemanticException
 	{								
 		/*if (parent instanceof ArrayAccess)
 		{
@@ -167,7 +167,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		
 		if (t instanceof ParsedClassType)
 		{
-			ParsedClassType pct = (ParsedClassType) t;
+			ReferenceType pct = (ReferenceType) t;
 	
 			if (pct instanceof SJParsedClassType)
 			{				
@@ -217,7 +217,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		return f;
 	}	
 
-	private Local buildLocal(Node parent, Local l) throws SemanticException
+	private Node buildLocal(Local l) throws SemanticException
 	{			
 		/*if (parent instanceof ArrayAccess)
 		{
@@ -242,21 +242,12 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		return l;
 	}
 	
-	private ArrayAccess buildArrayAccess(ArrayAccess aa) throws SemanticException
-	{
-		SJNoAliasExprExt naee = getSJNoAliasExprExt(aa.array());		
-		boolean isNoAlias;
-		
-		if (aa.type().isPrimitive())
-		{
-			isNoAlias = true;
-		}
-		else
-		{
-			isNoAlias = naee.isNoAlias();
-		}
-		
-		//aa = (ArrayAccess) setSJNoAliasExprExt(sjef, aa, isNoAlias, naee.isFinal(), Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+	private ArrayAccess buildArrayAccess(ArrayAccess aa) {
+		SJNoAliasExprExt naee = getSJNoAliasExprExt(aa.array());
+
+        boolean isNoAlias = aa.type().isPrimitive() || naee.isNoAlias();
+
+        //aa = (ArrayAccess) setSJNoAliasExprExt(sjef, aa, isNoAlias, naee.isFinal(), Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
 		aa = (ArrayAccess) setSJNoAliasExprExt(sjef, aa, isNoAlias, false, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
 		
 		if (isNoAlias)
@@ -382,7 +373,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 				{			
 					SJMethodInstance sjmi = (SJMethodInstance) mi;		 	
 									
-					isNoAlias = (sjmi.noAliasReturnType() instanceof SJNoAliasReferenceType);
+					isNoAlias = sjmi.noAliasReturnType() instanceof SJNoAliasReferenceType;
 					
 					c = c.methodInstance(sjmi); // Could this be skipped if a barrier was inserted after this pass and before noalias type checking? (Similarly for e.g. locals, fields, constructors, ... ?) // Probably not, this is information recorded on the AST nodes, not auto-built by each context pass.
 				}
@@ -471,7 +462,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
         }
     }
 
-    private Lit buildLit(Lit l)
+    private Node buildLit(Lit l)
 	{
 		if (l instanceof NullLit || l instanceof StringLit || l instanceof BooleanLit || l instanceof NumLit || l instanceof FloatLit)				
 		{			
@@ -481,8 +472,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		return l;
 	}
 	
-	private Assign buildAssign(Assign a) throws SemanticException
-	{
+	private Assign buildAssign(Assign a) {
 		Expr left = a.left();		
 		Expr right = a.right();
 		
@@ -505,8 +495,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		return a;
 	}
 	
-	private Conditional buildConditional(Conditional c) throws SemanticException
-	{
+	private Node buildConditional(Conditional c) {
 		Expr consequent = c.consequent();
 		Expr alternative = c.alternative();
 
@@ -718,8 +707,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		return ai;
 	}	
 	
-	private Instanceof buildInstanceof(Instanceof i) throws SemanticException
-	{	
+	private Instanceof buildInstanceof(Instanceof i) {
 		Expr e = i.expr();		
 		SJNoAliasExprExt naee = getSJNoAliasExprExt(e);
 		

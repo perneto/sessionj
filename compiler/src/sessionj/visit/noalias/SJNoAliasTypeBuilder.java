@@ -95,8 +95,7 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 		return n;
 	}
 	
-	private ClassDecl buildClassDecl(ClassDecl cd) throws SemanticException
-	{
+	private ClassDecl buildClassDecl(ClassDecl cd) {
 		ClassBody cb = cd.body();
 
 		SJParsedClassType pct = (SJParsedClassType) cd.type();		
@@ -114,7 +113,7 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 	}
 	
 	// FIXME: doesn't detect recursive constructor calls yet.
-	private ConstructorDecl buildConstructorDecl(ConstructorDecl cd) throws SemanticException
+	private Node buildConstructorDecl(ConstructorDecl cd) throws SemanticException
 	{
 		// Even if constructor has already been visited via SJNoAliasProcedureChecker forward-check, the AST (for the current job) has not been updated with the new type information.
 		ConstructorInstance ci = cd.constructorInstance();		
@@ -165,8 +164,7 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 		return cd;
 	}
 
-	private FieldDecl buildFieldDecl(FieldDecl fd) throws SemanticException
-	{		
+	private Node buildFieldDecl(FieldDecl fd) {
 		TypeNode tn = fd.type();
 		
 		boolean isNoAlias = false;
@@ -198,8 +196,7 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 		return fd;
 	}	
 	
-	private MethodDecl buildMethodDecl(MethodDecl md) throws SemanticException
-	{		
+	private Node buildMethodDecl(MethodDecl md) {
 		MethodInstance mi = md.methodInstance();		
 		SJMethodInstance sjmi = sjts.SJMethodInstance(mi);
 									
@@ -226,7 +223,7 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 		TypeNode returnType = md.returnType();
 		Type t = returnType.type();
 		
-		boolean isNoAlias = false;
+		boolean isNoAlias;
 		
 		if (t.isPrimitive() && !t.isVoid())
 		{
@@ -259,11 +256,10 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 		return md;
 	}
 	
-	private VarDecl buildVarDecl(VarDecl vd) throws SemanticException
-	{
+	private Node buildVarDecl(VarDecl vd) {
 		TypeNode tn = vd.type();
 		
-		boolean isNoAlias = false;
+		boolean isNoAlias;
 		boolean isFinal = false; // final noalias primitive variables are treated just as noalias, not na-final (since they are passed by value).  
 		
 		if (tn.type().isPrimitive()) // Can't be void.
