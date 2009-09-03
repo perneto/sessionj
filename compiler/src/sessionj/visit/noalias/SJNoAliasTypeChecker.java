@@ -407,7 +407,8 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 						{
 							if (aa.array() instanceof Field)
 							{
-								throw new SemanticException("[SJNoAliasTypeChecker] Bad field access in argument expression: " + arg);
+								throw new SemanticException
+                                    ("[SJNoAliasTypeChecker] Bad field access in argument expression: " + arg);
 							}
 						}
 					}
@@ -416,7 +417,8 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 					{
 						if (!isNoAlias(arg))
 						{
-							throw new SemanticException("[SJNoAliasTypeChecker] Cannot pass non-noalias type as a noalias parameter: " + pc);
+							throw new SemanticException
+                                ("[SJNoAliasTypeChecker] Cannot pass non-noalias type as a noalias parameter: " + pc);
 						}
 						
 						if (isFinal(arg))
@@ -427,19 +429,22 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 								{
 									if(!(((SJMemberInstance) pi).container().isSubtype(SJ_THREAD_TYPE) && ((Call) pc).name().equals(SJ_THREAD_RUN)))
 									{
-										throw new SemanticException("[SJNoAliasTypeChecker] Cannot pass final noalias type to non- final noalias type [2]: " + arg);
+										throw new SemanticException
+                                            ("[SJNoAliasTypeChecker] Cannot pass final noalias type to non- final noalias type [2]: " + arg);
 									}
 								}
 								else
 								{
-									throw new SemanticException("[SJNoAliasTypeChecker] Cannot pass final noalias type to non- final noalias type [3]: " + arg);
+									throw new SemanticException
+                                        ("[SJNoAliasTypeChecker] Cannot pass final noalias type to non- final noalias type [3]: " + arg);
 								}
 							}
 						}						
 					}		
 					else if (isNoAlias(arg) && isFinal(arg))
 					{
-						throw new SemanticException("[SJNoAliasTypeChecker] Cannot pass final noalias type to non- final noalias type [3]: " + arg);	
+						throw new SemanticException
+                            ("[SJNoAliasTypeChecker] Cannot pass final noalias type to non- final noalias type [3]: " + arg);
 					}					
 				}
 			}
@@ -462,16 +467,14 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 		{
 			if (!ignoreFinal)
 			{
-				for (Iterator i = pc.arguments().iterator(), j = ft.iterator(); i.hasNext(); )
-				{
-					Expr arg = (Expr) i.next();
-					//Type t = (Type) j.next();
-				
-					if (isNoAlias(arg) && isFinal(arg) && !arg.type().isPrimitive())
-					{	
-						throw new SemanticException("[SJNoAliasTypeChecker] Cannot pass final noalias type to non- final noalias type [4]: " + arg);
-					}
-				}
+                for (Object o : pc.arguments()) {
+                    Expr arg = (Expr) o;
+                  
+                    if (isNoAlias(arg) && isFinal(arg) && !arg.type().isPrimitive()) {
+                        throw new SemanticException
+                            ("[SJNoAliasTypeChecker] Cannot pass final noalias type to non- final noalias type [4]: " + arg);
+                    }
+                }
 			}
 			
 			pc = checkNoAliasArguments(pc);
@@ -510,7 +513,11 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 			
 			if (seen.contains(vname))
 			{
-				if (!v.type().isPrimitive()) // Hacky, but should work because only want to skip things like call targets (already handled by SJNoAliasExprBuilder), and Binary operands (e.g. x < y) - the operands can only be primitive types or String, unless the operator is == or instanceof (also handled SJNoAliasExprBuilder).
+				if (!v.type().isPrimitive())
+                // Hacky, but should work because only want to skip things like call targets
+                // (already handled by SJNoAliasExprBuilder), and Binary operands
+                // (e.g. x < y) - the operands can only be primitive types or String, unless
+                // the operator is == or instanceof (also handled SJNoAliasExprBuilder).
 				{
 					throw new SemanticException("[SJNoAliasTypeChecker] Repeated noalias argument: " + v);
 				}
