@@ -18,8 +18,6 @@ public class SJConstants
 	public static final String SJ_KEYWORD_NOALIAS = "noalias";
 	
 	public static final String SJ_KEYWORD_PROTOCOL = "protocol";
-	//public static final String SJ_KEYWORD_SESSION = "sess"; 
-	//public static final String SJ_KEYWORD_CHANNEL = "servaddr";
 	
 	public static final String SJ_KEYWORD_CBEGIN = "cbegin";
 	public static final String SJ_KEYWORD_SBEGIN = "sbegin";

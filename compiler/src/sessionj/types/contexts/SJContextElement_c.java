@@ -24,10 +24,8 @@ public class SJContextElement_c implements SJContextElement
 	private HashMap<String, SJSessionType> sessions = new HashMap<String, SJSessionType>();
 	private HashMap<String, SJSessionType> active = new HashMap<String, SJSessionType>();
 	private HashMap<String, SJSessionType> implemented = new HashMap<String, SJSessionType>();
-	
-	private HashMap<String, SJSessionType> overflow = new HashMap<String, SJSessionType>();
-	
-	public SJContextElement_c()
+
+    public SJContextElement_c()
 	{
 		
 	}
