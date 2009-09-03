@@ -129,45 +129,51 @@ public class SJNoAliasTranslator extends ContextVisitor
 		
 		if (isNoAlias(init))
 		{		 									
-			if (!(init instanceof Variable || init instanceof ProcedureCall || init instanceof Lit || init instanceof Assign || init instanceof Conditional || init instanceof Cast || init instanceof NewArray || init instanceof Binary))
-			{	
+			if (!supportedInit(init))
+			{
 				throw new SemanticException("[SJNoAliasTranslator] noalias translation of LocalDecl not yet supported for initialisation by: " + init);
-			}								
-		}	
-		
-		Set<Variable> vars = removeFinalVariables(setifyVariables(getSJNoAliasVariablesExt(init)));	
+			}
+		}
+
+		Set<Variable> vars = removeFinalVariables(setifyVariables(getSJNoAliasVariablesExt(init)));
 
 		if (!vars.isEmpty())
-		{		
-			QQ qq = new QQ(sjts.extensionInfo(), ld.position());		 
-			LinkedList<Object> mapping = new LinkedList<Object>();			
-								
-			String translation = "{ ";		
-			
-			translation += nullOutTheVariables(qq, vars, mapping); 
-			
-			translation += "%s = %E; "; 
-			
+		{
+			QQ qq = new QQ(sjts.extensionInfo(), ld.position());
+			Collection<Object> mapping = new LinkedList<Object>();			
+
+			String translation = "{ ";
+
+			translation += nullOutTheVariables(qq, vars, mapping);
+
+			translation += "%s = %E; ";
+
 			mapping.add(ld.name());
 			mapping.add(renameNoAliasVariables(init, vars));
-			
-			translation += "}";			
-			
-			Stmt s = qq.parseStmt(translation, mapping.toArray());					
+
+			translation += "}";
+
+			Stmt s = qq.parseStmt(translation, mapping.toArray());
 			s = (Stmt) buildAndCheckTypes(job(), this, s);
-			
-			LocalDecl foo = ld.init(null);						
+
+			LocalDecl foo = ld.init(null);
 			foo = foo.type(ld.type());
 			foo = foo.localInstance(ld.localInstance());
-			
+
 			//ld = (LocalDecl) insertStmtAfterStmt(ld, foo, s);
-			
-			replacements.peek().put(ld, new TranslatedStmt(foo, s));			
-		}		
-		
-		return ld; 
+
+			replacements.peek().put(ld, new TranslatedStmt(foo, s));
+		}
+
+		return ld;
 	}
-	
+
+    private boolean supportedInit(Object init) {
+        return init instanceof Variable || init instanceof ProcedureCall || init instanceof Lit
+            || init instanceof Assign || init instanceof Conditional || init instanceof Cast
+            || init instanceof NewArray || init instanceof Binary;
+    }
+
 	private Node translateAssign(Node parent, Assign a) throws SemanticException
 	{
 		if (a.type().isPrimitive())
@@ -182,7 +188,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 		{			
 			if (isNoAlias(right))
 			{		 									
-				if (!(right instanceof Variable || right instanceof ProcedureCall || right instanceof Assign || right instanceof Conditional || right instanceof Cast || right instanceof Lit || right instanceof NewArray || right instanceof Binary))
+				if (!supportedInit(right))
 				{	
 					throw new SemanticException("[SJNoAliasTranslator] noalias translation not yet supported for assign of: " + right);
 				}								
@@ -217,7 +223,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 		
 		return a;
 	}
-	
+
 	private ProcedureCall translateProcedureCall(Node parent, ProcedureCall pc) throws SemanticException
 	{				
 		if (parent instanceof Eval) // OK because e.g. (T) a.m(...); is not a permitted statement (similarly for Conditional, etc.). 

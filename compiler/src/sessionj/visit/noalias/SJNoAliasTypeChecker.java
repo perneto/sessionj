@@ -186,19 +186,19 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 		Type t = ld.declType();
 		Expr init = ld.init();
 				
-		if (t.isSubtype(SJ_CHANNEL_TYPE) || t.isSubtype(SJ_SERVER_INTERFACE_TYPE)) // Would belong better in SJChannel/ServerDeclTypeBuilder?
+		if (t.isSubtype(SJ_CHANNEL_TYPE)) // Would belong better in SJChannel/ServerDeclTypeBuilder?
 		{
 			if (!(ld.flags().isFinal() && isNoAlias(ld)))
 			{
-				throw new SemanticException("[SJNoAliasTypeChecker] Session channels and servers must be final noalias: " + ld);
+				throw new SemanticException("[SJNoAliasTypeChecker] Shared channels must be final noalias: " + ld);
 			}
 		}
 				
-		if (t.isSubtype(SJ_SOCKET_INTERFACE_TYPE)) // Make a common supertype? // FIXME: the session entity checks should be moved into a session-related pass.
+		if (t.isSubtype(SJ_SOCKET_INTERFACE_TYPE) || t.isSubtype(SJ_SERVER_INTERFACE_TYPE)) // FIXME: the session entity checks should be moved into a session-related pass.
 		{
 			if (!isNoAlias(ld))
 			{
-				throw new SemanticException("[SJNoAliasTypeChecker] Session sockets must be noalias: " + ld);
+				throw new SemanticException("[SJNoAliasTypeChecker] Session sockets and server sockets must be noalias: " + ld);
 			}
 		}		
 		else if (init != null)
