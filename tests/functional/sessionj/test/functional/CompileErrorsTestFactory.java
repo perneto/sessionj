@@ -3,13 +3,18 @@ package sessionj.test.functional;
 import org.testng.annotations.Factory;
 
 import java.io.File;
+import java.util.Collection;
 
 public class CompileErrorsTestFactory {
     @Factory
     public Object[] createInstances() {
-        File[] sjFiles = TestUtils.findSJSourceFiles("compilationerror/");
-        Object[] result = new CompilationError[sjFiles.length];
-        for (int i=0; i<sjFiles.length; ++i) result[i] = new CompilationError(sjFiles[i]);
+        Collection<File> sjFiles = TestUtils.findSJSourceFiles("compilationerror/");
+        Object[] result = new CompilationError[sjFiles.size()];
+        int i = 0;
+        for (File sjFile : sjFiles) {
+            result[i] = new CompilationError(sjFile);
+            i++;
+        }
         return result;
     }
 }
