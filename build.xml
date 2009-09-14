@@ -464,7 +464,7 @@
                destdir="${unittest.classes}" debug="on" classpathref="standard.classpath"/>        
     </target>
 
-    <target name="unittest" depends="compile-unittest,compile-all" description="run unit tests">
+    <target name="unittest" depends="compile-all,compile-unittest" description="run unit tests">
         <testng verbose="2">
             <classfileset dir="${unittest.classes}" includes="**/*.class"/>
             <classpath>
@@ -480,7 +480,7 @@
                destdir="${functionaltest.classes}" debug="on" classpathref="standard.classpath"/>
     </target>
     
-    <target name="functionaltest" depends="compile-functionaltest,compile-all" description="run functional tests">
+    <target name="functionaltest" depends="compile-all,compile-functionaltest" description="run functional tests">
         <tempfile destdir="${java.io.tmpdir}" property="tempdir.name"/>
         <mkdir dir="${tempdir.name}"/>
         <testng>
