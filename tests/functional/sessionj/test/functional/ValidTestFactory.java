@@ -6,6 +6,7 @@ import java.io.File;
 import java.net.URLClassLoader;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.util.Collection;
 
 public class ValidTestFactory {
     private final File classesDir;
@@ -18,11 +19,13 @@ public class ValidTestFactory {
 
     @Factory
     public Object[] createValidTests() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException {
-        File[] sjFiles = TestUtils.findSJSourceFiles("valid/");
-        Object[] result = new Object[sjFiles.length];
-        for (int i = 0; i < sjFiles.length; ++i) {
-            assert TestUtils.runCompiler(sjFiles[i], classesDir, System.out, System.err) == 0;
-            result[i] = loadCompiledClass(sjFiles[i]).newInstance();
+        Collection<File> sjFiles = TestUtils.findSJSourceFiles("valid/");
+        Object[] result = new Object[sjFiles.size()];
+        int i = 0;
+        for (File sjFile : sjFiles) {
+            assert TestUtils.runCompiler(sjFile, classesDir, System.out, System.err) == 0;
+            result[i] = loadCompiledClass(sjFile).newInstance();
+            i++;
         }
 
         return result;
