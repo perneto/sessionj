@@ -1,6 +1,7 @@
 package sessionj.test.functional;
 
 import org.testng.annotations.Factory;
+import org.testng.annotations.Test;
 
 import java.io.File;
 import java.net.URLClassLoader;
@@ -23,12 +24,26 @@ public class ValidTestFactory {
         Object[] result = new Object[sjFiles.size()];
         int i = 0;
         for (File sjFile : sjFiles) {
-            assert TestUtils.runCompiler(sjFile, classesDir, System.out, System.err) == 0;
-            result[i] = loadCompiledClass(sjFile).newInstance();
+            result[i] = new CompileWrapper(sjFile);
             i++;
         }
 
         return result;
+    }
+
+    public class CompileWrapper {
+        private final File sjFile;
+        private BaseValidTest wrapped;
+
+        CompileWrapper(File sjFile) {
+            this.sjFile = sjFile;
+        }
+        @Test
+        public void run() throws Exception {
+            assert TestUtils.runCompiler(sjFile, classesDir, System.out, System.err) == 0;
+            wrapped = (BaseValidTest) loadCompiledClass(sjFile).newInstance();
+            wrapped.run();
+        }
     }
 
     private Class<?> loadCompiledClass(File sjFile) throws ClassNotFoundException {
