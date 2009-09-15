@@ -15,4 +15,8 @@ public class SJLocalServer_c extends Local_c implements SJLocalServer
 	{
 		return name();
 	}
+
+    public boolean isFinal() {
+        return flags().isFinal();
+    }
 }

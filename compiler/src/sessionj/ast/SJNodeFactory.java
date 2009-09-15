@@ -17,8 +17,7 @@ import sessionj.ast.servops.SJAccept;
 import sessionj.ast.sesscasts.SJAmbiguousCast;
 import sessionj.ast.sesscasts.SJChannelCast;
 import sessionj.ast.sesscasts.SJSessionCast;
-import sessionj.ast.sessformals.SJChannelFormal;
-import sessionj.ast.sessformals.SJSessionFormal;
+import sessionj.ast.sessformals.SJFormal;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sesstry.SJAmbiguousTry;
@@ -111,8 +110,9 @@ public interface SJNodeFactory extends NodeFactory
 	SJSessionCast SJSessionCast(Position pos, Expr expr, SJTypeNode tn);
 	SJAmbiguousCast SJAmbiguousCast(Position pos, Expr expr, SJTypeNode tn);
 	
-	SJChannelFormal SJChannelFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias);
-	SJSessionFormal SJSessionFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias);
+	SJFormal SJChannelFormal(Position pos, Flags flags, Id name, SJTypeNode tn);
+	SJFormal SJSessionFormal(Position pos, Flags flags, Id name, SJTypeNode tn);
+    SJFormal SJServerFormal(Position pos, Flags flags, Id name, SJTypeNode tn);
 
     NewArray makeSocketsArray(Position pos, int size);
 }

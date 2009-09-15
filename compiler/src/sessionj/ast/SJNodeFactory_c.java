@@ -17,10 +17,8 @@ import sessionj.ast.protocoldecls.SJLocalProtocolDecl_c;
 import sessionj.ast.servops.SJAccept;
 import sessionj.ast.servops.SJAccept_c;
 import sessionj.ast.sesscasts.*;
-import sessionj.ast.sessformals.SJChannelFormal;
-import sessionj.ast.sessformals.SJChannelFormal_c;
-import sessionj.ast.sessformals.SJSessionFormal;
-import sessionj.ast.sessformals.SJSessionFormal_c;
+import sessionj.ast.sessformals.SJFormal_c;
+import sessionj.ast.sessformals.SJFormal;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sesstry.*;
@@ -31,7 +29,6 @@ import sessionj.extension.SJExtFactory_c;
 import static sessionj.util.SJCompilerUtils.setSJNoAliasFinalExt;
 import sessionj.util.SJLabel;
 import sessionj.util.SJCompilerUtils;
-import sessionj.SJConstants;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -434,39 +431,39 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
         return new SJAmbiguousCast_c(pos, CanonicalTypeNode(pos, SJ_CHANNEL_SOCKET_HACK_TYPE), expr, tn);
 	}
 	
-	public SJChannelFormal SJChannelFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias) // Based on SJSessionFormal. 
+	public SJFormal SJChannelFormal(Position pos, Flags flags, Id name, SJTypeNode tn) // Based on SJSessionFormal.
 	{
-		SJChannelFormal n = new SJChannelFormal_c(pos, flags, CanonicalTypeNode(pos, SJ_CHANNEL_TYPE), name, tn);
-		
-		if (isNoalias) // Redundant: session variables are required by design to be noalias. Parser should enforce this.
-		{
-			n = (SJChannelFormal) n.type(convertToNoAliasTypeNode(n.type(), flags.isFinal()));
-		}
-		
+		SJFormal n = new SJFormal_c(this, SJ_CHANNEL_TYPE, pos, flags, name, tn);
+
+		n = (SJFormal) n.type(convertToNoAliasTypeNode(n.type(), flags.isFinal()));
 		return n;
 	}
 	
-	public SJSessionFormal SJSessionFormal(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoalias) // Based on SJProtocolDecl. // The choice is between modifying the base types to signal noalias, or make a separate (sub)class for noalias session formals. Going with the former, as for SJProtocolDecls.
+	public SJFormal SJSessionFormal(Position pos, Flags flags, Id name, SJTypeNode tn)
+    // Based on SJProtocolDecl.
+    // // The choice is between modifying the base types to signal noalias, or make a separate
+    // (sub)class for noalias session formals. Going with the former, as for SJProtocolDecls.
 	{
-		SJSessionFormal n = new SJSessionFormal_c(pos, flags, CanonicalTypeNode(pos, SJ_SOCKET_INTERFACE_TYPE), name, tn);
+		SJFormal n = new SJFormal_c(this, SJ_SOCKET_INTERFACE_TYPE, pos, flags, name, tn);
 		
-		if (isNoalias) // Redundant: session variables are required by design to be noalias. Parser should enforce this.
-		{
-			n = (SJSessionFormal) n.type(convertToNoAliasTypeNode(n.type(), flags.isFinal()));
-		}
+		n = (SJFormal) n.type(convertToNoAliasTypeNode(n.type(), flags.isFinal()));
 		
 		return n;
 	}
-	
-	/*public SJNoaliasFormal SJNoaliasFormal(Position pos, Flags flags, Id name, SJTypeNode tn)
-	{
-		SJNoaliasFormal n = new SJNoaliasFormal_c(pos, flags, CanonicalTypeNode(pos, SJConstants.SJ_SOCKET_INTERFACE_TYPE), name, tn);
-		
-		return n;
-	}*/
 
+    public SJFormal SJServerFormal(Position pos, Flags flags, Id name, SJTypeNode tn)
+       // Based on SJProtocolDecl.
+       // // The choice is between modifying the base types to signal noalias, or make a separate
+       // (sub)class for noalias session formals. Going with the former, as for SJProtocolDecls.
+       {
+           SJFormal n = new SJFormal_c(this, SJ_SERVER_INTERFACE_TYPE, pos, flags, name, tn);
 
-    private TypeNode convertToNoAliasTypeNode(TypeNode tn, boolean isFinal)
+           n = (SJFormal) n.type(convertToNoAliasTypeNode(n.type(), flags.isFinal()));
+
+           return n;
+	   }
+
+	private TypeNode convertToNoAliasTypeNode(TypeNode tn, boolean isFinal)
 	{		
 		if (tn instanceof AmbTypeNode)
 		{

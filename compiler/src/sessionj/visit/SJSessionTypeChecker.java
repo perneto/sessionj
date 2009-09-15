@@ -777,53 +777,25 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 						
 						if (arg instanceof SJLocalChannel)
 						{
-							//SJSessionType ours = getSessionType(arg); // Session type information is not actually recorded for SJVariables (no extension object for it).
-							SJSessionType ours = sjcontext.findChannel(sjname); 
-							
-							if (ours == null || !ours.isSubtype(theirs))
-							{
-								throw new SemanticException(getVisitorName() + " Expected " + theirs + ", not: " + ours);
-							}
-						}
+							// Session type information is not actually recorded for SJVariables (no extension object for it).
+							SJSessionType ours = sjcontext.findChannel(sjname);
+
+                            checkMethodTakesSameSessionType(theirs, ours);
+                        }
 						else if (arg instanceof SJLocalSocket) // Guaranteed noalias by parser.
-						{	
-							SJSessionType ours = sjcontext.sessionRemaining(sjname); 
-							
-							if (((SJLocalSocket) arg).flags().isFinal()) // Cannot happen for SJSpawn.
-							{					
-								for (SJSessionType st = (SJSessionType) theirs; st != null; st = st.child())
-								{
-									if (ours == null || !ours.nodeSubtype(st))
-									{
-										throw new SemanticException(getVisitorName() + " Expected " + theirs + ", not: " + ours);
-									}
-									
-									sjcontext.advanceSession(sjname, ours.nodeClone());
-									
-									ours = ours.child();
-								}
-								
-								// ours doesn't need to be null here - na-final parameters can be a prefix of the "delegated" session.
-							}
-							else
-							{
-								if (ours == null || !ours.isSubtype(theirs))
-								{
-									throw new SemanticException(getVisitorName() + " Expected " + theirs + ", not: " + ours);
-								}								
-								
-								if (!forSJSpawn) // checkSJSpawn will do this itself.
-								{
-									sjcontext.delegateSession(sjname); // Will redundantly redo the sessionRemaining routine.
-								}
-							}
-						}
-						else 
 						{
+                            checkMethodSessionType(theirs, arg, sjname, sjcontext.sessionRemaining(sjname));
+                            if (!((SJVariable)arg).isFinal() && !forSJSpawn) // checkSJSpawn will do this itself.
+                            {
+                                sjcontext.delegateSession(sjname); // Will redundantly redo the sessionRemaining routine.
+                            }
+						} else if (arg instanceof SJLocalServer) {
+                            checkMethodSessionType(theirs, arg, sjname, sjcontext.findServer(sjname));
+                        } else {  // Never happens ?
 							throw new SemanticException(getVisitorName() + " Expected " + theirs + ", not: " + arg);
 						}										
 					}
-					else if (arg instanceof SJVariable) // Catches server sockets?
+					else if (arg instanceof SJVariable)
 					{
 						throw new SemanticException(getVisitorName() + " Expected " + theirs + ", not: " + arg);
 					}
@@ -834,7 +806,36 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return pc;
 	}
 
-	private Branch checkBranch(Branch b) throws SemanticException
+    private void checkMethodSessionType(Type theirs, Expr arg, String sjname, SJSessionType ours) throws SemanticException {
+        if (((SJVariable) arg).isFinal()) { // Cannot happen for SJSpawn.
+            checkMethodTakesPrefixSessionType(theirs, sjname, ours);
+            // ours doesn't need to be null here - na-final parameters can be a prefix of the "delegated" session.
+        }
+        else checkMethodTakesSameSessionType(theirs, ours);
+    }
+
+    private void checkMethodTakesSameSessionType(Type theirs, SJSessionType ours) throws SemanticException {
+        if (ours == null || !ours.isSubtype(theirs))
+        {
+            throw new SemanticException(getVisitorName() + " Expected " + theirs + ", not: " + ours);
+        }
+    }
+
+    private void checkMethodTakesPrefixSessionType(Type theirs, String sjname, SJSessionType ours) throws SemanticException {
+        for (SJSessionType st = (SJSessionType) theirs; st != null; st = st.child())
+        {
+            if (ours == null || !ours.nodeSubtype(st))
+            {
+                throw new SemanticException(getVisitorName() + " Expected " + theirs + ", not: " + ours);
+            }
+
+            sjcontext.advanceSession(sjname, ours.nodeClone());
+
+            ours = ours.child();
+        }
+    }
+
+    private Branch checkBranch(Branch b) throws SemanticException
 	{
 		//sjcontext.checkSessionsCompleted(); // FIXME: needs additional translation support for in/outwhile (need to send the final false flag). Also, may not work properly - maybe we just need to check the sessions in scope (the ones we can do operations on), not all currently active sessions (which includes all open sessions from outer scopes).
 		

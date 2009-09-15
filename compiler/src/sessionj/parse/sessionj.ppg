@@ -152,8 +152,9 @@ non terminal SJRecursion sj_recursion_statement;
 non terminal SJSessionTypeCast sj_session_type_cast_expression;
 
 non terminal SJFormal sj_formal;
-non terminal SJChannelFormal sj_channel_formal;
-non terminal SJSessionFormal sj_session_formal;
+non terminal SJFormal sj_channel_formal;
+non terminal SJFormal sj_session_formal;
+non terminal SJFormal sj_server_formal;
 
 
 start with goal;
@@ -791,29 +792,40 @@ sj_formal ::= // Server formals not allowed.
 	{:
 		RESULT = a;
 	:}
+|   sj_server_formal:a {: RESULT = a; :}
 ;
 
 sj_channel_formal ::=
 	/*SJ_NOALIAS:a sj_session_type_body:b variable_declarator_id:c // Currently not permitted. 
 	{: 
-		RESULT = parser.nf.SJSessionFormal(parser.pos(a, c), Flags.NONE, c.name, b, true); 
+		RESULT = parser.nf.SJSessionFormal(parser.pos(a, c), Flags.NONE, c.name, b);
 	:}
 | */FINAL:a SJ_NOALIAS sj_channel_type:b variable_declarator_id:c 
 	{: 
-		RESULT = parser.nf.SJChannelFormal(parser.pos(a, c), Flags.FINAL, c.name, b, true); 
+		RESULT = parser.nf.SJChannelFormal(parser.pos(a, c), Flags.FINAL, c.name, b);
 	:}
 ;
 
 sj_session_formal ::=
-	// sj_session_type:a variable_declarator_id:b Not allowed - all session sockets must be (final) noalias.
+	// all session sockets must be (possibly final) noalias.
     SJ_NOALIAS:a sj_session_type_body:b variable_declarator_id:c
 	{: 
-		RESULT = parser.nf.SJSessionFormal(parser.pos(a, c), Flags.NONE, c.name, b, true); 
+		RESULT = parser.nf.SJSessionFormal(parser.pos(a, c), Flags.NONE, c.name, b);
 	:}
 |   FINAL:a SJ_NOALIAS sj_session_type_body:b variable_declarator_id:c
 	{: 
-		RESULT = parser.nf.SJSessionFormal(parser.pos(a, c), Flags.FINAL, c.name, b, true); 
+		RESULT = parser.nf.SJSessionFormal(parser.pos(a, c), Flags.FINAL, c.name, b); 
 	:}	
 ;
 
+sj_server_formal ::=
+    SJ_NOALIAS:a sj_server_type:t variable_declarator_id:v
+    {:
+        RESULT = parser.nf.SJServerFormal(parser.pos(a,v), Flags.NONE, v.name, t);
+    :}
+|   FINAL:a SJ_NOALIAS sj_server_type:t variable_declarator_id:v
+    {:
+        RESULT = parser.nf.SJServerFormal(parser.pos(a,v), Flags.FINAL, v.name, t);
+    :}
+;
 // Not doing session method return types for now.

@@ -5,11 +5,9 @@ package sessionj.types.contexts;
 
 import java.util.*;
 
-import polyglot.ast.*;
 import polyglot.types.*;
 import polyglot.visit.ContextVisitor;
 
-import sessionj.ast.sessformals.SJSessionFormal;
 import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sesstry.*;
 import sessionj.ast.sessvars.*;

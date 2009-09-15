@@ -11,32 +11,11 @@ import polyglot.types.*;
 import polyglot.visit.*;
 
 import sessionj.ast.*;
-import sessionj.ast.createops.*;
-import sessionj.ast.protocoldecls.*;
 import sessionj.ast.servops.*;
-import sessionj.ast.sesstry.*;
-import sessionj.ast.sessvars.*;
 import sessionj.ast.chanops.*;
-import sessionj.ast.sesscasts.SJChannelCast;
-import sessionj.ast.sesscasts.SJSessionCast;
-import sessionj.ast.sesscasts.SJSessionTypeCast;
-import sessionj.ast.sessformals.SJSessionFormal;
 import sessionj.ast.sessops.*;
-import sessionj.ast.sessops.basicops.*;
-import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.typenodes.SJTypeNode;
-import sessionj.extension.*;
-import sessionj.extension.noalias.*;
-import sessionj.extension.sessops.SJSessionOperationExt;
-import sessionj.types.*;
-import sessionj.types.contexts.*;
 import sessionj.types.sesstypes.*;
-import sessionj.types.typeobjects.*;
-import sessionj.types.noalias.*;
-import sessionj.util.SJLabel;
-import sessionj.util.noalias.*;
 
-import static sessionj.SJConstants.*;
 import static sessionj.util.SJCompilerUtils.*;
 
 /**

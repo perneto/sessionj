@@ -1,4 +1,3 @@
-//DISABLED
 package sessionj.test.functional;
 
 import sessionj.runtime.*;
@@ -13,8 +12,6 @@ public class NonFinalServerSocket extends AbstractValidTest {
     static final noalias protocol foo { !<int> } 
     public void client(int port) throws Exception {
         final noalias protocol pA { cbegin.!<int> }
-
-
         final noalias SJService c = SJService.create(pA, "", port);
         noalias SJSocket s;
 
@@ -33,20 +30,21 @@ public class NonFinalServerSocket extends AbstractValidTest {
 		try (ss)
 		{
             ss = SJServerSocket.create(pB, port);
-            noalias SJSocket s;
-            try (s) {
-                s = doAccept(ss);
-                int i = s.receiveInt();
-                assert i == 42;
-			} finally {
-			}
+            doStuff(ss);                 
 		} finally {
 		}
     }
 
-    private noalias SJSocket doAccept(noalias sbegin.?(int) ss) {
+    private void doStuff(noalias sbegin.?(int) ss) throws SJIOException, SJIncompatibleSessionException {
         try (ss) {
-            return ss.accept();
-        } finally {}
+           noalias SJSocket s;
+            try (s) {
+                s = ss.accept();
+                int i = s.receiveInt();
+                assert i == 42;
+			} finally {
+			}
+        } finally {
+        }
     }
 }
