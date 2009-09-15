@@ -9,13 +9,12 @@ import polyglot.types.MethodInstance;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.visit.ContextVisitor;
-import sessionj.ast.sessformals.SJChannelFormal;
-import sessionj.ast.sessformals.SJSessionFormal;
 import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sesstry.SJServerTry;
 import sessionj.ast.sesstry.SJSessionTry;
 import sessionj.ast.sessvars.SJServerVariable;
 import sessionj.ast.sessvars.SJSocketVariable;
+import sessionj.ast.sessformals.SJFormal;
 import sessionj.types.SJTypeSystem;
 import sessionj.types.sesstypes.*;
 import sessionj.types.typeobjects.SJLocalInstance;
@@ -111,18 +110,10 @@ public class SJContext_c extends SJContext
 		}
 		else
 		{
-			setSessionActive(sjname, active.child());
-			
-			/*
-			// TEMPORARY HACK!!!		
-			if (active != null)
-			{				
-				setSessionActive(sjname, active.child());				
-			}
-			// TEMPORARY HACK!!! */
+			setSessionActive(sjname, active.child());			
 		}
 		
-		setSessionImplemented(sjname, (implemented == null) ? st : implemented.append(st));
+		setSessionImplemented(sjname, implemented == null ? st : implemented.append(st));
 	}
 	
 	public SJSessionType delegateSession(String sjname) throws SemanticException
@@ -133,7 +124,7 @@ public class SJContext_c extends SJContext
 		SJSessionType st = sjts.SJDelegatedType(remaining);
 		
 		setSessionActive(sjname, null);		
-		setSessionImplemented(sjname, (implemented == null) ? st : implemented.append(st));
+		setSessionImplemented(sjname, implemented == null ? st : implemented.append(st));
 		
 		return remaining;
 	}
@@ -170,10 +161,10 @@ public class SJContext_c extends SJContext
 					remaining = ((SJBranchType) remaining).branchCase(((SJBranchCaseContext) ce).label()); 					
 					remaining = remaining.append(child); // FIXME: gets the full remainder of the session for completion. But will break the advanceSession routine below if we're currently inside an inner scope that only has a fragment of the remainder as the active type, e.g. if we're delegating a session from within a branch on that session and there are operations after the branch. 
 				}
-				
-				SJSessionType implemented = ce.getImplemented(sjname);
-				
-				for ( ; implemented != null; implemented = implemented.child())
+
+				for (SJSessionType implemented = ce.getImplemented(sjname);
+                     implemented != null;
+                     implemented = implemented.child())
 				{
 					remaining = remaining.child();				
 				}
@@ -232,7 +223,8 @@ public class SJContext_c extends SJContext
 	}
 	
 	public void pushMethodBody(MethodDecl md) throws SemanticException
-	{
+	// TODO: factor out duplicated code between this and SJSessionTypeChecker.checkAssign
+    {
 		MethodInstance mi = md.methodInstance(); 
 		
 		if (mi instanceof SJMethodInstance)
@@ -251,11 +243,11 @@ public class SJContext_c extends SJContext
 					SJLocalInstance li = (SJLocalInstance) f.localInstance();
 					SJSessionType st = (SJSessionType) t;					
 					
-					if (f instanceof SJChannelFormal)
+					if (f instanceof SJFormal && ((SJFormal) f).isSharedChannel())
 					{
 						addChannel(sjts.SJLocalChannelInstance(li, st, sjname));
 					}
-					else if (f instanceof SJSessionFormal)
+					else if (f instanceof SJFormal && ((SJFormal) f).isSession())
 					{
 						if (f.flags().isFinal())
 						{												
@@ -268,7 +260,16 @@ public class SJContext_c extends SJContext
 							setSessionActive(sjname, st);
 							// Maybe should set session implemented as well (to null).
 						}
-					}
+					} else if (f instanceof SJFormal && ((SJFormal) f).isServer()) {
+                        if (f.flags().isFinal()) {
+                            openService(sjname, st);
+                            // Replaces the SJUnknownType added at server-try enter.
+                        } else {
+                            addServer(sjts.SJLocalServerInstance(li, st, sjname));
+                            // Replaces the SJUnknownType added by the LocalDecl (for the server socket).                        
+                        }
+
+                    }
 				}
 			}
 		}

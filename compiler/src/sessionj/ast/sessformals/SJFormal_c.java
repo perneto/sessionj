@@ -1,19 +1,23 @@
 package sessionj.ast.sessformals;
 
-import polyglot.ast.*;
+import polyglot.ast.Formal_c;
+import polyglot.ast.Id;
+import polyglot.ast.NodeFactory;
 import polyglot.types.Flags;
+import polyglot.types.Type;
 import polyglot.util.Position;
-import sessionj.ast.protocoldecls.SJProtocolDecl;
 import sessionj.ast.typenodes.SJTypeNode;
+import sessionj.SJConstants;
 
-abstract public class SJFormal_c extends Formal_c implements SJFormal // Abstract for now, since don't think this class will ever be needed directly.
+public class SJFormal_c extends Formal_c implements SJFormal 
 {
 	private SJTypeNode tn; 
-	
-	public SJFormal_c(Position pos, Flags flags, TypeNode typeNode, Id name, SJTypeNode tn)
+	private final Type interfaceType;
+    
+	public SJFormal_c(NodeFactory nf, Type interfaceType, Position pos, Flags flags, Id name, SJTypeNode tn)
 	{
-		super(pos, flags, typeNode, name);
-		
+		super(pos, flags, nf.CanonicalTypeNode(pos, interfaceType), name);
+	    this.interfaceType = interfaceType;	
 		this.tn = tn;
 	}
 	
@@ -28,4 +32,16 @@ abstract public class SJFormal_c extends Formal_c implements SJFormal // Abstrac
 		
 		return this;
 	}
+
+    public boolean isSession() {
+        return interfaceType.equals(SJConstants.SJ_SOCKET_INTERFACE_TYPE);
+    }
+
+    public boolean isSharedChannel() {
+        return interfaceType.equals(SJConstants.SJ_CHANNEL_TYPE);
+    }
+
+    public boolean isServer() {
+        return interfaceType.equals(SJConstants.SJ_SERVER_INTERFACE_TYPE);
+    }
 }

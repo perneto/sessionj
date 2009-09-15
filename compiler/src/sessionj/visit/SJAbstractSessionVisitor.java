@@ -294,7 +294,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 							
 							SJSessionType ours = sjcontext.sessionRemaining(sjname); 
 							
-							if (((SJLocalSocket) arg).flags().isFinal())
+							if (((SJVariable) arg).isFinal())
 							{					
 								for (SJSessionType st = (SJSessionType) theirs; st != null; st = st.child())
 								{

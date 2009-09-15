@@ -8,18 +8,12 @@ import polyglot.qq.*;
 import polyglot.types.*;
 import polyglot.util.Position;
 import polyglot.visit.ContextVisitor;
-import polyglot.visit.ErrorHandlingVisitor;
 import polyglot.visit.NodeVisitor;
 
 import sessionj.ast.*;
-import sessionj.ast.createops.*;
-import sessionj.ast.chanops.*;
 import sessionj.ast.sessformals.*;
-import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessvars.*;
-import sessionj.extension.*;
 import sessionj.types.SJTypeSystem;
-import sessionj.types.typeobjects.SJParsedClassType;
 
 import static sessionj.SJConstants.*;
 import static sessionj.util.SJCompilerUtils.*;
@@ -142,32 +136,27 @@ public class SJThreadParser extends ContextVisitor
 			if (md.name().equals(SJ_THREAD_RUN))
 			{
 				List<SJFormal> fs = new LinkedList<SJFormal>();
-				
-				for (Iterator i = md.formals().iterator(); i.hasNext(); )
-				{
-					Formal f = (Formal) i.next();
-					
-					if (f instanceof SJChannelFormal)
-					{
-						if (!f.flags().isFinal()) // Currently, channels must be na-final.
-						{
-							throw new SemanticException("[SJThreadParser] SJThread srun channel parameters must be na-final: " + f);
-						}		
-					}
-					else if (f instanceof SJSessionFormal) // No way for spawn to pass non-session arguments to the target method.
-					{
-						if (f.flags().isFinal()) // To ensure the sessions are closed by SJSessionTryTranslator, although we could allow final parameters as an exception in this case. 
-						{
-							throw new SemanticException("[SJThreadParser] SJThread srun session parameters cannot be final: " + f);
-						}						
-					}
-					else
-					{
-						throw new SemanticException("[SJThreadParser] Only channel and session socket parameters permitted for session thread run method: " + f);
-					}					
-					
-					fs.add((SJFormal) f.flags(f.flags().Final())); // Returns a copy of the original Formal?
-				}
+
+                for (Object o : md.formals()) {
+                    Formal f = (Formal) o;
+
+                    if (f instanceof SJFormal && ((SJFormal) f).isSharedChannel()) {
+                        if (!f.flags().isFinal()) // Currently, channels must be na-final.
+                        {
+                            throw new SemanticException("[SJThreadParser] SJThread srun channel parameters must be na-final: " + f);
+                        }
+                    } else if (f instanceof SJFormal && ((SJFormal) f).isSession()) // No way for spawn to pass non-session arguments to the target method.
+                    {
+                        if (f.flags().isFinal()) // To ensure the sessions are closed by SJSessionTryTranslator, although we could allow final parameters as an exception in this case.
+                        {
+                            throw new SemanticException("[SJThreadParser] SJThread srun session parameters cannot be final: " + f);
+                        }
+                    } else {
+                        throw new SemanticException("[SJThreadParser] Only channel and session socket parameters permitted for session thread run method: " + f);
+                    }
+
+                    fs.add((SJFormal) f.flags(f.flags().Final())); // Returns a copy of the original Formal?
+                }
 				
 				//Position pos = ((ClassMember) members.get(members.size() - 1)).position();
 				Position pos = Position.compilerGenerated();
@@ -197,7 +186,7 @@ public class SJThreadParser extends ContextVisitor
 				{		
 					SJVariable v;
 					
-					if (f instanceof SJChannelFormal)
+					if (f.isSharedChannel())
 					{
 						v = (SJLocalChannel) sjnf.SJLocalChannel(pos, f.id()).localInstance(f.localInstance());
 					}

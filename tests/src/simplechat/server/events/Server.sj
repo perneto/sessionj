@@ -38,7 +38,7 @@ public class Server
 	{
 		final noalias SJSelector selector = SJSelector.create(p_selector); // Has type @(p_selector).
 
-		 ss; // Currently, SJServerSockets must be final-noalias, so this must be modified.
+		// Currently, SJServerSockets must be final-noalias, so this must be modified.
 		
 		SJSelectorKey ssKey = null; // Keys can be used to organise external data specific to each socket or session, but cannot be used for any actual session operations - so not session typed. 
 		
@@ -113,7 +113,7 @@ public class Server
 		{
 			sa = selector.selectAll(SJSelector.SEND); // Selecting all sessions ready for send; original @(p_select) will be filtered accordingly.
 			
-			foreach (sa : s) // Overload foreach for our session typing purposes (although Polyglot does not actually support foreach yet).
+			olivloop (sa : s) // Overload foreach for our session typing purposes (although Polyglot does not actually support foreach yet).
 			{
 				try (s)
 				{

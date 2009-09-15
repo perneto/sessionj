@@ -14,5 +14,9 @@ public class SJLocalChannel_c extends Local_c implements SJLocalChannel
 	public String sjname()
 	{
 		return name();
-	}	
+	}
+
+    public boolean isFinal() {
+        return flags().isFinal();
+    }
 }

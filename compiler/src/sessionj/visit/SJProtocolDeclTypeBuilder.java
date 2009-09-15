@@ -183,7 +183,7 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 		Type t = f.declType();
 		SJLocalInstance li = (SJLocalInstance) f.localInstance(); 
 		
-		if (t.isSubtype(SJ_CHANNEL_TYPE) || t.isSubtype(SJ_SOCKET_INTERFACE_TYPE)) 
+		if (t.isSubtype(SJ_ABSTRACT_CHANNEL_TYPE)) 
 		{
 			if (!(f instanceof SJFormal))
 			{

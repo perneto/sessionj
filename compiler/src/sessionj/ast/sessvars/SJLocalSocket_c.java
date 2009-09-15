@@ -3,6 +3,7 @@ package sessionj.ast.sessvars;
 import polyglot.ast.Id;
 import polyglot.ast.Local_c;
 import polyglot.util.Position;
+import sessionj.visit.noalias.SJNoAliasExprBuilder;
 
 public class SJLocalSocket_c extends Local_c implements SJLocalSocket
 {
@@ -16,9 +17,13 @@ public class SJLocalSocket_c extends Local_c implements SJLocalSocket
 		return name();
 	}
 
+    public boolean isFinal() {
+        return flags().isFinal();
+    }
+
     /**
      * equals is needed here because of
-     * {@link sessionj.visit.noalias.SJNoAliasExprBuilder#removeNonFinalSocketArguments(polyglot.ast.Call, java.util.List)} 
+     * {@link SJNoAliasExprBuilder#removeNonFinalSocketArguments(polyglot.ast.Call, java.util.List)} 
      */
     @Override
     public boolean equals(Object o) {

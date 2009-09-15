@@ -14,7 +14,7 @@ import sessionj.runtime.transport.SJConnection;
  * @author Raymond
  *
  */
-abstract public class SJServerSocket
+abstract public class SJServerSocket implements SJChannel
 {
 	private SJProtocol protocol;
 	private int port; // The local port.
