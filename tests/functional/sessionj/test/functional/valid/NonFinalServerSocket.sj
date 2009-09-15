@@ -9,9 +9,8 @@ import sessionj.runtime.transport.*;
  * (required by events implementation)
  */
 public class NonFinalServerSocket extends AbstractValidTest {
-    static final noalias protocol foo { !<int> } 
     public void client(int port) throws Exception {
-        final noalias protocol pA { cbegin.!<int> }
+        protocol pA { cbegin.!<int> }
         final noalias SJService c = SJService.create(pA, "", port);
         noalias SJSocket s;
 
@@ -24,7 +23,7 @@ public class NonFinalServerSocket extends AbstractValidTest {
     }
 
     public void server(int port) throws Exception {
-        final noalias protocol pB { sbegin.?(int) }
+        protocol pB { sbegin.?(int) }
 		noalias SJServerSocket ss;
 
 		try (ss)
