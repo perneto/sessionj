@@ -44,7 +44,7 @@ public class NonFinalServerSocket extends AbstractValidTest {
 		}
     }
 
-    private SJSocket doAccept(noalias sbegin.?(int) ss) {
+    private noalias SJSocket doAccept(noalias sbegin.?(int) ss) {
         try (ss) {
             return ss.accept();
         } finally {}
