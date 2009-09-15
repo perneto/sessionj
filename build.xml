@@ -483,8 +483,12 @@
     <target name="functionaltest" depends="compile-all,compile-functionaltest" description="run functional tests">
         <tempfile destdir="${java.io.tmpdir}" property="tempdir.name"/>
         <mkdir dir="${tempdir.name}"/>
+        <condition property="testcase" value="null">
+            <not><isset property="testcase"/></not>
+        </condition>
         <testng>
             <sysproperty key="sessionj.test.functional.classesdir" value="${tempdir.name}"/>
+            <sysproperty key="testcase" value="${testcase}"/>
             <xmlfileset dir="${functionaltest.src}" includes="testng.xml"/>
             <classpath>
                 <path refid="standard.classpath"/>

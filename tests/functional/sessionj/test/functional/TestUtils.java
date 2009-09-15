@@ -3,8 +3,7 @@ package sessionj.test.functional;
 import sessionj.Main;
 
 import java.io.*;
-import java.util.Collection;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  *
@@ -12,11 +11,21 @@ import java.util.LinkedList;
 public class TestUtils {
     protected static Collection<File> findSJSourceFiles(String dir) {
         File compilationErrorDir = new File(TestConstants.TEST_DIR + dir);
+        String _testCase = System.getProperty("testcase");
+        final String testCase;
+        if (_testCase.equals("null")) testCase = null;
+        else testCase = _testCase;
         File[] files = compilationErrorDir.listFiles(new FilenameFilter() {
             public boolean accept(File file, String s) {
-                return s.endsWith(".sj");
+                if (testCase != null) return s.equals(testCase + ".sj");
+                else return s.endsWith(".sj");
             }
         });
+        if (testCase != null) return Arrays.asList((File[])files);
+        return filterDisabled(files);
+    }
+
+    private static Collection<File> filterDisabled(File[] files) {
         Collection<File> filtered = new LinkedList<File>();
         for (File f : files) {
             BufferedReader reader = null;
