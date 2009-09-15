@@ -48,8 +48,8 @@ public interface SJNodeFactory extends NodeFactory
 	SJNoAliasArrayTypeNode SJNoAliasArrayTypeNode(Position pos, ArrayTypeNode atn);
 	SJNoAliasCanonicalTypeNode SJNoAliasCanonicalTypeNode(Position pos, CanonicalTypeNode ctn);
 	
-	SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoAlias);
-	SJLocalProtocolDecl SJLocalProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoAlias);
+	SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn);
+	SJLocalProtocolDecl SJLocalProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn);
 	
 	SJCBeginNode SJCBeginNode(Position pos);
 	SJSBeginNode SJSBeginNode(Position pos);

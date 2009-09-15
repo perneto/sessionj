@@ -44,7 +44,7 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	
 	private ExtensionInfo extInfo; 
 	
-	private SJExtFactory sjef = (SJExtFactory) super.extFactory();
+	private final SJExtFactory sjef = (SJExtFactory) super.extFactory();
 	//private SJDelFactory sjdf = (SJDelFactory) super.delFactory();
 	
 	public SJNodeFactory_c()
@@ -93,32 +93,27 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
         return new SJNoAliasCanonicalTypeNode_c(pos, ctn);
 	}
 	
-	public SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoAlias)
+	public SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn)
 	{
-		//flags = makeFinal(flags); // To utilise base type checking.
+		flags = flags.Final(); // To utilise base type checking.
         assert pos != null;
 		SJFieldProtocolDecl n = new SJFieldProtocolDecl_c(pos, flags, CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn); // Null initialization overwritten by protocol declaration translation pass (dummy init. needed to satisfy base type checking).		
-		
-		if (isNoAlias) // Actually, the type system will enforce it to be na-final.
-		{
-			n = (SJFieldProtocolDecl) n.type(convertToNoAliasTypeNode(n.type(), true)); // Makes the object type: noalias SJProtocol. Also adds the extension objects for the session type (later disambiguated, etc. by SJProtocolDeclTypeBuilder).
-		}
 
-		return n; 
+		n = (SJFieldProtocolDecl) n.type(convertToNoAliasTypeNode(n.type(), true));
+        // Makes the object type: noalias SJProtocol. Also adds the extension objects for
+        // the session type (later disambiguated, etc. by SJProtocolDeclTypeBuilder).
+		return n;
 	}
-	
-	public SJLocalProtocolDecl SJLocalProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn, boolean isNoAlias)
+
+    public SJLocalProtocolDecl SJLocalProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn)
 	{
-		//flags = makeFinal(flags); // To utilise base type checking.
+		flags = flags.Final(); // To utilise base type checking.
 
 		SJLocalProtocolDecl n = new SJLocalProtocolDecl_c(pos, flags, CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn);
 		
-		if (isNoAlias) // Will be enforced by type system.
-		{
-			n = (SJLocalProtocolDecl) n.type(convertToNoAliasTypeNode(n.type(), true));  
-		}
-		
-		return n;
+		n = (SJLocalProtocolDecl) n.type(convertToNoAliasTypeNode(n.type(), true));
+
+        return n;
 	}
 	
 	public SJCBeginNode SJCBeginNode(Position pos)

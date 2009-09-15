@@ -199,11 +199,11 @@ extend class_member_declaration ::= // List of ClassMember.
 sj_field_protocol_declaration ::= // Implicitly final and noalias (set by node factory), other modifiers optional.
 	modifiers_opt:a SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c // Didn't bother to factor out some common production with local protocol declarations, not much or nothing saved.
 	{:
-		RESULT = parser.nf.SJFieldProtocolDecl(parser.pos(a, c), a, parser.nf.Id(parser.pos(n), n.getIdentifier()), b, false);
+		RESULT = parser.nf.SJFieldProtocolDecl(parser.pos(a, c), a, parser.nf.Id(parser.pos(n), n.getIdentifier()), b);
 	:}
 |	modifiers_opt:a SJ_NOALIAS SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c // Didn't bother to factor out some common production with local protocol declarations, not much or nothing saved.
 	{:
-		RESULT = parser.nf.SJFieldProtocolDecl(parser.pos(a, c), a, parser.nf.Id(parser.pos(n), n.getIdentifier()), b, true);
+		RESULT = parser.nf.SJFieldProtocolDecl(parser.pos(a, c), a, parser.nf.Id(parser.pos(n), n.getIdentifier()), b);
 	:}
 ;
 
@@ -217,19 +217,19 @@ extend statement ::= // A single Stmt (unlike regular local variable declaration
 sj_protocol_declaration_statement ::= // Implicitly noalias (set by node factory) and final (set here).
 	SJ_PROTOCOL:a IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c
 	{: 
-		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.NONE, parser.nf.Id(parser.pos(n), n.getIdentifier()), b, false); 
+		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.NONE, parser.nf.Id(parser.pos(n), n.getIdentifier()), b);
 	:}
 |	SJ_NOALIAS:a SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c
 	{: 
-		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.NONE, parser.nf.Id(parser.pos(n), n.getIdentifier()), b, true); 
+		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.NONE, parser.nf.Id(parser.pos(n), n.getIdentifier()), b);
 	:}
 |	FINAL:a SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c
 	{: 
-		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.FINAL, parser.nf.Id(parser.pos(n), n.getIdentifier()), b, false); 
+		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.FINAL, parser.nf.Id(parser.pos(n), n.getIdentifier()), b);
 	:}
 |	FINAL:a SJ_NOALIAS SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c
 	{: 
-		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.FINAL, parser.nf.Id(parser.pos(n), n.getIdentifier()), b, true); 
+		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.FINAL, parser.nf.Id(parser.pos(n), n.getIdentifier()), b); 
 	:}
 ;
 
