@@ -57,7 +57,7 @@ public class SJSendTranslator extends ContextVisitor //ErrorHandlingVisitor
 		
 		if (isNoAlias(e) && !e.type().isPrimitive())
 		{
-			p = sjnf.SJPass(s.position(), asList(e), s.targets());
+			p = sjnf.SJPass(s.position(), asLinkedList(e), s.targets());
 
             // Need to grab the NewArray from the original SJSend,
             // as it has already been filled in with translated targets
@@ -80,9 +80,4 @@ public class SJSendTranslator extends ContextVisitor //ErrorHandlingVisitor
 		return p;
 	}
 
-    private <T> List<T> asList(T e) {
-        List<T> l = new LinkedList<T>();
-        l.add(e);
-        return l;
-    }
 }
