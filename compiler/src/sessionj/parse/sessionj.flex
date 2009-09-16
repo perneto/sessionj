@@ -103,13 +103,9 @@ import sessionj.SJConstants;
         keywords.put(SJConstants.SJ_KEYWORD_NOALIAS, new Integer(sym.SJ_NOALIAS));
         
         keywords.put(SJConstants.SJ_KEYWORD_PROTOCOL, new Integer(sym.SJ_PROTOCOL));
-        //keywords.put(SJConstants.SJ_KEYWORD_SESSION, new Integer(sym.SJ_SESSION));
-        //keywords.put(SJConstants.SJ_KEYWORD_CHANNEL, new Integer(sym.SJ_CHANNEL));
-        
+
         keywords.put(SJConstants.SJ_KEYWORD_CBEGIN, new Integer(sym.SJ_CBEGIN));
         keywords.put(SJConstants.SJ_KEYWORD_SBEGIN, new Integer(sym.SJ_SBEGIN));
-        
-        //keywords.put(SJConstants.SJ_KEYWORD_REQUEST, new Integer(sym.SJ_REQUEST));
         
         keywords.put(SJConstants.SJ_KEYWORD_SEND, new Integer(sym.SJ_SEND));
         keywords.put(SJConstants.SJ_KEYWORD_PASS, new Integer(sym.SJ_PASS));
@@ -127,8 +123,6 @@ import sessionj.SJConstants;
         keywords.put(SJConstants.SJ_KEYWORD_NEWOUTWHILE, new Integer(sym.SJ_NEWOUTWHILE));
         keywords.put(SJConstants.SJ_KEYWORD_INWHILE, new Integer(sym.SJ_INWHILE));
         keywords.put(SJConstants.SJ_KEYWORD_RECURSION, new Integer(sym.SJ_RECURSION));
-        
-        //keywords.put(SJConstants.SJ_KEYWORD_ACCEPT, new Integer(sym.SJ_ACCEPT));
         
         keywords.put(SJConstants.SJ_KEYWORD_SPAWN, new Integer(sym.SJ_SPAWN));
         // YAR

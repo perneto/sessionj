@@ -93,11 +93,13 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
         return new SJNoAliasCanonicalTypeNode_c(pos, ctn);
 	}
 	
-	public SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn)
+	public SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, List<SJTypeNode> tn)
 	{
-		flags = flags.Final(); // To utilise base type checking.
-        assert pos != null;
-		SJFieldProtocolDecl n = new SJFieldProtocolDecl_c(pos, flags, CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn); // Null initialization overwritten by protocol declaration translation pass (dummy init. needed to satisfy base type checking).		
+		assert pos != null;
+		SJFieldProtocolDecl n = new SJFieldProtocolDecl_c
+            (pos, flags.Final(), CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn.get(0));
+        // Null initialization overwritten by protocol declaration translation pass (dummy init.
+        // needed to satisfy base type checking).		
 
 		n = (SJFieldProtocolDecl) n.type(convertToNoAliasTypeNode(n.type(), true));
         // Makes the object type: noalias SJProtocol. Also adds the extension objects for
@@ -105,11 +107,10 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return n;
 	}
 
-    public SJLocalProtocolDecl SJLocalProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn)
+    public SJLocalProtocolDecl SJLocalProtocolDecl(Position pos, Id name, List<SJTypeNode> tn)
 	{
-		flags = flags.Final(); // To utilise base type checking.
-
-		SJLocalProtocolDecl n = new SJLocalProtocolDecl_c(pos, flags, CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn);
+		SJLocalProtocolDecl n = new SJLocalProtocolDecl_c
+            (pos, Flags.FINAL, CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn.get(0));
 		
 		n = (SJLocalProtocolDecl) n.type(convertToNoAliasTypeNode(n.type(), true));
 

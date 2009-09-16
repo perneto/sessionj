@@ -68,8 +68,6 @@ parser Grm extends polyglot.parse.Grm {:
 terminal Token SJ_NOALIAS;
 
 terminal Token SJ_PROTOCOL;
-terminal Token SJ_SESSION;
-terminal Token SJ_CHANNEL;
 
 terminal Token SJ_CBEGIN;
 terminal Token SJ_SBEGIN;
@@ -93,8 +91,6 @@ terminal Token SJ_NEWOUTWHILE;
 terminal Token SJ_INWHILE;
 terminal Token SJ_RECURSION;
 
-//terminal Token SJ_ACCEPT;
-
 terminal Token SJ_SPAWN;
 
 terminal Token SJ_RECURSE_LABEL;
@@ -115,13 +111,10 @@ non terminal TypeNode sj_message_type;
 
 non terminal SJFieldProtocolDecl sj_field_protocol_declaration;
 non terminal SJLocalProtocolDecl sj_protocol_declaration_statement;
-non terminal Flags sj_final_and_or_noalias; 
 
 non terminal SJAmbiguousTry sj_try_statement;
 
-//non terminal SJChannelOperation sj_channel_operation;
 non terminal SJBasicOperation sj_basic_operation;
-non terminal SJRequest sj_request_operation;
 non terminal SJSend sj_send_operation;
 non terminal SJPass sj_pass_operation;
 non terminal SJCopy sj_copy_operation;
@@ -148,7 +141,6 @@ non terminal SJOutInwhile sj_outinwhile_statement;
 non terminal SJInwhile sj_inwhile_statement;
 non terminal SJRecursion sj_recursion_statement;
 
-//non terminal Expr sj_session_type_cast_expression;
 non terminal SJSessionTypeCast sj_session_type_cast_expression;
 
 non terminal SJFormal sj_formal;
@@ -156,6 +148,8 @@ non terminal SJFormal sj_channel_formal;
 non terminal SJFormal sj_session_formal;
 non terminal SJFormal sj_server_formal;
 
+non terminal List sj_session_set_type;
+non terminal Object optional_final_noalias;
 
 start with goal;
 
@@ -189,21 +183,19 @@ extend class_member_declaration ::= // List of ClassMember.
 	sj_field_protocol_declaration:a
 	{:
 		List l = new TypedList(new LinkedList(), ClassMember.class, false);
-
-		l.add(a);
-		
+        l.add(a);
 		RESULT = l;
 	:}
 ;
 
 sj_field_protocol_declaration ::= // Implicitly final and noalias (set by node factory), other modifiers optional.
-	modifiers_opt:a SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c // Didn't bother to factor out some common production with local protocol declarations, not much or nothing saved.
+	modifiers_opt:a SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_set_type:setType RBRACE:c // Didn't bother to factor out some common production with local protocol declarations, not much or nothing saved.
 	{:
-		RESULT = parser.nf.SJFieldProtocolDecl(parser.pos(a, c), a, parser.nf.Id(parser.pos(n), n.getIdentifier()), b);
+		RESULT = parser.nf.SJFieldProtocolDecl(parser.pos(a, c), a, parser.nf.Id(parser.pos(n), n.getIdentifier()), setType);
 	:}
-|	modifiers_opt:a SJ_NOALIAS SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c // Didn't bother to factor out some common production with local protocol declarations, not much or nothing saved.
+|	modifiers_opt:a SJ_NOALIAS SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_set_type:setType RBRACE:c // Didn't bother to factor out some common production with local protocol declarations, not much or nothing saved.
 	{:
-		RESULT = parser.nf.SJFieldProtocolDecl(parser.pos(a, c), a, parser.nf.Id(parser.pos(n), n.getIdentifier()), b);
+		RESULT = parser.nf.SJFieldProtocolDecl(parser.pos(a, c), a, parser.nf.Id(parser.pos(n), n.getIdentifier()), setType);
 	:}
 ;
 
@@ -214,62 +206,48 @@ extend statement ::= // A single Stmt (unlike regular local variable declaration
 	:}
 ;
 
-sj_protocol_declaration_statement ::= // Implicitly noalias (set by node factory) and final (set here).
-	SJ_PROTOCOL:a IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c
+sj_protocol_declaration_statement ::= // Implicitly final and noalias (set by node factory).
+	optional_final_noalias SJ_PROTOCOL:a IDENTIFIER:n LBRACE sj_session_set_type:setType RBRACE:c
 	{: 
-		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.NONE, parser.nf.Id(parser.pos(n), n.getIdentifier()), b);
-	:}
-|	SJ_NOALIAS:a SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c
-	{: 
-		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.NONE, parser.nf.Id(parser.pos(n), n.getIdentifier()), b);
-	:}
-|	FINAL:a SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c
-	{: 
-		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.FINAL, parser.nf.Id(parser.pos(n), n.getIdentifier()), b);
-	:}
-|	FINAL:a SJ_NOALIAS SJ_PROTOCOL IDENTIFIER:n LBRACE sj_session_type:b RBRACE:c
-	{: 
-		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), Flags.FINAL, parser.nf.Id(parser.pos(n), n.getIdentifier()), b); 
+		RESULT = parser.nf.SJLocalProtocolDecl(parser.pos(a, c), parser.nf.Id(parser.pos(n), n.getIdentifier()), setType);
 	:}
 ;
+
+optional_final_noalias ::=
+   | FINAL | FINAL SJ_NOALIAS | SJ_NOALIAS FINAL | SJ_NOALIAS ;
 
 // sj_final_and_or_noalias One or both can be specified but both will be set anyway.
 
+sj_session_set_type ::=
+    sj_session_type:t
+    {:
+        List l = new LinkedList();
+        l.add(t);
+        RESULT = l;
+    :}
+|   sj_session_set_type:l COMMA sj_session_type:t
+    {:
+        l.add(t);
+        RESULT = l;
+    :}
+;
+
 sj_session_type ::= // begin prefixes actually enforced syntactically (although well-formedness routines still explicitly check).	
-	sj_channel_type:a
-	{:
-		RESULT = a;
-	:}
-| sj_server_type:a
-	{:
-		RESULT = a;
-	:}
-| sj_session_type_body:a
-	{:
-		RESULT = a;
-	:}
+	sj_channel_type:a       {: RESULT = a; :}
+|   sj_server_type:a        {: RESULT = a; :}
+|   sj_session_type_body:a  {: RESULT = a; :}
 ;
 
 sj_channel_type ::=
-	sj_session_type_cbegin:a
-	{: 
-		RESULT = a; 
-	:}
+	sj_session_type_cbegin:a {:  RESULT = a;  :}
 |	sj_session_type_cbegin:a DOT sj_session_type_body:b
-	{: 
-		RESULT = a.child(b); 
-	:}
+	    {:  RESULT = a.child(b);  :}
 ;
 
 sj_server_type ::=
-	sj_session_type_sbegin:a
-	{: 
-		RESULT = a; 
-	:}
+	sj_session_type_sbegin:a {:  RESULT = a;  :}
 |	sj_session_type_sbegin:a DOT sj_session_type_body:b
-	{: 
-		RESULT = a.child(b); 
-	:}
+	    {:  RESULT = a.child(b);  :}
 ;
 
 sj_session_type_cbegin ::=
