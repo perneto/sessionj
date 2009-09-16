@@ -13,7 +13,7 @@ import sessionj.runtime.transport.*;
 public class NoAliasSocket extends AbstractValidTest {
 
     public void client(int port) throws Exception {
-        final noalias protocol pA { cbegin.!<int>.!<int> }
+        protocol pA { cbegin.!<int>.!<int> }
 
         final noalias SJService c = SJService.create(pA, "", port);
         noalias SJSocket s;
@@ -29,7 +29,7 @@ public class NoAliasSocket extends AbstractValidTest {
     }
 
     public void server(int port) throws Exception {
-        final noalias protocol pB { sbegin.?(int).?(int) }
+        protocol pB { sbegin.?(int).?(int) }
 		final noalias SJServerSocket ss;
 
 		try (ss)
