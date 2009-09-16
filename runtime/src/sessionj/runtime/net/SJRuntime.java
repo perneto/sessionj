@@ -823,7 +823,7 @@ public class SJRuntime
         // TODO multi-session                        
 	}
 
-	public static SJAbstractSocket receive(int timeout, SJSocket s, String encoded) throws SJIOException, ClassNotFoundException // Session-receive.
+	public static SJAbstractSocket receive(String encoded, int timeout, SJSocket s) throws SJIOException, ClassNotFoundException // Session-receive.
 	{
 		return receive(encoded, SJSessionParameters.DEFAULT_PARAMETERS, timeout, s);
 	}

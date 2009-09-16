@@ -1,6 +1,7 @@
 package sessionj.ast.sessops.basicops;
 
 import polyglot.ast.Expr;
+import polyglot.ast.StringLit;
 
 /**
  * 
@@ -18,5 +19,6 @@ public interface SJPass extends SJBasicOperation
     Expr encodedSessionType();
     /** The real argument of the call (data or session channel) */
     Expr argument();
-        
+
+    SJPass addEncodedArg(StringLit encoded);
 }

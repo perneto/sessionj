@@ -31,8 +31,7 @@ import java.util.List;
  */
 public class SJSendTranslator extends ContextVisitor //ErrorHandlingVisitor
 {
-	private SJTypeSystem sjts = (SJTypeSystem) typeSystem();
-	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
+    private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 	private SJExtFactory sjef = sjnf.extFactory(); 
 
 	public SJSendTranslator(Job job, TypeSystem ts, NodeFactory nf)
@@ -58,15 +57,13 @@ public class SJSendTranslator extends ContextVisitor //ErrorHandlingVisitor
 		
 		if (isNoAlias(e) && !e.type().isPrimitive())
 		{
-			p = sjnf.SJPass(s.position(), Arrays.asList(e), s.targets());
+			p = sjnf.SJPass(s.position(), asList(e), s.targets());
 
             // Need to grab the NewArray from the original SJSend,
             // as it has already been filled in with translated targets
             // in SJSessionOperationParser.
-            List args = new LinkedList(p.arguments());
-			args.add(s.dummyArray());
-			
-			p = (SJPass) p.arguments(args);			
+            // The NewArray is already in the arguments, so we grab them all.
+            p = (SJPass) p.arguments(new LinkedList(s.arguments()));			
 			
 			SJNoAliasExprExt naee = getSJNoAliasExprExt(s);
 			SJTypeableExt te = getSJTypeableExt(s);
@@ -81,5 +78,11 @@ public class SJSendTranslator extends ContextVisitor //ErrorHandlingVisitor
 		}
 		
 		return p;
-	}	
+	}
+
+    private <T> List<T> asList(T e) {
+        List<T> l = new LinkedList<T>();
+        l.add(e);
+        return l;
+    }
 }
