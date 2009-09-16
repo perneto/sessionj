@@ -13,7 +13,7 @@ public class TestUtils {
         File compilationErrorDir = new File(TestConstants.TEST_DIR + dir);
         String _testCase = System.getProperty("testcase");
         final String testCase;
-        if (_testCase.equals("null")) testCase = null;
+        if (_testCase == null || _testCase.equals("null")) testCase = null;
         else testCase = _testCase;
         File[] files = compilationErrorDir.listFiles(new FilenameFilter() {
             public boolean accept(File file, String s) {
