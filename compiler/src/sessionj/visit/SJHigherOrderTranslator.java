@@ -48,27 +48,22 @@ public class SJHigherOrderTranslator extends ContextVisitor
 
 	private SJBasicOperation translateHOOperation(SJBasicOperation bo, SJSessionType mt) throws SemanticException // Includes both higher-order channel and session communication.
 	{
-		List args = new LinkedList();
-
 		StringLit encoded = sjnf.StringLit(bo.position(), sjte.encode(mt));
 		
-		args.addAll(bo.arguments());				
-		
-		if (bo instanceof SJPass) 
+		if (bo instanceof SJPass)
 		{
-			args.add(2, encoded); // Inserts argument into this position. // Factor out constant.
+            bo = ((SJPass) bo).addEncodedArg(encoded);
 		}
 		else //if (bo instanceof SJReceive)
 		{
-			args.add(1, encoded); // Factor out constant.
-			
+            bo = ((SJReceive) bo).addEncodedArg(encoded);
+
 			if (mt instanceof SJBeginType) // Channel-receive.
 			{
 				bo = (SJBasicOperation) bo.name(SJ_RUNTIME_RECEIVECHANNEL);
 			}
 		}
 
-		bo = (SJBasicOperation) bo.arguments(args);
 		bo = (SJBasicOperation) buildAndCheckTypes(job(), this, bo);
 		
 		return bo;
