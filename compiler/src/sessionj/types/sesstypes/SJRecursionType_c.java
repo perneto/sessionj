@@ -8,7 +8,7 @@ import static sessionj.SJConstants.*;
 
 public class SJRecursionType_c extends SJLoopType_c implements SJRecursionType
 {
-	public static final long serialVersionUID = SJ_VERSION;
+	private static final long serialVersionUID = SJ_VERSION;
 
 	private SJLabel lab;
 
@@ -26,7 +26,7 @@ public class SJRecursionType_c extends SJLoopType_c implements SJRecursionType
 	
 	public boolean eligibleForEquals(SJSessionType st)
 	{
-		return (st instanceof SJRecursionType) && compareLabel((SJRecursionType) st);
+		return st instanceof SJRecursionType && compareLabel((SJRecursionType) st);
 	}
 	
 	public boolean eligibleForSubtype(SJSessionType st)
@@ -46,12 +46,12 @@ public class SJRecursionType_c extends SJLoopType_c implements SJRecursionType
 	
 	protected boolean eligibleForSubsume(SJSessionType st)
 	{
-		return (st instanceof SJRecursionType) && (compareLabel((SJRecursionType) st));
+		return st instanceof SJRecursionType && compareLabel((SJRecursionType) st);
 	}
 	
 	protected String loopConstructorOpen()
 	{
-		return SJ_STRING_REC + " " + label() + SJ_STRING_RECURSION_OPEN;
+		return SJ_STRING_REC + ' ' + label() + SJ_STRING_RECURSION_OPEN;
 	}
 	
 	protected String loopConstructorClose()
@@ -62,5 +62,9 @@ public class SJRecursionType_c extends SJLoopType_c implements SJRecursionType
 	private boolean compareLabel(SJRecursionType rt)
 	{
 		return label().equals(rt.label()); 
-	}	
+	}
+
+    protected SJLoopType dualSkeleton() {
+        return typeSystem().SJRecursionType(label()); // TODO use copy instead? make sure same behaviour
+    }
 }

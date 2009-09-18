@@ -15,12 +15,9 @@ import sessionj.extension.SJExtFactory;
 import sessionj.extension.noalias.SJNoAliasExprExt;
 import sessionj.extension.sessops.SJSessionOperationExt;
 import sessionj.extension.sesstypes.SJTypeableExt;
-import sessionj.types.SJTypeSystem;
 import static sessionj.util.SJCompilerUtils.*;
 
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * 
@@ -70,7 +67,7 @@ public class SJSendTranslator extends ContextVisitor //ErrorHandlingVisitor
 			
 			p = (SJPass) buildAndCheckTypes(job(), this, p);
 			p = (SJPass) setSJNoAliasExprExt(sjef, p, naee.isNoAlias(), naee.isFinal(), naee.fields(), naee.locals(), naee.arrayAccesses());						
-			p = (SJPass) setSJSessionOperationExt(sjef, p, te.sessionType(), ((SJSessionOperationExt) te).sjnames());
+			p = (SJPass) setSJSessionOperationExt(sjef, p, te.sessionType(), ((SJSessionOperationExt) te).targetNames());
 		}
 		else
 		{

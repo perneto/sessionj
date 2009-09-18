@@ -98,10 +98,10 @@ public class SJContext_c extends SJContext
 	
 	public void advanceSession(String sjname, SJSessionType st) throws SemanticException
 	{
-		SJSessionType active = sessionExpected(sjname);		
+		SJSessionType active = expectedSessionOperation(sjname);
 		SJSessionType implemented = sessionImplemented(sjname);
 		
-		if (st instanceof SJDelegatedType)
+		if (st != null && st.startsWith(SJDelegatedType.class))
         // Needed e.g. when popping a compound operation context, but the session is still active
         // - if it was delegated within the popped context, the single trailing SJDelegationType element
         // must be enough to clear the remaining active type. 
@@ -129,7 +129,7 @@ public class SJContext_c extends SJContext
 		return remaining;
 	}
 	
-	public SJSessionType sessionExpected(String sjname)
+	public SJSessionType expectedSessionOperation(String sjname)
 	{	
 		return currentContext().getActive(sjname);
 	}
@@ -159,7 +159,11 @@ public class SJContext_c extends SJContext
 					SJSessionType child = remaining.child();
 					
 					remaining = ((SJBranchType) remaining).branchCase(((SJBranchCaseContext) ce).label()); 					
-					remaining = remaining.append(child); // FIXME: gets the full remainder of the session for completion. But will break the advanceSession routine below if we're currently inside an inner scope that only has a fragment of the remainder as the active type, e.g. if we're delegating a session from within a branch on that session and there are operations after the branch. 
+					remaining = remaining.append(child);
+                    // FIXME: gets the full remainder of the session for completion. But will break the advanceSession
+                    // routine below if we're currently inside an inner scope that only has a fragment
+                    // of the remainder as the active type, e.g. if we're delegating a session from within
+                    // a branch on that session and there are operations after the branch. 
 				}
 
 				for (SJSessionType implemented = ce.getImplemented(sjname);
@@ -348,7 +352,7 @@ public class SJContext_c extends SJContext
 	{
 		SJContextElement current = currentContext();
 		
-		List<String> sjnames = getSJSessionOperationExt(b).sjnames();				
+		List<String> sjnames = getSJSessionOperationExt(b).targetNames();
 		
 		for (String sjname : sjnames) // Should only be a single target.
 		{
@@ -367,9 +371,9 @@ public class SJContext_c extends SJContext
 		{
 			SJOutbranch ob = (SJOutbranch) bc;
 			
-			pushContextElement(new SJOutbranchContext_c(current, ob, getSJSessionOperationExt(ob).sjnames(), lab));						
+			pushContextElement(new SJOutbranchContext_c(current, ob, getSJSessionOperationExt(ob).targetNames(), lab));
 			
-			for (String sjname : getSJSessionOperationExt(ob).sjnames())
+			for (String sjname : getSJSessionOperationExt(ob).targetNames())
 			{
 				SJSessionType st = current.getActive(sjname);
 				SJOutbranchType obt = (SJOutbranchType) st;			
@@ -404,7 +408,7 @@ public class SJContext_c extends SJContext
 	public void pushSJWhile(SJWhile w) throws SemanticException
 	{
 		SJContextElement current = currentContext();
-		List<String> sjnames = getSJSessionOperationExt(w).sjnames();
+		List<String> sjnames = getSJSessionOperationExt(w).targetNames();
 		SJSessionLoopContext slc = new SJSessionLoopContext_c(current, w, sjnames);
 		
 		slc.clearSessions();
@@ -422,7 +426,7 @@ public class SJContext_c extends SJContext
 	public void pushSJRecursion(SJRecursion r) throws SemanticException
 	{
 		SJContextElement current = currentContext();
-		List<String> sjnames = getSJSessionOperationExt(r).sjnames();				
+		List<String> sjnames = getSJSessionOperationExt(r).targetNames();
 		
 		SJSessionLoopContext slc = new SJSessionRecursionContext_c(current, r, sjnames);
 		

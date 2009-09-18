@@ -7,6 +7,8 @@ import polyglot.util.Position;
 import sessionj.util.SJLabel;
 
 import static sessionj.SJConstants.*;
+import sessionj.types.sesstypes.SJBranchType;
+import sessionj.types.SJTypeSystem;
 
 public class SJOutbranchNode_c extends SJBranchNode_c implements SJOutbranchNode
 {
@@ -19,8 +21,12 @@ public class SJOutbranchNode_c extends SJBranchNode_c implements SJOutbranchNode
 	{
 		return (SJOutbranchNode) super.branchCases(branchCases); 
 	}
-	
-	public String nodeToString()
+
+    protected SJBranchType createType(SJTypeSystem sjts) {
+        return sjts.SJOutbranchType();
+    }
+
+    public String nodeToString()
 	{
 		String s = SJ_STRING_OUTBRANCH_OPEN;
 

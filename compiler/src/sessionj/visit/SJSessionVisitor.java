@@ -47,7 +47,7 @@ public class SJSessionVisitor extends SJAbstractSessionVisitor
 		if (n instanceof SJSessionOperation && !(n instanceof SJInternalOperation))
 		{
 			SJSessionOperation so = (SJSessionOperation) n;			
-			List<String> sjnames = getSJSessionOperationExt(so).sjnames();
+			List<String> sjnames = getSJSessionOperationExt(so).targetNames();
 			SJSessionType st = getSessionType(so);
 			
 			if (debug)

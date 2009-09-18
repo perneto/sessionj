@@ -2,8 +2,15 @@ package sessionj.ast.typenodes;
 
 import polyglot.ast.TypeNode;
 import polyglot.util.Position;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import polyglot.visit.ContextVisitor;
+import polyglot.frontend.Job;
 
 import static sessionj.SJConstants.*;
+import sessionj.types.SJTypeSystem;
+import sessionj.types.sesstypes.SJMessageCommunicationType;
+import sessionj.util.SJCompilerUtils;
 
 public class SJReceiveNode_c extends SJMessageCommunicationNode_c implements SJReceiveNode
 {
@@ -12,12 +19,11 @@ public class SJReceiveNode_c extends SJMessageCommunicationNode_c implements SJR
 		super(pos, messageType);
 	}
 
-	public SJReceiveNode messageType(TypeNode messageType)
-	{
-		return (SJReceiveNode) super.messageType(messageType);
-	}
+    protected SJMessageCommunicationType createType(SJTypeSystem ts, Type messageType) throws SemanticException {
+        return ts.SJReceiveType(messageType);
+    }
 
-	public String nodeToString()
+    public String nodeToString()
 	{
 		String message = messageType().toString(); // toString enough for messageType? or need to manually get full name?
 

@@ -5,15 +5,11 @@ package sessionj.types.contexts;
 
 import java.util.*;
 
-import polyglot.ast.ClassDecl;
 import polyglot.types.*;
-import polyglot.visit.ContextVisitor;
 
-import sessionj.ast.*;
 import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sesstry.*;
 import sessionj.types.sesstypes.*;
-import sessionj.types.typeobjects.*;
 
 /**
  * @author Raymond
@@ -26,7 +22,7 @@ public interface SJTypeBuildingContext extends SJContextInterface
 		super(cv);
 	}
 	
-	abstract public void recurseSessions(List<String> sjnames) throws SemanticException;
+	abstract public void recurseSessions(List<String> targetNames) throws SemanticException;
 	
 	abstract protected void pushContextElement(SJContextElement ce);
 	abstract protected SJContextElement popContextElement() throws SemanticException;*/

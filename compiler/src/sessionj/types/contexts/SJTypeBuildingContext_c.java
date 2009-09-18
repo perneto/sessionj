@@ -33,61 +33,11 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		this.sjts = sjts;
 	}
 	
-	/*public SJSessionType findProtocol(String sjname) throws SemanticException
-	{
-		return ((SJNamedInstance) visitorContext().findVariable(sjname)).sessionType();
-	}
-	
-	public SJSessionType findChannel(String sjname) throws SemanticException
-	{
-		return getChannel(sjname).sessionType();
-	}
-		
-	public SJSessionType findSocket(String sjname) throws SemanticException
-	{		
-		return getSocket(sjname).sessionType();
-	}
-	
-	public SJSessionType findServer(String sjname) throws SemanticException
-	{
-		return getServer(sjname).sessionType();
-	}
-	
-	public void addChannel(SJNamedInstance ni)
-	{
-		currentContext().setChannel(ni); 
-	}
-		
-	public void addSocket(SJNamedInstance ni)
-	{
-		currentContext().setSocket(ni); 
-	}			
-	
-	public void addServer(SJNamedInstance ni)
-	{
-		currentContext().setServer(ni); 
-	}
-	
-	public void addSession(SJNamedInstance ni)
-	{
-		currentContext().setSession(ni.sjname(), ni.sessionType());  
-	}		
-	
-	public void openService(String sjname, SJSessionType st) throws SemanticException
-	{
-		currentContext().setService(sjname, st);
-	}
-	
-	public void openSession(String sjname, SJSessionType st) throws SemanticException
-	{					
-		setSessionRequested(sjname, st);		
-		setSessionActive(sjname, st);
-		setSessionImplemented(sjname, null);				
-	}*/
-	
 	public void advanceSession(String sjname, SJSessionType st) throws SemanticException // st should be single type object.
 	{
-		if (currentContext() instanceof SJBranchContext) // Hacky? This is here because branch contexts are a kind of meta context, should never be updated by session implementations directly. // Prevents inline if-statements.
+		if (currentContext() instanceof SJBranchContext)
+        // Hacky? This is here because branch contexts are a kind of meta context,
+        // should never be updated by session implementations directly. Prevents inline if-statements.
 		{
 			throw new SemanticException("[SJTypeBuildingContext_c] Unsupported branch context for session implementation: " + sjname);			
 		}
@@ -97,12 +47,6 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 			throw new RuntimeException("[SJContent_c] Shouldn't get in here.");
 		}
 
-		/*SJSessionType active = sessionExpected(sjname);		
-		SJSessionType implemented = sessionImplemented(sjname);
-		
-		setSessionActive(sjname, active.child());		
-		setSessionImplemented(sjname, (implemented == null) ? st : implemented.append(st));*/
-		
 		super.advanceSession(sjname, st);
 	}
 	
@@ -119,7 +63,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		
 		//for (SJSessionType st = innermostRemaining; st != null; st = st.child())
 		{
-			/*if (sessionExpected(sjname) == null) // There's a similar routine in popContextElement. We're basically "carrying over" the remainder of the complete session implementation to the outer scopes.
+			/*if (expectedSessionOperation(sjname) == null) // There's a similar routine in popContextElement. We're basically "carrying over" the remainder of the complete session implementation to the outer scopes.
 			{
 				SJSessionType foo = sessionImplemented(sjname);
 				
@@ -139,7 +83,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		SJSessionType bar = sjts.SJDelegatedType(remaining);
 		
 		setSessionActive(sjname, null);
-		setSessionImplemented(sjname, (foo == null) ? bar : foo.append(bar));
+		setSessionImplemented(sjname, foo == null ? bar : foo.append(bar));
 		
 		/*for (int i = contexts().size() - 2; i >= 0; i--) // Doesn't work for inner nested branches.
 		{
@@ -214,7 +158,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		}				
 	}
 	
-	/*public SJSessionType sessionExpected(String sjname)
+	/*public SJSessionType expectedSessionOperation(String sjname)
 	{	
 		return currentContext().getActive(sjname);
 	}
@@ -469,13 +413,13 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		
 		SJContextElement current = currentContext();
 		
-		List<String> sjnames = getSJSessionOperationExt(b).sjnames();				
+		List<String> sjnames = getSJSessionOperationExt(b).targetNames();
 		
 		for (String sjname : sjnames) // Should only be a single target.
 		{
 			SJSessionType st = current.getActive(sjname);				
 			
-			if (!(st instanceof SJInbranchType))
+			if (!st.startsWith(SJInbranchType.class))
 			{
 				throw new SemanticException("[SJTypeBuildingContext_c] found inbranch, but expected: " + st); // Maybe better to explicitly check session is active (open) as well. 
 			} 
@@ -493,13 +437,13 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		{
 			SJOutbranch ob = (SJOutbranch) bc;
 			
-			pushContextElement(new SJOutbranchContext_c(current, ob, getSJSessionOperationExt(ob).sjnames(), lab));						
+			pushContextElement(new SJOutbranchContext_c(current, ob, getSJSessionOperationExt(ob).targetNames(), lab));
 			
-			for (String sjname : getSJSessionOperationExt(ob).sjnames())
+			for (String sjname : getSJSessionOperationExt(ob).targetNames())
 			{
 				SJSessionType st = current.getActive(sjname);
 				
-				if (!(st instanceof SJOutbranchType))
+				if (!st.startsWith(SJOutbranchType.class))
 				{
 					throw new SemanticException("[SJTypeBuildingContext_c] found outbranch, but expected: " + st);
 				}				
@@ -527,7 +471,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 			{
 				SJSessionType st = current.getActive(sjname);
 				
-				if (!(st instanceof SJInbranchType))
+				if (!st.startsWith(SJInbranchType.class))
 				{
 					throw new SemanticException("[SJTypeBuildingContext_c] found inbranch, but expected: " + st);
 				}				
@@ -552,7 +496,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 	public void pushSJWhile(SJWhile w) throws SemanticException
 	{
 		SJContextElement current = currentContext();
-		List<String> sjnames = getSJSessionOperationExt(w).sjnames();
+		List<String> sjnames = getSJSessionOperationExt(w).targetNames();
 		SJSessionLoopContext slc = new SJSessionLoopContext_c(current, w, sjnames);
 		
 		slc.clearSessions();
@@ -565,7 +509,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 			
 			if (w instanceof SJOutwhile) 
 			{
-				if (!(st instanceof SJOutwhileType))
+				if (st == null || !st.startsWith(SJOutwhileType.class))
 				{
 					throw new SemanticException("[SJTypeBuildingContext_c] found outwhile, but expected: " + st);
 				}
@@ -578,7 +522,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
                 
                 if (sourceNames.contains(sjname))
 				{
-					if (!(st instanceof SJInwhileType))
+					if (!st.startsWith(SJInwhileType.class))
 					{
 						throw new SemanticException("[SJTypeBuildingContext_c] found inwhile, but expected: " + st);
 					} 
@@ -586,7 +530,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 				}
 				else
 				{
-					if (!(st instanceof SJOutwhileType))
+					if (!st.startsWith(SJOutwhileType.class))
 					{
 						throw new SemanticException("[SJTypeBuildingContext_c] found outwhile, but expected: " + st);
 					}					
@@ -594,11 +538,11 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 			}
 			else //if (w instanceof SJInwhile)
 			{
-				if (!(st instanceof SJInwhileType))
+				if (st == null || !st.startsWith(SJInwhileType.class))
 				{
 					throw new SemanticException("[SJTypeBuildingContext_c] found inwhile, but expected: " + st);
-				} 
-			}						
+				}
+			}
 			
 			openSession(sjname, ((SJLoopType) st).body());
 		}
@@ -607,7 +551,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 	public void pushSJRecursion(SJRecursion r) throws SemanticException
 	{
 		SJContextElement current = currentContext();
-		List<String> sjnames = getSJSessionOperationExt(r).sjnames();				
+		List<String> sjnames = getSJSessionOperationExt(r).targetNames();
 		
 		SJSessionLoopContext slc = new SJSessionRecursionContext_c(current, r, sjnames);
 		
@@ -619,19 +563,19 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		{
 			SJSessionType st = current.getActive(sjname);
 			
-			if (!(st instanceof SJRecursionType))
+			if (!st.startsWith(SJRecursionType.class))
 			{
 				throw new SemanticException("[SJTypeBuildingContext_c] found recursion, but expected: " + st);
 			}
 			
 			SJLabel lab = r.label();
 			
-			if (!(lab.equals(((SJRecursionType) st).label())))
+			if (!lab.equals(((SJRecursionType) st).label()))
 			{
 				throw new SemanticException("[SJTypeBuildingContext_c] unexpected recursion label: " + lab);
 			}
 			
-			openSession(sjname, ((SJRecursionType) st).body());
+			openSession(sjname, ((SJLoopType) st).body());
 		}
 	}
 	
@@ -684,7 +628,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		{
 			List<SJContextElement> ces = ((SJBranchContext) ce).branches();
 			
-			if (ces.size() == 0) // Hacky? This means we're popping an inline if-statement. Inline loop statements are checked OK because of their session context properties - no operations on outer sessions allowed by typing. 
+			if (ces.isEmpty()) // Hacky? This means we're popping an inline if-statement. Inline loop statements are checked OK because of their session context properties - no operations on outer sessions allowed by typing. 
 			{
 				// Nothing to do. ce should not contain any session implementations - should be prevented by advanceSession (maybe not the best place to do that).
 			}
@@ -756,19 +700,16 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 					}
 					else 
 					{
-						if (inner == null)
-						{
-							throw new RuntimeException("[SJTypeBuildingContext_c] Shouldn't get in here.");
-						}
-						else
-						{
-							if (!orig.typeEquals(inner))
-							{
-								hasSessionImplementations = true;
-							}
-						}					 										 
-						 
-						break;
+                        if (inner == null) {
+                            throw new RuntimeException("[SJTypeBuildingContext_c] Shouldn't get in here.");
+                        }
+                        
+                        if (!orig.typeEquals(inner))
+                        {
+                            hasSessionImplementations = true;
+                        }
+
+                        break;
 					}
 				}
 				
@@ -942,22 +883,22 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 									{
 										if (co instanceof SJOutwhile)
 										{
-											implemented = sjts.SJOutwhileType().body(implemented);											
+											implemented = sjts.SJOutwhileType(implemented);
 										}
 										else if (co instanceof SJOutInwhile) // FIXME: hacky.
 										{
 											if (((SJSocketVariable) ((SJOutInwhile) co).targets().get(0)).sjname().equals(sjname))
 											{
-												implemented = sjts.SJInwhileType().body(implemented);
+												implemented = sjts.SJInwhileType(implemented);
 											}
 											else
 											{
-												implemented = sjts.SJOutwhileType().body(implemented);
+												implemented = sjts.SJOutwhileType(implemented);
 											}
 										}
 										else
 										{
-											implemented = sjts.SJInwhileType().body(implemented);
+											implemented = sjts.SJInwhileType(implemented);
 										}
 									}
 									else //if (co instanceof SJRecursion)
@@ -978,7 +919,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 						{
 							for ( ; implemented != null; implemented = implemented.child())
 							{
-								/*if (sessionExpected(sjname) == null) // Hacky? Early session completion (e.g. delegation, method passing) will give the full remaining type as implemented.
+								/*if (expectedSessionOperation(sjname) == null) // Hacky? Early session completion (e.g. delegation, method passing) will give the full remaining type as implemented.
 								{
 									SJSessionType foo = sessionImplemented(sjname);
 									

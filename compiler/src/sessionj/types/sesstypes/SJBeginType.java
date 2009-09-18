@@ -9,6 +9,4 @@ package sessionj.types.sesstypes;
  */
 public interface SJBeginType extends SJSessionType
 {
-	/*public SJBeginType nodeSubsume(); // Not very useful.	
-	public SJBeginType nodeClone();*/
 }

@@ -1,11 +1,13 @@
 package sessionj.ast.typenodes;
 
 import sessionj.util.SJLabel;
+import polyglot.frontend.Job;
+import polyglot.visit.ContextVisitor;
+import polyglot.types.SemanticException;
 
 public interface SJBranchCaseNode extends SJTypeNode
 {
-	public SJLabel label();
+	SJLabel label();
 
-	public SJTypeNode body();
-	public SJBranchCaseNode body(SJTypeNode body);
+	SJTypeNode body();
 }

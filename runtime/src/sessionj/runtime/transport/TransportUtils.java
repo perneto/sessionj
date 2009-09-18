@@ -10,6 +10,7 @@ import sessionj.runtime.transport.tcp.SJStreamTCP;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Collection;
 
 public class TransportUtils
 {
@@ -23,8 +24,8 @@ public class TransportUtils
 		}
 		else
 		{
-			List ss = new LinkedList();
-			List ts = new LinkedList();				
+			List<SJTransport> ss = new LinkedList<SJTransport>();
+			List<SJTransport> ts = new LinkedList<SJTransport>();
 
 			parseTransportFlags(ss, setups);
 			parseTransportFlags(ts, transports);
@@ -45,8 +46,8 @@ public class TransportUtils
 		}
 		else
 		{
-			List ss = new LinkedList();
-			List ts = new LinkedList();				
+			List<SJTransport> ss = new LinkedList<SJTransport>();
+			List<SJTransport> ts = new LinkedList<SJTransport>();
 
 			parseTransportFlags(ss, setups);
 			parseTransportFlags(ts, transports);
@@ -57,7 +58,7 @@ public class TransportUtils
 		return params;
 	}
 	
-	public static void parseTransportFlags(List ts, String transports)
+	public static void parseTransportFlags(Collection<SJTransport> ts, String transports)
 	{
 		if (transports.contains("d"))
 		{
@@ -101,7 +102,7 @@ public class TransportUtils
 		
 		if (!setups.contains("d"))
 		{
-			List ss = new LinkedList();
+			List<SJTransport> ss = new LinkedList<SJTransport>();
 			
 			parseTransportFlags(ss, setups);		
 			
@@ -110,7 +111,7 @@ public class TransportUtils
 		
 		if (!transports.contains("d"))
 		{
-			List ts = new LinkedList();
+			List<SJTransport> ts = new LinkedList<SJTransport>();
 			
 			parseTransportFlags(ts, transports);	
 			

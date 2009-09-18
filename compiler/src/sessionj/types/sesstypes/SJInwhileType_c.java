@@ -37,8 +37,13 @@ public class SJInwhileType_c extends SJLoopType_c implements SJInwhileType
 	{
 		return typeSystem().SJInwhileType();
 	}
-	
-	protected boolean eligibleForSubsume(SJSessionType st)
+
+    @Override
+    protected SJLoopType dualSkeleton() {
+        return typeSystem().SJOutwhileType();
+    }
+
+    protected boolean eligibleForSubsume(SJSessionType st)
 	{
 		return st instanceof SJInwhileType;
 	}

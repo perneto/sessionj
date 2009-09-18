@@ -1,10 +1,10 @@
 package sessionj.types.sesstypes;
 
-import polyglot.types.*;
-import sessionj.types.sesstypes.SJSessionType_c.NodeComparison;
-
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
 import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import static sessionj.util.SJCompilerUtils.subsumeSendTypes;
 
 public class SJSendType_c extends SJMessageCommunicationType_c implements SJSendType
 {
@@ -24,7 +24,7 @@ public class SJSendType_c extends SJMessageCommunicationType_c implements SJSend
 	{
 		return st instanceof SJSendType;
 	}
-	
+
 	protected boolean eligibleForSubtype(SJSessionType st)
 	{
 		return st instanceof SJSendType;
@@ -70,5 +70,9 @@ public class SJSendType_c extends SJMessageCommunicationType_c implements SJSend
 	protected String messageCommunicationClose()
 	{
 		return SJ_STRING_SEND_CLOSE;
-	}	
+	}
+
+    public SJSessionType nodeDual() throws SemanticException {
+        return typeSystem().SJReceiveType(messageType());
+    }
 }

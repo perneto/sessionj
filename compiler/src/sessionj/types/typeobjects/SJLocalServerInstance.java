@@ -3,8 +3,6 @@
  */
 package sessionj.types.typeobjects;
 
-import polyglot.types.*;
-
 /**
  * @author Raymond
  * 

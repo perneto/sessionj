@@ -5,6 +5,8 @@ import polyglot.util.Position;
 import sessionj.util.SJLabel;
 
 import static sessionj.SJConstants.*;
+import sessionj.types.sesstypes.SJSessionType;
+import sessionj.types.SJTypeSystem;
 
 public class SJRecursionNode_c extends SJLoopNode_c implements SJRecursionNode
 {
@@ -24,7 +26,7 @@ public class SJRecursionNode_c extends SJLoopNode_c implements SJRecursionNode
 
 	public String nodeToString()
 	{
-		String m = SJ_STRING_REC + " " + label() + SJ_STRING_RECURSION_OPEN;
+		String m = SJ_STRING_REC + ' ' + label() + SJ_STRING_RECURSION_OPEN;
 		
 		if (body() != null)
 		{
@@ -32,5 +34,10 @@ public class SJRecursionNode_c extends SJLoopNode_c implements SJRecursionNode
 		}
 		
 		return m + SJ_STRING_RECURSION_CLOSE;
-	}	
+	}
+
+    @Override
+    protected SJSessionType createType(SJSessionType bodyType, SJTypeSystem ts) {
+        return ts.SJRecursionType(label()).body(bodyType);
+    }
 }

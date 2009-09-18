@@ -8,7 +8,6 @@ import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.visit.*;
 import sessionj.SJConstants;
-import sessionj.ast.SJNodeFactory;
 import sessionj.ast.SJSpawn;
 import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.typenodes.*;
@@ -23,7 +22,6 @@ import sessionj.extension.sesstypes.SJTypeableExt;
 import sessionj.types.SJTypeSystem;
 import sessionj.types.sesstypes.*;
 import sessionj.types.typeobjects.*;
-import sessionj.visit.SJProtocolDeclTypeBuilder;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -100,7 +98,7 @@ public class SJCompilerUtils
 	{
 		/*if (s.ext(1) == null) // Not possible for SJSpawn. 
 		{
-			return so.ext(1, sjef.SJSessionOperationExt(st, sjnames)); // Factor out constant.
+			return so.ext(1, sjef.SJSessionOperationExt(st, targetNames)); // Factor out constant.
 		}
 		else*/ 
 		{
@@ -286,299 +284,26 @@ public class SJCompilerUtils
 	
 	public static SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeNode tn) throws SemanticException
 	{
-		SJTypeSystem sjts = (SJTypeSystem) cv.typeSystem();		
-		SJSessionType st = null;
-		
-		if (tn instanceof SJBeginNode)
-		{
-			if (tn instanceof SJCBeginNode)
-			{
-				st = sjts.SJCBeginType();
-			}
-			else //if (tn instanceof SJSBeginNode)
-			{
-				st = sjts.SJSBeginType();
-			}				
-		}
-		else if (tn instanceof SJMessageCommunicationNode)
-		{
-			SJMessageCommunicationNode mcn = (SJMessageCommunicationNode) tn;
-			TypeNode mtn = mcn.messageType();
-			Type mt;
+        SJTypeSystem sjts = (SJTypeSystem) cv.typeSystem();
 
-			if (mtn instanceof SJTypeNode)
-			{
-				mtn = disambiguateSJTypeNode(job, cv, (SJTypeNode) mtn);
-			}
-			else
-			{
-				mtn = (TypeNode) buildAndCheckTypes(job, cv, mtn);
-			}
+        tn = tn.disambiguateSJTypeNode(job, cv, sjts);
 
-			mcn = mcn.messageType(mtn);		
-			mt = mtn.type();
-			
-			if (mcn instanceof SJSendNode)
-			{			
-				st = sjts.SJSendType(mt);				
-			}
-			
-			else //if (mcn instanceof SJReceiveNode)
-			{
-				st = sjts.SJReceiveType(mt);
-			}
-			
-			tn = mcn;
-		}
-		else if (tn instanceof SJBranchNode)
-		{	
-			SJBranchType bt;
-			
-			if (tn instanceof SJOutbranchNode)
-			{
-				bt = sjts.SJOutbranchType();
-			}
-			else //if (tn instanceof SJInbranchNode)
-			{
-				bt = sjts.SJInbranchType();
-			}
-			
-			List<SJBranchCaseNode> branchCases = new LinkedList<SJBranchCaseNode>();			
-			
-			for (SJBranchCaseNode bcn : ((SJBranchNode) tn).branchCases())
-			{
-				bcn = (SJBranchCaseNode) disambiguateSJTypeNode(job, cv, bcn);							
+        SJTypeNode child = tn.child();
 
-				branchCases.add(bcn);
-				
-				bt = bt.branchCase(bcn.label(), bcn.type());				
-			}
-			
-			tn = ((SJBranchNode) tn).branchCases(branchCases);
-			
-			st = bt;
-		}
-		else if (tn instanceof SJBranchCaseNode)
-		{
-			SJTypeNode body = ((SJBranchCaseNode) tn).body();
-			
-			if (body != null)
-			{
-				st = disambiguateSJTypeNode(job, cv, body).type(); // st is null by default.
-			}
-		}
-		else if (tn instanceof SJLoopNode)
-		{
-			SJTypeNode body = ((SJLoopNode) tn).body();
-			
-			SJSessionType bt = null;
-									
-			if (body != null)
-			{
-				bt = disambiguateSJTypeNode(job, cv, body).type();
-			}
-			
-			if (tn instanceof SJOutwhileNode)
-			{
-				st = sjts.SJOutwhileType().body(bt);
-			}
-			else if (tn instanceof SJInwhileNode)
-			{
-				st = sjts.SJInwhileType().body(bt);
-			}
-			else //if (tn instanceof SJRecursionNode)
-			{
-				st = sjts.SJRecursionType(((SJRecursionNode) tn).label()).body(bt);
-			}
-		}
-		else if (tn instanceof SJRecurseNode)
-		{
-			st = sjts.SJRecurseType(((SJRecurseNode) tn).label());
-		}
-		else if (tn instanceof SJProtocolNode)
-		{
-			SJProtocolNode pn = (SJProtocolNode) tn;			
-						
-			SJTypeSystem ts = (SJTypeSystem) cv.typeSystem();
-			SJNodeFactory nf = (SJNodeFactory) cv.nodeFactory();
-			AmbiguityRemover ar = (AmbiguityRemover) new AmbiguityRemover(job, ts, nf, true, true).context(cv.context());
-			
-			//Receiver target = (Receiver) disambiguateNode(ar, pn.target());
-			Receiver target = (Receiver) buildAndCheckTypes(job, cv, pn.target());
-			
-			if (target instanceof Field)
-			{
-				Field f = (Field) target;
-				
-				SJFieldInstance fi = (SJFieldInstance) sjts.findField((ReferenceType) f.target().type(), f.name(), cv.context().currentClass());
-				
-				if (fi != null)
-				{
-					if (!(fi instanceof SJFieldProtocolInstance)) // Similar mutually recursive lookahead routine to that of SJNoAliasTypeBuilder/SJNoAliasProcedureChecker. Also similar in that we build ahead, but cannot store the result, so have to do again later. 
-					{
-						// FIXME: this assumes the target class must have been visited (compiled up to this stage) before the current class. But this can break for mutually dependent classes.
-						
-						//SJProtocolDeclTypeBuilder pdtb = (SJProtocolDeclTypeBuilder) new SJProtocolDeclTypeBuilder(job, ts, nf).begin(); // Doesn't seem to be enough. 
-						SJProtocolDeclTypeBuilder pdtb = (SJProtocolDeclTypeBuilder) new SJProtocolDeclTypeBuilder(job, ts, nf).context(cv.context()); // Seems to work, but does it make sense?
-	
-						SJParsedClassType pct = (SJParsedClassType) ts.typeForName(((Field) target).target().toString());
-						ClassDecl cd = findClassDecl((SourceFile) job.ast(), pct.name()); // Need to qualify type name?
-						
-						if (cd == null)
-						{
-							throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Compiling " + ((SourceFile) job.ast()).source().name() + ", class declaration not found: " + pct.name());
-						}					
-						
-						cd = (ClassDecl) cd.visit(pdtb); // FIXME: will cycle for mutually recursive fields.
-												
-						fi = (SJFieldProtocolInstance) sjts.findField((SJParsedClassType) cd.type(), f.name(), pdtb.context().currentClass());
-					}
-					
-					st = ((SJFieldProtocolInstance) fi).sessionType();
-				}
-				else // If trying to access a protocol field, target class must have been compiled using sessionjc. // FIXME: or 
-				{
-					throw new RuntimeException("[SJCompilerUtils.disambiguateSJTypeNode] Shouldn't get in here.");
-				}
-			}
-			else if (target instanceof Local)
-			{
-				String protocol = ((NamedVariable) target).name();
-				
-				st = ((SJTypeableInstance) cv.context().findLocal(protocol)).sessionType(); // No clone, immutable.
-			}
-			else //if (target instanceof ArrayAccess)
-			{
-				// FIXME: if the target class is only mention in the protocol reference, but not actually used otherwise, the above target disambiguation routine will fail. Similar for any message classes (e.g. Address) referred to in protocols, but not otherwise used. 
-				
-				throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Protocol reference not yet supported for: " + target);
-			}
-						
-			if (tn instanceof SJProtocolDualNode)
-			{
-				/*if (st instanceof SJSBeginType) // Only necessary to check this for session casts (done in SJSessionOperationTypeBuilder) and method parameters (done in SJMethodTypebuilder).
-				{
-					throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Protocol reference to channel types not yet supported: " + target);
-				}*/
-				
-				st = dualSessionType(st);
-			}
-			/*else
-			{
-				if (st instanceof SJCBeginType) // It's too late to check this here - base type checking will have failed (for otherwise correct programs) since the protocol reference parameter would be converted to type SJSocket.
-				{
-					throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Protocol reference to channel types not yet supported: " + target);
-				}
-			}*/
-			
-			tn = pn.target(target);
-		}
-		else
-		{
-			throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Unsupported session type node: " + tn);
-		}
-		
-		tn = (SJTypeNode) tn.type(st);
-		
-		SJTypeNode child = tn.child();
-		
-		if (child != null)
-		{
-			tn = tn.child(disambiguateSJTypeNode(job, cv, child));
-		}
-		
-		return tn;
+        if (child != null) {
+            tn = tn.child(disambiguateSJTypeNode(job, cv, child));
+        }
+
+        return tn;
 	}
-	
-	private static SJSessionType dualSessionType(SJSessionType st) throws SemanticException
+
+    public static SJSessionType dualSessionType(SJSessionType st) throws SemanticException
 	{
-        // TODO Should be in SJSessionType
-		SJTypeSystem sjts = null;
-		
-		if (st != null) // Only needed for badly-typed programs (i.e. something went wrong)?
-		{
-			sjts = st.typeSystem();
-		}
-		
 		SJSessionType dual = null; 
 		
 		for ( ; st != null; st = st.child())
 		{
-			SJSessionType next = null;
-			
-			if (st instanceof SJBeginType)
-			{
-				if (st instanceof SJCBeginType)
-				{
-					next = sjts.SJSBeginType();
-				}
-				else //if (st instanceof SJSBeginType)
-				{
-					next = sjts.SJCBeginType();
-				}
-			}
-			else if (st instanceof SJMessageCommunicationType)
-			{
-				Type mt = ((SJMessageCommunicationType) st).messageType();
-				
-				if (st instanceof SJSendType)
-				{
-					next = sjts.SJReceiveType(mt); // For higher-order types, don't dual the message type. 
-				}
-				else //if (st instanceof SJReceiveType)
-				{
-					next = sjts.SJSendType(mt);
-				}
-			}
-			else if (st instanceof SJBranchType)
-			{
-				SJBranchType bt = (SJBranchType) st; 			
-					
-				if (st instanceof SJOutbranchType)
-				{
-					next = sjts.SJInbranchType();
-				}
-				else //if (st instanceof SJInbranchType)
-				{
-					next = sjts.SJOutbranchType();
-				}
-				
-				for (SJLabel lab : bt.labelSet())
-				{					
-					next = ((SJBranchType) next).branchCase(lab, dualSessionType(bt.branchCase(lab)));
-				}
-			}
-			else if (st instanceof SJLoopType)
-			{
-				SJLoopType lt = (SJLoopType) st; 			
-				
-				//if (st instanceof SJWhileType)
-				//{
-                if (st instanceof SJOutwhileType)
-                {
-                    next = sjts.SJInwhileType();
-                }
-                else if (st instanceof SJInwhileType)
-                {
-                    next = sjts.SJOutwhileType();
-                }
-				//}
-				else //if (st instanceof SJRecursionType)
-				{
-					next = sjts.SJRecursionType(((SJRecursionType) st).label());
-				}
-								
-				next = ((SJLoopType) next).body(dualSessionType(lt.body()));				
-			}
-			else if (st instanceof SJRecurseType)
-			{
-				next = sjts.SJRecurseType(((SJRecurseType) st).label()); 
-			}
-			else
-			{
-				throw new SemanticException("[SJCompilerUtils.dualSessionType] Unsupported session type: " + st);
-			}	
-			
+            SJSessionType next = st.nodeDual();
 			dual = dual == null ? next : dual.append(next);
 		}
 		

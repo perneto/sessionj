@@ -1,8 +1,11 @@
 package sessionj.ast.typenodes;
 
 import polyglot.util.Position;
+import polyglot.frontend.Job;
+import polyglot.visit.ContextVisitor;
 
 import static sessionj.SJConstants.*;
+import sessionj.types.SJTypeSystem;
 
 public class SJCBeginNode_c extends SJBeginNode_c implements SJCBeginNode
 {
@@ -16,4 +19,8 @@ public class SJCBeginNode_c extends SJBeginNode_c implements SJCBeginNode
 	{
 		return SJ_STRING_CBEGIN;
 	}
+
+    public SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem ts) {
+        return type(ts.SJCBeginType());
+    }
 }

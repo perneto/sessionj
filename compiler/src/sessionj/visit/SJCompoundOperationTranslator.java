@@ -174,7 +174,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		List<Object> mapping = new LinkedList<Object>();
 		
 		translation += "%s = %E";
-		mapping.add(getRecursionBooleanName(getSJSessionOperationExt(r).sjnames(), r.label()));		
+		mapping.add(getRecursionBooleanName(getSJSessionOperationExt(r).targetNames(), r.label()));
 		mapping.add(r);
 
         //a = (Assign) buildAndCheckTypes(job(), this, a); 
@@ -236,7 +236,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 
         Collection<Object> mapping = new LinkedList<Object>();
 		
-		String bname = getRecursionBooleanName(soe.sjnames(), r.label());
+		String bname = getRecursionBooleanName(soe.targetNames(), r.label());
 
         mapping.add(bname);
 		mapping.add(bname);
@@ -265,7 +265,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 	
 		List<Local> targets = new LinkedList<Local>(); // FIXME: should be SJLocalSockets.
 		
-		for (String sjname : soe.sjnames()) // Unicast optimisation for SJRecursionExit is done within the NodeFactory method - this pass comes after SJUnicastOptimiser.
+		for (String sjname : soe.targetNames()) // Unicast optimisation for SJRecursionExit is done within the NodeFactory method - this pass comes after SJUnicastOptimiser.
 		{
 			targets.add(sjnf.Local(pos, sjnf.Id(pos, sjname))); // Would it be bad to instead alias the recursionEnter targets? 
 		}				

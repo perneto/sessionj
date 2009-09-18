@@ -806,8 +806,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 			
 			if (!ours.isDualtype(theirs))
 			{
-				//ser.close(); // The session socket variable will still be null because of this exception, so close won't be called in the finally block - manually close here to flush (call the close protocol instead?)
-				//SJRuntime.getTransportManager().closeConnection(ser.getConnection()); // FIXME: this isn't nice. Also need to unbind session socket...
+				//ser.close(); // The session socket variable will still be null because of this
+                // exception, so close won't be called in the finally block - manually close here to
+                // flush (call the close protocol instead?)
+				//SJRuntime.getTransportManager().closeConnection(ser.getConnection());
+                // FIXME: this isn't nice. Also need to unbind session socket...
 				
 				s.close();
 				

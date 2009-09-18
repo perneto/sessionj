@@ -1,6 +1,8 @@
 package sessionj.ast.sesscasts;
 
-public interface SJSessionCast extends SJSessionTypeCast
+import sessionj.ast.SessionSocketCreator;
+
+public interface SJSessionCast extends SJSessionTypeCast, SessionSocketCreator
 {
 
 }

@@ -93,11 +93,11 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
         return new SJNoAliasCanonicalTypeNode_c(pos, ctn);
 	}
 	
-	public SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, List<SJTypeNode> tn)
+	public SJFieldProtocolDecl SJFieldProtocolDecl(Position pos, Flags flags, Id name, SJTypeNode tn)
 	{
 		assert pos != null;
 		SJFieldProtocolDecl n = new SJFieldProtocolDecl_c
-            (pos, flags.Final(), CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn.get(0));
+            (pos, flags.Final(), CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn);
         // Null initialization overwritten by protocol declaration translation pass (dummy init.
         // needed to satisfy base type checking).		
 
@@ -107,10 +107,10 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return n;
 	}
 
-    public SJLocalProtocolDecl SJLocalProtocolDecl(Position pos, Id name, List<SJTypeNode> tn)
+    public SJLocalProtocolDecl SJLocalProtocolDecl(Position pos, Id name, SJTypeNode tn)
 	{
 		SJLocalProtocolDecl n = new SJLocalProtocolDecl_c
-            (pos, Flags.FINAL, CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn.get(0));
+            (pos, Flags.FINAL, CanonicalTypeNode(pos, SJ_PROTOCOL_TYPE), name, NullLit(pos), tn);
 		
 		n = (SJLocalProtocolDecl) n.type(convertToNoAliasTypeNode(n.type(), true));
 

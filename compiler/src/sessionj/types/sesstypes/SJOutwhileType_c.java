@@ -51,5 +51,9 @@ public class SJOutwhileType_c extends SJLoopType_c implements SJOutwhileType
 	protected String loopConstructorClose()
 	{
 		return SJ_STRING_OUTWHILE_CLOSE;
-	}		
+	}
+
+    protected SJLoopType dualSkeleton() {
+        return typeSystem().SJInwhileType();
+    }
 }

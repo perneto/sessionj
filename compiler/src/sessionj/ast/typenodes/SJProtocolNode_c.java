@@ -1,9 +1,17 @@
 package sessionj.ast.typenodes;
 
-import polyglot.ast.Receiver;
+import polyglot.ast.*;
+import polyglot.frontend.Job;
+import polyglot.types.ReferenceType;
+import polyglot.types.SemanticException;
 import polyglot.util.Position;
-
-import static sessionj.SJConstants.*;
+import polyglot.visit.ContextVisitor;
+import sessionj.ast.SJNodeFactory;
+import sessionj.types.SJTypeSystem;
+import sessionj.types.sesstypes.SJSessionType;
+import sessionj.types.typeobjects.*;
+import sessionj.util.SJCompilerUtils;
+import sessionj.visit.SJProtocolDeclTypeBuilder;
 
 abstract public class SJProtocolNode_c extends SJTypeNode_c implements SJProtocolNode
 {
@@ -27,4 +35,81 @@ abstract public class SJProtocolNode_c extends SJTypeNode_c implements SJProtoco
 
 		return this;
 	}
+
+    public SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem sjts) throws SemanticException {
+
+			SJTypeSystem ts = (SJTypeSystem) cv.typeSystem();
+			SJNodeFactory nf = (SJNodeFactory) cv.nodeFactory();
+
+            Receiver target = (Receiver) SJCompilerUtils.buildAndCheckTypes(job, cv, target());
+
+            SJSessionType st;
+
+            if (target instanceof Field)
+			{
+				Field f = (Field) target;
+
+				SJFieldInstance fi = (SJFieldInstance) sjts.findField((ReferenceType) f.target().type(), f.name(), cv.context().currentClass());
+
+				if (fi != null)
+				{
+					if (!(fi instanceof SJFieldProtocolInstance)) // Similar mutually recursive lookahead routine to that of SJNoAliasTypeBuilder/SJNoAliasProcedureChecker. Also similar in that we build ahead, but cannot store the result, so have to do again later.
+					{
+						// FIXME: this assumes the target class must have been visited (compiled up to this stage) before the current class. But this can break for mutually dependent classes.
+
+						//SJProtocolDeclTypeBuilder pdtb = (SJProtocolDeclTypeBuilder) new SJProtocolDeclTypeBuilder(job, ts, nf).begin(); // Doesn't seem to be enough.
+						SJProtocolDeclTypeBuilder pdtb = (SJProtocolDeclTypeBuilder) new SJProtocolDeclTypeBuilder(job, ts, nf).context(cv.context()); // Seems to work, but does it make sense?
+
+						SJParsedClassType pct = (SJParsedClassType) ts.typeForName(((Field) target).target().toString());
+						ClassDecl cd = SJCompilerUtils.findClassDecl((SourceFile) job.ast(), pct.name()); // Need to qualify type name?
+
+						if (cd == null)
+						{
+							throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Compiling " + ((SourceFile) job.ast()).source().name() + ", class declaration not found: " + pct.name());
+						}
+
+						cd = (ClassDecl) cd.visit(pdtb); // FIXME: will cycle for mutually recursive fields.
+
+						fi = (SJFieldProtocolInstance) sjts.findField((SJParsedClassType) cd.type(), f.name(), pdtb.context().currentClass());
+					}
+
+					st = ((SJFieldProtocolInstance) fi).sessionType();
+				}
+				else // If trying to access a protocol field, target class must have been compiled using sessionjc. // FIXME: or
+				{
+					throw new RuntimeException("[SJCompilerUtils.disambiguateSJTypeNode] Shouldn't get in here.");
+				}
+			}
+			else if (target instanceof Local)
+			{
+				String protocol = ((NamedVariable) target).name();
+
+				st = ((SJTypeableInstance) cv.context().findLocal(protocol)).sessionType(); // No clone, immutable.
+			}
+			else //if (target instanceof ArrayAccess)
+			{
+				// FIXME: if the target class is only mention in the protocol reference, but not actually used otherwise, the above target disambiguation routine will fail. Similar for any message classes (e.g. Address) referred to in protocols, but not otherwise used.
+
+				throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Protocol reference not yet supported for: " + target);
+			}
+
+			if (this instanceof SJProtocolDualNode)
+			{
+				/*if (st instanceof SJSBeginType) // Only necessary to check this for session casts (done in SJSessionOperationTypeBuilder) and method parameters (done in SJMethodTypebuilder).
+				{
+					throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Protocol reference to channel types not yet supported: " + target);
+				}*/
+
+				st = SJCompilerUtils.dualSessionType(st);
+			}
+			/*else
+			{
+				if (st instanceof SJCBeginType) // It's too late to check this here - base type checking will have failed (for otherwise correct programs) since the protocol reference parameter would be converted to type SJSocket.
+				{
+					throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Protocol reference to channel types not yet supported: " + target);
+				}
+			}*/
+
+			return (SJTypeNode) target(target).type(st);
+    }
 }

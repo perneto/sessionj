@@ -1,8 +1,10 @@
 package sessionj.ast.typenodes;
 
 import polyglot.ast.TypeNode_c;
+import polyglot.ast.TypeNode;
 import polyglot.util.*;
 import polyglot.visit.PrettyPrinter;
+import polyglot.types.Type;
 
 import sessionj.types.sesstypes.*;
 
@@ -29,18 +31,6 @@ public abstract class SJTypeNode_c extends TypeNode_c implements SJTypeNode
 		return this;
 	}
 	
-	/*public SJTypeNode leaf()
-	{
-		if (child() == null)
-		{
-			return this;
-		}
-		else
-		{
-			return child().leaf();
-		}
-	}*/
-	
 	public SJSessionType type()
 	{
 		SJSessionType st = (SJSessionType) super.type();
@@ -57,23 +47,20 @@ public abstract class SJTypeNode_c extends TypeNode_c implements SJTypeNode
 			SJSessionType childType = child.type().copy();
 
 			//if (this instanceof SJProtocolNode) // Because protocol nodes represent full SJSessionTypes, not just a single node.
-			{
-				st = st.append(childType);
-			}
-			/*else // This has become an optimisation.
-			{
-				st = st.child(childType);
-			}*/
+            st = st.append(childType);
+            /*else // This has become an optimisation.
+               {
+                   st = st.child(childType);
+               }*/
 		}
 
 		return st;
 	}
 
-	public SJTypeNode type(SJSessionType st)
+    public SJTypeNode type(Type st)
 	{
-		super.type((st == null) ? null : st.copy());
-
-		return this;
+		return (SJTypeNode) super.type
+            (st == null ? null : (Type) st.copy());
 	}
 
 	public String toString()
@@ -83,12 +70,12 @@ public abstract class SJTypeNode_c extends TypeNode_c implements SJTypeNode
 
 	public String treeToString()
 	{
-		return nodeToString() + ((child() == null) ? "" : SJ_STRING_SEPARATOR + child().treeToString());
+		return nodeToString() + (child() == null ? "" : SJ_STRING_SEPARATOR + child().treeToString());
 	}
 
 	// Cannot call type().toString as (session) types may not have been built yet.
 	public void prettyPrint(CodeWriter w, PrettyPrinter tr)
 	{
 		w.write(toString());
-  }
+    }
 }

@@ -1,11 +1,14 @@
 package sessionj.ast.typenodes;
 
+import polyglot.frontend.Job;
+import polyglot.types.SemanticException;
 import polyglot.util.Position;
-
-import sessionj.types.sesstypes.SJSessionType;
+import polyglot.visit.ContextVisitor;
+import static sessionj.SJConstants.SJ_STRING_LABEL;
 import sessionj.util.SJLabel;
-
-import static sessionj.SJConstants.*;
+import sessionj.util.SJCompilerUtils;
+import sessionj.types.sesstypes.SJSessionType;
+import sessionj.types.SJTypeSystem;
 
 public class SJBranchCaseNode_c extends SJTypeNode_c implements SJBranchCaseNode
 {
@@ -30,27 +33,16 @@ public class SJBranchCaseNode_c extends SJTypeNode_c implements SJBranchCaseNode
 		return body;
 	}
 
-	public SJBranchCaseNode body(SJTypeNode body)
-	{
-		this.body = body;
+	public SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem ts) throws SemanticException {
+        SJSessionType st = null;
+        if (body != null) {
+            st = SJCompilerUtils.disambiguateSJTypeNode(job, cv, body).type();
+        }
+        return type(st);
+    }
 
-		return this;
-	}
-
-	/*public SJSessionType type() // SJBranchCaseNode is the only SJTypeNode that can null type, and does not have children.
+    public String nodeToString()
 	{
-		SJSessionType st = (SJSessionType) super.type(); // This routine doesn't work because we can't access the super.super method.
-		
-		if (st != null)
-		{
-			st = st.copy();  		
-		}
-
-		return st;
-	}*/
-	
-	public String nodeToString()
-	{
-		return label() + SJ_STRING_LABEL + " " + body();
+		return label() + SJ_STRING_LABEL + ' ' + body();
 	}
 }
