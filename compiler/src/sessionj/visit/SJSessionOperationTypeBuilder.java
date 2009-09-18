@@ -71,7 +71,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 	{		
 		/*if (n instanceof SJSessionTry)
 		{
-			// Could give something like SJSessionOperationExt (i.e. list of sjnames and maybe SJUnknownTypes to session-try).
+			// Could give something like SJSessionOperationExt (i.e. list of targetNames and maybe SJUnknownTypes to session-try).
 		}
 		else */if (n instanceof SJSessionOperation)
 		{
@@ -243,7 +243,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		if (e instanceof SJReceive)
 		{
 			SJReceive r = (SJReceive) e;
-			List<String> sjnames = getSJSessionOperationExt(r).sjnames();			
+			List<String> sjnames = getSJSessionOperationExt(r).targetNames();
 			Type t = null;
 			
 			if (c instanceof SJSessionTypeCast)
@@ -308,11 +308,11 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		{
 			sjnames = getTargetNames(w.targets(), false);
 				 
-			st = sjts.SJOutwhileType().body(st);
+			st = sjts.SJOutwhileType(st);
 		}
 		else //if (w instanceof SJInwhile)
 		{
-			st = sjts.SJInwhileType().body(st);
+			st = sjts.SJInwhileType(st);
 		}				
 		
 		w = (SJWhile) setSJSessionOperationExt(sjef, w, st, sjnames);
@@ -332,10 +332,10 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 	
 	private SJSpawn buildSJSpawn(SJSpawn s) throws SemanticException
 	{
-		List sjnames = getTargetNames(s.targets(), true);
+		List<String> sjnames = getTargetNames(s.targets(), true);
 		List<SJSessionType> sts = new LinkedList<SJSessionType>();
 		
-		for (String sjname : (List<String>) sjnames)
+		for (String sjname : sjnames)
 		{
 			sts.add(sjts.SJSendType(sjts.SJUnknownType()));
 		}

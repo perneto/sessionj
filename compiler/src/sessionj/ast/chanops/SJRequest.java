@@ -1,6 +1,8 @@
 package sessionj.ast.chanops;
 
-public interface SJRequest extends SJChannelOperation
+import sessionj.ast.SessionSocketCreator;
+
+public interface SJRequest extends SJChannelOperation, SessionSocketCreator
 {
 
 }

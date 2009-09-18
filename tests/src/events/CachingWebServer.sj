@@ -5,7 +5,7 @@ public class CachingWebServer {
     // change: protocol implies final noalias
     public protocol pServerToClient { ?<Get>.!{OK200: !<String>, ERROR500: !<String>} }
     private protocol pServerToCache { ![!<Get>.?<String>]* } // doesn't include sbegin/cbegin
-    private protocol pCacheToServer ^pServerToCache // { } removed
+    private protocol pCacheToServer { ^pServerToCache }
     private protocol pSelect { pServerToClient, pServerToCache } // { } means set, possibly singleton
 
 	private void runServer(int port) throws SJIOException, SJIncompatibleSessionException {

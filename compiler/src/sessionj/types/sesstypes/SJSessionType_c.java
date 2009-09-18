@@ -1,24 +1,17 @@
 package sessionj.types.sesstypes;
 
 import polyglot.types.*;
-
-import sessionj.types.*;
-import sessionj.types.typeobjects.*;
-
-import static sessionj.SJConstants.*;
+import static sessionj.SJConstants.SJ_STRING_SEPARATOR;
+import static sessionj.SJConstants.SJ_VERSION;
+import sessionj.types.typeobjects.SJType_c;
 
 abstract public class SJSessionType_c extends SJType_c implements SJSessionType // Doesn't inherit any code from SJTypeObject_c (no new code there anyway*).
 {
-	protected static enum NodeComparison { EQUALS, SUBTYPE, DUALTYPE } // Move to SJConstants?
+    protected enum NodeComparison { EQUALS, SUBTYPE, DUALTYPE } // Move to SJConstants?
 	
-	public static final long serialVersionUID = SJ_VERSION;
+	private static final long serialVersionUID = SJ_VERSION;
 
 	private SJSessionType child;   
-
-	protected SJSessionType_c()
-	{
-		super();
-	}
 
 	public SJSessionType_c(TypeSystem ts)
 	{
@@ -29,7 +22,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	{
 		SJSessionType st = getChild(); 
 		
-		return (st == null) ? null : st.copy();
+		return st == null ? null : st.copy();
 	}
 
 	public SJSessionType child(SJSessionType child) // Immutable.
@@ -60,12 +53,12 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	
 	public boolean isSubtypeImpl(Type t) // No need to override if descendsFrom was implemented properly (default implementation uses typeEquals and descendsFrom). 
 	{
-		return (t instanceof SJSessionType) ? treeSubtype((SJSessionType) t) : false; // Equality is already built into node/treeSubtype.
+		return t instanceof SJSessionType && treeSubtype((SJSessionType) t); // Equality is already built into node/treeSubtype.
 	}
 	
 	public boolean typeEqualsImpl(Type t) // Unlike regular Polyglot types, pointer equality is not maintained for equal session types.
 	{
-		return (t instanceof SJSessionType) ? treeEquals((SJSessionType) t) : false;
+		return t instanceof SJSessionType && treeEquals((SJSessionType) t);
 	}
 
 	public boolean descendsFromImpl(Type t) 
@@ -75,19 +68,12 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 
 	public boolean isDualtype(Type t)
 	{
-		return (t instanceof SJSessionType) ? treeDualtype((SJSessionType) t) : false;
+		return t instanceof SJSessionType && treeDualtype((SJSessionType) t);
 	}
 	
 	public SJSessionType subsume(SJSessionType st) throws SemanticException
 	{
-		if (this instanceof SJDelegatedType)
-		{
-			if (!(st instanceof SJDelegatedType))
-			{
-				return typeSystem().SJDelegatedType(((SJDelegatedType) this).getDelegatedType().subsume(st));
-			}
-		}
-		else if (st instanceof SJDelegatedType)
+		if (st instanceof SJDelegatedType)
 		{
 			return typeSystem().SJDelegatedType(subsume(((SJDelegatedType) st).getDelegatedType()));
 		}
@@ -95,16 +81,10 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 		return treeSubsume(st);
 	}
 	
-	public boolean wellFormed()
+	public boolean isWellFormed()
 	{
-		if (!(this instanceof SJBeginType && typeSystem().wellFormedRecursions(this)))
-		{
-			return false;
-		}
-
-		SJSessionType st = getChild();
-		
-		return (st == null) ? true : st.treeWellFormed();
+        // Not well-formed by default: only types starting with either cbegin or sbegin can be well-formed.
+        return false;
 	}
 	
 	public boolean treeEquals(SJSessionType tree)
@@ -112,7 +92,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 		SJSessionType ours = getChild();
 		SJSessionType theirs = getChild();
 		
-		return nodeEquals(tree) && ((ours == null) ? (theirs == null) : ours.typeEquals(theirs));
+		return nodeEquals(tree) && (ours == null ? theirs == null : ours.typeEquals(theirs));
 	}
 
 	public boolean treeSubtype(SJSessionType tree)
@@ -120,7 +100,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 		SJSessionType ours = getChild();
 		SJSessionType theirs = ((SJSessionType_c) tree).getChild();		
 		
-		return nodeSubtype(tree) && ((ours == null) ? (theirs == null) : ours.isSubtype(theirs));
+		return nodeSubtype(tree) && (ours == null ? theirs == null : ours.isSubtype(theirs));
 	}
 
 	public boolean treeDualtype(SJSessionType tree)
@@ -128,7 +108,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 		SJSessionType ours = getChild();
 		SJSessionType theirs = ((SJSessionType_c) tree).getChild();	
 		
-		return nodeDualtype(tree) && ((ours == null) ? (theirs == null) : ours.isDualtype(theirs));
+		return nodeDualtype(tree) && (ours == null ? theirs == null : ours.isDualtype(theirs));
 	}
 
 	public SJSessionType treeSubsume(SJSessionType tree) throws SemanticException
@@ -165,22 +145,22 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 
 		SJSessionType st = getChild();
 		
-		return (st == null) ? true : st.treeWellFormed();
+		return st == null || st.treeWellFormed();
 	}
 
 	public boolean nodeEquals(SJSessionType st)
 	{
-		return (eligibleForEquals(st) ? compareNode(NodeComparison.EQUALS, st) : false);
+		return eligibleForEquals(st) && compareNode(NodeComparison.EQUALS, st);
 	}
 	
 	public boolean nodeSubtype(SJSessionType st)
 	{
-		return (eligibleForSubtype(st) ? compareNode(NodeComparison.SUBTYPE, st) : false);
+		return eligibleForSubtype(st) && compareNode(NodeComparison.SUBTYPE, st);
 	}
 	
 	public boolean nodeDualtype(SJSessionType st)
 	{
-		return (eligibleForDualtype(st) ? compareNode(NodeComparison.DUALTYPE, st) : false);
+		return eligibleForDualtype(st) && compareNode(NodeComparison.DUALTYPE, st);
 	}
 	
 	abstract protected boolean eligibleForEquals(SJSessionType st);
@@ -193,7 +173,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	{
 		SJSessionType st = getChild();
 		
-		return (st == null) ? nodeClone() : nodeClone().child(st.treeClone());
+		return st == null ? nodeClone() : nodeClone().child(st.treeClone());
 	}
 	
 	public SJSessionType clone()
@@ -215,7 +195,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	{
 		SJSessionType st = getChild(); 
 		
-		return nodeToString() + ((st == null) ? "" : SJ_STRING_SEPARATOR + st.treeToString());
+		return nodeToString() + (st == null ? "" : SJ_STRING_SEPARATOR + st.treeToString());
 	}
 
 	public String translate(Resolver c) // FIXME: hacked. Should just call the super method and wrap the appropriate session type constructor symbols around it.
@@ -227,7 +207,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	{
 		if (to instanceof SJSessionType)
 		{
-			return typeEquals((SJSessionType) to);
+			return typeEquals((Type) to);
 		}
 		else
 		{
@@ -266,4 +246,13 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	{
 		return leaf();
 	}
+
+    public boolean startsWith(Class<? extends SJSessionType> aClass) {
+        return aClass.isInstance(this);
+    }
+
+    public SJSessionType nodeDual() throws SemanticException {
+        throw new SemanticException("[SJSessionType] This session type: "
+            + this + " does not admit a dual");
+    }
 }

@@ -1,14 +1,15 @@
 package sessionj.ast.typenodes;
 
 import polyglot.util.Position;
-
+import polyglot.visit.ContextVisitor;
+import polyglot.frontend.Job;
+import static sessionj.SJConstants.SJ_STRING_RECURSE_PREFIX;
+import sessionj.types.SJTypeSystem;
 import sessionj.util.SJLabel;
-
-import static sessionj.SJConstants.*;
 
 public class SJRecurseNode_c extends SJTypeNode_c implements SJRecurseNode
 {
-	private SJLabel lab;
+	private final SJLabel lab;
 
 	public SJRecurseNode_c(Position pos, SJLabel lab)
 	{
@@ -21,8 +22,12 @@ public class SJRecurseNode_c extends SJTypeNode_c implements SJRecurseNode
 	{
 		return lab;
 	}
-	
-	public String nodeToString()
+
+    public SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem sjts) {
+        return (SJTypeNode) type(sjts.SJRecurseType(label()));
+    }
+
+    public String nodeToString()
 	{
 		return SJ_STRING_RECURSE_PREFIX + label();
 	}	

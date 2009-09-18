@@ -7,12 +7,12 @@ import polyglot.util.Position;
 import sessionj.util.SJLabel;
 
 import static sessionj.SJConstants.*;
+import sessionj.types.sesstypes.SJBranchType;
+import sessionj.types.SJTypeSystem;
 
 public class SJInbranchNode_c extends SJBranchNode_c implements SJInbranchNode
 {
-	private List<SJBranchCaseNode> branchCases;
-
-	public SJInbranchNode_c(Position pos, List<SJBranchCaseNode> branchCases)
+    public SJInbranchNode_c(Position pos, List<SJBranchCaseNode> branchCases)
 	{
 		super(pos, branchCases);
 	}
@@ -21,8 +21,12 @@ public class SJInbranchNode_c extends SJBranchNode_c implements SJInbranchNode
 	{
 		return (SJInbranchNode) super.branchCases(branchCases); 
 	}
-	
-	public String nodeToString()
+
+    protected SJBranchType createType(SJTypeSystem sjts) {
+        return sjts.SJInbranchType();
+    }
+
+    public String nodeToString()
 	{
 		String s = SJ_STRING_INBRANCH_OPEN;
 
@@ -33,7 +37,7 @@ public class SJInbranchNode_c extends SJBranchNode_c implements SJInbranchNode
 			SJTypeNode body = branchCase.body();
 
 			s += lab + SJ_STRING_LABEL;
-			s += (body == null) ? " " : body.toString();
+			s += body == null ? " " : body.toString();
 
 			if (i.hasNext()) 
 			{

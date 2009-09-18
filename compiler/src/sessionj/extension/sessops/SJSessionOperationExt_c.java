@@ -17,7 +17,7 @@ public class SJSessionOperationExt_c extends SJTypeableExt_c implements SJSessio
 		this.sjnames = sjnames;
 	}
 
-	public List<String> sjnames()
+	public List<String> targetNames()
 	{
 		return sjnames;
 	}

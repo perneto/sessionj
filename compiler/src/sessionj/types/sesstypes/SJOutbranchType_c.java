@@ -96,7 +96,7 @@ public class SJOutbranchType_c extends SJBranchType_c implements SJOutbranchType
 			case DUALTYPE: return ourLabels;				
 		}
 		
-		throw new RuntimeException("[SJOutbranchType_c] Shouldn't get here: " + ourLabels + " " + op + " " + theirLabels);
+		throw new RuntimeException("[SJOutbranchType_c] Shouldn't get here: " + ourLabels + ' ' + op + ' ' + theirLabels);
 	}
 	
 	protected SJOutbranchType skeleton()
@@ -112,5 +112,9 @@ public class SJOutbranchType_c extends SJBranchType_c implements SJOutbranchType
 	protected String branchConstructorClose()
 	{
 		return SJ_STRING_OUTBRANCH_CLOSE;
-	}	
+	}
+
+    protected SJSessionType dualSkeleton() {
+        return typeSystem().SJInbranchType();
+    }
 }

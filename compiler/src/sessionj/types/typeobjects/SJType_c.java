@@ -13,11 +13,10 @@ import sessionj.types.SJTypeSystem;
 public abstract class SJType_c extends Type_c implements SJType
 {
 	protected SJType_c()
-	{
-		
+	{		
 	}
 	
-	public SJType_c(TypeSystem ts)
+	protected SJType_c(TypeSystem ts)
 	{
 		super(ts);
 	}	

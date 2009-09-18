@@ -1,6 +1,8 @@
 package sessionj.ast.servops;
 
-public interface SJAccept extends SJServerOperation
+import sessionj.ast.SessionSocketCreator;
+
+public interface SJAccept extends SJServerOperation, SessionSocketCreator
 {
 
 }

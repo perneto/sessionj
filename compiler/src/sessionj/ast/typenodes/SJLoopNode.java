@@ -1,7 +1,14 @@
 package sessionj.ast.typenodes;
 
+import polyglot.frontend.Job;
+import polyglot.visit.ContextVisitor;
+import polyglot.types.SemanticException;
+import sessionj.types.SJTypeSystem;
+
 public interface SJLoopNode extends SJTypeNode
 {
-	public SJTypeNode body();
-	public SJLoopNode body(SJTypeNode body);
+	SJTypeNode body();
+	SJLoopNode body(SJTypeNode body);
+
+    SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem sjts) throws SemanticException;
 }

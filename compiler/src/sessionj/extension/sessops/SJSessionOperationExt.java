@@ -6,5 +6,5 @@ import sessionj.extension.sesstypes.*;
 
 public interface SJSessionOperationExt extends SJTypeableExt
 {
-	public List<String> sjnames(); 
+	public List<String> targetNames();
 }

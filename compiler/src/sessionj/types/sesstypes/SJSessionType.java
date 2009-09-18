@@ -1,46 +1,52 @@
 package sessionj.types.sesstypes;
 
-import polyglot.types.*;
-
-import sessionj.types.*;
-import sessionj.types.typeobjects.*;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import sessionj.types.typeobjects.SJType;
 
 /**
  * A SJSessionType holds the information of a session type element.
  */
 public interface SJSessionType extends SJType 
 {	
-	public SJSessionType child();
-	public SJSessionType child(SJSessionType child);
+	SJSessionType child();
+	SJSessionType child(SJSessionType child);
 
-	public SJSessionType append(SJSessionType st);
+	SJSessionType append(SJSessionType st);
 
 	// Take Type argument to safely override behaviour for session types. 
 	//public boolean isSubtype(Type t); // Reuse inherited behaviour (check typeEquals and descendsFrom), no need to override. 
-	public boolean isDualtype(Type t);
-	public SJSessionType subsume(SJSessionType t) throws SemanticException;
-	public boolean wellFormed();
+    boolean isDualtype(Type t);
+	SJSessionType subsume(SJSessionType t) throws SemanticException;
+	boolean isWellFormed();
 
-	public boolean treeEquals(SJSessionType tree); // Used by typeEquals.
-	public boolean treeSubtype(SJSessionType tree);
-	public boolean treeDualtype(SJSessionType tree);
-	public SJSessionType treeSubsume(SJSessionType tree) throws SemanticException;
-	public boolean treeWellFormed();
+	boolean treeEquals(SJSessionType tree); // Used by typeEquals.
+	boolean treeSubtype(SJSessionType tree);
+	boolean treeDualtype(SJSessionType tree);
+	SJSessionType treeSubsume(SJSessionType tree) throws SemanticException;
+	boolean treeWellFormed();
 
-	public boolean nodeEquals(SJSessionType st);
-	public boolean nodeSubtype(SJSessionType st); // this is a subtype of st. // Should check message SVUID values?
-	public boolean nodeDualtype(SJSessionType st); // Should check message SVUID values?
-	public SJSessionType nodeSubsume(SJSessionType st) throws SemanticException;
-	public boolean nodeWellFormed();
-	
-	public SJSessionType treeClone();
-	public SJSessionType nodeClone();
+	boolean nodeEquals(SJSessionType st);
+	boolean nodeSubtype(SJSessionType st); // this is a subtype of st. // Should check message SVUID values?
+	boolean nodeDualtype(SJSessionType st); // Should check message SVUID values?
+	SJSessionType nodeSubsume(SJSessionType st) throws SemanticException;
+	boolean nodeWellFormed();
 
-	public SJSessionType clone();
-	public SJSessionType copy();
+	SJSessionType treeClone();
+	SJSessionType nodeClone();
+
+	SJSessionType clone();
+	SJSessionType copy();
+
+
+    // TODO: this is duplicated between typenode and type classes, find a way to sort it out
+    String treeToString();
+	String nodeToString();
 	
-	public String treeToString();
-	public String nodeToString();
-	
-	public SJSessionType getLeaf(); // Doesn't return a defensive copy.
+	SJSessionType getLeaf(); // Doesn't return a defensive copy.
+
+    // A first step to remove the instanceof checks in SJTypeChecker and friends.
+    boolean startsWith(Class<? extends SJSessionType> aClass);
+
+    SJSessionType nodeDual() throws SemanticException;
 }

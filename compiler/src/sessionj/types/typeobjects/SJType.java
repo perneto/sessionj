@@ -12,5 +12,5 @@ import sessionj.types.SJTypeSystem;
  */
 public interface SJType extends Type, SJTypeObject
 {
-	public SJTypeSystem typeSystem();
+	SJTypeSystem typeSystem();
 }

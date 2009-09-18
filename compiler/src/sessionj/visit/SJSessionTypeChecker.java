@@ -11,6 +11,7 @@ import polyglot.visit.NodeVisitor;
 import static sessionj.SJConstants.*;
 import sessionj.ast.SJNodeFactory;
 import sessionj.ast.SJSpawn;
+import sessionj.ast.SessionSocketCreator;
 import sessionj.ast.chanops.SJChannelOperation;
 import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.createops.SJChannelCreate;
@@ -163,7 +164,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			
 			if (target instanceof SJChannelVariable) 
 			{
-				if (getSJTypeableExt(co).sessionType() instanceof SJUnknownType)
+				if (getSessionType(co) instanceof SJUnknownType)
 				{
 					co = (SJRequest) setSJTypeableExt(sjef, co, sjcontext.findChannel(((SJChannelVariable) target).sjname())); // Actually overwrites the SJNamedExt set by SJSocketDeclTypeBuilder.
 				}
@@ -198,7 +199,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			
 			if (target instanceof SJServerVariable) 
 			{
-				if (getSJTypeableExt(so).sessionType() instanceof SJUnknownType)
+				if (getSessionType(so) instanceof SJUnknownType)
 				{
 					so = (SJAccept) setSJTypeableExt(sjef, so, sjcontext.findServer(((SJServerVariable) target).sjname())); // Actually overwrites the SJNamedExt set by SJSocketDeclTypeBuilder.
 				}
@@ -211,7 +212,8 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			}
 			else //if (target instanceof SJServerCreate) // SJSocketDeclTypeBuilder doesn't allow any other initialiser.
 			{
-				throw new RuntimeException(getVisitorName() + " Shouldn't ger here."); // Anonymous (inline) server creation not permitted.
+				throw new RuntimeException(getVisitorName()
+                    + " Shouldn't get in here (Anonymous (inline) server creation not permitted.)");
 			}
 		}
 		else
@@ -222,159 +224,183 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return so;
 	}
 	
-	private Assign checkAssign(Assign a) throws SemanticException
+	private Node checkAssign(Assign a) throws SemanticException
 	{
 		if (a.type().isSubtype(SJ_CHANNEL_TYPE))
 		{
-			Expr right = a.right();
-			
-			if (right instanceof SJChannelCreate)
-			{
-				Expr left = a.left();
-				
-				if (!(left instanceof SJChannelVariable))
-				{
-					throw new SemanticException(getVisitorName() + " Cannot assign session channel to: " + left);
-				}				
-				
-				SJChannelVariable cv = (SJChannelVariable) left; 
-				
-				String sjname = cv.sjname();
-				SJSessionType st = getSJTypeableExt(right).sessionType();
-											
-				SJLocalChannelInstance lci = (SJLocalChannelInstance) sjcontext.getChannel(sjname); 
-				
-				if (!(lci.sessionType() instanceof SJUnknownType))
-				{
-					//throw new RuntimeException(getVisitorName() + " Shouldn't get in here."); // Because channels must be na-final, the instance object for the channel must have SJUnknownType.
-					throw new SemanticException(getVisitorName() + " channel type already registered: " + sjname); // Because channels must be na-final, the instance object for the channel must have SJUnknownType.
-				}
-				
-				if (!(st instanceof SJCBeginType)) // Also checked (and wellFormed) on session request.
-				{
-					throw new SemanticException(getVisitorName() + " Bad session channel type: " + st);
-				}				
-				
-				sjcontext.addChannel(sjts.SJLocalChannelInstance(lci, st, sjname)); 
-			}
-			else
-			{
-				throw new SemanticException(getVisitorName() + " Assign of session channel type not yet supported: " + a.right());				
-			}
+            checkAssignToChannel(a);
 		}
 		else if (a.type().isSubtype(SJ_SERVER_INTERFACE_TYPE)) // FIXME: factor out with above.
 		{
-			Expr right = a.right();
-			
-			if (right instanceof SJServerCreate)
-			{
-				Expr left = a.left();
-				
-				if (!(left instanceof SJServerVariable))
-				{
-					throw new SemanticException(getVisitorName() + " Cannot assign session server to: " + left);
-				}				
-				
-				SJServerVariable sv = (SJServerVariable) left; 
-				
-				String sjname = sv.sjname();
-				SJSessionType st = getSJTypeableExt(right).sessionType();
-											
-				SJLocalServerInstance lsi = (SJLocalServerInstance) sjcontext.getServer(sjname); 
-				
-				if (!(lsi.sessionType() instanceof SJUnknownType)) // Cannot count on compiler pass completion order (i.e. noalias type checking before this pass), so cannot just throw RuntimeException.
-				{
-					throw new SemanticException(getVisitorName() + " Session server already used: " + sjname); // Because channels must be na-final, the instance object for the server must have SJUnknownType.					
-				}				
-				
-				if (!sjcontext.serviceInScope(sjname)) 
-				{
-					throw new SemanticException(getVisitorName() + " Service not in scope: " + sjname);
-				}
-
-				if (sjcontext.serviceOpen(sjname)) // Actually, na-final would also take care of this (although it seems the order of pass completion is not very deterministic).
-				{
-					throw new SemanticException(getVisitorName() + " Service already open: " + sjname);
-				}
-				
-				if (!(st instanceof SJSBeginType)) // Also checked (and wellFormed) on session accept.
-				{
-					throw new SemanticException(getVisitorName() + " Bad session service type: " + st);
-				}
-				
-				sjcontext.addServer(sjts.SJLocalServerInstance(lsi, st, sjname)); // Replaces the SJUnknownType added by the LocalDecl (for the server socket). 
-				sjcontext.openService(sjname, st); // Replaces the SJUnknownType added at server-try enter.
-			}
-			else
-			{
-				throw new SemanticException(getVisitorName() + " Assign of session server type not yet supported: " + a.right());				
-			}
+            checkAssignToServer(a);
 		}
 		else if (a.type().isSubtype(SJ_SOCKET_INTERFACE_TYPE)) // Only need to check assign, session socket declaration with initialisation not possible - the session must be in a session-try, and the session-try needs the uninitialised socket to be declared first. 
 		{
-			Expr right = a.right(); // Should make a "SJSessionReturn" type for session socket create, session-receive (and casts) and session return type method calls. Similarly for channels and servers. 
-			
-			if (right instanceof SJRequest || right instanceof SJAccept || right instanceof SJSessionCast) // FIXME: make common interface for session return operations.   
-			{							
-				Expr left = a.left();
-				
-				if (!(left instanceof SJSocketVariable))
-				{
-					throw new SemanticException(getVisitorName() + " Cannot assign session socket to: " + left);
-				}
-				
-				SJSocketVariable sv = (SJSocketVariable) left;
-				
-				String sjname = sv.sjname();
-				
-				SJLocalSocketInstance lsi = (SJLocalSocketInstance) sjcontext.getSocket(sjname); 
-				
-				if (!(lsi.sessionType() instanceof SJUnknownType)) // Actually, na-final would also take care of this (although it seems the order of pass completion is not very deterministic). // For na-final sockets, this is equivalent to the final aspect, in terms of regular Java.
-				{
-					throw new SemanticException(getVisitorName() + " Session socket already used: " + sjname); 					
-				}				
-				
-				SJSessionType st = getSJTypeableExt(right).sessionType();
-				
-				sjcontext.addSocket(sjts.SJLocalSocketInstance(lsi, st, sjname)); // Not really necessary. 			
-				
-				if (right instanceof SJRequest)
-				{
-					a = a.right(checkSJRequest((SJRequest) right, sjname, st));
-				}
-				else if (right instanceof SJAccept)
-				{
-					a = a.right(checkSJAccept((SJAccept) right, sjname, st));
-				}
-				else //if (right instanceof SJSessionCast)
-				{
-					// Already checked.
-				}				
-				
-				// No point to set individual instance type objects for each reference to a (session) variable (also see SJRequest building in SJSocketDeclTypeBuilder). Instance type objects only useful for storing static delcaration-related information, and actually want all instance objects to be the same for all references to a variable.
-				a = a.left((SJSocketVariable) setSJNamedExt(sjef, sv, st, sjname)); // Is this actually useful?				   			
-				
-				sjcontext.openSession(sjname, st);
-				
-				if (right instanceof SJRequest)
-				{
-					sjcontext.advanceSession(sjname, sjts.SJCBeginType());
-				}
-				else if (right instanceof SJAccept)
-				{
-					sjcontext.advanceSession(sjname, sjts.SJSBeginType());
-				}
-			}
-			else
-			{
-				throw new SemanticException(getVisitorName() + " Assign of session socket type not yet supported: " + right);
-			}
+            a = checkAssignToSocket(a);
 		}
 		
 		return a;
 	}
-	
-	private NewArray checkNewArray(NewArray na) throws SemanticException
+
+    private Assign checkAssignToSocket(Assign a) throws SemanticException {
+        Expr right = a.right();
+
+        // Should make a "SessionSocketCreator" type for session socket create, session-receive
+        // (and casts) and session return type method calls. Similarly for channels and servers.
+        // Now done for the first 3, not for session return type method calls, nor channels or servers.
+        if (right instanceof SessionSocketCreator)
+        {
+            Expr left = a.left();
+
+            if (!(left instanceof SJSocketVariable))
+            {
+                throw new SemanticException(getVisitorName() + " Cannot assign session socket to: " + left);
+            }
+
+            SJVariable sv = (SJVariable) left;
+
+            String sjname = sv.sjname();
+
+            SJLocalSocketInstance lsi = (SJLocalSocketInstance) sjcontext.getSocket(sjname);
+
+            // Actually, na-final would also take care of this (although it seems the order of pass completion is not very deterministic).
+            // For na-final sockets, this is equivalent to the final aspect, in terms of regular Java.
+            checkUnusedLocalInstance(lsi);
+
+            SJSessionType st = getSessionType(right);
+
+            sjcontext.addSocket(sjts.SJLocalSocketInstance(lsi, st, sjname)); // Not really necessary.
+
+            if (right instanceof SJRequest)
+            {
+                a = a.right(checkSJRequest((SJRequest) right, sjname, st));
+            }
+            else if (right instanceof SJAccept)
+            {
+                a = a.right(checkSJAccept((SJAccept) right, sjname, st));
+            }
+            else //if (right instanceof SJSessionCast)
+            {
+                // Already checked.
+            }
+
+            // No point to set individual instance type objects for each reference to a (session) variable (also see SJRequest building in SJSocketDeclTypeBuilder). Instance type objects only useful for storing static delcaration-related information, and actually want all instance objects to be the same for all references to a variable.
+            a = a.left((Expr) setSJNamedExt(sjef, sv, st, sjname)); // Is this actually useful?
+
+            sjcontext.openSession(sjname, st);
+
+            if (right instanceof SJRequest)
+            {
+                sjcontext.advanceSession(sjname, sjts.SJCBeginType());
+            }
+            else if (right instanceof SJAccept)
+            {
+                sjcontext.advanceSession(sjname, sjts.SJSBeginType());
+            }
+        }
+        else
+        {
+            throw new SemanticException(getVisitorName() + " Assign of session socket type not yet supported: " + right);
+        }
+        return a;
+    }
+
+    private void checkAssignToServer(Assign a) throws SemanticException {
+        Expr right = a.right();
+
+        if (right instanceof SJServerCreate)
+        {
+            Expr left = a.left();
+
+            if (!(left instanceof SJServerVariable))
+            {
+                throw new SemanticException(getVisitorName() + " Cannot assign session server to: " + left);
+            }
+
+            SJVariable sv = (SJVariable) left;
+
+            String sjname = sv.sjname();
+            SJSessionType st = getSessionType(right);
+
+            SJNamedLocalInstance lsi = (SJNamedLocalInstance) sjcontext.getServer(sjname);
+            checkUnusedLocalInstance(lsi);
+
+            if (!sjcontext.serviceInScope(sjname))
+            {
+                throw new SemanticException(getVisitorName() + " Service not in scope: " + sjname);
+            }
+
+            if (sjcontext.serviceOpen(sjname)) // Actually, na-final would also take care of this (although it seems the order of pass completion is not very deterministic).
+            {
+                throw new SemanticException(getVisitorName() + " Service already open: " + sjname);
+            }
+
+            if (!st.startsWith(SJSBeginType.class)) // Also checked (and isWellFormed) on session accept.
+            {
+                throw new SemanticException(getVisitorName() + " Bad session service type: " + st);
+            }
+
+            sjcontext.addServer(sjts.SJLocalServerInstance(lsi, st, sjname)); // Replaces the SJUnknownType added by the LocalDecl (for the server socket).
+            sjcontext.openService(sjname, st); // Replaces the SJUnknownType added at server-try enter.
+        }
+        else
+        {
+            throw new SemanticException(getVisitorName() + " Assign of session server type not yet supported: " + a.right());
+        }
+    }
+
+    private void checkUnusedLocalInstance(SJNamedInstance lsi) throws SemanticException {
+        if (!(lsi.sessionType() instanceof SJUnknownType))
+        // Cannot count on compiler pass completion order (i.e. noalias type checking before this pass), so cannot just throw RuntimeException.
+        {
+            throw new SemanticException(getVisitorName() + " Session local variable already used: " + lsi.sjname());
+            // Because channels must be na-final, the instance object for the server must have SJUnknownType.
+        }
+    }
+
+    private void checkAssignToChannel(Assign a) throws SemanticException {
+        Expr right = a.right();
+
+        if (right instanceof SJChannelCreate)
+        {
+            Expr left = a.left();
+
+            if (!(left instanceof SJChannelVariable))
+            {
+                throw new SemanticException(getVisitorName() + " Cannot assign session channel to: " + left);
+            }
+
+            SJChannelVariable cv = (SJChannelVariable) left;
+
+            String sjname = cv.sjname();
+            SJSessionType st = getSessionType(right);
+
+            SJLocalChannelInstance lci = (SJLocalChannelInstance) sjcontext.getChannel(sjname);
+
+            if (!(lci.sessionType() instanceof SJUnknownType))
+            {
+                //throw new RuntimeException(getVisitorName() + " Shouldn't get in here."); // Because channels must be na-final, the instance object for the channel must have SJUnknownType.
+                throw new SemanticException(getVisitorName() + " channel type already registered: " + sjname); // Because channels must be na-final, the instance object for the channel must have SJUnknownType.
+            }
+
+            if (!st.startsWith(SJCBeginType.class)) // Also checked (and isWellFormed) on session request.
+            {
+                throw new SemanticException(getVisitorName() + " Bad session channel type: " + st);
+            }
+
+            sjcontext.addChannel(sjts.SJLocalChannelInstance(lci, st, sjname));
+        }
+        else
+        {
+            throw new SemanticException(getVisitorName() + " Assign of session channel type not yet supported: " + a.right());
+        }
+    }
+
+    private SJSessionType getSessionType(Node node) {
+        return getSJTypeableExt(node).sessionType();
+    }
+
+    private NewArray checkNewArray(NewArray na) throws SemanticException
 	{
 		Type t = na.type();
 		
@@ -395,21 +421,21 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		
 		SJSessionOperationExt soe = getSJSessionOperationExt(so);
 				
-		for (String sjname : soe.sjnames())
+		for (String targetName : soe.targetNames())
 		{
-			if (!sjcontext.sessionInScope(sjname))
+			if (!sjcontext.sessionInScope(targetName))
 			{
-				throw new SemanticException(getVisitorName() + " Session not in scope: " + sjname);
+				throw new SemanticException(getVisitorName() + " Session not in scope: " + targetName);
 			}				
 			
-			if (!sjcontext.sessionActive(sjname))
+			if (!sjcontext.sessionActive(targetName))
 			{
-				throw new SemanticException(getVisitorName() + " Session not active: " + sjname);
+				throw new SemanticException(getVisitorName() + " Session not active: " + targetName);
 			}		
 																					
 			if (so instanceof SJBasicOperation) 
 			{
-				SJSessionType expected = sjcontext.sessionExpected(sjname);
+				SJSessionType expected = sjcontext.expectedSessionOperation(targetName);
 				
 				if (expected == null)
 				{
@@ -420,11 +446,11 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 				
 				SJSessionType st = soe.sessionType(); // The implemented type, already built by SJSessionOperationTypeBuilder.
 				
-				so = checkSJBasicOperation(parent, (SJBasicOperation) so, sjname, expected, st);
+				so = checkSJBasicOperation(parent, (SJBasicOperation) so, targetName, expected, st);
 			}
 			else if (so instanceof SJCompoundOperation) // The compound operation context has already been popped (and checked) so no need to (re)check expected, and `st' will still have SJUnknownType body (we're going to build it now).
 			{								
-				so = checkSJCompoundOperation(parent, (SJCompoundOperation) so, sjname, ce);			
+				so = checkSJCompoundOperation((SJCompoundOperation) so, targetName, ce);
 			}	
 			else
 			{
@@ -450,11 +476,11 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		}
 		else if (bo instanceof SJReceive)
 		{
-			bo = checkSJReceive(parent, (SJReceive) bo, sjname, expected, st);								
+			bo = checkSJReceive(parent, (SJReceive) bo, expected, st);
 		}
 		else if (bo instanceof SJRecurse)
 		{												
-			bo = checkSJRecurse(parent, (SJRecurse) bo, sjname, expected, st);
+			bo = checkSJRecurse((SJRecurse) bo, expected, st);
 		}
 		else //if (!(bo instanceof SJInternalOperation))
 		{
@@ -470,7 +496,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return bo;
 	}
 	
-	private SJRequest checkSJRequest(SJRequest r, String sjname, SJSessionType st) throws SemanticException
+	private Expr checkSJRequest(SJRequest r, String sjname, SJSessionType st) throws SemanticException
 	{
 		if (!sjcontext.sessionInScope(sjname))
 		{
@@ -482,12 +508,12 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			throw new SemanticException(getVisitorName() + " Session already open: " + sjname);
 		}
 		
-		if (!(st instanceof SJCBeginType))
+		if (!st.startsWith(SJCBeginType.class))
 		{
 			throw new SemanticException(getVisitorName() + " Expected SJCBeginType, not: " + st);
 		}		
 		
-		if (!st.wellFormed()) // Session type grammar does not guarantee well-placed begins - they can be inserted via bad protocol references. But this is the only place where this is checked? So can have e.g. method declarations with bad channel parameters, although this check prevents them from being used.
+		if (!st.isWellFormed()) // Session type grammar does not guarantee well-placed begins - they can be inserted via bad protocol references. But this is the only place where this is checked? So can have e.g. method declarations with bad channel parameters, although this check prevents them from being used.
 		{
 			throw new SemanticException(getVisitorName() + " Session type not well-formed: " + st);					
 		}		
@@ -507,12 +533,12 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			throw new SemanticException(getVisitorName() + " Session already open: " + sjname);
 		}
 		
-		if (!(st instanceof SJSBeginType))
+		if (!st.startsWith(SJSBeginType.class))
 		{
 			throw new SemanticException(getVisitorName() + " Expected SJSBeginType, not: " + st);
 		}		
 		
-		if (!st.wellFormed())
+		if (!st.isWellFormed())
 		{
 			throw new SemanticException(getVisitorName() + " Session type not well-formed: " + st);					
 		}
@@ -532,14 +558,14 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		{			
 			/*SJSessionOperationExt soe = getSJSessionOperationExt(c);
 			
-			if (soe.sjnames().size() != 1)
+			if (soe.targetNames().size() != 1)
 			{
 				throw new SemanticException(getVisitorName() + " Cannot multicast session-send: " + arg);
 			}			
 			
 			st = sjts.SJSendType(sjcontext.delegateSession(((SJSocketVariable) arg).sjname()));
 									
-			c = (SJCopy) setSJSessionOperationExt(sjef, c, st, soe.sjnames());*
+			c = (SJCopy) setSJSessionOperationExt(sjef, c, st, soe.targetNames());*
 			
 			throw new SemanticException(getVisitorName() + " Cannot copy session sockets: " + arg);
 		}*/
@@ -567,14 +593,14 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			{			
 				SJSessionOperationExt soe = getSJSessionOperationExt(p);
 				
-				if (soe.sjnames().size() != 1)
+				if (soe.targetNames().size() != 1)
 				{
 					throw new SemanticException(getVisitorName() + " Cannot multicast session-send: " + arg);
 				}			
 				
 				st = sjts.SJSendType(sjcontext.delegateSession(((SJSocketVariable) arg).sjname()));
 														
-				p = (SJPass) setSJSessionOperationExt(sjef, p, st, soe.sjnames());
+				p = (SJPass) setSJSessionOperationExt(sjef, p, st, soe.targetNames());
 			}
 		}
 		
@@ -586,21 +612,23 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return p;
 	}
 	
-	private SJReceive checkSJReceive(Node parent, SJReceive r, String sjname, SJSessionType expected, SJSessionType st) throws SemanticException
+	private SJReceive checkSJReceive(Node parent, SJReceive r, SJSessionType expected, SJSessionType st) throws SemanticException
 	{
-		if (!(expected instanceof SJReceiveType))
+		if (!expected.startsWith(SJReceiveType.class))
 		{
 			throw new SemanticException(getVisitorName() + " Expected " + expected + ", not: " + st);
 		}
 		
-		if (((SJReceiveType) st).messageType() instanceof SJUnknownType) // FIXME: need to override base type checking for uncasted receive. // Cast to be inserted in later translation pass.
+		if (((SJMessageCommunicationType) st).messageType() instanceof SJUnknownType) 
+        // FIXME: need to override base type checking for uncasted receive.
+        // // Cast to be inserted in later translation pass.
 		{							
-			if (((SJReceiveType) expected).messageType() instanceof SJSessionType)
+			if (((SJMessageCommunicationType) expected).messageType() instanceof SJSessionType)
 			{
 				r = (SJReceive) checkSessionReceiveParent(parent, r);
 			}
 			
-			r = (SJReceive) setSJSessionOperationExt(sjef, r, expected, getSJSessionOperationExt(r).sjnames());
+			r = (SJReceive) setSJSessionOperationExt(sjef, r, expected, getSJSessionOperationExt(r).targetNames());
 		}
 		else if (!expected.isSubtype(st))
 		{
@@ -610,9 +638,9 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return r;
 	}
 	
-	private SJRecurse checkSJRecurse(Node parent, SJRecurse r, String sjname, SJSessionType expected, SJSessionType st) throws SemanticException
+	private SJRecurse checkSJRecurse(SJRecurse r, SJSessionType expected, SJSessionType st) throws SemanticException
 	{
-		sjcontext.recurseSessions(getSJSessionOperationExt(r).sjnames()); // Will be unnecessarily repeated for each target.		
+		sjcontext.recurseSessions(getSJSessionOperationExt(r).targetNames()); // Will be unnecessarily repeated for each target.
 		
 		if (!expected.typeEquals(st))
 		{
@@ -622,7 +650,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return r;
 	}
 	
-	private SJCompoundOperation checkSJCompoundOperation(Node parent, SJCompoundOperation co, String sjname, SJContextElement ce) throws SemanticException
+	private SJCompoundOperation checkSJCompoundOperation(SJCompoundOperation co, String sjname, SJContextElement ce) throws SemanticException
 	{
 		SJSessionType implemented = ce.getImplemented(sjname); // Type already built by context pop, just need to attach it to the node.
 		
@@ -655,7 +683,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	{
 		SJSessionOperationExt soe = getSJSessionOperationExt(bo);			
 		
-		bo = (SJBranchOperation) setSJSessionOperationExt(sjef, bo, st, soe.sjnames());  
+		bo = (SJBranchOperation) setSJSessionOperationExt(sjef, bo, st, soe.targetNames());
 		
 		return bo; // Nothing to check: correct compound type constructor checked on context push, and body type checked inductively. 
 	}
@@ -664,7 +692,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	{
 		SJSessionOperationExt soe = getSJSessionOperationExt(w);
 		
-		w = (SJWhile) setSJSessionOperationExt(sjef, w, st, soe.sjnames()); // Type built by context pop.
+		w = (SJWhile) setSJSessionOperationExt(sjef, w, st, soe.targetNames()); // Type built by context pop.
 		
 		return w; // Nothing to check: correct compound type constructor checked on context push, and body type checked inductively. 
 	}
@@ -673,7 +701,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	{
 		SJSessionOperationExt soe = getSJSessionOperationExt(r);
 		
-		r = (SJRecursion) setSJSessionOperationExt(sjef, r, st, soe.sjnames());
+		r = (SJRecursion) setSJSessionOperationExt(sjef, r, st, soe.targetNames());
 		
 		return r;  
 	}
@@ -707,7 +735,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
             sts.add(st);
         }
 		
-		/*for (String sjname : s.sjnames())
+		/*for (String sjname : s.targetNames())
 		{								
 			sts.add(sjts.SJSendType(sjcontext.delegateSession(sjname)));
 		}*/
@@ -721,7 +749,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	{
 		SJSessionType st = sc.sessionType().type();
 		
-		if (!(st instanceof SJBeginType))
+		if (!st.startsWith(SJBeginType.class))
 		{
 			throw new SemanticException(getVisitorName() + " Bad channel cast: " + st);
 		}
@@ -733,7 +761,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	{
 		SJSessionType st = sc.sessionType().type();
 		
-		if (st instanceof SJBeginType)
+		if (st.startsWith(SJBeginType.class))
 		{
 			throw new SemanticException(getVisitorName() + " Bad session cast: " + st);
 		}

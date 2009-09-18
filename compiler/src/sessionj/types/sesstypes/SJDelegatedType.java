@@ -1,15 +1,17 @@
 package sessionj.types.sesstypes;
 
-import polyglot.types.*;
-import sessionj.types.sesstypes.SJSessionType_c.NodeComparison;
-
-import static sessionj.SJConstants.*;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
+import static sessionj.SJConstants.SJ_STRING_DELEGATED_TYPE;
+import static sessionj.SJConstants.SJ_VERSION;
 
 /**
  * 
  * @author Raymond
  *
- * SJDelegatedType means that the session was delegated at some point within the encapsulated implementation type (not that this type is the actual H-O message - that's recorded at the actual delegation operation).
+ * SJDelegatedType means that the session was delegated at some point within the
+ * encapsulated implementation type (not that this type is the actual H-O message -
+ * that's recorded at the actual delegation operation).
  *
  */
 public class SJDelegatedType extends SJSessionType_c implements SJSessionType
@@ -58,19 +60,13 @@ public class SJDelegatedType extends SJSessionType_c implements SJSessionType
 		
 		switch (op)
 		{
-			case EQUALS: 
-			{
-				return ours.equals(theirs);
-			}
-			case SUBTYPE:
-			{
-				return ours.isSubtype(theirs);
-			}
-			case DUALTYPE: 
-			{
-				return ours.isDualtype(theirs);
-			}
-		}
+			case EQUALS:
+                return ours.equals(theirs);
+            case SUBTYPE:
+                return ours.isSubtype(theirs);
+            case DUALTYPE:
+                return ours.isDualtype(theirs);
+        }
 		
 		throw new RuntimeException("[SJCBeginType_c] Shouldn't get here: " + op);
 	}
@@ -101,4 +97,13 @@ public class SJDelegatedType extends SJSessionType_c implements SJSessionType
 	{
 		return SJ_STRING_DELEGATED_TYPE + "(" + getDelegatedType() + ")";
 	}
+
+    @Override
+    public SJSessionType subsume(SJSessionType st) throws SemanticException {
+        if (!(st instanceof SJDelegatedType))
+        {
+            return typeSystem().SJDelegatedType(getDelegatedType().subsume(st));
+        }
+        return treeSubsume(st);        
+    }
 }

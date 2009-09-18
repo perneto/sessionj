@@ -1,10 +1,8 @@
 package sessionj.types.sesstypes;
 
-import polyglot.types.*;
-
-import sessionj.types.*;
-
-import static sessionj.SJConstants.*;
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
+import sessionj.util.SJCompilerUtils;
 
 abstract public class SJLoopType_c extends SJSessionType_c implements SJLoopType // Used by copy/clone routines, so those cannot be used here, else mutual dependency (will loop forever).
 {
@@ -19,12 +17,12 @@ abstract public class SJLoopType_c extends SJSessionType_c implements SJLoopType
 	{
 		SJSessionType st = getBody();
 		
-		return (st == null) ? null : st.copy();
+		return st == null ? null : st.copy();
 	}
 
 	public SJLoopType body(SJSessionType body) // Used by copy/clone routines, so those cannot be used here, else mutual dependency (will loop forever).
 	{
-		SJLoopType lt = (SJLoopType) skeleton(); // SJRecursionType skeleton includes label.
+		SJLoopType lt = skeleton(); // SJRecursionType skeleton includes label.
 		
 		if (body != null)
 		{
@@ -48,9 +46,9 @@ abstract public class SJLoopType_c extends SJSessionType_c implements SJLoopType
 		
 		switch (op)
 		{
-			case EQUALS: return (ours == null) ? theirs == null : ours.typeEquals(theirs); // Could use treeEquals directly.
-			case SUBTYPE: return (ours == null) ? theirs == null : ours.isSubtype(theirs); 
-			case DUALTYPE: return (ours == null) ? theirs == null : ours.isDualtype(theirs);
+			case EQUALS: return ours == null ? theirs == null : ours.typeEquals(theirs); // Could use treeEquals directly.
+			case SUBTYPE: return ours == null ? theirs == null : ours.isSubtype(theirs);
+			case DUALTYPE: return ours == null ? theirs == null : ours.isDualtype(theirs);
 		}
 		
 		throw new RuntimeException("[SJLoopType_c] Shouldn't get here: " + op);
@@ -91,7 +89,7 @@ abstract public class SJLoopType_c extends SJSessionType_c implements SJLoopType
 	{
 		SJSessionType st = getBody();
 		
-		return (st == null) ? true : st.treeWellFormed();
+		return st == null || st.treeWellFormed();
 	}
 
 	public SJSessionType nodeClone()
@@ -99,7 +97,7 @@ abstract public class SJLoopType_c extends SJSessionType_c implements SJLoopType
 		SJLoopType lt = skeleton(); 
 		SJSessionType st = getBody();
 		
-		return (st == null) ? lt : lt.body(st.copy());
+		return st == null ? lt : lt.body(st.copy());
 	}
 
 	public String nodeToString()
@@ -115,7 +113,13 @@ abstract public class SJLoopType_c extends SJSessionType_c implements SJLoopType
 		return m + loopConstructorClose();
 	}
 
-	protected SJSessionType getBody()
+    public SJSessionType nodeDual() throws SemanticException {
+        SJLoopType dual = dualSkeleton();
+        dual = dual.body(SJCompilerUtils.dualSessionType(body()));
+        return dual;
+    }
+
+    protected SJSessionType getBody()
 	{
 		return body;
 	}
@@ -126,6 +130,7 @@ abstract public class SJLoopType_c extends SJSessionType_c implements SJLoopType
 	}
 	
 	abstract protected SJLoopType skeleton();
+    protected abstract SJLoopType dualSkeleton();
 	
 	abstract protected boolean eligibleForSubsume(SJSessionType st);
 	

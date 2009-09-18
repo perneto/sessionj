@@ -1,8 +1,12 @@
 package sessionj.ast.typenodes;
 
 import polyglot.ast.TypeNode;
+import polyglot.types.SemanticException;
+import polyglot.visit.ContextVisitor;
+import polyglot.frontend.Job;
 
 import sessionj.types.sesstypes.*;
+import sessionj.types.SJTypeSystem;
 
 /**
  * A SJTypeNode is the internal compiler representation of a parsed session
@@ -13,13 +17,15 @@ import sessionj.types.sesstypes.*;
  */
 public interface SJTypeNode extends TypeNode
 {
-	public SJTypeNode child();
-	public SJTypeNode child(SJTypeNode child);
+	SJTypeNode child();
+	SJTypeNode child(SJTypeNode child);
 
 	//public SJTypeNode leaf();
 	
-	public SJSessionType type();
+	SJSessionType type();
 
-	public String nodeToString(); // Could be protected?
-	public String treeToString();
+	String nodeToString(); // Could be protected?
+	String treeToString();
+
+    SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem ts) throws SemanticException;
 }

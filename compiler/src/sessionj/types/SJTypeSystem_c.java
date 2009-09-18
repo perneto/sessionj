@@ -48,12 +48,20 @@ public class SJTypeSystem_c extends TypeSystem_c implements SJTypeSystem
 		return new SJOutwhileType_c(this);
 	}
 
-	public SJInwhileType SJInwhileType()
+    public SJSessionType SJOutwhileType(SJSessionType body) {
+        return SJOutwhileType().body(body);
+    }
+
+    public SJInwhileType SJInwhileType()
 	{
 		return new SJInwhileType_c(this);
 	}
 
-	public SJRecursionType SJRecursionType(SJLabel lab)
+    public SJInwhileType SJInwhileType(SJSessionType body) {
+        return SJInwhileType().body(body);
+    }
+
+    public SJRecursionType SJRecursionType(SJLabel lab)
 	{
 		return new SJRecursionType_c(this, lab);
 	}
@@ -71,9 +79,13 @@ public class SJTypeSystem_c extends TypeSystem_c implements SJTypeSystem
 	public SJDelegatedType SJDelegatedType(SJSessionType st)
 	{
 		return new SJDelegatedType(this, st);
-	}	
-	
-	// Adapted from the Coffer example.
+	}
+
+    public SJSetType SJSetType(List<SJSessionType_c> members) {
+        return new SJSetType_c(this, members);
+    }
+
+    // Adapted from the Coffer example.
   public ParsedClassType createClassType(LazyClassInitializer init, 
       Source fromSource) 
 	{

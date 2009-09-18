@@ -131,7 +131,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 	
 	private SJSessionOperation recordSJSessionOperation(Node parent, SJSessionOperation so) throws SemanticException
 	{
-		List<String> sjnames = getSJSessionOperationExt(so).sjnames();
+		List<String> sjnames = getSJSessionOperationExt(so).targetNames();
 		SJSessionType st = getSessionType(so);
 		
 		for (String sjname : sjnames)

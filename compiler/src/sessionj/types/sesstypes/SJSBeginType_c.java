@@ -31,15 +31,7 @@ public class SJSBeginType_c extends SJBeginType_c implements SJSBeginType
 	
 	protected boolean compareNode(NodeComparison op, SJSessionType st)
 	{
-		switch (op)
-		{
-			case EQUALS:  
-			case SUBTYPE:   
-			case DUALTYPE: 
-				return true; // Checking eligibleFor... is already enough.
-		}
-		
-		throw new RuntimeException("[SJCBeginType_c] Shouldn't get here: " + op);
+		return true; // Checking eligibleFor... is already enough.	
 	}
 
 	// Could refine the return types for this and nodeClone, but not very useful.
@@ -62,4 +54,8 @@ public class SJSBeginType_c extends SJBeginType_c implements SJSBeginType
 	{
 		return SJ_STRING_SBEGIN;
 	}
+
+    public SJSessionType nodeDual() {
+        return typeSystem().SJCBeginType();
+    }
 }

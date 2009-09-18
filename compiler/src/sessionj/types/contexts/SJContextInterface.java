@@ -22,56 +22,56 @@ import sessionj.types.typeobjects.*;
  */
 public interface SJContextInterface
 {	
-	public void setVisitor(ContextVisitor cv);
+	void setVisitor(ContextVisitor cv);
 	
-	public SJSessionType findProtocol(String sjname) throws SemanticException;
-	public SJSessionType findChannel(String sjname) throws SemanticException;
-	public SJSessionType findSocket(String sjname) throws SemanticException;
-	public SJSessionType findServer(String sjname) throws SemanticException;
+	SJSessionType findProtocol(String sjname) throws SemanticException;
+	SJSessionType findChannel(String sjname) throws SemanticException;
+	SJSessionType findSocket(String sjname) throws SemanticException;
+	SJSessionType findServer(String sjname) throws SemanticException;
 	
-	public void addChannel(SJNamedInstance ni);
-	public void addSocket(SJNamedInstance ni);
-	public void addServer(SJNamedInstance ni);
-	public void addSession(SJNamedInstance ni);	
+	void addChannel(SJNamedInstance ni);
+	void addSocket(SJNamedInstance ni);
+	void addServer(SJNamedInstance ni);
+	void addSession(SJNamedInstance ni);
 	
-	public void openService(String sjname, SJSessionType st) throws SemanticException;
-	public void openSession(String sjname, SJSessionType st) throws SemanticException;
+	void openService(String sjname, SJSessionType st) throws SemanticException;
+	void openSession(String sjname, SJSessionType st) throws SemanticException;
 	
-	public void advanceSession(String sjname, SJSessionType st) throws SemanticException;
-	public SJSessionType delegateSession(String sjname) throws SemanticException; // Maybe this operation should take the type as an argument instead of calculating it itself (which should be done by the equivalent in SJTypeBuildingContext).
+	void advanceSession(String sjname, SJSessionType st) throws SemanticException;
+	SJSessionType delegateSession(String sjname) throws SemanticException; // Maybe this operation should take the type as an argument instead of calculating it itself (which should be done by the equivalent in SJTypeBuildingContext).
 	
-	public SJSessionType sessionExpected(String sjname);
-	public SJSessionType sessionImplemented(String sjname);
-	public SJSessionType sessionRemaining(String sjname) throws SemanticException;
+	SJSessionType expectedSessionOperation(String sjname);
+	SJSessionType sessionImplemented(String sjname);
+	SJSessionType sessionRemaining(String sjname) throws SemanticException;
 	
-	public boolean serviceInScope(String sjname);
-	public boolean serviceOpen(String sjname);
-	public boolean sessionInScope(String sjname);	
-	public boolean sessionActive(String sjname);
+	boolean serviceInScope(String sjname);
+	boolean serviceOpen(String sjname);
+	boolean sessionInScope(String sjname);
+	boolean sessionActive(String sjname);
 	
-	//public void pushCode();
-	public void pushBlock();	
-	public void pushTry();
-	public void pushBranch();
-	public void pushLoop(); 
-	//public void pushTry();
-	public void pushMethodBody(MethodDecl md) throws SemanticException;
+	//void pushCode();
+    void pushBlock();
+	void pushTry();
+	void pushBranch();
+	void pushLoop();
+	//void pushTry();
+    void pushMethodBody(MethodDecl md) throws SemanticException;
 	
-	public void pushSJSessionTry(SJSessionTry st) throws SemanticException;
-	public void pushSJServerTry(SJServerTry st) throws SemanticException;
+	void pushSJSessionTry(SJSessionTry st) throws SemanticException;
+	void pushSJServerTry(SJServerTry st) throws SemanticException;
 	
-	public void pushSJBranchOperation(SJBranchOperation b) throws SemanticException;
-	public void pushSJBranchCase(SJBranchCase bc) throws SemanticException;
-	public void pushSJWhile(SJWhile w) throws SemanticException;
-	public void pushSJRecursion(SJRecursion r) throws SemanticException;
+	void pushSJBranchOperation(SJBranchOperation b) throws SemanticException;
+	void pushSJBranchCase(SJBranchCase bc) throws SemanticException;
+	void pushSJWhile(SJWhile w) throws SemanticException;
+	void pushSJRecursion(SJRecursion r) throws SemanticException;
 	
-	public SJContextElement pop() throws SemanticException;
+	SJContextElement pop() throws SemanticException;
 	
-	public void setSessionRequested(String sjname, SJSessionType st);
-	public void setSessionActive(String sjname, SJSessionType st); // public so that noalias session method parameters can be initialised.
-	public void setSessionImplemented(String sjname, SJSessionType st);
+	void setSessionRequested(String sjname, SJSessionType st);
+	void setSessionActive(String sjname, SJSessionType st); // public so that noalias session method parameters can be initialised.
+	void setSessionImplemented(String sjname, SJSessionType st);
 	
-	public SJNamedInstance getChannel(String sjname) throws SemanticException;	
-	public SJNamedInstance getSocket(String sjname) throws SemanticException;	
-	public SJNamedInstance getServer(String sjname) throws SemanticException;
+	SJNamedInstance getChannel(String sjname) throws SemanticException;
+	SJNamedInstance getSocket(String sjname) throws SemanticException;
+	SJNamedInstance getServer(String sjname) throws SemanticException;
 }

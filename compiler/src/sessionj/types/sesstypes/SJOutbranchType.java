@@ -4,5 +4,5 @@ import sessionj.util.SJLabel;
 
 public interface SJOutbranchType extends SJBranchType
 {
-	public SJOutbranchType branchCase(SJLabel lab, SJSessionType st);
+	SJOutbranchType branchCase(SJLabel lab, SJSessionType st);
 }

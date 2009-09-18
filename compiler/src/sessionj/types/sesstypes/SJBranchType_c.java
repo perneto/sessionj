@@ -6,6 +6,7 @@ import polyglot.types.*;
 
 import sessionj.types.*;
 import sessionj.util.SJLabel;
+import sessionj.util.SJCompilerUtils;
 
 import static sessionj.SJConstants.*;
 
@@ -42,7 +43,7 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 	{
 		SJSessionType st = getBranchCase(lab);
 
-		return (st == null) ? null : st.copy();
+		return st == null ? null : st.copy();
 	}
 
 	public SJBranchType branchCase(SJLabel lab, SJSessionType st) // Used by copy/clone routines, so those cannot be used here, else mutual dependency (will loop forever).
@@ -60,7 +61,7 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 		
 		if (child != null)
 		{
-			((SJBranchType_c) bt).setChild(child);
+			((SJSessionType_c) bt).setChild(child);
 		}
 		
 		return bt;  
@@ -76,7 +77,8 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 		SJBranchType_c them = (SJBranchType_c) st;		
 		Set<SJLabel> theirLabels = them.labelSet(); 		
 		
-		for (SJLabel lab : selectComparsionLabelSet(labelSet(), theirLabels, op))
+		// TODO: probable bug: loop never runs more than once (return statements inside)
+        for (SJLabel lab : selectComparsionLabelSet(labelSet(), theirLabels, op))
 		{
 			SJSessionType case1 = getBranchCase(lab);
 			SJSessionType case2 = them.getBranchCase(lab);
@@ -131,22 +133,22 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 		return bt;
 	}
 
+    private static final int TRIM_LEN = SJ_STRING_CASE_SEPARATOR.length() + 1;
 	public String nodeToString()
 	{
-		String s = branchConstructorOpen();
+		StringBuilder s = new StringBuilder(branchConstructorOpen());
 
-		for (Iterator<SJLabel> i = labelSet().iterator(); i.hasNext(); ) // Using an iterator because...
-		{
-			SJLabel lab = i.next();
-			SJSessionType branchCase = getBranchCase(lab);
+        for (SJLabel lab : labelSet()) {
+            SJSessionType branchCase = getBranchCase(lab);
 
-			s = s + lab + SJ_STRING_LABEL;
-			s = s + ((branchCase == null) ? " " : branchCase.toString());
+            s.append(lab).append(SJ_STRING_LABEL);
+            s.append(branchCase == null ? " " : branchCase.toString());
 
-			if (i.hasNext()) s = s + SJ_STRING_CASE_SEPARATOR + " "; // ...want to do this look ahead check.
-		}
+            s.append(SJ_STRING_CASE_SEPARATOR).append(' ');
+        }
+        s.delete(s.length()-TRIM_LEN, s.length());
 
-		return s + branchConstructorClose();
+		return s.append(branchConstructorClose()).toString();
 	}
 
 	abstract protected Set<SJLabel> selectComparsionLabelSet(Set<SJLabel> ourLabels, Set<SJLabel> theirLabels, NodeComparison op);
@@ -155,4 +157,14 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 	
 	abstract protected String branchConstructorOpen();
 	abstract protected String branchConstructorClose();
+    protected abstract SJSessionType dualSkeleton();
+    public SJSessionType nodeDual() throws SemanticException {
+        SJSessionType dual = dualSkeleton();
+        for (SJLabel lab : labelSet())
+        {
+            dual = ((SJBranchType) dual).branchCase
+                (lab, SJCompilerUtils.dualSessionType(branchCase(lab)));
+        }
+        return dual;
+    }
 }

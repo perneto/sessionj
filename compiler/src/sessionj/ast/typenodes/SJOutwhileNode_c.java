@@ -3,6 +3,8 @@ package sessionj.ast.typenodes;
 import polyglot.util.Position;
 
 import static sessionj.SJConstants.*;
+import sessionj.types.sesstypes.SJSessionType;
+import sessionj.types.SJTypeSystem;
 
 public class SJOutwhileNode_c extends SJLoopNode_c implements SJOutwhileNode
 {
@@ -10,8 +12,13 @@ public class SJOutwhileNode_c extends SJLoopNode_c implements SJOutwhileNode
 	{
 		super(pos, body);
 	}
-	
-	public String nodeToString()
+
+    @Override
+    protected SJSessionType createType(SJSessionType bodyType, SJTypeSystem ts) {
+        return ts.SJOutwhileType(bodyType);
+    }
+
+    public String nodeToString()
 	{
 		String m = SJ_STRING_OUTWHILE_OPEN;
 		

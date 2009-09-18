@@ -1,14 +1,14 @@
 package sessionj.types.sesstypes;
 
-import polyglot.types.*;
-import sessionj.types.sesstypes.SJSessionType_c.NodeComparison;
-
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import polyglot.types.TypeSystem;
 import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import static sessionj.util.SJCompilerUtils.subsumeReceiveTypes;
 
 public class SJReceiveType_c extends SJMessageCommunicationType_c implements SJReceiveType
 {
-	public static final long serialVersionUID = SJ_VERSION;
+	private static final long serialVersionUID = SJ_VERSION;
 
 	protected SJReceiveType_c(TypeSystem ts)
 	{
@@ -41,7 +41,7 @@ public class SJReceiveType_c extends SJMessageCommunicationType_c implements SJR
 		{
 			case EQUALS: return messageType().equals(((SJReceiveType) st).messageType()); 
 			case SUBTYPE: return messageType().isSubtype(((SJReceiveType) st).messageType());  
-			case DUALTYPE: return (((SJSendType) st).messageType()).isSubtype(messageType());
+			case DUALTYPE: return ((SJSendType) st).messageType().isSubtype(messageType());
 		}
 		
 		throw new RuntimeException("[SJCBeginType_c] Shouldn't get here: " + op);
@@ -70,5 +70,9 @@ public class SJReceiveType_c extends SJMessageCommunicationType_c implements SJR
 	protected String messageCommunicationClose()
 	{
 		return SJ_STRING_RECEIVE_CLOSE;
-	}	
+	}
+
+    public SJSessionType nodeDual() throws SemanticException {
+        return typeSystem().SJSendType(messageType());
+    }
 }

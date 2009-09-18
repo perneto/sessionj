@@ -2,12 +2,19 @@ package sessionj.ast.typenodes;
 
 import polyglot.ast.TypeNode;
 import polyglot.util.Position;
+import polyglot.frontend.Job;
+import polyglot.visit.ContextVisitor;
+import polyglot.types.SemanticException;
+import polyglot.types.Type;
+import sessionj.types.SJTypeSystem;
+import sessionj.types.sesstypes.SJMessageCommunicationType;
+import sessionj.util.SJCompilerUtils;
 
 abstract public class SJMessageCommunicationNode_c extends SJTypeNode_c implements SJMessageCommunicationNode
 {
 	private TypeNode messageType;
 
-	public SJMessageCommunicationNode_c(Position pos, TypeNode messageType)
+	protected SJMessageCommunicationNode_c(Position pos, TypeNode messageType)
 	{
 		super(pos);
 
@@ -19,10 +26,25 @@ abstract public class SJMessageCommunicationNode_c extends SJTypeNode_c implemen
 		return messageType;
 	}
 
-	public SJMessageCommunicationNode messageType(TypeNode messageType)
+	protected void setMessageType(TypeNode messageType)
 	{
 		this.messageType = messageType; // Unlike polyglot type nodes, no defensive copy (objects are mutable).
-
-		return this;
 	}
+
+    protected abstract SJMessageCommunicationType createType(SJTypeSystem ts, Type messageType) throws SemanticException;
+
+    public SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem ts) throws SemanticException {
+        TypeNode messageTypeNode = messageType();
+
+        if (messageTypeNode instanceof SJTypeNode)
+        {
+            messageTypeNode = SJCompilerUtils.disambiguateSJTypeNode(job, cv, (SJTypeNode) messageTypeNode);
+        }
+        else
+        {
+            messageTypeNode = (TypeNode) SJCompilerUtils.buildAndCheckTypes(job, cv, messageTypeNode);
+        }
+        setMessageType(messageTypeNode);
+        return type(createType(ts, messageTypeNode.type()));
+    }
 }

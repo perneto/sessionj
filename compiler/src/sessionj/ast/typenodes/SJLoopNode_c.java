@@ -1,8 +1,12 @@
 package sessionj.ast.typenodes;
 
+import polyglot.frontend.Job;
+import polyglot.types.SemanticException;
 import polyglot.util.Position;
-
-import static sessionj.SJConstants.*;
+import polyglot.visit.ContextVisitor;
+import sessionj.types.SJTypeSystem;
+import sessionj.types.sesstypes.SJSessionType;
+import sessionj.util.SJCompilerUtils;
 
 abstract public class SJLoopNode_c extends SJTypeNode_c implements SJLoopNode
 {
@@ -26,4 +30,14 @@ abstract public class SJLoopNode_c extends SJTypeNode_c implements SJLoopNode
 
 		return this;
 	}
+
+    public SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem sjts) throws SemanticException {
+        SJSessionType bt = null;
+        if (body != null) {
+            bt = SJCompilerUtils.disambiguateSJTypeNode(job, cv, body).type();
+        }
+        return type(createType(bt, sjts));
+    }
+
+    protected abstract SJSessionType createType(SJSessionType bodyType, SJTypeSystem ts);
 }
