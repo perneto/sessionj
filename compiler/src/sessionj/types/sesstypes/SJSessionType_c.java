@@ -7,7 +7,21 @@ import sessionj.types.typeobjects.SJType_c;
 
 abstract public class SJSessionType_c extends SJType_c implements SJSessionType // Doesn't inherit any code from SJTypeObject_c (no new code there anyway*).
 {
-    protected enum NodeComparison { EQUALS, SUBTYPE, DUALTYPE } // Move to SJConstants?
+    protected enum NodeComparison {
+        EQUALS {
+            boolean apply(SJSessionType us, SJSessionType them) {
+                return us.typeEquals(them);
+            }},
+        SUBTYPE {
+            boolean apply(SJSessionType us, SJSessionType them) {
+                return us.isSubtype(them);
+            }},
+        DUALTYPE {
+            boolean apply(SJSessionType us, SJSessionType them) {
+                return us.isDualtype(them);
+            }};
+        abstract boolean apply(SJSessionType us, SJSessionType them);
+    }
 	
 	private static final long serialVersionUID = SJ_VERSION;
 

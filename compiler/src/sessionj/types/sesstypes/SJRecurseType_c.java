@@ -41,15 +41,7 @@ public class SJRecurseType_c extends SJSessionType_c implements SJRecurseType
 	
 	protected boolean compareNode(NodeComparison op, SJSessionType st)
 	{
-		switch (op)
-		{
-			case EQUALS: 
-			case SUBTYPE:
-			case DUALTYPE:
-				return true; // Checking eligibleFor... is already enough.
-		}
-		
-		throw new RuntimeException("[SJRecurseType_c] Shouldn't get here: " + op);
+        return true; // Checking eligibleFor... is already enough.
 	}
 
 	public SJSessionType nodeSubsume(SJSessionType st) throws SemanticException

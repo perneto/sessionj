@@ -43,16 +43,10 @@ abstract public class SJLoopType_c extends SJSessionType_c implements SJLoopType
 	{
 		SJSessionType ours = getBody();
 		SJSessionType theirs = ((SJLoopType_c) st).getBody();
-		
-		switch (op)
-		{
-			case EQUALS: return ours == null ? theirs == null : ours.typeEquals(theirs); // Could use treeEquals directly.
-			case SUBTYPE: return ours == null ? theirs == null : ours.isSubtype(theirs);
-			case DUALTYPE: return ours == null ? theirs == null : ours.isDualtype(theirs);
-		}
-		
-		throw new RuntimeException("[SJLoopType_c] Shouldn't get here: " + op);
-	}	
+
+        return ours == null ? theirs == null : op.apply(ours, theirs);
+        // for EQUALS op: Could use treeEquals directly (apply uses typeEquals)
+	}
 	
 	public SJSessionType nodeSubsume(SJSessionType st) throws SemanticException
 	{
