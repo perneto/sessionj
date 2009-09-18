@@ -60,6 +60,7 @@ public class SJDelegatedType extends SJSessionType_c implements SJSessionType
 		
 		switch (op)
 		{
+            // TODO: why equals() and not typeEquals() ?
 			case EQUALS:
                 return ours.equals(theirs);
             case SUBTYPE:
@@ -67,7 +68,7 @@ public class SJDelegatedType extends SJSessionType_c implements SJSessionType
             case DUALTYPE:
                 return ours.isDualtype(theirs);
         }
-		
+
 		throw new RuntimeException("[SJCBeginType_c] Shouldn't get here: " + op);
 	}
 	

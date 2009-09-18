@@ -43,8 +43,10 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
             } else {
                 return member.eligibleForSubtype(st);
             }
+        } else {
+            for (SJSessionType_c member : members) if (member.eligibleForSubtype(st)) return true;
+            return false;
         }
-        throw new UnsupportedOperationException("Non-singleton set types not supported yet");
     }
 
     protected boolean eligibleForDualtype(SJSessionType st) {

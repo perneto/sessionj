@@ -4,7 +4,6 @@ import java.util.*;
 
 import polyglot.types.*;
 
-import sessionj.types.*;
 import sessionj.util.SJLabel;
 import sessionj.util.SJCompilerUtils;
 
@@ -77,7 +76,8 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 		SJBranchType_c them = (SJBranchType_c) st;		
 		Set<SJLabel> theirLabels = them.labelSet(); 		
 		
-		// TODO: probable bug: loop never runs more than once (return statements inside)
+		// Loops on labels, but returns as soon as the matching label on the
+        // counterpart is found. Hence, the loops won't go through all labels.
         for (SJLabel lab : selectComparsionLabelSet(labelSet(), theirLabels, op))
 		{
 			SJSessionType case1 = getBranchCase(lab);
@@ -89,12 +89,7 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 			}
 			else
 			{
-				switch (op)
-				{
-					case EQUALS: return case1.typeEquals(case2);
-					case SUBTYPE: return case1.isSubtype(case2);
-					case DUALTYPE: return case1.isDualtype(case2);						
-				}
+                return op.apply(case1, case2);
 			}
 		}						
 		
