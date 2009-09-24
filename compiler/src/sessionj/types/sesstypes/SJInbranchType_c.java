@@ -24,17 +24,17 @@ public class SJInbranchType_c extends SJBranchType_c implements SJInbranchType
 	
 	protected boolean eligibleForEquals(SJSessionType st)
 	{
-		return st instanceof SJInbranchType && labelSet().equals(((SJInbranchType) st).labelSet());
+		return st instanceof SJInbranchType && labelSet().equals(((SJBranchType) st).labelSet());
 	}
 	
 	protected boolean eligibleForSubtype(SJSessionType st)
 	{
-		return st instanceof SJInbranchType && ((SJInbranchType) st).labelSet().containsAll(labelSet());
+		return st instanceof SJInbranchType && ((SJBranchType) st).labelSet().containsAll(labelSet());
 	}
 	
 	protected boolean eligibleForDualtype(SJSessionType st)
 	{
-		return st instanceof SJOutbranchType && labelSet().containsAll(((SJOutbranchType) st).labelSet());
+		return st instanceof SJOutbranchType && labelSet().containsAll(((SJBranchType) st).labelSet());
 	}
 	
 	public SJSessionType nodeSubsume(SJSessionType st) throws SemanticException
