@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.Collection;
 
 public abstract class BaseValidTest {
-    private static final int STARTING_DELAY = 500;
+    private static final int STARTING_DELAY = 400;
     protected static final int TEST_PORT = 1234;
 
     protected abstract List<Callable<?>> peers();

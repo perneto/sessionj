@@ -43,6 +43,12 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
             } else {
                 return member.eligibleForSubtype(st);
             }
+        } else if (st instanceof SJSetType_c) {
+            for (SJSessionType_c otherMember : ((SJSetType_c)st).members) {
+                for (SJSessionType_c member : members)
+                    if (member.eligibleForSubtype(otherMember)) return true;
+            }
+            return false;
         } else {
             for (SJSessionType_c member : members) if (member.eligibleForSubtype(st)) return true;
             return false;
@@ -62,7 +68,7 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     }
 
     protected boolean compareNode(NodeComparison o, SJSessionType st) {
-        if (isSingleton()) return members.get(0).compareNode(o,st);        
+        if (isSingleton()) return members.get(0).compareNode(o,st);
         throw new UnsupportedOperationException("Non-singleton set types not supported yet");
     }
 
@@ -132,5 +138,13 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     @Override
     public SJSessionType child(SJSessionType child) {
         throw new UnsupportedOperationException("cannot set child for set type");
+    }
+
+    @Override
+    public SJSessionType supertypeCandidate(SJSessionType potentialSubtype) {
+        for (SJSessionType member : members) {
+            if (potentialSubtype.isSubtype(member)) return member;
+        }
+        return this;
     }
 }

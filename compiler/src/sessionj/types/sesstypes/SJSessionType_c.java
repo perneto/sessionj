@@ -169,10 +169,12 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	
 	public boolean nodeSubtype(SJSessionType st)
 	{
-		return eligibleForSubtype(st) && compareNode(NodeComparison.SUBTYPE, st);
+        SJSessionType candidate = st.supertypeCandidate(this);
+		return eligibleForSubtype(candidate) && compareNode(NodeComparison.SUBTYPE, candidate);
 	}
 	
 	public boolean nodeDualtype(SJSessionType st)
+    // Should check message SVUID values?
 	{
 		return eligibleForDualtype(st) && compareNode(NodeComparison.DUALTYPE, st);
 	}
@@ -268,5 +270,14 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
     public SJSessionType nodeDual() throws SemanticException {
         throw new SemanticException("[SJSessionType] This session type: "
             + this + " does not admit a dual");
+    }
+
+    /**
+     * By default, no change for the isSubtype comparison.
+     * @param potentialSubtype
+     * @return
+     */
+    public SJSessionType supertypeCandidate(SJSessionType potentialSubtype) {
+        return this;
     }
 }
