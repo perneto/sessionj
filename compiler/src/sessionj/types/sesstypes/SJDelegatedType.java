@@ -58,18 +58,7 @@ public class SJDelegatedType extends SJSessionType_c implements SJSessionType
 		SJSessionType ours = getDelegatedType();
 		SJSessionType theirs = ((SJDelegatedType) st).getDelegatedType();
 		
-		switch (op)
-		{
-            // TODO: why equals() and not typeEquals() ?
-			case EQUALS:
-                return ours.equals(theirs);
-            case SUBTYPE:
-                return ours.isSubtype(theirs);
-            case DUALTYPE:
-                return ours.isDualtype(theirs);
-        }
-
-		throw new RuntimeException("[SJCBeginType_c] Shouldn't get here: " + op);
+        return op.apply(ours, theirs);
 	}
 	
 	public boolean nodeWellFormed()

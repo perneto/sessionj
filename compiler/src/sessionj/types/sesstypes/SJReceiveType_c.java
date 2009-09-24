@@ -39,10 +39,9 @@ public class SJReceiveType_c extends SJMessageCommunicationType_c implements SJR
 	{
 		switch (op)
 		{
-            // TODO: why equals() and not typeEquals() ?
-			case EQUALS: return messageType().equals(((SJReceiveType) st).messageType()); 
-			case SUBTYPE: return messageType().isSubtype(((SJReceiveType) st).messageType());  
-			case DUALTYPE: return ((SJSendType) st).messageType().isSubtype(messageType());
+			case EQUALS: return messageType().typeEquals(((SJMessageCommunicationType) st).messageType()); 
+			case SUBTYPE: return messageType().isSubtype(((SJMessageCommunicationType) st).messageType());
+			case DUALTYPE: return ((SJMessageCommunicationType) st).messageType().isSubtype(messageType());
 		}
 		
 		throw new RuntimeException("[SJCBeginType_c] Shouldn't get here: " + op);
