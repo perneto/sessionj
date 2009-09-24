@@ -20,15 +20,9 @@ public interface SJSessionType extends SJType
 	SJSessionType subsume(SJSessionType t) throws SemanticException;
 	boolean isWellFormed();
 
-	boolean treeEquals(SJSessionType tree); // Used by typeEquals.
-	boolean treeSubtype(SJSessionType tree);
-	boolean treeDualtype(SJSessionType tree);
-	SJSessionType treeSubsume(SJSessionType tree) throws SemanticException;
 	boolean treeWellFormed();
 
-	boolean nodeEquals(SJSessionType st);
 	boolean nodeSubtype(SJSessionType st); // this is a subtype of st. // Should check message SVUID values?
-	boolean nodeDualtype(SJSessionType st); // Should check message SVUID values?
 	SJSessionType nodeSubsume(SJSessionType st) throws SemanticException;
 	boolean nodeWellFormed();
 
@@ -49,4 +43,10 @@ public interface SJSessionType extends SJType
     boolean startsWith(Class<? extends SJSessionType> aClass);
 
     SJSessionType nodeDual() throws SemanticException;
+
+    /**
+     * Gives a chance to the parameter of the isSubtype call to present itself as an
+     * alternative type for the subtype comparison. Introduced for session set types
+     */
+    SJSessionType supertypeCandidate(SJSessionType potentialSubtype);
 }
