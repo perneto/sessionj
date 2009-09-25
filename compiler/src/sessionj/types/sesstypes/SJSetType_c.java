@@ -87,13 +87,36 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
         return true;
     }
 
+    private int subtypingPartialOrder(SJSessionType left, SJSessionType right) {
+        if (left.isSubtype(right)) return -1;
+        if (right.isSubtype(left)) return 1;
+        return 0;
+    }
 
     public SJSessionType nodeSubsume(SJSessionType st) throws SemanticException {
         if (isSingleton()) return members.get(0).nodeSubsume(st);        
-        // TODO
-        throw new UnsupportedOperationException("Non-singleton set types not supported yet");
-    }
 
+        throw new UnsupportedOperationException("Non-singleton set types not supported yet");
+        // TODO intersection of the two sets modulo subtyping
+        /*
+        if (st instanceof SJSetType_c) {
+            List<SJSessionType_c> newMembers = new LinkedList<SJSessionType_c>();
+            for (SJSessionType member : members) {
+                SJSessionType_c mostSpecific = mostSpecific(member, (SJSetType_c) st);
+                if (mostSpecific != null) newMembers.add(mostSpecific);
+            }
+        } else {
+        }
+        */
+    }
+/*
+    private SJSessionType_c mostSpecific(SJSessionType member, SJSetType_c other) {
+        for (SJSessionType otherMember : other.members) {
+            int order = subtypingPartialOrder(otherMember, member);
+            
+        }
+    }
+*/
     public boolean nodeWellFormed() {
         if (members.isEmpty()) return false;
         for (SJSessionType elem : members) {
