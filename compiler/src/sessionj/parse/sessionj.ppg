@@ -279,7 +279,7 @@ sj_session_type_body ::=
 ;
 
 sj_session_type_element ::=
-	//NOT:a LPAREN sj_message_type:b RPAREN:c // Broken by session type cast.
+	//Cannot use LPAREN/RPAREN, conflicts with session type cast.
 	NOT:a LT sj_message_type:b GT:c
 	{: 
 		RESULT = parser.nf.SJSendNode(parser.pos(a, c), b); 
@@ -743,17 +743,21 @@ sj_session_type_cast_expression ::= // Extra keywords needed to prevent grammar 
 	{: 
 		RESULT = parser.nf.SJChannelCast(parser.pos(a, c), c, b); // FIXME: protocol references to channel types will be incorrectly parsed as session type bodies. (Currently dealt with by disallowing protocol references to channel types). So maybe better to have a manual SJ parse pass for session casts and formals before base type checking. But this might be difficult - somehow need session type information first. Then maybe use a SJServiceSocketHack style hack. Old SJ didn't have this problem because used inactive session sockets. 
 	:}
-|	LPAREN:a sj_session_type_body:b RPAREN method_invocation:c  
+|	LPAREN:a sj_session_type_body:type RPAREN method_invocation:m
 	{: 
-		if (b instanceof SJProtocolNode)
+		if (type instanceof SJProtocolNode)
 		{
-			RESULT = parser.nf.SJAmbiguousCast(parser.pos(a, c), c, b);
+			RESULT = parser.nf.SJAmbiguousCast(parser.pos(a, m), m, type);
 		}
 		else
 		{
-			RESULT = parser.nf.SJSessionCast(parser.pos(a, c), c, b);
+			RESULT = parser.nf.SJSessionCast(parser.pos(a, m), m, type);
 		}
 	:}
+|   LPAREN:a sj_session_set_type:set RPAREN method_invocation:m
+    {:
+        RESULT = parser.nf.SJSessionCast(parser.pos(a,m), m, set);
+    :}
 ;
 
 
