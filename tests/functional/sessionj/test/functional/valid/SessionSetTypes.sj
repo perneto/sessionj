@@ -50,8 +50,9 @@ public class SessionSetTypes extends AbstractValidTest3Peers {
         final noalias SJSocket s1, s2;
         try (s1, s2) {
             s1 = chan.request();
-            s2 = (!<int>) s1.receive();
-            s2.send(42);
+            s2 = ({!<int>, !<boolean>}) s1.receive();
+            // TODO typecase
+            // s2.send(42);
         } finally {}
     }
 
