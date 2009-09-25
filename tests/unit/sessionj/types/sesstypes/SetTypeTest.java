@@ -31,16 +31,20 @@ public class SetTypeTest {
         TopLevelResolver resolver = new LoadedClassResolver
             (ts, classpath, new ClassFileLoader(ext), new Version(), true);
         ts.initialize(resolver, ext);
-        sendBool = new SJSendType_c(ts, new PrimitiveType_c(ts, PrimitiveType.BOOLEAN));
+        sendBool = sendType(PrimitiveType.BOOLEAN);
         sendString = new SJSendType_c(ts, ts.String());
         sendObject = new SJSendType_c(ts, ts.Object());
         receiveObject = new SJReceiveType_c(ts, ts.Object());
         receiveString = new SJReceiveType_c(ts, ts.String());
         members = new LinkedList<SJSessionType_c>() {{
             add(sendBool);
-            add(new SJSendType_c(ts, new PrimitiveType_c(ts, PrimitiveType.INT)));
+            add(sendType(PrimitiveType.INT));
         }};
         set = new SJSetType_c(ts, members);
+    }
+
+    private SJSendType_c sendType(PrimitiveType.Kind primitive) throws SemanticException {
+        return new SJSendType_c(ts, new PrimitiveType_c(ts, primitive));
     }
 
     @Test
@@ -59,7 +63,7 @@ public class SetTypeTest {
 
     @Test
     public void notSubtypeNotMemberOfSet() throws SemanticException {
-        Type sendFloat = new SJSendType_c(ts, new PrimitiveType_c(ts, PrimitiveType.FLOAT));
+        Type sendFloat = sendType(PrimitiveType.FLOAT);
         assert !sendFloat.isSubtype(set);
         assert !set.isSubtype(sendFloat);
     }
@@ -91,8 +95,45 @@ public class SetTypeTest {
         assert setWithSubtypes.isSubtype(setWithSupertypes);
     }
 
-    public void subsumeSet() throws SemanticException {
+    //@Test
+    public void subsumeSetAndMemberOfSet() throws SemanticException {
         SJSessionType result = set.subsume(sendBool);
-        //TODO
+        assert result instanceof SJSetType;
+        // a singleton with just sendBool in it
+        assert result.isSubtype(sendBool);
+        assert sendBool.isSubtype(result);
+    }
+
+    //@Test
+    public void subsumeSetAndSubtypeOfMemberOfSet() throws SemanticException {
+        SJSessionType setWithSupertype = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+            add(sendString);
+            add(sendBool);
+        }});
+
+        SJSessionType result = setWithSupertype.subsume(sendObject);
+        assert result instanceof SJSetType;
+        assert result.isSubtype(sendObject);
+        assert sendObject.isSubtype(result);
+    }
+
+    //@Test
+    public void subsumeFoo() throws SemanticException {
+        SJSessionType set1 = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+            add(sendString);
+            add(sendObject);
+        }});
+
+        SJSessionType set2 = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+            add(sendString);
+        }});
+        SJSessionType result = set1.subsume(set2);
+        assert result.isSubtype(sendString);
+        assert sendString.isSubtype(result);
+    }
+
+    //@Test(expectedExceptions = SemanticException.class)
+    public void unsuccessfulSubsuption() {
+        
     }
 }
