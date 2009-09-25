@@ -16,7 +16,7 @@ public class SJRecursion_c extends For_c implements SJRecursion
 
 	public SJRecursion_c(Position pos, List inits, Expr cond, Block body, SJLabel lab, List targets)
 	{
-		super(pos, inits, cond, Collections.EMPTY_LIST, body);
+		super(pos, inits, cond, Collections.emptyList(), body);
 
 		this.targets = targets;
 		this.lab = lab;
