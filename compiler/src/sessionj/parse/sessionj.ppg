@@ -90,6 +90,8 @@ terminal Token SJ_OUTWHILE;
 terminal Token SJ_NEWOUTWHILE;
 terminal Token SJ_INWHILE;
 terminal Token SJ_RECURSION;
+terminal Token SJ_TYPECASE;
+terminal Token SJ_WHEN;
 
 terminal Token SJ_SPAWN;
 
@@ -140,6 +142,10 @@ non terminal SJOutwhile sj_newoutwhile_statement;
 non terminal SJOutInwhile sj_outinwhile_statement;
 non terminal SJInwhile sj_inwhile_statement;
 non terminal SJRecursion sj_recursion_statement;
+non terminal SJTypecase sj_typecase_statement;
+
+non terminal List sj_typecase_caselist;
+non terminal SJWhen sj_typecase_when;
 
 non terminal SJSessionTypeCast sj_session_type_cast_expression;
 
@@ -578,34 +584,14 @@ extend statement ::=
 ;
 
 sj_structural_operation ::=
-	sj_outbranch_statement:a
-	{: 
-		RESULT = a; 
-	:}
-| sj_inbranch_statement:a
-	{: 
-		RESULT = a; 
-	:}
-|	sj_outwhile_statement:a
-	{: 
-		RESULT = a; 
-	:}
-|	sj_newoutwhile_statement:a
-	{:
-		RESULT = a;
-	:}
-|	sj_outinwhile_statement:a
-	{: 
-		RESULT = a; 
-	:}
-|	sj_inwhile_statement:a
-	{: 
-		RESULT = a; 
-	:}
-| sj_recursion_statement:a
-	{:
-		RESULT = a;
-	:}
+	sj_outbranch_statement:a   {: RESULT = a; :}
+|   sj_inbranch_statement:a    {: RESULT = a; :}
+|	sj_outwhile_statement:a    {: RESULT = a; :}
+|	sj_newoutwhile_statement:a {: RESULT = a; :}
+|	sj_outinwhile_statement:a  {: RESULT = a; :}
+|	sj_inwhile_statement:a     {: RESULT = a; :}
+|   sj_recursion_statement:a   {: RESULT = a; :}
+|   sj_typecase_statement:a    {: RESULT = a; :}
 ;
 
 sj_outbranch_statement ::=
@@ -629,17 +615,14 @@ sj_inbranch_statement ::=
 
 sj_inbranch_cases ::=
 	sj_inbranch_case:a
-	{: 
-		List l = new TypedList(new LinkedList(), SJInbranchCase.class, false); // TypedList is a legacy approximation to generics.
-
+	{: // TypedList is a legacy approximation to generics.
+		List l = new TypedList(new LinkedList(), SJInbranchCase.class, false);
 		l.add(a);
-		
 		RESULT = l; 
 	:}
 |	sj_inbranch_cases:a sj_inbranch_case:b
 	{: 
 		a.add(b);
-
 		RESULT = a; 
 	:}
 ;
@@ -738,10 +721,41 @@ sj_recursion_statement ::=
 	:}
 ;
 
+sj_typecase_statement ::=
+    SJ_TYPECASE:t LPAREN name:socket RPAREN LBRACE sj_typecase_caselist:l RBRACE:end
+    {:
+        RESULT = parser.nf.SJTypecase(parser.pos(t,end), socket, l);
+    :}
+;
+
+sj_typecase_caselist ::=
+    sj_typecase_when:w
+    {:
+        List l = new LinkedList();
+        l.add(w); RESULT = l;
+    :}
+|   sj_typecase_caselist:l sj_typecase_when:w
+    {:
+        l.add(w); RESULT = l;
+    :}
+;
+
+sj_typecase_when ::=
+    SJ_WHEN:w LPAREN sj_session_type:t RPAREN statement:body
+    {:
+        RESULT = parser.nf.SJWhen(parser.pos(w,body), t, body);
+    :}
+;
+
 sj_session_type_cast_expression ::= // Extra keywords needed to prevent grammar problems with the send type constructor, and also makes handling protocol reference nodes easier.
 	LPAREN:a sj_channel_type:b RPAREN method_invocation:c // Should be a SJReceive (or SJReceiveChannel). 
 	{: 
-		RESULT = parser.nf.SJChannelCast(parser.pos(a, c), c, b); // FIXME: protocol references to channel types will be incorrectly parsed as session type bodies. (Currently dealt with by disallowing protocol references to channel types). So maybe better to have a manual SJ parse pass for session casts and formals before base type checking. But this might be difficult - somehow need session type information first. Then maybe use a SJServiceSocketHack style hack. Old SJ didn't have this problem because used inactive session sockets. 
+		RESULT = parser.nf.SJChannelCast(parser.pos(a, c), c, b);
+		// FIXME: protocol references to channel types will be incorrectly parsed as session type bodies.
+		// (Currently dealt with by disallowing protocol references to channel types).
+		// So maybe better to have a manual SJ parse pass for session casts and formals before base type checking.
+		// But this might be difficult - somehow need session type information first. Then maybe
+		// use a SJServiceSocketHack style hack. Old SJ didn't have this problem because used inactive session sockets. 
 	:}
 |	LPAREN:a sj_session_type_body:type RPAREN method_invocation:m
 	{: 

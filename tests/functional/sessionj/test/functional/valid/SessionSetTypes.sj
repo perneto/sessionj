@@ -51,8 +51,10 @@ public class SessionSetTypes extends AbstractValidTest3Peers {
         try (s1, s2) {
             s1 = chan.request();
             s2 = ({!<int>, !<boolean>}) s1.receive();
-            // TODO typecase
-            // s2.send(42);
+            typecase (s2) {
+                when (!<int>) { s2.send(42); }
+                when (!<boolean>) { s2.send(true); }
+            }
         } finally {}
     }
 
