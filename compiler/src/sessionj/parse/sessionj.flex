@@ -125,6 +125,9 @@ import sessionj.SJConstants;
         keywords.put(SJConstants.SJ_KEYWORD_RECURSION, new Integer(sym.SJ_RECURSION));
         
         keywords.put(SJConstants.SJ_KEYWORD_SPAWN, new Integer(sym.SJ_SPAWN));
+
+        keywords.put(SJConstants.SJ_KEYWORD_TYPECASE, new Integer(sym.SJ_TYPECASE));
+        keywords.put(SJConstants.SJ_KEYWORD_WHEN, new Integer(sym.SJ_WHEN));
         // YAR
     }
 
