@@ -16,6 +16,7 @@ import sessionj.extension.noalias.SJNoAliasExprExt;
 import sessionj.extension.sessops.SJSessionOperationExt;
 import sessionj.extension.sesstypes.SJTypeableExt;
 import static sessionj.util.SJCompilerUtils.*;
+import sessionj.visit.noalias.SJNoAliasExprBuilder;
 
 import java.util.LinkedList;
 
@@ -66,7 +67,7 @@ public class SJSendTranslator extends ContextVisitor //ErrorHandlingVisitor
 			SJTypeableExt te = getSJTypeableExt(s);
 			
 			p = (SJPass) buildAndCheckTypes(job(), this, p);
-			p = (SJPass) setSJNoAliasExprExt(sjef, p, naee.isNoAlias(), naee.isFinal(), naee.fields(), naee.locals(), naee.arrayAccesses());						
+			p = (SJPass) SJNoAliasExprBuilder.setSJNoAliasExprExt(sjef, p, naee.isNoAlias(), naee.isFinal(), naee.fields(), naee.locals(), naee.arrayAccesses());
 			p = (SJPass) setSJSessionOperationExt(sjef, p, te.sessionType(), ((SJSessionOperationExt) te).targetNames());
 		}
 		else

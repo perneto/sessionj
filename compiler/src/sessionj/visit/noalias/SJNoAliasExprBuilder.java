@@ -792,4 +792,26 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 			throw new SemanticException("[SJNoAliasExprBuilder] Expr not yet supported: " + e);
 		}
 	}
+
+    public static Node setSJNoAliasVariablesExt(SJExtFactory sjef, Node n, List<Field> fields, List<Local> locals, List<ArrayAccess> arrayAccesses)
+    {
+        SJNoAliasVariablesExt nave = sjef.SJNoAliasVariablesExt();
+
+        nave.addFields(fields);
+        nave.addLocals(locals);
+        nave.addArrayAccesses(arrayAccesses);
+
+        return n.ext(1, nave);
+    }
+
+    public static Node setSJNoAliasExprExt(SJExtFactory sjef, Node n, boolean isNoAlias, boolean isExpr, List<Field> fields, List<Local> locals, List<ArrayAccess> arrayAccesses)
+    {
+        SJNoAliasExprExt naee = sjef.SJNoAliasExprExt(isNoAlias, isExpr);
+
+        naee.addFields(fields);
+        naee.addLocals(locals);
+        naee.addArrayAccesses(arrayAccesses);
+
+        return n.ext(1, naee);
+    }
 }
