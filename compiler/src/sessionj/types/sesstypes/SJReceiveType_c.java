@@ -4,7 +4,7 @@ import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
 import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.subsumeReceiveTypes;
+import sessionj.util.SJCompilerUtils;
 
 public class SJReceiveType_c extends SJMessageCommunicationType_c implements SJReceiveType
 {
@@ -74,5 +74,10 @@ public class SJReceiveType_c extends SJMessageCommunicationType_c implements SJR
 
     public SJSessionType nodeDual() throws SemanticException {
         return typeSystem().SJSendType(messageType());
+    }
+
+    public static Type subsumeReceiveTypes(Type t1, Type t2) throws SemanticException
+    {
+        return SJCompilerUtils.subsumeMessageTypes(t1, t2, false);
     }
 }

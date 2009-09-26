@@ -3,8 +3,6 @@
  */
 package sessionj.visit;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.*;
 import polyglot.types.*;
@@ -12,26 +10,20 @@ import polyglot.util.Position;
 import polyglot.visit.*;
 
 import sessionj.ast.*;
-import sessionj.ast.createops.*;
 import sessionj.ast.protocoldecls.*;
-import sessionj.ast.sessvars.*;
 import sessionj.ast.sesscasts.SJAmbiguousCast;
 import sessionj.ast.sesscasts.SJSessionTypeCast;
 import sessionj.ast.sessformals.SJFormal;
-import sessionj.ast.sessops.*;
-import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.typenodes.SJTypeNode;
 import sessionj.extension.*;
 import sessionj.extension.noalias.*;
 import sessionj.types.*;
-import sessionj.types.contexts.*;
 import sessionj.types.sesstypes.*;
 import sessionj.types.typeobjects.*;
-import sessionj.types.noalias.*;
-import sessionj.util.noalias.*;
 
 import static sessionj.SJConstants.*;
 import static sessionj.util.SJCompilerUtils.*;
+import sessionj.visit.noalias.SJNoAliasExprBuilder;
 
 /**
  * @author Raymond
@@ -166,7 +158,7 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 			}
 			
 			stc = (SJSessionTypeCast) buildAndCheckTypes(job, this, stc);
-			stc = (SJSessionTypeCast) setSJNoAliasExprExt(sjef, stc, naee.isNoAlias(), naee.isFinal(), naee.fields(), naee.locals(), naee.arrayAccesses());			
+			stc = (SJSessionTypeCast) SJNoAliasExprBuilder.setSJNoAliasExprExt(sjef, stc, naee.isNoAlias(), naee.isFinal(), naee.fields(), naee.locals(), naee.arrayAccesses());
 		}
 		else
 		{

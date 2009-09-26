@@ -37,7 +37,7 @@ public class SJCompilerUtils
 	
 	public static void updateSJFieldInstance(FieldInstance fi, SJFieldInstance sjfi)
 	{
-		SJParsedClassType pct = (SJParsedClassType) fi.container();
+		ParsedClassType pct = (ParsedClassType) fi.container();
 		List<FieldInstance> fields = new LinkedList<FieldInstance>();
 
         for (Object o : pct.fields()) {
@@ -113,13 +113,8 @@ public class SJCompilerUtils
 	{
 		return getSJTypeableExt(n).sessionType();
 	}
-	
-	public static String getSJName(Node n)
-	{
-		return getSJNamedExt(n).sjname();
-	}
-	
-	public static SJNoAliasExt getSJNoAliasExt(Node n) // First ext link is for noalias.
+
+    public static SJNoAliasExt getSJNoAliasExt(Node n) // First ext link is for noalias.
 	{
 		return (SJNoAliasExt) n.ext(1); // Factor out constant.
 	}
@@ -145,42 +140,20 @@ public class SJCompilerUtils
 	{
 		return (SJNoAliasVariablesExt) n.ext(1);
 	}
-	
-	public static Node setSJNoAliasVariablesExt(SJExtFactory sjef, Node n, List<Field> fields, List<Local> locals, List<ArrayAccess> arrayAccesses)
-	{
-		SJNoAliasVariablesExt nave = sjef.SJNoAliasVariablesExt();
-		
-		nave.addFields(fields);
-		nave.addLocals(locals);
-		nave.addArrayAccesses(arrayAccesses);
-		
-		return n.ext(1, nave);
-	}
-	
-	public static SJNoAliasExprExt getSJNoAliasExprExt(Node n) // First ext link is for noalias.
+
+    public static SJNoAliasExprExt getSJNoAliasExprExt(Node n) // First ext link is for noalias.
 	{
 		return (SJNoAliasExprExt) getSJNoAliasExt(n);
 	}
-	
-	public static Node setSJNoAliasExprExt(SJExtFactory sjef, Node n, boolean isNoAlias, boolean isExpr, List<Field> fields, List<Local> locals, List<ArrayAccess> arrayAccesses)
-	{
-		SJNoAliasExprExt naee = sjef.SJNoAliasExprExt(isNoAlias, isExpr);
-		
-		naee.addFields(fields);
-		naee.addLocals(locals);
-		naee.addArrayAccesses(arrayAccesses);
-		
-		return n.ext(1, naee);
-	}
-	
-	//Only works post disambiguation pass. Prior to that, represented by SJAmbNoAliasTypeNode.
+
+    //Only works post disambiguation pass. Prior to that, represented by SJAmbNoAliasTypeNode.
 	public static boolean isNoAlias(Node n)
 	{
 		if (n instanceof TypeNode) // Ext object can be null for regular TypeNodes.*/
 		{
 			SJNoAliasExt nae = getSJNoAliasExt(n);		
 			
-			return (nae != null) && nae.isNoAlias();
+			return nae != null && nae.isNoAlias();
 		}
 		else
 		{
@@ -199,18 +172,8 @@ public class SJCompilerUtils
 	{
 		job.ast(job.ast().visit(new SJNodeReplacer(old, n)));
 	}*/
-	
-	public static Type subsumeSendTypes(Type t1, Type t2) throws SemanticException
-	{
-		return subsumeMessageTypes(t1, t2, true);
-	}
 
-	public static Type subsumeReceiveTypes(Type t1, Type t2) throws SemanticException
-	{
-		return subsumeMessageTypes(t1, t2, false);
-	}
-	
-	private static Type subsumeMessageTypes(Type t1, Type t2, boolean forSend) throws SemanticException // false forSend means for receive.
+    public static Type subsumeMessageTypes(Type t1, Type t2, boolean forSend) throws SemanticException // false forSend means for receive.
 	{
 		if (t1 instanceof SJSessionType)
 		{
@@ -230,7 +193,7 @@ public class SJCompilerUtils
 	
 			if (t1.isSubtype(t2)) // Could be checked earlier.
 			{
-				return (forSend) ? t2 : t1;
+				return forSend ? t2 : t1;
 			}
 			else if (t2.isSubtype(t1))
 			{
@@ -299,15 +262,15 @@ public class SJCompilerUtils
 
     public static SJSessionType dualSessionType(SJSessionType st) throws SemanticException
 	{
-		SJSessionType dual = null; 
-		
-		for ( ; st != null; st = st.child())
-		{
+		SJSessionType dual = null;
+
+        while (st != null) {
             SJSessionType next = st.nodeDual();
-			dual = dual == null ? next : dual.append(next);
-		}
-		
-		return dual;
+            dual = dual == null ? next : dual.append(next);
+            st = st.child();
+        }
+
+        return dual;
 	}
 	
 	public static ClassDecl findClassDecl(SourceFile sf, String name)

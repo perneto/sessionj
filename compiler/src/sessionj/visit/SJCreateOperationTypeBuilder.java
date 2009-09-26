@@ -229,7 +229,12 @@ public class SJCreateOperationTypeBuilder extends ContextVisitor
 		pd = (SJProtocolDecl) setSJNamedExt(sjef, pd, st, sjname);			
 		
 		return pd;
-	}	
+	}
+
+    public static String getSJName(Node n)
+    {
+        return getSJNamedExt(n).sjname();
+    }
 }
 
 /**
