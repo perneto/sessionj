@@ -4,6 +4,7 @@ import polyglot.ast.*;
 import polyglot.frontend.ExtensionInfo;
 import polyglot.types.Flags;
 import polyglot.util.Position;
+import polyglot.parse.Name;
 import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.createops.SJChannelCreate;
 import sessionj.ast.createops.SJServerCreate;
@@ -103,6 +104,9 @@ public interface SJNodeFactory extends NodeFactory
 	SJInwhile SJInwhile(Position pos, Stmt body, List targets);
 	//SJRecursion SJRecursion(SJTypeSystem ts, Position pos, List stmts, SJLabel lab, List targets);
 	SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets);
+
+    SJTypecase SJTypecase(Position pos, Name socket, List<SJWhen> cases);
+    SJWhen SJWhen(Position pos, SJTypeNode type, Stmt body);
 	
 	SJAccept SJAccept(Position pos, Receiver target, List arguments);
 	

@@ -5,6 +5,7 @@ import polyglot.frontend.ExtensionInfo;
 import polyglot.qq.QQ;
 import polyglot.types.Flags;
 import polyglot.util.Position;
+import polyglot.parse.Name;
 import static sessionj.SJConstants.*;
 import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.chanops.SJRequest_c;
@@ -380,11 +381,10 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	public SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets) // Inconvenient to ...
 	{
 		QQ qq = new QQ(extInfo, pos);
-		
-		String translation;
-		List<Object> mapping = new LinkedList<Object>();
-		
-		translation = "for ( ; new Boolean(false).booleanValue(); ) { }";
+
+        List<Object> mapping = new LinkedList<Object>();
+
+        String translation = "for ( ; new Boolean(false).booleanValue(); ) { }";
         // Dummy condition later replaced by SJCompoundOperationTranslator.
         // Used because we cannot give the intended loop-variable the correct name yet (targets are ambiguous).
 		
@@ -401,8 +401,16 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 
         return new SJRecursion_c(pos, f.inits(), f.cond(), body, lab, targets);
 	}
-	
-	public SJAccept SJAccept(Position pos, Receiver target, List arguments)
+
+    public SJTypecase SJTypecase(Position pos, Name socket, List<SJWhen> cases) {
+        return new SJTypecase_c(pos, socket.toReceiver(), cases);
+    }
+
+    public SJWhen SJWhen(Position pos, SJTypeNode type, Stmt body) {
+        return new SJWhen_c(pos, type, body);
+    }
+
+    public SJAccept SJAccept(Position pos, Receiver target, List arguments)
 	{	
 		Id name = Id(pos, SJ_SERVER_ACCEPT);
 

@@ -36,6 +36,8 @@ public class SJConstants
 	public static final String SJ_KEYWORD_RECEIVEDOUBLE = "receiveDouble";
 	public static final String SJ_KEYWORD_REC = "rec";
 	public static final String SJ_KEYWORD_RECURSE = "recurse";
+    public static final String SJ_KEYWORD_TYPECASE = "typecase";
+    public static final String SJ_KEYWORD_WHEN = "when";
 
 	public static final String SJ_KEYWORD_OUTBRANCH = "outbranch";
 	public static final String SJ_KEYWORD_INBRANCH = "inbranch";
