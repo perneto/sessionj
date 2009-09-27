@@ -465,13 +465,14 @@
     </target>
 
     <target name="unittest" depends="compile-all,compile-unittest" description="run unit tests">
-        <testng verbose="2">
+        <testng failureproperty="unittests.failed" verbose="2">
             <classfileset dir="${unittest.classes}" includes="**/*.class"/>
             <classpath>
                 <path refid="standard.classpath"/>
                 <pathelement location="${unittest.classes}"/>
             </classpath>                    
         </testng>
+        <fail if="unittests.failed"/>
     </target>
 
     <target name="compile-functionaltest">
@@ -486,7 +487,7 @@
         <condition property="testcase" value="null">
             <not><isset property="testcase"/></not>
         </condition>
-        <testng>
+        <testng failureproperty="functionaltests.failed">
             <sysproperty key="sessionj.test.functional.classesdir" value="${tempdir.name}"/>
             <sysproperty key="testcase" value="${testcase}"/>
             <xmlfileset dir="${functionaltest.src}" includes="testng.xml"/>
@@ -495,6 +496,7 @@
                 <pathelement location="${functionaltest.classes}"/>
             </classpath>
        </testng>
+       <fail if="functionaltests.failed"/>
    </target>
 
 </project>
