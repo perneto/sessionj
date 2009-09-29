@@ -5,6 +5,7 @@ import org.testng.annotations.BeforeTest;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
 import sessionj.runtime.transport.SJConnection;
+import sessionj.types.sesstypes.SJSessionType;
 
 @SuppressWarnings({"ALL"})
 public class MultiPartyInsyncTest {
@@ -87,6 +88,10 @@ public class MultiPartyInsyncTest {
         }
 
         public boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException {
+            return false;
+        }
+
+        public boolean hasSessionType(SJSessionType type) {
             return false;
         }
 

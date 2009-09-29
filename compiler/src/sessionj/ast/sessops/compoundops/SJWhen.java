@@ -1,4 +1,10 @@
 package sessionj.ast.sessops.compoundops;
 
-public interface SJWhen extends SJCompoundOperation {
+import sessionj.types.contexts.SJTypeBuildingContext;
+import sessionj.types.contexts.SJContextElement;
+import polyglot.types.SemanticException;
+import polyglot.ast.Block;
+
+public interface SJWhen extends Block {
+    SJContextElement leaveSJContext(SJTypeBuildingContext sjcontext) throws SemanticException;
 }

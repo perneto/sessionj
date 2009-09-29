@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import sessionj.runtime.*;
 import sessionj.runtime.session.*;
 import sessionj.runtime.transport.*;
+import sessionj.types.sesstypes.SJSessionType;
 
 abstract public class SJAbstractSocket implements SJSocket
 {
@@ -205,6 +206,10 @@ abstract public class SJAbstractSocket implements SJSocket
 
     public boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException {
         return sp.interruptingInsync(condition, peerInterruptible);
+    }
+
+    public boolean hasSessionType(SJSessionType type) {
+        return false;
     }
 
     public void sendChannel(SJService c, String encoded) throws SJIOException

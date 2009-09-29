@@ -7,6 +7,8 @@ import polyglot.ast.*;
 import polyglot.util.Position;
 
 import sessionj.util.SJLabel;
+import sessionj.ast.sessvars.SJVariable;
+import sessionj.ast.sessops.SJSessionOperation;
 
 public class SJRecursion_c extends For_c implements SJRecursion
 {
@@ -50,4 +52,16 @@ public class SJRecursion_c extends For_c implements SJRecursion
 	{
 		return (Block) super.body();
 	}
+
+    public List<Receiver> ambiguousTargets() {
+        return null;
+    }
+
+    public List<SJVariable> resolvedTargets() {
+        return null;
+    }
+
+    public SJSessionOperation resolvedTargets(List<SJVariable> resolved) {
+        return null;
+    }
 }

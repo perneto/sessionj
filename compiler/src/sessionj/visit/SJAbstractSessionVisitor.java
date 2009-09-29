@@ -424,7 +424,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		{
 			ce = sjcontext.pop();
 		}
-		else if (n instanceof SJInbranch)
+		else if (n instanceof SJInbranch || n instanceof SJTypecase)
 		{
 			ce = sjcontext.pop();
 		}

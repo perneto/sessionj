@@ -2,6 +2,7 @@ package sessionj.runtime.net;
 
 import sessionj.runtime.*;
 import sessionj.runtime.transport.SJConnection;
+import sessionj.types.sesstypes.SJSessionType;
 
 public interface SJSocket extends SJChannel
 {	
@@ -39,6 +40,7 @@ public interface SJSocket extends SJChannel
     boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException;
     boolean interruptibleOutsync(boolean condition) throws SJIOException;
     boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException;
+    boolean hasSessionType(SJSessionType type);
 
 	// Higher-order.
 	//public void sendChannel(SJService c) throws SJIOException;
