@@ -41,6 +41,8 @@ public interface SJSessionType extends SJType
 
     // A first step to remove the instanceof checks in SJTypeChecker and friends.
     boolean startsWith(Class<? extends SJSessionType> aClass);
+    // TODO: void checkStartsWith throws SemanticException, to factor out
+    // all the scattered throw SemanticException
 
     SJSessionType nodeDual() throws SemanticException;
 

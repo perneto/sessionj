@@ -8,6 +8,8 @@ import polyglot.util.*;
 import java.util.*;
 
 import sessionj.ast.sessops.basicops.SJInlabel;
+import sessionj.ast.sessops.SJSessionOperation;
+import sessionj.ast.sessvars.SJVariable;
 import sessionj.util.SJLabel;
 
 import static sessionj.SJConstants.*;
@@ -34,7 +36,7 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
 
 	public List<SJInbranchCase> branchCases()
 	{
-		return Collections.unmodifiableList(this.branchCases); // Why unmodifiable?
+		return Collections.unmodifiableList(branchCases); // Why unmodifiable?
 	}
 
 	public SJInbranch branchCases(List<SJInbranchCase> branchCases)
@@ -80,7 +82,7 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
 
 			if (labels.contains(lab))
 			{
-				throw new SemanticException("[SJInbranch_c] Duplicate case label: " + lab + ".", ibc.position());
+				throw new SemanticException("[SJInbranch_c] Duplicate case label: " + lab + '.', ibc.position());
 			}
 
 			labels.add(lab);
@@ -114,10 +116,7 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
 	
 	protected SJInbranch_c reconstruct(SJInlabel il, List<SJInbranchCase> branchCases)
 	{
-		if (inlabel() != il)
-		{
-			this.il = il;
-		}
+        this.il = il;
 		
 		if (!CollectionUtil.equals(branchCases, this.branchCases))
 		{
@@ -138,8 +137,8 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
 
 	public Node visitChildren(NodeVisitor v)
 	{
-		SJInlabel il = (SJInlabel) visitChild(inlabel(), v);
-		List branchCases = visitList(branchCases(), v);
+		SJInlabel il = (SJInlabel) visitChild(firstChild(), v);
+		List<SJInbranchCase> branchCases = visitList(branchCases(), v);
 		
 		return reconstruct(il, branchCases);
 	}
@@ -176,5 +175,18 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
 		String m = targets().toString();
 		
 		return '<' + m.substring(1, m.length() - 1) + '>';
-	}	
+	}
+    // end duplicated code from Switch_c
+
+    public List<Receiver> ambiguousTargets() {
+        return null;
+    }
+
+    public List<SJVariable> resolvedTargets() {
+        return null;
+    }
+
+    public SJSessionOperation resolvedTargets(List<SJVariable> resolved) {
+        return null;
+    }
 }

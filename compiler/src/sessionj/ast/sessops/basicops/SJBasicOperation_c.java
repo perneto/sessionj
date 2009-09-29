@@ -4,8 +4,11 @@ import polyglot.ast.*;
 import polyglot.util.Position;
 import static sessionj.SJConstants.SJ_RUNTIME_TYPE;
 import sessionj.ast.SJNodeFactory;
+import sessionj.ast.sessops.SJSessionOperation;
+import sessionj.ast.sessvars.SJVariable;
 
 import java.util.List;
+import java.util.Collections;
 
 /**
  * A call to a method of the SJ runtime.
@@ -49,6 +52,18 @@ abstract public class SJBasicOperation_c extends Call_c implements SJBasicOperat
 		
 		return this;
 	}
+
+    public List<Receiver> ambiguousTargets() {
+        return Collections.unmodifiableList(targets);
+    }
+
+    public List<SJVariable> resolvedTargets() {
+        return Collections.unmodifiableList(targets);
+    }
+
+    public SJSessionOperation resolvedTargets(List<SJVariable> resolved) {
+        return targets(resolved);
+    }
 
     public List<Expr> realArgs() {
         return arguments().subList(0, arguments().size()-1);

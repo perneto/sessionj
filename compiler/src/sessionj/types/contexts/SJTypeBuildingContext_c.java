@@ -9,6 +9,7 @@ import polyglot.types.*;
 import polyglot.visit.ContextVisitor;
 
 import sessionj.ast.sessops.compoundops.*;
+import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sesstry.*;
 import sessionj.ast.sessvars.*;
 import sessionj.types.*;
@@ -403,8 +404,19 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		
 		pushContextElement(tc);		
 	}
-	
-	public void pushSJBranchOperation(SJBranchOperation b) throws SemanticException // SJInbranch.
+
+    public void pushSJTypecase(SJTypecase typecase) throws SemanticException {
+        SJContextElement current = currentContext();
+        List<String> sjnames = getTargetNames(typecase);
+        assert sjnames.size() == 1;
+
+        current.checkActiveSessionStartsWith
+            (sjnames.get(0), SJSetType.class, "[SJTypeBuildingContext_c] found typecase, but expected: ");
+
+        pushContextElement(new SJTypecaseContext(current, typecase, sjnames.get(0)));
+    }
+
+    public void pushSJBranchOperation(SJBranchOperation b) throws SemanticException // SJInbranch.
 	{
 		if (b instanceof SJOutbranch)
 		{
@@ -413,22 +425,24 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		
 		SJContextElement current = currentContext();
 		
-		List<String> sjnames = getSJSessionOperationExt(b).targetNames();
-		
-		for (String sjname : sjnames) // Should only be a single target.
+		List<String> sjnames = getTargetNames(b);
+
+        assert sjnames.size() == 1 : "Session branch operations should only have a single target.";
+		for (String sjname : sjnames)
 		{
-			SJSessionType st = current.getActive(sjname);				
-			
-			if (!st.startsWith(SJInbranchType.class))
-			{
-				throw new SemanticException("[SJTypeBuildingContext_c] found inbranch, but expected: " + st); // Maybe better to explicitly check session is active (open) as well. 
-			} 
-		}						
+			current.checkActiveSessionStartsWith
+                (sjname, SJInbranchType.class, "[SJTypeBuildingContext_c] found inbranch, but expected: ");
+            // Maybe better to explicitly check session is active (open) as well.
+		}
 		
 		pushContextElement(new SJSessionBranchContext_c(current, b, sjnames));
 	}
-	
-	public void pushSJBranchCase(SJBranchCase bc) throws SemanticException
+
+    private List<String> getTargetNames(SJSessionOperation op) {
+        return getSJSessionOperationExt(op).targetNames();
+    }
+
+    public void pushSJBranchCase(SJBranchCase bc) throws SemanticException
 	{
 		SJContextElement current = currentContext();				
 		SJLabel lab = bc.label();
@@ -437,18 +451,16 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		{
 			SJOutbranch ob = (SJOutbranch) bc;
 			
-			pushContextElement(new SJOutbranchContext_c(current, ob, getSJSessionOperationExt(ob).targetNames(), lab));
+			pushContextElement(new SJOutbranchContext_c(current, ob, getTargetNames(ob), lab));
 			
-			for (String sjname : getSJSessionOperationExt(ob).targetNames())
+			for (String sjname : getTargetNames(ob))
 			{
 				SJSessionType st = current.getActive(sjname);
+
+                current.checkActiveSessionStartsWith
+                    (sjname, SJOutbranchType.class, "[SJTypeBuildingContext_c] found outbranch, but expected: ");
 				
-				if (!st.startsWith(SJOutbranchType.class))
-				{
-					throw new SemanticException("[SJTypeBuildingContext_c] found outbranch, but expected: " + st);
-				}				
-				
-				SJOutbranchType obt = (SJOutbranchType) st;
+				SJBranchType obt = (SJOutbranchType) st;
 				
 				if (!obt.hasCase(lab))
 				{
@@ -470,11 +482,9 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 			for (String sjname : ((SJSessionBranchContext) current).targets()) // Should only be a single target.
 			{
 				SJSessionType st = current.getActive(sjname);
-				
-				if (!st.startsWith(SJInbranchType.class))
-				{
-					throw new SemanticException("[SJTypeBuildingContext_c] found inbranch, but expected: " + st);
-				}				
+
+                current.checkActiveSessionStartsWith
+                    (sjname, SJInbranchType.class, "[SJTypeBuildingContext_c] found inbranch, but expected: ");
 				
 				SJInbranchType ibt = (SJInbranchType) st;
 				

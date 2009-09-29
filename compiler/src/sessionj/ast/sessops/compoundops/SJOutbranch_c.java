@@ -4,6 +4,8 @@ import polyglot.ast.Block_c;
 import polyglot.ast.Receiver;
 import polyglot.util.Position;
 import sessionj.util.SJLabel;
+import sessionj.ast.sessvars.SJVariable;
+import sessionj.ast.sessops.SJSessionOperation;
 
 import java.util.List;
 
@@ -36,7 +38,18 @@ public class SJOutbranch_c extends Block_c implements SJOutbranch
 		this.targets = targets;
 		
 		return this;
-	}	
-	
-	// Should set entry point to the socket operation for flow graph building. This is common for all structural operations.
+	}
+
+    public List<Receiver> ambiguousTargets() {
+        return null;
+    }
+
+    public List<SJVariable> resolvedTargets() {
+        return null;
+    }
+
+    public SJSessionOperation resolvedTargets(List<SJVariable> resolved) {
+        return null;
+    }
+    // Should set entry point to the socket operation for flow graph building. This is common for all structural operations.
 }

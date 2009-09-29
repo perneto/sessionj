@@ -54,9 +54,6 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 	private SJExtFactory sjef = sjnf.extFactory();
 	
-	/**
-	 * 
-	 */
 	public SJSessionOperationTypeBuilder(Job job, TypeSystem ts, NodeFactory nf)
 	{
 		super(job, ts, nf);
@@ -118,6 +115,9 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 						n = buildSJRecursion((SJRecursion) n);
 					}
 				}
+                else if (n instanceof SJTypecase) {
+                    n = ((SJTypecase) n).buildType(sjts, sjef);
+                }
 				else
 				{
 					throw new SemanticException("[SJSessionOperationTypeBuilder] Session operation not yet supported: " + n);
@@ -140,7 +140,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		return n;
 	}
 	
-	private SJCopy buildSJCopy(SJCopy c) throws SemanticException
+	private Node buildSJCopy(SJCopy c) throws SemanticException
 	{				
 		Expr arg = (Expr) c.arguments().get(0); // Factor out constant.
 		
@@ -159,7 +159,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		return c;
 	}
 	
-	private SJPass buildSJPass(SJPass p) throws SemanticException
+	private Node buildSJPass(SJPass p) throws SemanticException
 	{		
 		Expr arg = p.argument();
 		
@@ -192,7 +192,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		return p;
 	}
 	
-	private SJReceive buildSJReceive(SJReceive r) throws SemanticException
+	private Node buildSJReceive(SJReceive r) throws SemanticException
 	{		
 		String name = r.name();
 		
@@ -226,9 +226,9 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		return r;
 	}
 	
-	private SJRecurse buildSJRecurse(SJRecurse r)
+	private Node buildSJRecurse(SJRecurse r)
 	{
-		SJSessionType st = sjts.SJRecurseType(((SJRecurse) r).label());  		
+		SJSessionType st = sjts.SJRecurseType(r.label());  		
 		List<String> sjnames = getTargetNames(r.targets(), false);
 		
 		r = (SJRecurse) setSJSessionOperationExt(sjef, r, st, sjnames);
@@ -236,7 +236,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		return r;
 	}
 	
-	private Cast buildCast(Cast c) throws SemanticException
+	private Node buildCast(Cast c) throws SemanticException
 	{
 		Expr e = c.expr();
 		
@@ -244,7 +244,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		{
 			SJReceive r = (SJReceive) e;
 			List<String> sjnames = getSJSessionOperationExt(r).targetNames();
-			Type t = null;
+			Type t;
 			
 			if (c instanceof SJSessionTypeCast)
 			{
@@ -271,7 +271,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		return c;
 	}
 	
-	private SJBranchOperation buildSJBranchOperation(SJBranchOperation bo)
+	private Node buildSJBranchOperation(SJBranchOperation bo)
 	{
 		List sjnames = getTargetNames(bo.targets(), false);
 		SJSessionType st = sjts.SJUnknownType();
@@ -299,7 +299,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		return bo;
 	}
 	
-	private SJWhile buildSJWhile(SJWhile w)
+	private Node buildSJWhile(SJWhile w)
 	{
 		List sjnames = getTargetNames(w.targets(), false);
 		SJSessionType st = sjts.SJUnknownType();
@@ -320,7 +320,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		return w;
 	}
 	
-	private SJRecursion buildSJRecursion(SJRecursion r)
+	private Node buildSJRecursion(SJRecursion r)
 	{
 		List sjnames = getTargetNames(r.targets(), false);
 		SJSessionType st = sjts.SJRecursionType(r.label()).body(sjts.SJUnknownType());
@@ -330,7 +330,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		return r;
 	}
 	
-	private SJSpawn buildSJSpawn(SJSpawn s) throws SemanticException
+	private Node buildSJSpawn(SJSpawn s) throws SemanticException
 	{
 		List<String> sjnames = getTargetNames(s.targets(), true);
 		List<SJSessionType> sts = new LinkedList<SJSessionType>();
@@ -345,15 +345,15 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		return s;
 	}
 	
-	private static List<String> getTargetNames(List targets, boolean channelsAllowed)
+	public static List<String> getTargetNames(List targets, boolean channelsAllowed)
 	{
 		List<String> sjnames = new LinkedList<String>();
 
         for (Object target : targets) {
             SJVariable v = (SJVariable) target;
 
-            if (channelsAllowed && v instanceof SJLocalChannel) {
-                sjnames.add(v.sjname());
+            if (v instanceof SJLocalChannel) {
+                if (channelsAllowed) sjnames.add(v.sjname());
             } else {
                 sjnames.add(v.sjname());
             }

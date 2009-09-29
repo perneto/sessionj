@@ -10,6 +10,8 @@ import sessionj.types.typeobjects.SJNamedInstance;
 import java.util.HashMap;
 import java.util.Set;
 
+import polyglot.types.SemanticException;
+
 /**
  * @author Raymond
  *
@@ -182,7 +184,13 @@ public class SJContextElement_c implements SJContextElement
 		return activeSessions().contains(sjname);
 	}
 
-	public void clearChannels()
+    public void checkActiveSessionStartsWith(String sjname, Class<? extends SJSessionType> type, String message) throws SemanticException {
+        SJSessionType active = getActive(sjname);
+        if (!active.startsWith(type))
+            throw new SemanticException(message + active);
+    }
+
+    public void clearChannels()
 	{
 		channels.clear();
 	}

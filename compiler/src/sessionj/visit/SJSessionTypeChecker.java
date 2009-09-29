@@ -78,7 +78,8 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
         // (Shouldn't do, there is no Node n that will trigger both a context pop and the following routines.)
         // Not true: need to pop and process compound contexts before performing type building for those operations.
 		
-		/*if (n instanceof LocalDecl) // Channel fields currently not permitted. // Could make SJChannel/SocketDecl nodes.
+		/*if (n instanceof LocalDecl) // Channel fields currently not permitted.
+		// Could make SJChannel/SocketDecl nodes.
 		{
 			n = checkLocalDecl((LocalDecl) n);						
 		}
@@ -151,7 +152,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return n;
 	}
 	
-	private SJChannelOperation checkSJChannelOperation(Node parent, SJChannelOperation co) throws SemanticException
+	private Node checkSJChannelOperation(Node parent, SJChannelOperation co) throws SemanticException
 	{
 		if (co instanceof SJRequest) // Not really checking anything, rather finishing the type building process.
 		{
@@ -414,7 +415,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	
 	private SJSessionOperation checkSJSessionOperation(Node parent, SJSessionOperation so, SJContextElement ce) throws SemanticException
 	{
-		if (so instanceof SJInternalOperation)
+        if (so instanceof SJInternalOperation)
 		{
 			return so;
 		}
@@ -449,7 +450,8 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 				so = checkSJBasicOperation(parent, (SJBasicOperation) so, targetName, expected, st);
 			}
 			else if (so instanceof SJCompoundOperation) // The compound operation context has already been popped (and checked) so no need to (re)check expected, and `st' will still have SJUnknownType body (we're going to build it now).
-			{								
+			{
+                assert ce != null;
 				so = checkSJCompoundOperation((SJCompoundOperation) so, targetName, ce);
 			}	
 			else
@@ -471,7 +473,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			}
 			else
 			{
-				bo = checkSJPass((SJPass) bo, sjname, expected, st);
+				bo = checkSJPass((SJPass) bo, expected, st);
 			}
 		}
 		else if (bo instanceof SJReceive)
@@ -570,12 +572,12 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			throw new SemanticException(getVisitorName() + " Cannot copy session sockets: " + arg);
 		}*/
 
-		c = (SJCopy) checkSJPass(c, sjname, expected, st);
+		c = (SJCopy) checkSJPass(c, expected, st);
 		
 		return c;
 	}
 		
-	private SJPass checkSJPass(SJPass p, String sjname, SJSessionType expected, SJSessionType st) throws SemanticException // Includes SJSend (and SJCopy).
+	private SJBasicOperation checkSJPass(SJPass p, SJSessionType expected, SJSessionType st) throws SemanticException // Includes SJSend (and SJCopy).
 	{						
 		Expr arg = (Expr) p.arguments().get(0); // Factor out constant.
 		
@@ -650,25 +652,29 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return r;
 	}
 	
-	private SJCompoundOperation checkSJCompoundOperation(SJCompoundOperation co, String sjname, SJContextElement ce) throws SemanticException
+	private SJSessionOperation checkSJCompoundOperation(SJCompoundOperation co, String sjname, SJContextElement ce) throws SemanticException
 	{
 		SJSessionType implemented = ce.getImplemented(sjname); // Type already built by context pop, just need to attach it to the node.
 		
 		if (co instanceof SJBranchOperation)
 		{
-			co = checkSJBranchOperation((SJBranchOperation) co, sjname, implemented); // Actually more like build.
+			co = checkSJBranchOperation((SJBranchOperation) co, implemented); // Actually more like build.
 		}
 		else if (co instanceof SJLoopOperation)
 		{
 			if (co instanceof SJWhile)		
 			{
-				co = checkSJWhile((SJWhile) co, sjname, implemented); // Actually more like build.
+				co = checkSJWhile((SJWhile) co, implemented); // Actually more like build.
 			}
 			else //if (co instanceof SJRecursion)
 			{
-				co = checkSJRecursion((SJRecursion) co, sjname, implemented);
+				co = checkSJRecursion((SJRecursion) co, implemented);
 			}
 		}
+        else if (co instanceof SJTypecase)
+        {
+            co = ((SJTypecase) co).sessionTypeCheck(implemented, sjef);
+        }
 		else
 		{
 			throw new SemanticException(getVisitorName() + " Session operation not yet supported: " + co);
@@ -679,34 +685,27 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return co;
 	}
 	
-	private SJBranchOperation checkSJBranchOperation(SJBranchOperation bo, String sjname, SJSessionType st) throws SemanticException // Type built by context pop.
+	private SJBranchOperation checkSJBranchOperation(SJBranchOperation bo, SJSessionType st)  // Type built by context pop.
 	{
-		SJSessionOperationExt soe = getSJSessionOperationExt(bo);			
-		
-		bo = (SJBranchOperation) setSJSessionOperationExt(sjef, bo, st, soe.targetNames());
-		
-		return bo; // Nothing to check: correct compound type constructor checked on context push, and body type checked inductively. 
+        return (SJBranchOperation) decorateWithSessionType(bo, st, sjef);
+		// Nothing to check: correct compound type constructor checked on context push, and body type checked inductively.
+	}
+
+    public static SJSessionOperation decorateWithSessionType(SJSessionOperation bo, SJSessionType st, SJExtFactory sjef) {
+        SJSessionOperationExt soe = getSJSessionOperationExt(bo);
+        return (SJSessionOperation) setSJSessionOperationExt(sjef, bo, st, soe.targetNames());
+    }
+
+    private SJCompoundOperation checkSJWhile(SJWhile w, SJSessionType st) {
+        return (SJCompoundOperation) decorateWithSessionType(w, st, sjef);
+		// Nothing to check: correct compound type constructor checked on context push, and body type checked inductively. 
 	}
 	
-	private SJWhile checkSJWhile(SJWhile w, String sjname, SJSessionType st) throws SemanticException 
-	{
-		SJSessionOperationExt soe = getSJSessionOperationExt(w);
-		
-		w = (SJWhile) setSJSessionOperationExt(sjef, w, st, soe.targetNames()); // Type built by context pop.
-		
-		return w; // Nothing to check: correct compound type constructor checked on context push, and body type checked inductively. 
+	private SJCompoundOperation checkSJRecursion(SJRecursion r, SJSessionType st) {
+        return (SJCompoundOperation) decorateWithSessionType(r, st, sjef);
 	}
 	
-	private SJRecursion checkSJRecursion(SJRecursion r, String sjname, SJSessionType st) throws SemanticException
-	{
-		SJSessionOperationExt soe = getSJSessionOperationExt(r);
-		
-		r = (SJRecursion) setSJSessionOperationExt(sjef, r, st, soe.targetNames());
-		
-		return r;  
-	}
-	
-	private SJSpawn checkSJSpawn(SJSpawn s) throws SemanticException
+	private Node checkSJSpawn(SJSpawn s) throws SemanticException
 	{		
 		s = (SJSpawn) checkProcedureCall(s, true);
 		
@@ -718,13 +717,13 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
             SJSessionType st;
 
             if (v instanceof SJLocalChannel) {
-                if (!((SJLocalChannel) v).localInstance().flags().isFinal()) {
+                if (!((Local) v).localInstance().flags().isFinal()) {
                     throw new SemanticException(getVisitorName() + " SJThread-spawn channel arguments must be na-final: " + v);
                 }
 
                 st = sjcontext.findChannel(v.sjname()); // Actually a bit pointless, or maybe just doesn't make sense?
             } else {
-                if (((SJLocalSocket) v).localInstance().flags().isFinal()) {
+                if (((Local) v).localInstance().flags().isFinal()) {
                     throw new SemanticException(getVisitorName() + " Cannot spawn session threads for final session sockets: " + v);
                 }
 
@@ -757,7 +756,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return sc;
 	}
 	
-	private SJSessionCast checkSJSessionCast(Node parent, SJSessionCast sc) throws SemanticException
+	private Node checkSJSessionCast(Node parent, SJSessionCast sc) throws SemanticException
 	{
 		SJSessionType st = sc.sessionType().type();
 		
@@ -771,7 +770,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return sc;
 	}
 	
-	private Cast checkCast(Cast c) throws SemanticException
+	private Node checkCast(Cast c) throws SemanticException
 	{
 		Expr e = c.expr();
 		
@@ -783,7 +782,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return c;
 	}
 	
-	private ProcedureCall checkProcedureCall(ProcedureCall pc, boolean forSJSpawn) throws SemanticException
+	private Node checkProcedureCall(ProcedureCall pc, boolean forSJSpawn) throws SemanticException
 	{
 		ProcedureInstance pi = pc.procedureInstance();
 		
@@ -863,7 +862,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
         }
     }
 
-    private Branch checkBranch(Branch b) throws SemanticException
+    private Node checkBranch(Branch b) throws SemanticException
 	{
 		//sjcontext.checkSessionsCompleted(); // FIXME: needs additional translation support for in/outwhile (need to send the final false flag). Also, may not work properly - maybe we just need to check the sessions in scope (the ones we can do operations on), not all currently active sessions (which includes all open sessions from outer scopes).
 		
@@ -875,7 +874,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return b;
 	}
 	
-	private Return checkReturn(Return r) throws SemanticException
+	private Node checkReturn(Return r) throws SemanticException
 	{
 		//sjcontext.checkSessionsCompleted(); // FIXME: as for Branch, needs additional translation support for in/outwhile (need to send the final false flag). Also, may not work properly - maybe we just need to check the sessions in scope (the ones we can do operations on), not all currently active sessions (which includes all open sessions from outer scopes). 
 		
@@ -889,7 +888,8 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	
 	private void enterSJContext(Node parent, Node n) throws SemanticException // Could be factored out into an SJContextVisitor.
 	{
-		if (n instanceof LocalDecl) // Parsing (of initialisation expression) and type building done by SJChannel/SocketDeclTypeBuilder.
+		// TODO typecase
+        if (n instanceof LocalDecl) // Parsing (of initialisation expression) and type building done by SJChannel/SocketDeclTypeBuilder.
 		{
 			LocalDecl ld = (LocalDecl) n;
 			LocalInstance li = ld.localInstance(); 
@@ -958,6 +958,10 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 					sjcontext.pushSJRecursion((SJRecursion) n);
 				}
 			}
+            else if (n instanceof SJTypecase)
+            {
+                ((SJTypecase) n).enterSJContext(sjcontext);
+            }
 		}
 		else if (n instanceof If)
 		{			
@@ -1003,6 +1007,14 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		{
 			ce = sjcontext.pop();
 		}
+        else if (n instanceof SJTypecase)
+        {
+            ce = ((SJTypecase) n).leaveSJContext(sjcontext);
+        }
+        else if (n instanceof SJWhen)
+        {
+            ce = ((SJWhen) n).leaveSJContext(sjcontext);    
+        }
 		else if (n instanceof If)
 		{
 			ce = sjcontext.pop();

@@ -28,27 +28,29 @@ public interface SJTypeBuildingContext extends SJContextInterface
 	abstract protected SJContextElement popContextElement() throws SemanticException;*/
 		
 	// The methods re-declared from SJContext need to be overridden.
-	public SJSessionType sessionRemaining(String sjname) throws SemanticException;
+	SJSessionType sessionRemaining(String sjname) throws SemanticException;
 	
-	public void advanceSession(String sjname, SJSessionType st) throws SemanticException;
-	public SJSessionType delegateSession(String sjname) throws SemanticException;
-	public void recurseSessions(List<String> sjnames) throws SemanticException;
+	void advanceSession(String sjname, SJSessionType st) throws SemanticException;
+	SJSessionType delegateSession(String sjname) throws SemanticException;
+	void recurseSessions(List<String> sjnames) throws SemanticException;
 	
-	public void pushSJSessionTry(SJSessionTry st) throws SemanticException; 
-	public void pushSJServerTry(SJServerTry st) throws SemanticException;
+	void pushSJSessionTry(SJSessionTry st) throws SemanticException;
+	void pushSJServerTry(SJServerTry st) throws SemanticException;
 	
-	public void pushSJBranchOperation(SJBranchOperation b) throws SemanticException;
-	public void pushSJBranchCase(SJBranchCase bc) throws SemanticException;
-	public void pushSJWhile(SJWhile w) throws SemanticException;
-	public void pushSJRecursion(SJRecursion r) throws SemanticException;
+	void pushSJBranchOperation(SJBranchOperation b) throws SemanticException;
+	void pushSJBranchCase(SJBranchCase bc) throws SemanticException;
+	void pushSJWhile(SJWhile w) throws SemanticException;
+	void pushSJRecursion(SJRecursion r) throws SemanticException;
 	
-	public SJContextElement pop() throws SemanticException;
+	SJContextElement pop() throws SemanticException;
 	
-	public void pushContextElement(SJContextElement ce);
-	public SJContextElement popContextElement() throws SemanticException;
+	void pushContextElement(SJContextElement ce);
+	SJContextElement popContextElement() throws SemanticException;
 	
-	public void checkSessionsCompleted() throws SemanticException;
+	void checkSessionsCompleted() throws SemanticException;
 	
-	public boolean inSJBranchCaseContext();
-	public boolean inSJSessionLoopContext();
+	boolean inSJBranchCaseContext();
+	boolean inSJSessionLoopContext();
+
+    void pushSJTypecase(SJTypecase typecase) throws SemanticException;
 }

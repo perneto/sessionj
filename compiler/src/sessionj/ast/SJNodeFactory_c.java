@@ -403,10 +403,10 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	}
 
     public SJTypecase SJTypecase(Position pos, Name socket, List<SJWhen> cases) {
-        return new SJTypecase_c(pos, socket.toReceiver(), cases);
+        return new SJTypecase_c(pos, socket.toReceiver(), cases, null);
     }
 
-    public SJWhen SJWhen(Position pos, SJTypeNode type, Stmt body) {
+    public SJWhen SJWhen(Position pos, SJTypeNode type, List<Stmt> body) {
         return new SJWhen_c(pos, type, body);
     }
 

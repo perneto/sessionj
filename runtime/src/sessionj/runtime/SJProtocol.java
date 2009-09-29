@@ -5,6 +5,7 @@ import java.io.Serializable;
 import sessionj.runtime.net.SJRuntime;
 
 import static sessionj.SJConstants.*;
+import sessionj.types.sesstypes.SJSessionType;
 
 public class SJProtocol implements Serializable
 {
@@ -21,6 +22,10 @@ public class SJProtocol implements Serializable
 	{
 		return encoded; // Maybe should return the decoded type. 
 	}
+
+    public SJSessionType type() throws SJIOException {
+        return SJRuntime.decodeType(encoded);
+    }
 	
 	public String toString()
 	{

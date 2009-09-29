@@ -1,11 +1,12 @@
 package sessionj.ast.sessops.compoundops;
 
-import polyglot.ast.Expr;
-import polyglot.ast.Stmt;
-import polyglot.ast.While_c;
+import polyglot.ast.*;
 import polyglot.util.Position;
 
 import java.util.List;
+
+import sessionj.ast.sessvars.SJVariable;
+import sessionj.ast.sessops.SJSessionOperation;
 
 public class SJWhile_c extends While_c implements SJWhile
 {
@@ -38,5 +39,17 @@ public class SJWhile_c extends While_c implements SJWhile
 		this.targets = targets;
 		
 		return this;
-	}		
+	}
+
+    public List<Receiver> ambiguousTargets() {
+        return null;
+    }
+
+    public List<SJVariable> resolvedTargets() {
+        return null;
+    }
+
+    public SJSessionOperation resolvedTargets(List<SJVariable> resolved) {
+        return null;
+    }
 }

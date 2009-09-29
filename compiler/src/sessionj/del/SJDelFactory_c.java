@@ -6,8 +6,7 @@ public class SJDelFactory_c extends AbstractDelFactory_c implements SJDelFactory
 {
 	public SJDelFactory_c()
 	{
-		super();
-	}
+    }
 
 	/*public SJReceiveDel SJReceiveDel()
 	{
