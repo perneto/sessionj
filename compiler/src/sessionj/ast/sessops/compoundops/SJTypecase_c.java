@@ -108,6 +108,10 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
     {
         List<SJWhen> newWhenStatements = visitList(whenStatements, v);
 
+        return reconstruct(newWhenStatements);
+    }
+
+    private Node reconstruct(List<SJWhen> newWhenStatements) {
         Node newThis = new SJTypecase_c(position, ambiguousSocket, newWhenStatements, socket);
         if (ext() != null) {
             newThis = newThis.ext((Ext) ext.copy());
@@ -115,7 +119,6 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
         if (del != null) { // the del() method returns this if del is null, so use field to check
             newThis = newThis.del((JL) del().copy());
         }
-
         return newThis;
     }
 
