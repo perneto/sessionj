@@ -1,12 +1,12 @@
 package sessionj.ast.sessops.compoundops;
 
 import polyglot.ast.*;
+import polyglot.qq.QQ;
 import polyglot.types.Context;
 import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.*;
-import polyglot.qq.QQ;
 import sessionj.SJConstants;
 import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessvars.SJVariable;
@@ -14,7 +14,6 @@ import sessionj.extension.SJExtFactory;
 import sessionj.types.SJTypeSystem;
 import sessionj.types.contexts.SJContextElement;
 import sessionj.types.contexts.SJContextInterface;
-import sessionj.types.contexts.SJTypeBuildingContext;
 import sessionj.types.sesstypes.SJSessionType;
 import sessionj.types.sesstypes.SJSessionType_c;
 import sessionj.types.sesstypes.SJSetType;
@@ -96,7 +95,7 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
         return res;
     }
 
-    // The following are adapted from Switch_c.
+    // FIXME: The following are adapted from Switch_c. - duplicated in SJInbranch_c
     public void prettyPrint(CodeWriter w, PrettyPrinter tr) // This is largely redundant (except for debugging) due to later translation.
     {
         w.write(SJConstants.SJ_KEYWORD_TYPECASE + '(' + ambiguousSocket + ')');
