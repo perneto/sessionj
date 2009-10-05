@@ -10,6 +10,7 @@ import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.visit.ContextVisitor;
 import sessionj.ast.sessops.compoundops.*;
+import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sesstry.SJServerTry;
 import sessionj.ast.sesstry.SJSessionTry;
 import sessionj.ast.sessvars.SJServerVariable;
@@ -99,6 +100,7 @@ public class SJContext_c extends SJContext
 	public void advanceSession(String sjname, SJSessionType st) throws SemanticException
 	{
 		SJSessionType active = expectedSessionOperation(sjname);
+        assert active != null : "Tried to advance a completed session on socket " + sjname + " with " + st;
 		SJSessionType implemented = sessionImplemented(sjname);
 		
 		if (st != null && st.startsWith(SJDelegatedType.class))
@@ -390,10 +392,10 @@ public class SJContext_c extends SJContext
 		{
 			pushContextElement(new SJBranchCaseContext_c(current, lab));			
 			
-			for (String sjname : ((SJSessionBranchContext) current).targets()) // Should only be a single target.
+			for (String sjname : ((SJSessionContext) current).targets()) // Should only be a single target.
 			{
 				SJSessionType st = current.getActive(sjname);
-				SJInbranchType ibt = (SJInbranchType) st;				
+				SJBranchType ibt = (SJBranchType) st;				
 				
 				openSession(sjname, ibt.branchCase(lab));
 				
@@ -441,8 +443,35 @@ public class SJContext_c extends SJContext
             openSession(sjname, ((SJRecursionType) st).body());
 		}
 	}
-	
-	public SJContextElement pop() throws SemanticException
+
+    protected List<String> getTargetNames(SJSessionOperation op) {
+        return getSJSessionOperationExt(op).targetNames();
+    }
+    
+    public void pushSJTypecase(SJTypecase typecase) throws SemanticException {
+        SJContextElement current = currentContext();
+        List<String> sjnames = getTargetNames(typecase);
+        assert sjnames.size() == 1;
+
+        String sjname = sjnames.get(0);        
+        pushContextElement(new SJTypecaseContext(current, typecase, sjname));
+    }
+
+    public void pushSJWhen(SJWhen when) throws SemanticException {
+        SJTypecaseContext current = (SJTypecaseContext) currentContext();
+
+        SJSetType set = current.getActiveSetType();
+        SJSessionType selected = when.selectMatching(set);
+        // TODO when this fails, new context is not pushed, so next when will
+        // blow.
+        SJContextElement whenContext = new SJContextElement_c(current) {
+            // Just for debugging
+        };
+        whenContext.setActive(current.sjname, selected);
+        pushContextElement(whenContext);
+    }
+
+    public SJContextElement pop() throws SemanticException
 	{
 		return contexts().pop();				
 	}

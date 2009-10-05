@@ -154,7 +154,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 			translation += "}";
 
 			Stmt s = qq.parseStmt(translation, mapping.toArray());
-			s = (Stmt) buildAndCheckTypes(job(), this, s);
+			s = (Stmt) buildAndCheckTypes(this, s);
 
 			LocalDecl foo = ld.init(null);
 			foo = foo.type(ld.type());
@@ -214,7 +214,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 				
 				Stmt s = qq.parseStmt(translation, mapping.toArray());
 				
-				s = (Stmt) buildAndCheckTypes(job(), this, s);				
+				s = (Stmt) buildAndCheckTypes(this, s);
 				//s = replaceStmt((Eval) parent, s);
 				
 				replacements.peek().put((Eval) parent, new TranslatedStmt(s));
@@ -245,7 +245,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 				translation += "}";
 				Stmt s = qq.parseStmt(translation, mapping.toArray());			
 				
-				s = (Stmt) buildAndCheckTypes(job(), this, s);
+				s = (Stmt) buildAndCheckTypes(this, s);
 				//s = replaceStmt((Eval) parent, s);
 				
 				replacements.peek().put((Stmt) parent, new TranslatedStmt(s));
@@ -284,7 +284,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 			
 			Stmt s = qq.parseStmt(translation, mapping.toArray());
 			
-			s = (Stmt) buildAndCheckTypes(job(), this, s);
+			s = (Stmt) buildAndCheckTypes(this, s);
 			//s = replaceStmt(r, s);
 			
 			replacements.peek().put(r, new TranslatedStmt(s));
@@ -326,7 +326,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 			}
 			
 			TypeNode tn = qq.parseType(tname);			 			
-			tn = (TypeNode) buildAndCheckTypes(job(), this, tn);
+			tn = (TypeNode) buildAndCheckTypes(this, tn);
 			
 			String vname = SJNoAliasVariableRenamer.renameNoAliasVariable(v);
 			

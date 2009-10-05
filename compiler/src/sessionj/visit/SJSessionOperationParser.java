@@ -99,7 +99,7 @@ public class SJSessionOperationParser extends ContextVisitor
         }
 		
 		s = (SJSpawn) s.arguments(args);		
-		s = (SJSpawn) buildAndCheckTypes(job(), this, s);
+		s = (SJSpawn) buildAndCheckTypes(this, s);
 		
 		return s;
 	}
@@ -158,7 +158,7 @@ public class SJSessionOperationParser extends ContextVisitor
             seen.add(li);
         }
         ArrayInit ai = sjnf.ArrayInit(bo.position(), targets);
-        ai = (ArrayInit) buildAndCheckTypes(job(), this, ai);
+        ai = (ArrayInit) buildAndCheckTypes(this, ai);
         final NewArray na = bo.dummyArray()
                 .init(ai)
                 .dims(Collections.emptyList())

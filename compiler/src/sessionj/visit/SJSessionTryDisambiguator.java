@@ -86,7 +86,7 @@ public class SJSessionTryDisambiguator extends ContextVisitor
 			throw new RuntimeException("[SJSessionTryDisambiguator] Shouldn't get in here.");
 		}
 				
-		st = (SJTry) buildAndCheckTypes(job(), this, st);
+		st = (SJTry) buildAndCheckTypes(this, st);
 		
 		return st;
 	}

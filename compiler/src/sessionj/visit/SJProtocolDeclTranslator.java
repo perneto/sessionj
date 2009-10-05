@@ -64,7 +64,7 @@ public class SJProtocolDeclTranslator extends ContextVisitor // Subsequent Conte
 		mapping.add(sjnf.StringLit(pos, sjte.encode(pd.sessionType().type())));
 		
 		New n = (New) qq.parseExpr(translation, mapping);
-		n = (New) buildAndCheckTypes(job(), this, n);
+		n = (New) buildAndCheckTypes(this, n);
 		
 		if (pd instanceof SJFieldProtocolDecl)
 		{

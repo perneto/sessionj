@@ -29,8 +29,11 @@ public interface SJContextElement
 	SJSessionType getImplemented(String sjname);
 	
 	void setService(String sjname, SJSessionType st);
-	void setSession(String sjname, SJSessionType st); // Seems to be the "original" session type when entering a session-try. // This is also used to record the sessions in scope, i.e. which sessions operations can be performed on.
-	void setActive(String sjname, SJSessionType st); // The remaining session type to be implemented. // Used to check, in conjunction with the sessions in scope, whether sessions have been completed. // For noalias (not na-final) method parameters, sessions are initially active, but not yet in scope.
+	void setSession(String sjname, SJSessionType st); // Seems to be the "original" session type when entering a session-try.
+    // This is also used to record the sessions in scope, i.e. which sessions operations can be performed on.
+	void setActive(String sjname, SJSessionType st); // The remaining session type to be implemented.
+    // Used to check, in conjunction with the sessions in scope, whether sessions have been completed.
+    // For noalias (not na-final) method parameters, sessions are initially active, but not yet in scope.
 	void setImplemented(String sjname, SJSessionType st); // The type of the session implemented so far.
 	
 	Set<String> channelSet();

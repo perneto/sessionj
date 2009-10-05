@@ -13,6 +13,4 @@ public interface SJProtocolNode extends SJTypeNode
 {
 	Receiver target();
 	SJProtocolNode target(Receiver target);
-
-    SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem sjts) throws SemanticException;
 }

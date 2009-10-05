@@ -9,6 +9,4 @@ public interface SJLoopNode extends SJTypeNode
 {
 	SJTypeNode body();
 	SJLoopNode body(SJTypeNode body);
-
-    SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem sjts) throws SemanticException;
 }

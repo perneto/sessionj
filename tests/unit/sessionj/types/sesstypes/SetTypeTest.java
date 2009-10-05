@@ -8,13 +8,14 @@ import sessionj.Version;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.HashSet;
 
 import polyglot.types.*;
 import polyglot.types.reflect.ClassFileLoader;
 import polyglot.frontend.ExtensionInfo;
 
 public class SetTypeTest {
-    private SJSessionType set;
+    private SJSetType set;
     private List<SJSessionType_c> members;
     private SJTypeSystem ts;
     private SJSendType_c sendBool;
@@ -22,6 +23,7 @@ public class SetTypeTest {
     private SJSessionType_c receiveString;
     private SJSessionType_c sendObject;
     private SJSessionType_c receiveObject;
+    private SJSessionType_c sendInt;
 
     @BeforeTest
     public void createSet() throws SemanticException {
@@ -34,11 +36,12 @@ public class SetTypeTest {
         sendBool = sendType(PrimitiveType.BOOLEAN);
         sendString = new SJSendType_c(ts, ts.String());
         sendObject = new SJSendType_c(ts, ts.Object());
+        sendInt = sendType(PrimitiveType.INT);
         receiveObject = new SJReceiveType_c(ts, ts.Object());
         receiveString = new SJReceiveType_c(ts, ts.String());
         members = new LinkedList<SJSessionType_c>() {{
             add(sendBool);
-            add(sendType(PrimitiveType.INT));
+            add(sendInt);
         }};
         set = new SJSetType_c(ts, members);
     }
@@ -136,4 +139,20 @@ public class SetTypeTest {
     public void unsuccessfulSubsuption() {
         
     }
+
+    @Test
+    public void sameSetShouldContainsAllAndOnly() {
+        assert set.containsAllAndOnly(new HashSet<SJSessionType>(members));
+    }
+
+    @Test
+    public void biggerSetShouldntContainsAllAndOnly() {
+        SJSetType bigger = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+            add(sendBool);
+            add(sendInt);
+            add(sendString);
+        }});
+        assert !bigger.containsAllAndOnly(new LinkedList<SJSessionType>(members));
+    }
+    
 }

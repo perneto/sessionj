@@ -9,5 +9,4 @@ import java.util.List;
 
 public interface SJBranchNode extends SJTypeNode
 {
-	SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem sjts) throws SemanticException;
 }

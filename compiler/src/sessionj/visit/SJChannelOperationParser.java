@@ -84,7 +84,7 @@ public class SJChannelOperationParser extends ContextVisitor
 				if (target instanceof SJChannelVariable || target instanceof SJChannelCreate) // FIXME: could also support "inline" channel-receive as a request target. For this purpose, could make a e.g. SJChannelReturn operation.
 				{
 					SJRequest r = sjnf.SJRequest(c.position(), c.target(), c.arguments());			
-					r = (SJRequest) buildAndCheckTypes(job(), this, r);
+					r = (SJRequest) buildAndCheckTypes(this, r);
 					
 					c = r;
 				}

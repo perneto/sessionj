@@ -64,7 +64,7 @@ public class SJHigherOrderTranslator extends ContextVisitor
 			}
 		}
 
-		bo = (SJBasicOperation) buildAndCheckTypes(job(), this, bo);
+		bo = (SJBasicOperation) buildAndCheckTypes(this, bo);
 		
 		return bo;
 	}

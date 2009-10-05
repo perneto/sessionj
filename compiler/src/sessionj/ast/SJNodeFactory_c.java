@@ -406,8 +406,14 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
         return new SJTypecase_c(pos, socket.toReceiver(), cases, null);
     }
 
-    public SJWhen SJWhen(Position pos, SJTypeNode type, List<Stmt> body) {
-        return new SJWhen_c(pos, type, body);
+    public SJWhen SJWhen(Position pos, SJTypeNode type, Stmt body) {
+        List<Stmt> statements = new LinkedList<Stmt>();
+        if (body instanceof Block) {
+            statements.addAll(((Block) body).statements());
+        } else {
+            statements.add(body);
+        }
+        return new SJWhen_c(pos, type, statements);
     }
 
     public SJAccept SJAccept(Position pos, Receiver target, List arguments)

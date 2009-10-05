@@ -219,7 +219,7 @@ public class SJThreadParser extends ContextVisitor
 				
 				spawn = (MethodDecl) buildAndCheckTypes(job(), this.context(c), md2); // Seems to correctly update the container thread class type as well (i.e. records the new spawn method).*/
 				
-				spawn = (MethodDecl) buildAndCheckTypes(job(), this, spawn);				
+				spawn = (MethodDecl) buildAndCheckTypes(this, spawn);				
 				
 				spawns.push(spawn);
 			}

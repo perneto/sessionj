@@ -23,6 +23,7 @@ import sessionj.ast.sesscasts.SJSessionCast;
 import sessionj.ast.sesscasts.SJSessionTypeCast;
 import sessionj.ast.sessops.SJInternalOperation;
 import sessionj.ast.sessops.SJSessionOperation;
+import sessionj.ast.sessops.TraverseTypeBuildingContext;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sesstry.SJServerTry;
@@ -71,7 +72,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	
 	protected Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
 	{				
-		SJContextElement ce = leaveSJContext(old, n, v);
+		SJContextElement ce = leaveSJContext(n);
         // Does type checking for compound operations and session-try, etc.
         // Basically, doesn't do anything (no context is popped) for basic operations and so on (the stuff that follows this).
         // So does it matter if we do context pops or the following stuff first?
@@ -469,7 +470,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		{	
 			if (bo instanceof SJCopy)
 			{
-				bo = checkSJCopy((SJCopy) bo, sjname, expected, st);
+				bo = checkSJCopy((SJCopy) bo, expected, st);
 			}
 			else
 			{
@@ -548,7 +549,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return a;
 	}		
 	
-	private SJCopy checkSJCopy(SJCopy c, String sjname, SJSessionType expected, SJSessionType st) throws SemanticException // FIXME: this is actually redundant now (pass is the delegation operation now).
+	private SJCopy checkSJCopy(SJCopy c, SJSessionType expected, SJSessionType st) throws SemanticException // FIXME: this is actually redundant now (pass is the delegation operation now).
 	{				
 		Expr arg = (Expr) c.arguments().get(0); // Factor out constant.
 		
@@ -600,7 +601,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 					throw new SemanticException(getVisitorName() + " Cannot multicast session-send: " + arg);
 				}			
 				
-				st = sjts.SJSendType(sjcontext.delegateSession(((SJSocketVariable) arg).sjname()));
+				st = sjts.SJSendType(sjcontext.delegateSession(((SJVariable) arg).sjname()));
 														
 				p = (SJPass) setSJSessionOperationExt(sjef, p, st, soe.targetNames());
 			}
@@ -642,7 +643,8 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	
 	private SJRecurse checkSJRecurse(SJRecurse r, SJSessionType expected, SJSessionType st) throws SemanticException
 	{
-		sjcontext.recurseSessions(getSJSessionOperationExt(r).targetNames()); // Will be unnecessarily repeated for each target.
+		sjcontext.recurseSessions(getSJSessionOperationExt(r).targetNames());
+        // Will be unnecessarily repeated for each target.
 		
 		if (!expected.typeEquals(st))
 		{
@@ -654,56 +656,35 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	
 	private SJSessionOperation checkSJCompoundOperation(SJCompoundOperation co, String sjname, SJContextElement ce) throws SemanticException
 	{
-		SJSessionType implemented = ce.getImplemented(sjname); // Type already built by context pop, just need to attach it to the node.
+		SJSessionType typeForNode = ce.getImplemented(sjname);
+        // Type already built by context pop, just need to attach it to the node.
 		
-		if (co instanceof SJBranchOperation)
+		if (co instanceof SJBranchOperation || co instanceof SJLoopOperation)
 		{
-			co = checkSJBranchOperation((SJBranchOperation) co, implemented); // Actually more like build.
-		}
-		else if (co instanceof SJLoopOperation)
-		{
-			if (co instanceof SJWhile)		
-			{
-				co = checkSJWhile((SJWhile) co, implemented); // Actually more like build.
-			}
-			else //if (co instanceof SJRecursion)
-			{
-				co = checkSJRecursion((SJRecursion) co, implemented);
-			}
-		}
+            // Nothing to check: correct compound type constructor checked on context push, and
+            // body type checked inductively.
+    	}
         else if (co instanceof SJTypecase)
         {
-            co = ((SJTypecase) co).sessionTypeCheck(implemented, sjef);
+            co = ((SJTypecase) co).sessionTypeCheck(typeForNode);
         }
 		else
 		{
 			throw new SemanticException(getVisitorName() + " Session operation not yet supported: " + co);
 		}
-		
+
+        
+        co = (SJCompoundOperation) updateSessionType(co, typeForNode, sjef);
+
 		System.out.println("[SJTypeChecker] " + sjname + ": " + getSessionType(co));
 		
 		return co;
 	}
-	
-	private SJBranchOperation checkSJBranchOperation(SJBranchOperation bo, SJSessionType st)  // Type built by context pop.
-	{
-        return (SJBranchOperation) decorateWithSessionType(bo, st, sjef);
-		// Nothing to check: correct compound type constructor checked on context push, and body type checked inductively.
-	}
 
-    public static SJSessionOperation decorateWithSessionType(SJSessionOperation bo, SJSessionType st, SJExtFactory sjef) {
+    public static SJSessionOperation updateSessionType(SJSessionOperation bo, SJSessionType st, SJExtFactory sjef) {
         SJSessionOperationExt soe = getSJSessionOperationExt(bo);
         return (SJSessionOperation) setSJSessionOperationExt(sjef, bo, st, soe.targetNames());
     }
-
-    private SJCompoundOperation checkSJWhile(SJWhile w, SJSessionType st) {
-        return (SJCompoundOperation) decorateWithSessionType(w, st, sjef);
-		// Nothing to check: correct compound type constructor checked on context push, and body type checked inductively. 
-	}
-	
-	private SJCompoundOperation checkSJRecursion(SJRecursion r, SJSessionType st) {
-        return (SJCompoundOperation) decorateWithSessionType(r, st, sjef);
-	}
 	
 	private Node checkSJSpawn(SJSpawn s) throws SemanticException
 	{		
@@ -765,7 +746,9 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			throw new SemanticException(getVisitorName() + " Bad session cast: " + st);
 		}
 		
-		sc = (SJSessionCast) checkSessionReceiveParent(parent, sc); // FIXME: non-casted session-receives not yet supported? (Apart from receive type inference - planning to insert casts after this pass?)
+		sc = (SJSessionCast) checkSessionReceiveParent(parent, sc);
+        // FIXME: non-casted session-receives not yet supported? (Apart from receive type inference
+        //  - planning to insert casts after this pass?)
 		
 		return sc;
 	}
@@ -886,10 +869,14 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return r;
 	}
 	
-	private void enterSJContext(Node parent, Node n) throws SemanticException // Could be factored out into an SJContextVisitor.
+	private void enterSJContext(Node parent, Node n) throws SemanticException
+    // Could be factored out into an SJContextVisitor. Olivier: Ongoing, see TraverseTypeBuildingContext
 	{
-		// TODO typecase
-        if (n instanceof LocalDecl) // Parsing (of initialisation expression) and type building done by SJChannel/SocketDeclTypeBuilder.
+        if (n instanceof TraverseTypeBuildingContext)
+        {
+            ((TraverseTypeBuildingContext) n).enterSJContext(sjcontext);
+        }
+        else if (n instanceof LocalDecl) // Parsing (of initialisation expression) and type building done by SJChannel/SocketDeclTypeBuilder.
 		{
 			LocalDecl ld = (LocalDecl) n;
 			LocalInstance li = ld.localInstance(); 
@@ -958,10 +945,6 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 					sjcontext.pushSJRecursion((SJRecursion) n);
 				}
 			}
-            else if (n instanceof SJTypecase)
-            {
-                ((SJTypecase) n).enterSJContext(sjcontext);
-            }
 		}
 		else if (n instanceof If)
 		{			
@@ -995,7 +978,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		sjcontext.setVisitor(this); // ContextVisitor returns a new visitor for each scope.
 	}
 	
-	private SJContextElement leaveSJContext(Node old, Node n, NodeVisitor v) throws SemanticException
+	private SJContextElement leaveSJContext(Node n) throws SemanticException
 	{
 		SJContextElement ce = null;
 		
@@ -1007,13 +990,10 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		{
 			ce = sjcontext.pop();
 		}
-        else if (n instanceof SJTypecase)
+        else if (n instanceof TraverseTypeBuildingContext)
         {
-            ce = ((SJTypecase) n).leaveSJContext(sjcontext);
-        }
-        else if (n instanceof SJWhen)
-        {
-            ce = ((SJWhen) n).leaveSJContext(sjcontext);    
+            // Tested before instanceof Block so SJWhen is handled here 
+            ce = ((TraverseTypeBuildingContext) n).leaveSJContext(sjcontext);
         }
 		else if (n instanceof If)
 		{
@@ -1028,7 +1008,8 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		{
 			ce = sjcontext.pop();
 		}
-		else if (n instanceof Block) // Includes SJRecursion, SJBranchCase and method bodies.
+		else if (n instanceof Block)
+        // Includes SJRecursion, SJBranchCase and method bodies. 
 		{
 			ce = sjcontext.pop();
 		}		

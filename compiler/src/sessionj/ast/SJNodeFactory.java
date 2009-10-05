@@ -106,7 +106,7 @@ public interface SJNodeFactory extends NodeFactory
 	SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets);
 
     SJTypecase SJTypecase(Position pos, Name socket, List<SJWhen> cases);
-    SJWhen SJWhen(Position pos, SJTypeNode type, List<Stmt> body);
+    SJWhen SJWhen(Position pos, SJTypeNode type, Stmt body);
 	
 	SJAccept SJAccept(Position pos, Receiver target, List arguments);
 	

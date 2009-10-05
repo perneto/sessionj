@@ -61,7 +61,7 @@ public class SJCreateOperationParser extends ContextVisitor
 			
 			if (co != null)
 			{
-				c = (SJCreateOperation) buildAndCheckTypes(job(), this, co); 
+				c = (Call) buildAndCheckTypes(this, co); 
 			}
 		}		
 

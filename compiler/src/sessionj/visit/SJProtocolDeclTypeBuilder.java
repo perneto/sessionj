@@ -75,7 +75,7 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 		return n;
 	}
 	
-	private FieldDecl buildFieldDecl(FieldDecl fd) throws SemanticException
+	private Node buildFieldDecl(FieldDecl fd) throws SemanticException
 	{	
 		Type t = fd.declType();
 		
@@ -86,7 +86,7 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 				throw new SemanticException("[SJProtocolDeclTypeBuilder] Protocols may only be declared using the protocol keyword: " + fd);
 			}
 
-			SJTypeNode tn = disambiguateSJTypeNode(job(), this, ((SJFieldProtocolDecl) fd).sessionType());
+			SJTypeNode tn = disambiguateSJTypeNode(this, ((SJProtocolDecl) fd).sessionType());
 			SJSessionType st = tn.type();
 			String sjname = fd.name(); // Should match that given by SJVariable.sjname.
 			
@@ -96,7 +96,7 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 			fpi.setConstantValue(fi.constantValue()); // Currently, constant checker not run on custom nodes/type objects. (Previously done by SJNoAliasTypeBuilder.)
 			
 			fd = fd.fieldInstance(fpi);
-			fd = (SJFieldProtocolDecl) setSJProtocolDeclExt((SJFieldProtocolDecl) fd, tn, sjname);			
+			fd = (FieldDecl) setSJProtocolDeclExt((SJProtocolDecl) fd, tn, sjname);			
 			
 			updateSJFieldInstance(fi, fpi);
 		}
@@ -104,7 +104,7 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 		return fd;
 	}
 	
-	private LocalDecl buildLocalDecl(LocalDecl ld) throws SemanticException
+	private Node buildLocalDecl(LocalDecl ld) throws SemanticException
 	{	
 		Type t = ld.declType();
 		SJLocalInstance li = (SJLocalInstance) ld.localInstance();
@@ -117,28 +117,27 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 				throw new SemanticException("[SJProtocolDeclTypeBuilder] Protocols may only be declared using the protocol keyword: " + ld);
 			}
 	
-			SJTypeNode tn = disambiguateSJTypeNode(job(), this, ((SJLocalProtocolDecl) ld).sessionType());
+			SJTypeNode tn = disambiguateSJTypeNode(this, ((SJProtocolDecl) ld).sessionType());
 			SJSessionType st = tn.type();
 			String sjname = ld.name(); // Should match that given by SJVariable.sjname.
 			
 			ld = ld.localInstance(sjts.SJLocalProtocolInstance(li, st, sjname));
-			ld = (SJLocalProtocolDecl) setSJProtocolDeclExt((SJLocalProtocolDecl) ld, tn, sjname);			
+			ld = (LocalDecl) setSJProtocolDeclExt((SJProtocolDecl) ld, tn, sjname);
 		}
 		
 		return ld;
 	}
 	
-	private SJProtocolDecl setSJProtocolDeclExt(SJProtocolDecl pd, SJTypeNode tn, String sjname) throws SemanticException
-	{
+	private SJProtocolDecl setSJProtocolDeclExt(SJProtocolDecl pd, SJTypeNode tn, String sjname) {
 		pd = pd.sessionType(tn);
 		pd = (SJProtocolDecl) setSJNamedExt(sjef, pd, tn.type(), sjname);			
 		
 		return pd;
 	}
 	
-	private SJSessionTypeCast buildSJSessionTypeCast(SJSessionTypeCast stc) throws SemanticException  
+	private Node buildSJSessionTypeCast(SJSessionTypeCast stc) throws SemanticException  
 	{
-		SJTypeNode tn = disambiguateSJTypeNode(job(), this, stc.sessionType());
+		SJTypeNode tn = disambiguateSJTypeNode(this, stc.sessionType());
 		SJSessionType st = tn.type();
 		
 		if (stc instanceof SJAmbiguousCast)
@@ -157,7 +156,7 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 				stc = sjnf.SJSessionCast(pos, e, tn);
 			}
 			
-			stc = (SJSessionTypeCast) buildAndCheckTypes(job, this, stc);
+			stc = (SJSessionTypeCast) buildAndCheckTypes(this, stc);
 			stc = (SJSessionTypeCast) SJNoAliasExprBuilder.setSJNoAliasExprExt(sjef, stc, naee.isNoAlias(), naee.isFinal(), naee.fields(), naee.locals(), naee.arrayAccesses());
 		}
 		else
@@ -170,7 +169,7 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 		return stc;
 	}
 	
-	private Formal buildFormal(Formal f) throws SemanticException // Based on buildLocalDecl.
+	private Node buildFormal(Formal f) throws SemanticException // Based on buildLocalDecl.
 	{
 		Type t = f.declType();
 		SJLocalInstance li = (SJLocalInstance) f.localInstance(); 
@@ -182,7 +181,7 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 				throw new SemanticException("[SJProtocolDeclTypeBuilder] Session socket parameters should be declared by their session type: " + f);
 			}
 	
-			SJTypeNode tn = disambiguateSJTypeNode(job(), this, ((SJFormal) f).sessionType());
+			SJTypeNode tn = disambiguateSJTypeNode(this, ((SJFormal) f).sessionType());
 			SJSessionType st = tn.type();
 			String sjname = f.name(); // Should match that given by SJVariable.sjname.
 			
@@ -193,7 +192,7 @@ public class SJProtocolDeclTypeBuilder extends ContextVisitor
 		return f;
 	}
 	
-	private SJFormal setSJFormalExt(SJFormal f, SJTypeNode tn, String sjname) throws SemanticException // Based on setSJProtocolDeclExt
+	private Formal setSJFormalExt(SJFormal f, SJTypeNode tn, String sjname)  // Based on setSJProtocolDeclExt
 	{
 		f = f.sessionType(tn);
 		f = (SJFormal) setSJNamedExt(sjef, f, tn.type(), sjname);			

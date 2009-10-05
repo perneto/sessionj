@@ -1,7 +1,6 @@
 package sessionj.ast.typenodes;
 
 import polyglot.ast.*;
-import polyglot.frontend.Job;
 import polyglot.types.ReferenceType;
 import polyglot.types.SemanticException;
 import polyglot.util.Position;
@@ -36,12 +35,12 @@ abstract public class SJProtocolNode_c extends SJTypeNode_c implements SJProtoco
 		return this;
 	}
 
-    public SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem sjts) throws SemanticException {
+    public SJTypeNode disambiguateSJTypeNode(ContextVisitor cv, SJTypeSystem sjts) throws SemanticException {
 
 			SJTypeSystem ts = (SJTypeSystem) cv.typeSystem();
 			SJNodeFactory nf = (SJNodeFactory) cv.nodeFactory();
 
-            Receiver target = (Receiver) SJCompilerUtils.buildAndCheckTypes(job, cv, target());
+            Receiver target = (Receiver) SJCompilerUtils.buildAndCheckTypes(cv, target());
 
             SJSessionType st;
 
@@ -58,22 +57,22 @@ abstract public class SJProtocolNode_c extends SJTypeNode_c implements SJProtoco
 						// FIXME: this assumes the target class must have been visited (compiled up to this stage) before the current class. But this can break for mutually dependent classes.
 
 						//SJProtocolDeclTypeBuilder pdtb = (SJProtocolDeclTypeBuilder) new SJProtocolDeclTypeBuilder(job, ts, nf).begin(); // Doesn't seem to be enough.
-						SJProtocolDeclTypeBuilder pdtb = (SJProtocolDeclTypeBuilder) new SJProtocolDeclTypeBuilder(job, ts, nf).context(cv.context()); // Seems to work, but does it make sense?
+						ContextVisitor pdtb = new SJProtocolDeclTypeBuilder(cv.job(), ts, nf).context(cv.context()); // Seems to work, but does it make sense?
 
 						SJParsedClassType pct = (SJParsedClassType) ts.typeForName(((Field) target).target().toString());
-						ClassDecl cd = SJCompilerUtils.findClassDecl((SourceFile) job.ast(), pct.name()); // Need to qualify type name?
+						ClassDecl cd = SJCompilerUtils.findClassDecl((SourceFile) cv.job().ast(), pct.name()); // Need to qualify type name?
 
 						if (cd == null)
 						{
-							throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Compiling " + ((SourceFile) job.ast()).source().name() + ", class declaration not found: " + pct.name());
+							throw new SemanticException("[SJCompilerUtils.disambiguateSJTypeNode] Compiling " + ((SourceFile) cv.job().ast()).source().name() + ", class declaration not found: " + pct.name());
 						}
 
 						cd = (ClassDecl) cd.visit(pdtb); // FIXME: will cycle for mutually recursive fields.
 
-						fi = (SJFieldProtocolInstance) sjts.findField((SJParsedClassType) cd.type(), f.name(), pdtb.context().currentClass());
+						fi = (SJFieldInstance) sjts.findField((SJParsedClassType) cd.type(), f.name(), pdtb.context().currentClass());
 					}
 
-					st = ((SJFieldProtocolInstance) fi).sessionType();
+					st = ((SJTypeableInstance) fi).sessionType();
 				}
 				else // If trying to access a protocol field, target class must have been compiled using sessionjc. // FIXME: or
 				{
@@ -110,6 +109,6 @@ abstract public class SJProtocolNode_c extends SJTypeNode_c implements SJProtoco
 				}
 			}*/
 
-			return (SJTypeNode) target(target).type(st);
+			return target(target).type(st);
     }
 }
