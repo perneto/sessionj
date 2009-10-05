@@ -52,7 +52,8 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 	
 	public Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
 	{
-		if (n instanceof SJCompoundOperation) {
+		Node newNode = n;
+        if (n instanceof SJCompoundOperation) {
 			SJCompoundOperation so = (SJCompoundOperation) n;
 
             if (so instanceof SJInbranch) {	
@@ -60,25 +61,44 @@ public class SJCompoundOperationTranslator extends ContextVisitor
                 // We're only using this to tell if we're dealing with the
                 // outermost inbranch/recursion for type checking purposes.
 				
-				return translateSJInbranch((SJInbranch) so, createQQ(so));
+				newNode = translateSJInbranch((SJInbranch) so, createQQ(so));
 			} else if (so instanceof SJRecursion) {
 				compounds.pop();
 				
-				return translateSJRecursion((SJRecursion) so, createQQ(so));
+				newNode = translateSJRecursion((SJRecursion) so, createQQ(so));
 			} else if (so instanceof SJOutwhile) {
-                return translateSJOutwhile((SJOutwhile) so, createQQ(so));
+                newNode = translateSJOutwhile((SJOutwhile) so, createQQ(so));
             } else if (so instanceof SJInwhile) {
-                return translateSJInwhile((SJInwhile) so, createQQ(so));
+                newNode = translateSJInwhile((SJInwhile) so, createQQ(so));
             } else if (so instanceof SJOutInwhile) {
-                return translateSJOutinwhile((SJOutInwhile) so, createQQ(so));
+                newNode = translateSJOutinwhile((SJOutInwhile) so, createQQ(so));
+            } else if (so instanceof SJTypecase) {
+                newNode = ((SJTypecase) so).translate(createQQ(so));
             }
-
 		} else if (n instanceof SJRecurse) {
-			return translateSJRecurse(parent, (SJRecurse) n, createQQ(n));
+			newNode = translateSJRecurse(parent, (SJRecurse) n, createQQ(n));
 		}
 
-		return n;
+        if (shouldBuildAndCheckTypes(newNode))
+            buildAndCheckTypes(this, newNode);
+		return newNode;
 	}
+
+    private boolean shouldBuildAndCheckTypes(Object node) {
+        if (node instanceof SJRecurse) return false;
+        // SJRecurse: Can't build the types now because the assignment target variable is not in the context
+        //  - but it will be built when we translate the outer(most) recursion statement.
+        else if (node instanceof SJInbranch || node instanceof SJRecursion)
+            return compounds.isEmpty();
+        // (Re-)building types might erase previously built SJ type information.
+        // Maybe we don't need to rebuild types in translation phase.
+        // Or maybe no important SJ type information is lost
+        // (e.g. protocol fields, method signatures, etc.).
+        // Need to build types in one go because cannot build types for e.g. the assignment expression
+        // separately from the newly inserted variable declaration for the assignment target.
+
+        else return node instanceof SJCompoundOperation;
+    }
 
     private QQ createQQ(Node node) {
         return new QQ(sjts.extensionInfo(), node.position());
@@ -94,7 +114,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         return na;
     }
 
-    private Node translateSJOutwhile(SJOutwhile outwhile, QQ qq) throws SemanticException {
+    private Node translateSJOutwhile(SJOutwhile outwhile, QQ qq) {
         String unique = UniqueID.newID("loopCond");
         Expr sockArray = buildNewArray(outwhile.position(), outwhile.targets());
 
@@ -107,20 +127,17 @@ public class SJCompoundOperationTranslator extends ContextVisitor
                 interruptible, sockArray,
                 unique, outwhile.cond(), outwhile.body()
         );
-        buildAndCheckTypes(this, block);
         return block;
     }
 
-    private Node translateSJInwhile(SJInwhile inwhile, QQ qq) throws SemanticException {
+    private Node translateSJInwhile(SJInwhile inwhile, QQ qq) {
         Expr sockArray = buildNewArray(inwhile.position(), inwhile.targets());
 
-        Stmt block = qq.parseStmt(
+        return qq.parseStmt(
 "{ sessionj.runtime.net.SJRuntime.negotiateNormalInwhile(%E);" +
 " while (sessionj.runtime.net.SJRuntime.insync(%E)) %S }",
                 sockArray, sockArray, inwhile.body()
         );
-        buildAndCheckTypes(this, block);
-        return block;
     }
 
     private Node translateSJOutinwhile(SJOutInwhile outinwhile, QQ qq) throws SemanticException {
@@ -159,9 +176,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         code += ")) %S  }";
         subst.add(outinwhile.body());
 
-        Stmt block = qq.parseStmt(code, subst);
-        buildAndCheckTypes(this, block);
-        return block;
+        return qq.parseStmt(code, subst);
     }
 
     private Assign translateSJRecurse(Node parent, SJRecurse r, QQ qq) {
@@ -177,11 +192,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		mapping.add(getRecursionBooleanName(getSJSessionOperationExt(r).targetNames(), r.label()));
 		mapping.add(r);
 
-        //a = (Assign) buildAndCheckTypes(job(), this, a); 
-        // Can't build the types now because the assignment target variable is not in the context
-        //  - but it will be built when we translate the outer(most) recursion statement.
-		
-		return (Assign) qq.parseExpr(translation, mapping.toArray());
+        return (Assign) qq.parseExpr(translation, mapping.toArray());
 	}
 	
 	private Stmt translateSJInbranch(SJInbranch ib, QQ qq) throws SemanticException
@@ -212,19 +223,8 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		}
 		
 		translation.append('}');
-		
-		Stmt s = qq.parseStmt(translation.toString(), mapping.toArray());		
-		
-		if (compounds.isEmpty())
-		{
-			s = (Stmt) buildAndCheckTypes(this, s);
-            // (Re-)building types might erase previously built SJ type information.
-            // Maybe we don't need to rebuild types in translation phase.
-            // Or maybe no important SJ type information is lost
-            // (e.g. protocol fields, method signatures, etc.).
-		}
-		
-		return s;
+
+        return qq.parseStmt(translation.toString(), mapping.toArray());
 	}
 
     private Block translateSJRecursion(SJRecursion r, QQ qq) throws SemanticException
@@ -268,16 +268,9 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		for (String sjname : soe.targetNames()) // Unicast optimisation for SJRecursionExit is done within the NodeFactory method - this pass comes after SJUnicastOptimiser.
 		{
 			targets.add(sjnf.Local(pos, sjnf.Id(pos, sjname))); // Would it be bad to instead alias the recursionEnter targets? 
-		}				
-		
-		Block b = sjnf.Block(pos, r, sjnf.Eval(pos, sjnf.SJRecursionExit(pos, targets))); // The alternative would be to have the node factory create the recursionExit in the recursion node (then have it parsed and type built by SJSessionOperationParser, etc.) and then we just move it to the right position here. // Should recursionExit take the label as an argument?
-		
-		if (compounds.isEmpty())
-		{
-			b = (Block) buildAndCheckTypes(this, b); // Need to build types in one go because cannot build types for e.g. the assignment expression separately from the newly inserted variable declaration for the assignment target.
 		}
-		
-		return b;
+
+        return sjnf.Block(pos, r, sjnf.Eval(pos, sjnf.SJRecursionExit(pos, targets)));
 	}
 	
 	private String getRecursionBooleanName(Iterable<String> sjnames, SJLabel lab)
