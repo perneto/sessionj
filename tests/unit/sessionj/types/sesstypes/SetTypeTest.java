@@ -1,18 +1,17 @@
 package sessionj.types.sesstypes;
 
-import org.testng.annotations.Test;
 import org.testng.annotations.BeforeTest;
-import sessionj.types.SJTypeSystem_c;
-import sessionj.types.SJTypeSystem;
-import sessionj.Version;
-
-import java.util.List;
-import java.util.LinkedList;
-import java.util.HashSet;
-
+import org.testng.annotations.Test;
+import polyglot.frontend.ExtensionInfo;
 import polyglot.types.*;
 import polyglot.types.reflect.ClassFileLoader;
-import polyglot.frontend.ExtensionInfo;
+import sessionj.Version;
+import sessionj.types.SJTypeSystem;
+import sessionj.types.SJTypeSystem_c;
+
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 public class SetTypeTest {
     private SJSetType set;
@@ -154,5 +153,29 @@ public class SetTypeTest {
         }});
         assert !bigger.containsAllAndOnly(new LinkedList<SJSessionType>(members));
     }
-    
+
+    @Test
+    public void setsSameMembersShouldBeEqual() {
+        Object same = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+            add(sendInt); add(sendBool);
+            // same members but different order - should make no difference        
+        }});
+        assert same.equals(set);
+        assert set.equals(same);
+    }
+
+    @Test
+    public void setAndOtherTypeShouldntBeEqual() {
+        assert !set.equals(sendInt);
+        assert !sendInt.equals(set);
+    }
+
+    @Test
+    public void setsWithDifferentMembersShouldntBeEqual() {
+        Object diffMembers = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+            add(sendBool); add(sendInt); add(sendObject);
+        }});
+        assert !diffMembers.equals(set);
+        assert !set.equals(diffMembers);
+    }
 }

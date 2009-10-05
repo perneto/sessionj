@@ -39,7 +39,7 @@ public interface SJSessionType extends SJType
 	
 	SJSessionType getLeaf(); // Doesn't return a defensive copy.
 
-    // A first step to remove the instanceof checks in SJTypeChecker and friends.
+    // A first step to remove the instanceof checks in SJSessionTypeChecker and friends.
     boolean startsWith(Class<? extends SJSessionType> aClass);
     // TODO: void checkStartsWith throws SemanticException, to factor out
     // all the scattered throw SemanticException
