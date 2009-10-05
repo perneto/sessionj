@@ -463,10 +463,9 @@ public class SJContext_c extends SJContext
         SJSetType set = current.getActiveSetType();
         SJSessionType selected = when.selectMatching(set);
         // TODO when this fails, new context is not pushed, so next when will
-        // blow.
-        SJContextElement whenContext = new SJContextElement_c(current) {
-            // Just for debugging
-        };
+        // blow. Look at bypass() methods in visitor
+
+        SJContextElement whenContext = new SJContextElement_c(current);
         whenContext.setActive(current.sjname, selected);
         pushContextElement(whenContext);
     }

@@ -1,13 +1,13 @@
 package sessionj.types.sesstypes;
 
 import polyglot.types.SemanticException;
-import polyglot.types.TypeSystem;
 import polyglot.types.Type;
+import polyglot.types.TypeSystem;
 
 import java.util.*;
 
 public class SJSetType_c extends SJSessionType_c implements SJSetType {
-    private final List<SJSessionType_c> members;
+    private final Collection<SJSessionType_c> members;
 
     private boolean isSingleton() {
         return members.size() == 1;
@@ -16,31 +16,36 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     public SJSetType_c(TypeSystem ts, List<SJSessionType_c> members) {
         super(ts);
         this.members = Collections.unmodifiableList(members);
+        // FIXME: Can't use a HashSet for now because hashCode is not implemented in SJSessionType_c subclasses 
         assert !members.contains(null);
     }
 
-    private SJSessionType singletonMember(SJSessionType st) {
-        return ((SJSetType_c) st).members.get(0);
+    private SJSessionType_c singletonMember() {
+        Iterator<SJSessionType_c> it = members.iterator();
+        return it.next();
     }
 
     protected boolean eligibleForEquals(SJSessionType st) {
         if (isSingleton()) {
-            SJSessionType_c member = members.get(0);
+            SJSessionType_c member = singletonMember();
             if (st instanceof SJSetType_c) {
-                return member.eligibleForEquals(singletonMember(st));
+                return member.eligibleForEquals(((SJSetType_c) st).singletonMember());
             } else {
                 return member.eligibleForEquals(st);
             }
+        } else {
+            return st instanceof SJSetType
+                && ((SJSetType) st).containsAllAndOnly(new LinkedList<SJSessionType>(members));            
         }
-        // TODO
-        throw new UnsupportedOperationException("Non-singleton set types not supported yet");
     }
 
     protected boolean eligibleForSubtype(SJSessionType potentialSupertype) {
         if (isSingleton()) {
-            SJSessionType_c member = members.get(0);
+            SJSessionType_c member = singletonMember();
             if (potentialSupertype instanceof SJSetType_c) {
-                return member.eligibleForSubtype(singletonMember(potentialSupertype));
+                return member.eligibleForSubtype(
+                    ((SJSetType_c) potentialSupertype).singletonMember()
+                );
             } else {
                 return member.eligibleForSubtype(potentialSupertype);
             }
@@ -67,9 +72,9 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
 
     protected boolean eligibleForDualtype(SJSessionType st) {
         if (isSingleton()) {
-            SJSessionType_c member = members.get(0);
+            SJSessionType_c member = singletonMember();
             if (st instanceof SJSetType_c) {
-                return member.eligibleForDualtype(singletonMember(st));
+                return member.eligibleForDualtype(((SJSetType_c) st).singletonMember());
             } else {
                 return member.eligibleForDualtype(st);
             }
@@ -79,7 +84,7 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     }
 
     protected boolean compareNode(NodeComparison o, SJSessionType st) {
-        return !isSingleton() || members.get(0).compareNode(o, st);
+        return !isSingleton() || singletonMember().compareNode(o, st);
     }
 
     private int subtypingPartialOrder(SJSessionType left, SJSessionType right) {
@@ -89,7 +94,7 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     }
 
     public SJSessionType nodeSubsume(SJSessionType st) throws SemanticException {
-        if (isSingleton()) return members.get(0).nodeSubsume(st);        
+        if (isSingleton()) return singletonMember().nodeSubsume(st);        
 
         throw new UnsupportedOperationException("Non-singleton set types not supported yet");
         // TODO intersection of the two sets modulo subtyping
@@ -148,27 +153,27 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
 
     @Override
     public boolean startsWith(Class<? extends SJSessionType> aClass) {
-        if (isSingleton()) return members.get(0).startsWith(aClass);
+        if (isSingleton()) return singletonMember().startsWith(aClass);
         return super.startsWith(aClass);
     }
 
     @Override
     public boolean isWellFormed() {
-        if (isSingleton()) return members.get(0).isWellFormed();
+        if (isSingleton()) return singletonMember().isWellFormed();
         // TODO
         return super.isWellFormed();
     }
 
     @Override
     public SJSessionType nodeDual() throws SemanticException {
-        if (isSingleton()) return members.get(0).nodeDual();
+        if (isSingleton()) return singletonMember().nodeDual();
         // TODO
         return super.nodeDual();
     }
 
     @Override
     protected SJSessionType getChild() {
-        if (isSingleton()) return members.get(0).getChild();
+        if (isSingleton()) return singletonMember().getChild();
         return null; // A set never has anything after it (enforced by grammar)
     }
 
