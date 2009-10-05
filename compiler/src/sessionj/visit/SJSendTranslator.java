@@ -66,7 +66,7 @@ public class SJSendTranslator extends ContextVisitor //ErrorHandlingVisitor
 			SJNoAliasExprExt naee = getSJNoAliasExprExt(s);
 			SJTypeableExt te = getSJTypeableExt(s);
 			
-			p = (SJPass) buildAndCheckTypes(job(), this, p);
+			p = (SJPass) buildAndCheckTypes(this, p);
 			p = (SJPass) SJNoAliasExprBuilder.setSJNoAliasExprExt(sjef, p, naee.isNoAlias(), naee.isFinal(), naee.fields(), naee.locals(), naee.arrayAccesses());
 			p = (SJPass) setSJSessionOperationExt(sjef, p, te.sessionType(), ((SJSessionOperationExt) te).targetNames());
 		}

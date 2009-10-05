@@ -4,9 +4,7 @@ import polyglot.types.SemanticException;
 import polyglot.types.TypeSystem;
 import polyglot.types.Type;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class SJSetType_c extends SJSessionType_c implements SJSetType {
     private final List<SJSessionType_c> members;
@@ -81,10 +79,7 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     }
 
     protected boolean compareNode(NodeComparison o, SJSessionType st) {
-        //noinspection SimplifiableIfStatement
-        if (isSingleton()) return members.get(0).compareNode(o,st);
-
-        return true;
+        return !isSingleton() || members.get(0).compareNode(o, st);
     }
 
     private int subtypingPartialOrder(SJSessionType left, SJSessionType right) {
@@ -188,5 +183,13 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
             if (potentialSubtype.isSubtype(member)) return member;
         }
         return this;
+    }
+
+    public boolean contains(SJSessionType sessionType) {
+        return members.contains(sessionType);
+    }
+
+    public boolean containsAllAndOnly(Collection<SJSessionType> types) {
+        return members.containsAll(types) && types.containsAll(members);
     }
 }

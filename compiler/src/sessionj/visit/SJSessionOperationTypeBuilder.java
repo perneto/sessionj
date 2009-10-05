@@ -16,6 +16,7 @@ import polyglot.visit.NodeVisitor;
 import static sessionj.SJConstants.*;
 import sessionj.ast.SJNodeFactory;
 import sessionj.ast.SJSpawn;
+import sessionj.ast.SessionTypedNode;
 import sessionj.ast.sesscasts.SJSessionTypeCast;
 import sessionj.ast.sessops.SJInternalOperation;
 import sessionj.ast.sessops.SJSessionOperation;
@@ -59,18 +60,17 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 		super(job, ts, nf);
 	}
 
-	protected NodeVisitor enterCall(Node parent, Node n) throws SemanticException
-	{
-		return this;
-	}
-	
 	protected Node leaveCall(Node old, Node n, NodeVisitor v) throws SemanticException
 	{		
 		/*if (n instanceof SJSessionTry)
 		{
 			// Could give something like SJSessionOperationExt (i.e. list of targetNames and maybe SJUnknownTypes to session-try).
 		}
-		else */if (n instanceof SJSessionOperation)
+		else */
+        if (n instanceof SessionTypedNode) {
+            n = ((SessionTypedNode) n).buildType(this, sjts, sjef);
+        }
+		else if (n instanceof SJSessionOperation)
 		{
 			if (n instanceof SJBasicOperation)
 			{
@@ -115,10 +115,7 @@ public class SJSessionOperationTypeBuilder extends ContextVisitor
 						n = buildSJRecursion((SJRecursion) n);
 					}
 				}
-                else if (n instanceof SJTypecase) {
-                    n = ((SJTypecase) n).buildType(sjts, sjef);
-                }
-				else
+                else
 				{
 					throw new SemanticException("[SJSessionOperationTypeBuilder] Session operation not yet supported: " + n);
 				}

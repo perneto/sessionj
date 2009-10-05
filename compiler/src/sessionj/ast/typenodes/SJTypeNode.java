@@ -27,5 +27,5 @@ public interface SJTypeNode extends TypeNode
 	String nodeToString(); // Could be protected?
 	String treeToString();
 
-    SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem ts) throws SemanticException;
+    SJTypeNode disambiguateSJTypeNode(ContextVisitor cv, SJTypeSystem sjts) throws SemanticException;
 }

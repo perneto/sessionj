@@ -107,7 +107,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
                 interruptible, sockArray,
                 unique, outwhile.cond(), outwhile.body()
         );
-        buildAndCheckTypes(job(), this, block);
+        buildAndCheckTypes(this, block);
         return block;
     }
 
@@ -119,7 +119,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 " while (sessionj.runtime.net.SJRuntime.insync(%E)) %S }",
                 sockArray, sockArray, inwhile.body()
         );
-        buildAndCheckTypes(job(), this, block);
+        buildAndCheckTypes(this, block);
         return block;
     }
 
@@ -160,7 +160,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         subst.add(outinwhile.body());
 
         Stmt block = qq.parseStmt(code, subst);
-        buildAndCheckTypes(job(), this, block);
+        buildAndCheckTypes(this, block);
         return block;
     }
 
@@ -217,7 +217,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		
 		if (compounds.isEmpty())
 		{
-			s = (Stmt) buildAndCheckTypes(job(), this, s);
+			s = (Stmt) buildAndCheckTypes(this, s);
             // (Re-)building types might erase previously built SJ type information.
             // Maybe we don't need to rebuild types in translation phase.
             // Or maybe no important SJ type information is lost
@@ -274,7 +274,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		
 		if (compounds.isEmpty())
 		{
-			b = (Block) buildAndCheckTypes(job(), this, b); // Need to build types in one go because cannot build types for e.g. the assignment expression separately from the newly inserted variable declaration for the assignment target.
+			b = (Block) buildAndCheckTypes(this, b); // Need to build types in one go because cannot build types for e.g. the assignment expression separately from the newly inserted variable declaration for the assignment target.
 		}
 		
 		return b;

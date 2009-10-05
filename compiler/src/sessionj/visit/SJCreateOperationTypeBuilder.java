@@ -18,13 +18,10 @@ import sessionj.ast.sessops.*;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.typenodes.SJTypeNode;
 import sessionj.extension.*;
-import sessionj.extension.noalias.*;
 import sessionj.types.*;
 import sessionj.types.contexts.*;
 import sessionj.types.sesstypes.SJSessionType;
 import sessionj.types.typeobjects.*;
-import sessionj.types.noalias.*;
-import sessionj.util.noalias.*;
 
 import static sessionj.SJConstants.*;
 import static sessionj.util.SJCompilerUtils.*;
@@ -212,7 +209,7 @@ public class SJCreateOperationTypeBuilder extends ContextVisitor
 	
 	private SJProtocolDecl setSJProtocolDeclExt(SJProtocolDecl pd) throws SemanticException
 	{
-		SJTypeNode tn = disambiguateSJTypeNode(job(), this, pd.sessionType());
+		SJTypeNode tn = disambiguateSJTypeNode(this, pd.sessionType());
 		SJSessionType st = tn.type();
 		String sjname; // Should match that given by SJVariable.sjname.
 		

@@ -6,7 +6,5 @@ import sessionj.ast.typenodes.SJTypeNode;
 
 public interface SJLocalProtocolDecl extends LocalDecl, SJProtocolDecl
 {
-	public SJLocalProtocolDecl init(Expr init);
-	
-	public SJLocalProtocolDecl sessionType(SJTypeNode tn);
+	public SJLocalProtocolDecl init(Expr init);	
 }

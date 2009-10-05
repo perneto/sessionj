@@ -3,18 +3,14 @@
  */
 package sessionj.types.contexts;
 
-import java.util.*;
-
-import polyglot.ast.ClassDecl;
 import polyglot.ast.MethodDecl;
-import polyglot.types.*;
+import polyglot.types.SemanticException;
 import polyglot.visit.ContextVisitor;
-
-import sessionj.ast.*;
 import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.sesstry.*;
-import sessionj.types.sesstypes.*;
-import sessionj.types.typeobjects.*;
+import sessionj.ast.sesstry.SJServerTry;
+import sessionj.ast.sesstry.SJSessionTry;
+import sessionj.types.sesstypes.SJSessionType;
+import sessionj.types.typeobjects.SJNamedInstance;
 
 /**
  * @author Raymond
@@ -64,6 +60,9 @@ public interface SJContextInterface
 	void pushSJBranchCase(SJBranchCase bc) throws SemanticException;
 	void pushSJWhile(SJWhile w) throws SemanticException;
 	void pushSJRecursion(SJRecursion r) throws SemanticException;
+
+    void pushSJTypecase(SJTypecase typecase) throws SemanticException;
+    void pushSJWhen(SJWhen when) throws SemanticException;
 	
 	SJContextElement pop() throws SemanticException;
 	
@@ -74,4 +73,6 @@ public interface SJContextInterface
 	SJNamedInstance getChannel(String sjname) throws SemanticException;
 	SJNamedInstance getSocket(String sjname) throws SemanticException;
 	SJNamedInstance getServer(String sjname) throws SemanticException;
+
+    SJContextElement currentContext();
 }

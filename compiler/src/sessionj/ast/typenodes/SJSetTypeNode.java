@@ -9,6 +9,4 @@ public interface SJSetTypeNode extends SJTypeNode {
     boolean isSingleton();
 
     SJTypeNode get(int index);
-
-    SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem sjts) throws SemanticException;
 }

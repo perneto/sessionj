@@ -1,28 +1,26 @@
 package sessionj.ast.sessops.compoundops;
 
-import polyglot.util.*;
 import polyglot.ast.*;
-import polyglot.visit.*;
-import polyglot.types.SemanticException;
 import polyglot.types.Context;
-
-import java.util.List;
-import java.util.Collections;
-import java.util.LinkedList;
-
+import polyglot.types.SemanticException;
+import polyglot.util.CodeWriter;
+import polyglot.util.Position;
+import polyglot.visit.*;
+import sessionj.SJConstants;
 import sessionj.ast.sessops.SJSessionOperation;
-import sessionj.ast.sessops.basicops.SJInlabel;
 import sessionj.ast.sessvars.SJVariable;
-import sessionj.types.sesstypes.SJSessionType;
-import sessionj.types.sesstypes.SJSessionType_c;
+import sessionj.extension.SJExtFactory;
 import sessionj.types.SJTypeSystem;
 import sessionj.types.contexts.SJContextElement;
+import sessionj.types.contexts.SJContextInterface;
 import sessionj.types.contexts.SJTypeBuildingContext;
-import static sessionj.visit.SJSessionOperationTypeBuilder.getTargetNames;
-import sessionj.visit.SJSessionTypeChecker;
+import sessionj.types.sesstypes.SJSessionType;
+import sessionj.types.sesstypes.SJSessionType_c;
+import sessionj.types.sesstypes.SJSetType;
 import sessionj.util.SJCompilerUtils;
-import sessionj.extension.SJExtFactory;
-import sessionj.SJConstants;
+import static sessionj.visit.SJSessionOperationTypeBuilder.getTargetNames;
+
+import java.util.*;
 
 public class SJTypecase_c extends Stmt_c implements SJTypecase {
     private final Receiver ambiguousSocket;
@@ -63,22 +61,34 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
         return new SJTypecase_c(position, ambiguousSocket, whenStatements, (SJVariable) o);
     }
 
-    public Node buildType(SJTypeSystem sjts, SJExtFactory sjef) {
+    public Node buildType(ContextVisitor cv, SJTypeSystem sjts, SJExtFactory sjef) {
         List<String> sjnames = getTargetNames(resolvedTargets(), false);
         SJSessionType st = sjts.SJSetType(Collections.singletonList((SJSessionType_c) sjts.SJUnknownType()));
         return SJCompilerUtils.setSJSessionOperationExt(sjef, this, st, sjnames);
     }
 
-    public SJContextElement leaveSJContext(SJTypeBuildingContext sjcontext) throws SemanticException {
+    public void enterSJContext(SJContextInterface sjcontext) throws SemanticException {
+        sjcontext.pushSJTypecase(this);
+    }
+
+    public SJContextElement leaveSJContext(SJContextInterface sjcontext) throws SemanticException {
         return sjcontext.pop();
     }
 
-    public SJCompoundOperation sessionTypeCheck(SJSessionType implemented, SJExtFactory sjef) {
-        return (SJCompoundOperation) SJSessionTypeChecker.decorateWithSessionType(this, implemented, sjef);
+    public SJCompoundOperation sessionTypeCheck(SJSessionType typeForNode) throws SemanticException {
+        if (!(typeForNode instanceof SJSetType))
+            throw new SemanticException("Typecase should have a set type");
+        SJSetType set = (SJSetType) typeForNode;
+        if (!set.containsAllAndOnly(branchTypes()))
+            throw new SemanticException("Typecase branches:\n" + whenStatements
+                + "do not match with set type: " + set);
+        return this;
     }
 
-    public void enterSJContext(SJTypeBuildingContext sjcontext) throws SemanticException {
-        sjcontext.pushSJTypecase(this);
+    private Collection<SJSessionType> branchTypes() {
+        Collection<SJSessionType> res = new LinkedList<SJSessionType>();
+        for (SJWhen when : whenStatements) res.add(when.type());
+        return res;
     }
 
     // The following are adapted from Switch_c.
@@ -107,7 +117,6 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
     public Node visitChildren(NodeVisitor v)
     {
         List<SJWhen> newWhenStatements = visitList(whenStatements, v);
-
         return reconstruct(newWhenStatements);
     }
 

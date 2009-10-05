@@ -1,19 +1,11 @@
 package sessionj.ast.sessops.compoundops;
 
-import polyglot.ast.Node;
-import polyglot.types.SemanticException;
-import sessionj.types.SJTypeSystem;
-import sessionj.types.sesstypes.SJSessionType;
-import sessionj.types.contexts.SJTypeBuildingContext;
-import sessionj.types.contexts.SJContextElement;
+import sessionj.ast.sessops.TraverseTypeBuildingContext;
+import sessionj.ast.SessionTypedNode;
 import sessionj.extension.SJExtFactory;
-import sessionj.ast.sessops.SJSessionOperation;
+import sessionj.types.sesstypes.SJSessionType;
+import polyglot.types.SemanticException;
 
-public interface SJTypecase extends SJCompoundOperation {
-    Node buildType(SJTypeSystem sjts, SJExtFactory sjef);
-
-    void enterSJContext(SJTypeBuildingContext sjcontext) throws SemanticException;
-    SJContextElement leaveSJContext(SJTypeBuildingContext sjcontext) throws SemanticException;
-
-    SJCompoundOperation sessionTypeCheck(SJSessionType implemented, SJExtFactory sjef);
+public interface SJTypecase extends SJCompoundOperation, TraverseTypeBuildingContext, SessionTypedNode {
+    SJCompoundOperation sessionTypeCheck(SJSessionType typeForNode) throws SemanticException;
 }

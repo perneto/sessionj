@@ -741,7 +741,7 @@ sj_typecase_caselist ::=
 ;
 
 sj_typecase_when ::=
-    SJ_WHEN:w LPAREN sj_session_type:t RPAREN block_statements:body
+    SJ_WHEN:w LPAREN sj_session_type:t RPAREN statement:body
     {:
         RESULT = parser.nf.SJWhen(parser.pos(w,body), t, body);
     :}

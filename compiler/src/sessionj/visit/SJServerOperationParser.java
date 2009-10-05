@@ -62,7 +62,7 @@ public class SJServerOperationParser extends ContextVisitor
 			if (c.name().equals(SJ_KEYWORD_ACCEPT)) 
 			{							
 				SJAccept a = sjnf.SJAccept(c.position(), c.target(), c.arguments()); 			
-				a = (SJAccept) buildAndCheckTypes(job(), this, a);
+				a = (SJAccept) buildAndCheckTypes(this, a);
 				
 				c = a;
 			}

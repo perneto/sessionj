@@ -1,4 +1,8 @@
 package sessionj.types.sesstypes;
 
-public interface SJSetType extends SJSessionType {
+import java.util.Collection;
+
+public interface SJSetType extends SJSessionType { 
+    boolean contains(SJSessionType sessionType);
+    boolean containsAllAndOnly(Collection<SJSessionType> types);    
 }

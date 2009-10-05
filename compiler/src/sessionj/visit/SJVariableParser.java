@@ -91,7 +91,7 @@ public class SJVariableParser extends ContextVisitor
 		 
 		if (v != null)
 		{
-			l = (Local) buildAndCheckTypes(job(), this, v); // Instead could just reassign the existing type objects of `l' to `v'?
+			l = (Local) buildAndCheckTypes(this, v); // Instead could just reassign the existing type objects of `l' to `v'?
 		}
 		
 		return l;
@@ -132,7 +132,7 @@ public class SJVariableParser extends ContextVisitor
 		List<SJVariable> targets = new LinkedList<SJVariable>();
 
         for (Object aL : l) {
-            Receiver r = (Receiver) buildAndCheckTypes(job(), this, (Receiver) aL); // Runs AmbiguityRemover.
+            Receiver r = (Receiver) buildAndCheckTypes(this, (Node) aL); // Runs AmbiguityRemover.
 
             Type t = r.type();
 

@@ -21,6 +21,7 @@ import sessionj.ast.sesscasts.SJChannelCast;
 import sessionj.ast.sesscasts.SJSessionCast;
 import sessionj.ast.sessops.SJInternalOperation;
 import sessionj.ast.sessops.SJSessionOperation;
+import sessionj.ast.sessops.TraverseTypeBuildingContext;
 import sessionj.ast.sessops.basicops.SJPass;
 import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sesstry.SJServerTry;
@@ -43,7 +44,7 @@ import java.util.List;
 /**
  * @author Raymond
  *
- * Post session type checking visitor which reads the session type information build and recorded by the preceding passes.
+ * Post session type checking visitor which reads the session type information built and recorded by the preceding passes.
  *
  */
 abstract public class SJAbstractSessionVisitor extends ContextVisitor  
@@ -82,13 +83,13 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		// We don't need the popped context for anything (just needed to pop it).
         // But we need to pop and process compound contexts before performing type building etc.
         // for those operations.
-        leaveSJContext(old, n, v);
+        leaveSJContext(n);
         		
 		if (n instanceof SJSessionOperation) // Must come before Expr, SJBasicOperations are Exprs.
 		{
 			if (!(n instanceof SJInternalOperation))
 			{
-				n = recordSJSessionOperation(parent, (SJSessionOperation) n);
+				n = recordSJSessionOperation((SJSessionOperation) n);
 			}
 		}
 		else if (n instanceof SJSpawn)
@@ -129,7 +130,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		return n;
 	}
 	
-	private SJSessionOperation recordSJSessionOperation(Node parent, SJSessionOperation so) throws SemanticException
+	private Node recordSJSessionOperation(SJSessionOperation so) throws SemanticException
 	{
 		List<String> sjnames = getSJSessionOperationExt(so).targetNames();
 		SJSessionType st = getSessionType(so);
@@ -138,19 +139,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		{
 			if (so instanceof SJPass) //FIXME: also do channel passing.
 			{
-				Expr arg = (Expr) ((SJPass) so).arguments().get(1);
-						
-				if (arg instanceof SJLocalSocket) // A bit lucky that this still works after SJHigherOrderTranslator? Need to be careful about translation is allowed? Or about which passes are allowed to SJSessionVisitors.
-				{					
-					String s = ((SJLocalSocket) arg).sjname();
-					
-					if (s.startsWith(SJ_TMP_LOCAL))
-					{
-						s = s.substring(SJ_TMP_LOCAL.length() + "_".length());
-					}
-
-					sjcontext.delegateSession(s); // Maybe should instead just record the type from the extension object rather than recalculating the delegated (remaining) type here.
-				}
+                doDelegation(so);
 			}
 			
 			sjcontext.advanceSession(sjname, st);
@@ -158,8 +147,24 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		
 		return so;
 	}
-	
-	private SJSpawn recordSJSpawn(SJSpawn s) throws SemanticException
+
+    private void doDelegation(SJSessionOperation so) throws SemanticException {
+        Expr arg = (Expr) ((SJPass) so).arguments().get(1);
+
+        if (arg instanceof SJLocalSocket) // A bit lucky that this still works after SJHigherOrderTranslator? Need to be careful about translation is allowed? Or about which passes are allowed to SJSessionVisitors.
+        {
+            String s = ((SJVariable) arg).sjname();
+
+            if (s.startsWith(SJ_TMP_LOCAL))
+            {
+                s = s.substring(SJ_TMP_LOCAL.length() + "_".length());
+            }
+
+            sjcontext.delegateSession(s); // Maybe should instead just record the type from the extension object rather than recalculating the delegated (remaining) type here.
+        }
+    }
+
+    private SJSpawn recordSJSpawn(SJSpawn s) throws SemanticException
 	{
 		Iterator<SJSessionType> i = s.sessionTypes().iterator();
 		
@@ -318,7 +323,12 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 	
 	private void enterSJContext(Node parent, Node n) throws SemanticException // Basically duplicated from SJTypeChecker.
 	{
-		if (n instanceof LocalDecl) 
+
+        if (n instanceof TraverseTypeBuildingContext)
+        {
+            ((TraverseTypeBuildingContext) n).enterSJContext(sjcontext);
+        }
+        else if (n instanceof LocalDecl) 
 		{
 			LocalDecl ld = (LocalDecl) n;
 			LocalInstance li = ld.localInstance(); 
@@ -416,7 +426,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		sjcontext.setVisitor(this); // ContextVisitor returns a new visitor for each scope.
 	}
 	
-	private SJContextElement leaveSJContext(Node old, Node n, NodeVisitor v) throws SemanticException // Duplicated from SJTypeChecker.
+	private SJContextElement leaveSJContext(Node n) throws SemanticException // Duplicated from SJTypeChecker.
 	{
 		SJContextElement ce = null;
 		

@@ -4,7 +4,6 @@
 package sessionj.util;
 
 import polyglot.ast.*;
-import polyglot.frontend.Job;
 import polyglot.types.*;
 import polyglot.visit.*;
 import sessionj.SJConstants;
@@ -212,20 +211,20 @@ public class SJCompilerUtils
 		throw new SemanticException("[SJCompilerUtils] Not subsumable: " + t1 + ", " + t2); // FIXME: some primitive types subsumable (e.g. char->int, int->dobule).
 	}
 	
-	public static Node buildAndCheckTypes(Job job, ContextVisitor cv, Node n) throws SemanticException
+	public static Node buildAndCheckTypes(ContextVisitor cv, Node n) throws SemanticException
 	{
 		TypeSystem ts = cv.typeSystem();
 		NodeFactory nf = cv.nodeFactory();
 			
-		AmbiguityRemover ar = (AmbiguityRemover) new AmbiguityRemover(job, ts, nf, true, true).context(cv.context());
+		AmbiguityRemover ar = (AmbiguityRemover) new AmbiguityRemover(cv.job(), ts, nf, true, true).context(cv.context());
 		
 		n = disambiguateNode(ar, n); 
 		
-		TypeChecker tc = (TypeChecker) new TypeChecker(job, ts, nf).context(ar.context());		
+		TypeChecker tc = (TypeChecker) new TypeChecker(cv.job(), ts, nf).context(ar.context());
 		
 		n = n.visit(tc);
 		
-		ConstantChecker cc = (ConstantChecker) new ConstantChecker(job, ts, nf).context(tc.context());
+		ConstantChecker cc = (ConstantChecker) new ConstantChecker(cv.job(), ts, nf).context(tc.context());
 		
 		n = n.visit(cc); // FIXME: breaks SJProtocolDeclTypeBuilding pass.
 
@@ -245,16 +244,16 @@ public class SJCompilerUtils
 		return n;
 	}
 	
-	public static SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeNode tn) throws SemanticException
+	public static SJTypeNode disambiguateSJTypeNode(ContextVisitor cv, SJTypeNode tn) throws SemanticException
 	{
         SJTypeSystem sjts = (SJTypeSystem) cv.typeSystem();
 
-        tn = tn.disambiguateSJTypeNode(job, cv, sjts);
+        tn = tn.disambiguateSJTypeNode(cv, sjts);
 
         SJTypeNode child = tn.child();
 
         if (child != null) {
-            tn = tn.child(disambiguateSJTypeNode(job, cv, child));
+            tn = tn.child(disambiguateSJTypeNode(cv, child));
         }
 
         return tn;

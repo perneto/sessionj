@@ -130,7 +130,7 @@ public class SJSessionTryTranslator extends SJSessionVisitor
 			mapping.add(x);
 			
 			Eval e = (Eval) qq.parseStmt(translation, mapping);
-			e = (Eval) buildAndCheckTypes(job(), this, e);
+			e = (Eval) buildAndCheckTypes(this, e);
 			
 			st = (SJSessionTry) appendToFinally(st, e);
 		}
@@ -153,7 +153,7 @@ public class SJSessionTryTranslator extends SJSessionVisitor
 		mapping.add(sv);
 			
 		If i = (If) qq.parseStmt(translation, mapping);
-		i = (If) buildAndCheckTypes(job(), this, i);
+		i = (If) buildAndCheckTypes(this, i);
 		
 		st = (SJServerTry) appendToFinally(st, i);
 		

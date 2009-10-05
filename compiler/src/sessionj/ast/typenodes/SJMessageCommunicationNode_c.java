@@ -2,7 +2,6 @@ package sessionj.ast.typenodes;
 
 import polyglot.ast.TypeNode;
 import polyglot.util.Position;
-import polyglot.frontend.Job;
 import polyglot.visit.ContextVisitor;
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
@@ -33,18 +32,18 @@ abstract public class SJMessageCommunicationNode_c extends SJTypeNode_c implemen
 
     protected abstract SJMessageCommunicationType createType(SJTypeSystem ts, Type messageType) throws SemanticException;
 
-    public SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem ts) throws SemanticException {
+    public SJTypeNode disambiguateSJTypeNode(ContextVisitor cv, SJTypeSystem sjts) throws SemanticException {
         TypeNode messageTypeNode = messageType();
 
         if (messageTypeNode instanceof SJTypeNode)
         {
-            messageTypeNode = SJCompilerUtils.disambiguateSJTypeNode(job, cv, (SJTypeNode) messageTypeNode);
+            messageTypeNode = SJCompilerUtils.disambiguateSJTypeNode(cv, (SJTypeNode) messageTypeNode);
         }
         else
         {
-            messageTypeNode = (TypeNode) SJCompilerUtils.buildAndCheckTypes(job, cv, messageTypeNode);
+            messageTypeNode = (TypeNode) SJCompilerUtils.buildAndCheckTypes(cv, messageTypeNode);
         }
         setMessageType(messageTypeNode);
-        return type(createType(ts, messageTypeNode.type()));
+        return type(createType(sjts, messageTypeNode.type()));
     }
 }

@@ -1,7 +1,6 @@
 package sessionj.ast.typenodes;
 
 import polyglot.util.Position;
-import polyglot.frontend.Job;
 import polyglot.visit.ContextVisitor;
 import polyglot.types.SemanticException;
 
@@ -42,13 +41,13 @@ public class SJSetTypeNode_c extends SJTypeNode_c implements SJSetTypeNode {
         return elements.get(index);
     }
 
-    public SJTypeNode disambiguateSJTypeNode(Job job, ContextVisitor cv, SJTypeSystem sjts)
+    public SJTypeNode disambiguateSJTypeNode(ContextVisitor cv, SJTypeSystem sjts)
         throws SemanticException
     {
         List<SJTypeNode> disambElem = new LinkedList<SJTypeNode>();
         List<SJSessionType_c> elemTypes = new LinkedList<SJSessionType_c>();
         for (SJTypeNode elem : elements) {
-            SJTypeNode typeNode = SJCompilerUtils.disambiguateSJTypeNode(job, cv, elem);
+            SJTypeNode typeNode = SJCompilerUtils.disambiguateSJTypeNode(cv, elem);
             disambElem.add(typeNode);
             elemTypes.add((SJSessionType_c) typeNode.type());
         }
