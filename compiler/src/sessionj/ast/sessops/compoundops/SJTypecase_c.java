@@ -6,6 +6,7 @@ import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.*;
+import polyglot.qq.QQ;
 import sessionj.SJConstants;
 import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessvars.SJVariable;
@@ -83,6 +84,10 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
             throw new SemanticException("Typecase branches:\n" + whenStatements
                 + "do not match with set type: " + set);
         return this;
+    }
+
+    public Node translate(QQ qq) {
+        return this; // TODO
     }
 
     private Collection<SJSessionType> branchTypes() {
