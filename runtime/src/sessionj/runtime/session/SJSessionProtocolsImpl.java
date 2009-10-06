@@ -529,7 +529,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
 	}
 	
-	public void delegateSession(SJAbstractSocket s, SJSessionType st) throws SJIOException  
+	public void delegateSession(SJAbstractSocket s, SJSessionType st) throws SJIOException
 	{
 		//if (ser.getConnection() instanceof SJLocalConnection) // Attempting to do a purely noalias transfer of session socket object.
 		if (ser.zeroCopySupported())
@@ -538,227 +538,234 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
 		else
 		{
-			SJSessionProtocols sp = s.getSJSessionProtocols();
-			
-			if (!(sp instanceof SJSessionProtocolsImpl))
-			{
-				throw new SJIOException("[SJSessionProtocolsImpl] Incompatible session peer for delegation: " + sp);
-			}
-			
-			ser.writeByte(DELEGATION_START);
-			ser.writeBoolean(s instanceof SJRequestingSocket); // Original requestor.		
-			
-			int port = receiveInt(); // Should handle delegation case 3 (the two preceding delegation protocol messages are forwarded by peer). 
-			
-			SJSerializer foo = sp.getSerializer();
-			
-			String hostName = ser.getConnection().getHostName();
-			
-			if (hostName.equals("localhost") || hostName.equals("127.0.0.1")) // Factor out constants.
-			{
-				try
-				{
-					//hostName = InetAddress.getLocalHost().getHostName();
-					hostName = InetAddress.getLocalHost().getHostAddress(); // Main Runtime routines are now using IP addresses rather than host names.
-				}
-				catch (UnknownHostException uhe)
-				{
-					throw new SJRuntimeException(uhe);
-				}
-			}
-			
-			foo.writeControlSignal(new SJDelegationSignal(hostName, port));
-			
-			forwardUntilACKOrFINInclusive(foo, ser);
-			
-			// Maybe need to close sp (and corresponding socket).
-			s.getSerializer().close();			
-			SJRuntime.closeSocket(s);
+            standardDelegateSession(s);
 		}
 	}
-	
-	//public SJAbstractSocket receiveSession(SJSessionType st) throws SJIOException
+
+    //public SJAbstractSocket receiveSession(SJSessionType st) throws SJIOException
 	public SJAbstractSocket receiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException
 	{
 		if (ser.zeroCopySupported())
 		{
-			try
-			{
-				return (SJAbstractSocket) ser.readReference(); // Can use ordinary receive (like receiveChannel).
-			}
-			catch (SJControlSignal cs) // May need revision to handle certain delegation cases.
-			{
-				throw new SJIOException(cs);				
-			}
-		}
+            return zeroCopyReceiveSession();
+        }
 		else
 		{
-			byte flag = receiveByte(); // Handles delegation by peer?
-			
-			if (flag != DELEGATION_START) // Maybe replace by a proper control signal. Then would need to manually handle SJDelegationSignal.
-			{
-				throw new SJIOException("[SJSessionProtocolsImpl] Unexpected flag: " + flag);
-			}
-			
-			boolean origReq;
-			
-			SJProtocol p = null;
-			LinkedList<SJMessage> bar = null;
-			
-			SJConnection conn = null;
-			
-			boolean simdel;
-			
-			SJTransportManager sjtm = null;
-			SJAcceptorThreadGroup atg = null;
-						
-			try
-			{
-				try
-				{
-					//origReq = receiveBoolean(); // Don't want to handle control messages.
-
-                    if (lostMessages.isEmpty()) {
-                        origReq = ser.readBoolean();
-                    } else {
-                        SJMessage m = lostMessages.remove(0);
-
-                        byte t = m.getType();
-
-                        if (t != SJ_BOOLEAN) {
-                            throw new SJIOException("[SJSessionProtocolsImpl] Expected boolean, not: " + t);
-                        }
-
-                        origReq = m.getBooleanValue();
-                    }
-				}
-				catch (SJControlSignal cs)
-				{
-					throw new SJIOException(cs);
-				}
-				
-				//int port = SJRuntime.findFreePort();
-				//int port = SJRuntime.takeFreePort();
-				
-				sjtm = SJRuntime.getTransportManager();
-				
-				/*SJAcceptorThreadGroup atg = sjtm.openAcceptorGroup(port); // FIXME: It's not just the session-port that we have to check is free - we need to make sure that the *setup* transports can be opened for that session port (e.g. some other non-SJ process may have opened a TCP port there already).*/
-				
-				p = new SJProtocol(SJRuntime.encode(st));
-				
-				//SJAcceptorThreadGroup atg = SJRuntime.getFreshAcceptorThreadGroup(SJSessionParameters.DEFAULT_PARAMETERS); // FIXME: need to decide about session parameters.
-				//SJAcceptorThreadGroup atg = SJRuntime.getFreshAcceptorThreadGroup(s.getParameters());
-				atg = SJRuntime.getFreshAcceptorThreadGroup(params);
-				
-				ser.writeInt(atg.getPort());
-		
-				bar = new LinkedList<SJMessage>();
-				
-				simdel = bufferLostMessagesUntilACKOrFIN(ser, bar); // Includes final control message.
-				
-				//SJConnection conn = null;
-							
-				SJMessage m = bar.get(bar.size() - 1);
-				
-				// RAY
-				if (simdel && origReq)
-				{
-					//throw new RuntimeException("foo"); // A test case for failure in the middle fot delegation. Not resolved yet, e.g. try delegation case 4.  
-					
-					SJDelegationSignal ds = (SJDelegationSignal) bar.get(bar.size() - 1).getContent();
-					
-					//conn = sjtm.openConnection(ds.getHostName(), ds.getPort(), s.getParameters()); // FIXME: is this the right thing to do about parameters?
-					conn = sjtm.openConnection(ds.getHostName(), ds.getPort(), SJSessionParameters.DEFAULT_PARAMETERS); // We're using SJSessionParameters
-				}
-				else 
-				//YAR	
-					
-					if (/*m != null && */!(m.getType() == SJ_CONTROL && m.getContent() instanceof SJFIN)) // Why check for m is null? 
-				{
-					conn = atg.nextConnection(); // FIXME: if the passive peer has no compatible setups, we will hang.
-					
-					//conn = ss.accept().getConnection();
-					
-					//System.out.println("[SJSessionProtocolsImpl] Accepted connection from: " + conn.getHostName() + ":" + conn.getPort());
-				}
-				
-				bar.remove(bar.size() - 1); // Remove the final control message (SJDelegationACK). // RAY: also SJDelegationSignal.
-			}
-			finally
-			{
-				if (sjtm != null && atg != null)
-				{
-					sjtm.closeAcceptorGroup(atg.getPort()); 
-					
-					SJRuntime.freePort(atg.getPort()); // Gives the session port the Runtime bound for us.
-					
-					//ss.close();
-				}
-			}
-			
-			SJAbstractSocket foo;
-			
-			if (origReq)
-			{
-				foo = new SJRequestingSocket(p, SJSessionParameters.DEFAULT_PARAMETERS); // FIXME: default parameters for now, but maybe receive session should also have some transport configuration options.
-			}
-			else
-			{
-				foo = new SJAcceptingSocket(p, SJSessionParameters.DEFAULT_PARAMETERS);
-			}				
-			
-			SJRuntime.bindSocket(foo, conn);
-			
-			((SJSessionProtocolsImpl) foo.getSJSessionProtocols()).lostMessages = bar;
-			
-			if (conn != null) // Delegation case 2.
-			{
-				try // Duals the operations at the end of reconnectToDelegationTarget. But not sure if this should be done here.
-				{ 								
-					//foo.setHostName((String) foo.getSerializer().readObject()); // Could instead get this information from conn (currently using IP addresses).
-					foo.setHostName(InetAddress.getByName(conn.getHostName()).getHostAddress());
-					
-					// RAY
-					if (simdel && origReq)
-					{
-						foo.getSerializer().writeInt(foo.getLocalPort()); // Mirrors the actions of reconnectToDelegationTarget. 
-					}
-					else
-					//YAR
-						
-					{
-						foo.setPort(foo.getSerializer().readInt()); // This could also be given by the delegator, passive party's session port shouldn't change - except for delegation case 4?
-					}
-				} 
-				/*catch (ClassNotFoundException cnfe)
-				{
-					throw new RuntimeException("[SJSessionProtocolsImpl] Shouldn't get in here: " + cnfe);
-				}*/
-				catch (SJControlSignal cs) 
-				{ 
-					throw new RuntimeException("[SJSessionProtocolsImpl] Shouldn't get in here: " + cs); 
-				}	
-				catch (UnknownHostException uhe)
-				{
-					throw new RuntimeException("[SJSessionProtocolsImpl] Shouldn't get in here: " + uhe);
-				}
-			}
-			
-			return foo;
+            return standardReceiveSession(st, params);
 		}
 	}
-	
-	/*protected SJControlSignal receiveControlSignal() throws SJIOException
-	{
-		return ser.readControlSignal();
-	}
-	
-	protected void sendControlSignal(SJControlSignal cs) throws SJIOException
-	{
-		ser.writeControlSignal(cs);
-	}*/
-	
-	protected void handleControlSignal(SJControlSignal cs) throws SJIOException
+
+    private SJAbstractSocket standardReceiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException {
+        byte flag = receiveByte(); // Handles delegation by peer?
+
+        if (flag != DELEGATION_START) // Maybe replace by a proper control signal. Then would need to manually handle SJDelegationSignal.
+        {
+            throw new SJIOException("[SJSessionProtocolsImpl] Unexpected flag: " + flag);
+        }
+
+        boolean origReq;
+
+        LinkedList<SJMessage> controlMsgs = null;
+
+        SJConnection conn = null;
+
+        boolean simdel;
+
+        SJTransportManager sjtm = null;
+        SJAcceptorThreadGroup atg = null;
+
+        try {
+            //origReq = receiveBoolean(); // Don't want to handle control messages.
+            origReq = readOrigReq();
+
+            //int port = SJRuntime.findFreePort();
+            //int port = SJRuntime.takeFreePort();
+
+            sjtm = SJRuntime.getTransportManager();
+
+            /*SJAcceptorThreadGroup atg = sjtm.openAcceptorGroup(port);
+            FIXME: It's not just the session-port that we have to check is free - we need to make sure
+            that the *setup* transports can be opened for that session port (e.g. some other non-SJ
+            process may have opened a TCP port there already).*/
+
+            //SJAcceptorThreadGroup atg = SJRuntime.getFreshAcceptorThreadGroup(SJSessionParameters.DEFAULT_PARAMETERS);
+            // FIXME: need to decide about session parameters.
+            //SJAcceptorThreadGroup atg = SJRuntime.getFreshAcceptorThreadGroup(s.getParameters());
+            atg = SJRuntime.getFreshAcceptorThreadGroup(params);
+
+            ser.writeInt(atg.getPort());
+
+            controlMsgs = new LinkedList<SJMessage>();
+
+            simdel = bufferLostMessagesUntilACKOrFIN(ser, controlMsgs); // Includes final control message.
+
+            SJMessage m = controlMsgs.get(controlMsgs.size() - 1);
+
+            if (simdel && origReq) {
+                //throw new RuntimeException("foo");
+                // A test case for failure in the middle fot delegation. Not resolved yet, e.g. try delegation case 4.
+
+                SJDelegationSignal ds = (SJDelegationSignal) controlMsgs.get(controlMsgs.size() - 1).getContent();
+
+                //conn = sjtm.openConnection(ds.getHostName(), ds.getPort(), s.getParameters());
+                // FIXME: is this the right thing to do about parameters?
+                conn = sjtm.openConnection(ds.getHostName(), ds.getPort(), SJSessionParameters.DEFAULT_PARAMETERS);
+                // We're using SJSessionParameters
+            } else if (/*m != null && */!(m.getType() == SJ_CONTROL && m.getContent() instanceof SJFIN)) { // Why check for m is null?
+                conn = atg.nextConnection(); // FIXME: if the passive peer has no compatible setups, we will hang.
+
+                //conn = ss.accept().getConnection();
+
+                //System.out.println("[SJSessionProtocolsImpl] Accepted connection from: " + conn.getHostName() + ":" + conn.getPort());
+            }
+
+            controlMsgs.remove(controlMsgs.size() - 1); // Remove the final control message (SJDelegationACK). // RAY: also SJDelegationSignal.
+        }
+        catch (SJControlSignal cs) {
+            throw new SJIOException(cs);
+        }
+        finally {
+            if (sjtm != null && atg != null) {
+                sjtm.closeAcceptorGroup(atg.getPort());
+
+                SJRuntime.freePort(atg.getPort()); // Gives the session port the Runtime bound for us.
+
+                //ss.close();
+            }
+        }
+
+        SJSessionType runtimeSt = null;
+        SJAbstractSocket receivedSock = createSocket(origReq, st, runtimeSt);
+        return initReceivedSocket(origReq, controlMsgs, conn, simdel, receivedSock);
+    }
+
+    private void standardDelegateSession(SJAbstractSocket delegated) throws SJIOException {
+        SJSessionProtocols sp = delegated.getSJSessionProtocols();
+
+        if (!(sp instanceof SJSessionProtocolsImpl))
+        {
+            throw new SJIOException("[SJSessionProtocolsImpl] Incompatible session peer for delegation: " + sp);
+        }
+
+        ser.writeByte(DELEGATION_START);
+        ser.writeBoolean(delegated instanceof SJRequestingSocket); // Original requestor.
+
+        int port = receiveInt();
+        // Should handle delegation case 3 (the two preceding delegation protocol messages are forwarded by peer).
+
+        SJSerializer delegatedPeerSer = sp.getSerializer();
+
+        delegatedPeerSer.writeControlSignal(new SJDelegationSignal(localHostName(), port));
+
+        forwardUntilACKOrFINInclusive(delegatedPeerSer, ser);
+
+        // Maybe need to close sp (and corresponding socket).
+        delegated.getSerializer().close(); // to avoid triggering the close protocol in the next call
+        SJRuntime.closeSocket(delegated);
+    }
+
+    private String localHostName() {
+        String hostName = ser.getConnection().getHostName();
+
+        if (isLocalhost(hostName))
+        {
+            try
+            {
+                //hostName = InetAddress.getLocalHost().getHostName();
+                hostName = InetAddress.getLocalHost().getHostAddress(); // Main Runtime routines are now using IP addresses rather than host names.
+            }
+            catch (UnknownHostException uhe)
+            {
+                throw new SJRuntimeException(uhe);
+            }
+        }
+        return hostName;
+    }
+
+    private boolean isLocalhost(String hostName) {
+        return hostName.equals("localhost") || hostName.equals("127.0.0.1");
+    }
+
+    private SJAbstractSocket initReceivedSocket
+        (boolean origReq, List<SJMessage> controlMsgs, SJConnection conn, boolean simdel, SJAbstractSocket receivedSocket)
+        throws SJIOException
+    {
+
+        SJRuntime.bindSocket(receivedSocket, conn);
+
+        ((SJSessionProtocolsImpl) receivedSocket.getSJSessionProtocols()).lostMessages = controlMsgs;
+
+        if (conn != null) // Delegation case 2.
+        {
+            try // Duals the operations at the end of reconnectToDelegationTarget. But not sure if this should be done here.
+            {
+                //receivedSocket.setHostName((String) receivedSocket.getSerializer().readObject());
+                // Could instead get this information from conn (currently using IP addresses).
+                receivedSocket.setHostName(InetAddress.getByName(conn.getHostName()).getHostAddress());
+
+                // RAY
+                if (simdel && origReq) {
+                    receivedSocket.getSerializer().writeInt(receivedSocket.getLocalPort());
+                    // Mirrors the actions of reconnectToDelegationTarget.
+                } else
+                //YAR
+                {
+                    receivedSocket.setPort(receivedSocket.getSerializer().readInt());
+                // This could also be given by the delegator, passive party's session port shouldn't change - except for delegation case 4?
+                }
+            }
+            catch (SJControlSignal cs) {
+                throw new RuntimeException("[SJSessionProtocolsImpl] Shouldn't get in here", cs);
+            }
+            catch (UnknownHostException uhe) {
+                throw new RuntimeException("[SJSessionProtocolsImpl] Shouldn't get in here", uhe);
+            }
+        }
+
+        return receivedSocket;
+    }
+
+    private SJAbstractSocket createSocket(boolean origReq, SJSessionType declaredType, SJSessionType runtimeType) throws SJIOException {
+        SJProtocol declaredProto = new SJProtocol(SJRuntime.encode(declaredType));
+        SJAbstractSocket receivedSocket;
+        if (origReq) {
+            receivedSocket = new SJRequestingSocket(declaredProto, SJSessionParameters.DEFAULT_PARAMETERS, runtimeType);
+        // FIXME: default parameters for now, but maybe receive session should also have some transport configuration options.
+        } else {
+            receivedSocket = new SJAcceptingSocket(declaredProto, SJSessionParameters.DEFAULT_PARAMETERS, runtimeType);
+        }
+        return receivedSocket;
+    }
+
+    private boolean readOrigReq() throws SJIOException, SJControlSignal {
+        boolean origReq;
+        if (lostMessages.isEmpty()) {
+            origReq = ser.readBoolean();
+        } else {
+            SJMessage m = lostMessages.remove(0);
+
+            byte t = m.getType();
+
+            if (t != SJ_BOOLEAN) {
+                throw new SJIOException("[SJSessionProtocolsImpl] Expected boolean, not: " + t);
+            }
+
+            origReq = m.getBooleanValue();
+        }
+        return origReq;
+    }
+
+    private SJAbstractSocket zeroCopyReceiveSession() throws SJIOException {
+        try {
+            return (SJAbstractSocket) ser.readReference(); // Can use ordinary receive (like receiveChannel).
+        }
+        catch (SJControlSignal cs) // May need revision to handle certain delegation cases.
+        {
+            throw new SJIOException(cs);
+        }
+    }
+
+    private void handleControlSignal(SJControlSignal cs) throws SJIOException
 	{
 		if (cs instanceof SJDelegationSignal)
 		{			
@@ -770,22 +777,8 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
     private SJIOException wrapControlSignal(SJControlSignal signal) {
         if (signal instanceof SJFIN)
 		{
-			/*try // Duplicated from close protocol. // No need, close will be done in finally.
-			{
-				ser.writeControlSignal(new SJFIN());
-			}
-			catch (SJIOException ioe)
-			{
-
-			}
-			finally
-			{
-				ser.close(); // Doesn't close the underlying connection.
-
-				SJRuntime.closeSocket(s);*/
-
-				return new SJIOException("[SJSessionProtocolsImpl] Session prematurely terminated by peer: " + signal);
-			//}
+			// No need for the closing protocol here, close will be done in finally.
+             return new SJIOException("[SJSessionProtocolsImpl] Session prematurely terminated by peer: " + signal);		
 		}
 		else
 		{
@@ -793,7 +786,6 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
     }
 	
-	//private static void dualityCheck(SJSerializer ser, String encoded) throws SJIOException, SJIncompatibleSessionException
 	private void dualityCheck(String encoded) throws SJIOException, SJIncompatibleSessionException
 	{
 		ser.writeObject(encoded);
@@ -823,7 +815,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
 		catch (SJControlSignal cs)
 		{
-			throw new SJRuntimeException("[SJSessionProtocolsImpl] Unexpected control signal: " + cs);
+			throw new SJRuntimeException("[SJSessionProtocolsImpl] Unexpected control signal", cs);
 		}
 	}
 	
@@ -837,8 +829,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		
 		//System.out.println("[SJSessionProtocolsImpl] Reconnected to: " + ds.getHostName() + ":" + ds.getPort());		
 		
-		//ser.writeObject(s.getLocalHostName()); // FIXME: breaks e.g. PLDI benchmark 3. // Similar to the SJRuntime accept/request exchange. But should this be done here? Maybe reuse the accept/request exchange?
-		ser.writeInt(s.getLocalPort()); 
+		//ser.writeObject(s.getLocalHostName());
+        // FIXME: breaks e.g. PLDI benchmark 3. // Similar to the SJRuntime accept/request exchange.
+        // But should this be done here? Maybe reuse the accept/request exchange?
+
+        ser.writeInt(s.getLocalPort());
 	}
 	
 	private static void forwardUntilACKOrFINInclusive(SJSerializer s1, SJSerializer s2) throws SJIOException 
@@ -929,15 +924,15 @@ throw new SJRuntimeException("[SJSessionProtocolsImpl] Simultaneous delegation n
 				if (t == SJ_CONTROL)					
 				{
 					if (m.getContent() instanceof SJDelegationACK)						
-					{						
+					{
 						break;
 					}
-					
+
 					// RAY
 					else if (m.getContent() instanceof SJDelegationSignal)
 					{
 						simdel = true;
-						
+
 						break;
 					}
 					// YAR

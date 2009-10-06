@@ -10,11 +10,17 @@ import sessionj.runtime.util.*;
 
 public class SJAcceptingSocket extends SJAbstractSocket
 {
-	public SJAcceptingSocket(SJProtocol protocol, SJSessionParameters params) throws SJIOException
+    /**
+     * For accept(): user-level session types cannot be set types.
+     */
+    SJAcceptingSocket(SJProtocol protocol, SJSessionParameters params) throws SJIOException
 	{
 		super(protocol, params);
 	}
 
+    /**
+     * For delegation: type can be a set type, need to know actual runtime type for typecase
+     */
     public SJAcceptingSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType actualType) throws SJIOException {
         super(protocol, params, actualType);
     }

@@ -2,6 +2,7 @@ package sessionj.runtime.net;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
+import sessionj.types.sesstypes.SJSessionType;
 
 public class SJRequestingSocket extends SJAbstractSocket
 {
@@ -15,10 +16,13 @@ public class SJRequestingSocket extends SJAbstractSocket
 		
 		//setParameters(params);
 	}
-	
-	public SJRequestingSocket(SJProtocol p, SJSessionParameters params) throws SJIOException // For session-receive.
+
+    /**
+     * For session receive: type can be a set type, need to know the actual runtime type for typecase
+     */
+	public SJRequestingSocket(SJProtocol p, SJSessionParameters params, SJSessionType actualType) throws SJIOException
 	{
-		super(p, params); // FIXME: null service OK? Probably OK for received sessions.
+		super(p, params, actualType); // FIXME: null service OK? Probably OK for received sessions.
 	}
 	
 	public SJServerIdentifier getServerIdentifier()
