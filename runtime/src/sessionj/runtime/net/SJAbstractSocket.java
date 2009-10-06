@@ -6,15 +6,16 @@ import java.net.InetAddress;
 import sessionj.runtime.*;
 import sessionj.runtime.session.*;
 import sessionj.runtime.transport.*;
+import sessionj.types.sesstypes.SJSetType;
 import sessionj.types.sesstypes.SJSessionType;
 
 abstract public class SJAbstractSocket implements SJSocket
 {
-	//protected static final SJTransportManager sjtm = SJRuntime.getTransportManager();
+	private final SJProtocol protocol;
+	private final SJSessionType actualType;
+    private final SJSessionParameters params;
 	
-	private SJProtocol protocol;
-	
-	private String hostName;	
+	private String hostName;
 	private int port;
 	
 	private String localHostName; // Session-level values.
@@ -27,18 +28,18 @@ abstract public class SJAbstractSocket implements SJSocket
 	
 	private boolean isActive = false;
 
-	private SJSessionParameters params;
-	
-	/*protected SJAbstractSocket(SJProtocol protocol) throws SJIOException
-	{
-		this(protocol, SJSessionParameters.DEFAULT_PARAMETERS); 
-	}*/
-	
 	protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params) throws SJIOException
 	{
-		this.protocol = protocol; // Remainder of initialisation for client sockets performed when init is called.
+		this(protocol, params, protocol.type());
+    }
+
+    protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType actualType)
+        throws SJIOException
+    {
+        this.protocol = protocol; // Remainder of initialisation for client sockets performed when init is called.
 		this.params = params;
-		
+		this.actualType = actualType;
+        
 		try
 		{
 			localHostName = InetAddress.getLocalHost().getHostName();
@@ -46,8 +47,8 @@ abstract public class SJAbstractSocket implements SJSocket
 		catch (IOException ioe)
 		{
 			throw new SJIOException(ioe);
-		}	
-	}
+		}
+    }
 	
 	protected void init(SJConnection conn) throws SJIOException // conn can be null (delegation case 2?).
 	{
@@ -112,16 +113,6 @@ abstract public class SJAbstractSocket implements SJSocket
 		sp.copy(o);
 	}
 	
-	/*public void copyInt(int i) throws SJIOException
-	{
-		sp.copyInt(i);
-	}
-
-	public void copyDouble(double d) throws SJIOException
-	{
-		sp.copyDouble(d);
-	}*/
-	
 	public Object receive() throws SJIOException, ClassNotFoundException
 	{
 		return sp.receive();
@@ -141,34 +132,6 @@ abstract public class SJAbstractSocket implements SJSocket
 	{
 		return sp.receiveDouble();
 	}
-	
-	/*public Object receive(int timeout) throws SJIOException, ClassNotFoundException
-	{
-		//return sp.receive(timeout);
-		
-		return sp.receive();
-	}
-	
-	public int receiveInt(int timeout) throws SJIOException
-	{
-		//return sp.receiveInt(timeout);
-		
-		return sp.receiveInt();
-	}
-
-	public boolean receiveBoolean(int timeout) throws SJIOException
-	{
-		//return sp.receiveBoolean(timeout);
-		
-		return sp.receiveBoolean();
-	}
-	
-	public double receiveDouble(int timeout) throws SJIOException
-	{
-		//return sp.receiveDouble(tiimeout);
-		
-		return sp.receiveDouble();
-	}*/
 	
 	public void outlabel(String lab) throws SJIOException
 	{
@@ -208,10 +171,6 @@ abstract public class SJAbstractSocket implements SJSocket
         return sp.interruptingInsync(condition, peerInterruptible);
     }
 
-    public boolean hasSessionType(SJSessionType type) {
-        return false;
-    }
-
     public void sendChannel(SJService c, String encoded) throws SJIOException
 	{
 		//sp.sendChannel(c, SJRuntime.getTypeEncoder().decode(c.getProtocol().encoded()));
@@ -225,16 +184,12 @@ abstract public class SJAbstractSocket implements SJSocket
 	
 	public void delegateSession(SJAbstractSocket s, String encoded) throws SJIOException
 	{
-		//throw new SJRuntimeException("[SJDelegateSession] Operation not yet supported.");
-		
 		sp.delegateSession(s, SJRuntime.decodeType(encoded));
 	}
 	
 	//public SJAbstractSocket receiveSession(String encoded) throws SJIOException
 	public SJAbstractSocket receiveSession(String encoded, SJSessionParameters params) throws SJIOException
 	{
-		//throw new SJRuntimeException("[SJSessionProtocolsImpl] Operation not yet supported.");
-		
 		return sp.receiveSession(SJRuntime.decodeType(encoded), params);
 	}
 	
@@ -275,7 +230,7 @@ abstract public class SJAbstractSocket implements SJSocket
 		return hostName;
 	}
 	
-	/*protected*/ public void setHostName(String hostName) // Access by users disallowed by compiler.
+	public void setHostName(String hostName) // Access by users disallowed by compiler.
 	{
 		this.hostName = hostName;
 	}
@@ -285,7 +240,7 @@ abstract public class SJAbstractSocket implements SJSocket
 		return port;
 	}
 	
-	/*protected*/ public void setPort(int port)
+	public void setPort(int port)
 	{
 		this.port = port;
 	}
@@ -314,11 +269,6 @@ abstract public class SJAbstractSocket implements SJSocket
 	{
 		return params;		
 	}
-	
-	/*protected void setParameters(SJSessionParameters params)
-	{
-		this.params = params;
-	}*/
 	
 	// Hacks for bounded-buffer communication.
 
@@ -351,4 +301,10 @@ abstract public class SJAbstractSocket implements SJSocket
 	{
 		return sp.recurseBB(lab);
 	}*/
+
+    public int typeLabel() throws SJIOException {
+        assert protocol.type() instanceof SJSetType;
+        SJSetType set = (SJSetType) protocol.type();
+        return set.memberRank(actualType);
+    }
 }

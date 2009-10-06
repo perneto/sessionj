@@ -1,23 +1,13 @@
 package sessionj.runtime.net;
 
-import java.util.*;
-
-import sessionj.types.sesstypes.SJSessionType;
-
-import sessionj.runtime.*;
-import sessionj.runtime.transport.*;
-import sessionj.runtime.util.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJProtocol;
 
 public class SJRequestingSocket extends SJAbstractSocket
 {
 	private SJService service;
 	
-	/*protected SJRequestingSocket(SJService service) throws SJIOException
-	{
-		this(service, SJSessionParameters.DEFAULT_PARAMETERS);
-	}*/
-
-	protected SJRequestingSocket(SJService service, SJSessionParameters params) throws SJIOException
+	SJRequestingSocket(SJService service, SJSessionParameters params) throws SJIOException
 	{
 		super(service.getProtocol(), params); // Could override getProtocol but no point.
 		
@@ -31,8 +21,8 @@ public class SJRequestingSocket extends SJAbstractSocket
 		super(p, params); // FIXME: null service OK? Probably OK for received sessions.
 	}
 	
-	public SJService getService()
+	public SJServerIdentifier getServerIdentifier()
 	{
-		return service;
+		return service.getServerIdentifier();
 	}
 }

@@ -12,8 +12,6 @@ import static sessionj.SJConstants.*;
 
 public class SJService implements SJServiceInterface
 {
-	//private static final SJTransportManager sjtm = SJRuntime.getTransportManager();  
-	
 	public static final long serialVersionUID = SJ_VERSION;
 
 	private SJProtocol protocol;

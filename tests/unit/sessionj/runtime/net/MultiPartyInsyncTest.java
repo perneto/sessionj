@@ -5,7 +5,6 @@ import org.testng.annotations.BeforeTest;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
 import sessionj.runtime.transport.SJConnection;
-import sessionj.types.sesstypes.SJSessionType;
 
 @SuppressWarnings({"ALL"})
 public class MultiPartyInsyncTest {
@@ -91,10 +90,6 @@ public class MultiPartyInsyncTest {
             return false;
         }
 
-        public boolean hasSessionType(SJSessionType type) {
-            return false;
-        }
-
         public void sendChannel(SJService c, String encoded) throws SJIOException {
         }
 
@@ -144,6 +139,10 @@ public class MultiPartyInsyncTest {
         }
 
         public void setPort(int port) {
+        }
+
+        public int typeLabel() throws SJIOException {
+            return 0;
         }
     }
 

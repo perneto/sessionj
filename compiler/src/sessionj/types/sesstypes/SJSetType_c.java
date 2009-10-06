@@ -197,4 +197,14 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     public boolean containsAllAndOnly(Collection<SJSessionType> types) {
         return members.containsAll(types) && types.containsAll(members);
     }
+
+    public int memberRank(SJSessionType member) {
+        int i = 0;
+        for (SJSessionType m : members) {
+            if (m.equals(member)) return i;
+            ++i;
+        }
+        throw new IllegalArgumentException("Session type "
+            + member + " is not a member of set type " + this);
+    }
 }

@@ -40,9 +40,8 @@ public interface SJSocket extends SJChannel
     boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException;
     boolean interruptibleOutsync(boolean condition) throws SJIOException;
     boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException;
-    boolean hasSessionType(SJSessionType type);
 
-	// Higher-order.
+    // Higher-order.
 	//public void sendChannel(SJService c) throws SJIOException;
     void sendChannel(SJService c, String encoded) throws SJIOException;
 	SJService receiveChannel(String encoded) throws SJIOException;
@@ -73,4 +72,7 @@ public interface SJSocket extends SJChannel
     void setHostName(String hostAddress);
 
     void setPort(int port);
+
+    /** Used for the translation of the typecase construct */
+    int typeLabel() throws SJIOException;
 }
