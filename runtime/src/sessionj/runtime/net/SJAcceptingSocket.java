@@ -14,4 +14,8 @@ public class SJAcceptingSocket extends SJAbstractSocket
 	{
 		super(protocol, params);
 	}
+
+    public SJAcceptingSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType actualType) throws SJIOException {
+        super(protocol, params, actualType);
+    }
 }
