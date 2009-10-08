@@ -12,7 +12,7 @@ import sessionj.types.sesstypes.SJSessionType;
 abstract public class SJAbstractSocket implements SJSocket
 {
 	private final SJProtocol protocol;
-	private final SJSessionType actualType;
+	private final SJSessionType runtimeType;
     private final SJSessionParameters params;
 	
 	private String hostName;
@@ -28,17 +28,17 @@ abstract public class SJAbstractSocket implements SJSocket
 	
 	private boolean isActive = false;
 
-	protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params) throws SJIOException
+    protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params) throws SJIOException
 	{
 		this(protocol, params, protocol.type());
     }
 
-    protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType actualType)
+    protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType runtimeType)
         throws SJIOException
     {
         this.protocol = protocol; // Remainder of initialisation for client sockets performed when init is called.
 		this.params = params;
-		this.actualType = actualType;
+		this.runtimeType = runtimeType;
         
 		try
 		{
@@ -56,9 +56,13 @@ abstract public class SJAbstractSocket implements SJSocket
 		//this.ser = new SJDefaultSerializer(conn); // FIXME: should be...
         ser = SJRuntime.getSerializer(conn);
         sp = new SJSessionProtocolsImpl(this, ser); // ... user configurable.
-	}	
-	
-	public void reconnect(SJConnection conn) throws SJIOException
+	}
+
+    public SJSessionType getRuntimeType() {
+        return runtimeType;
+    }
+
+    public void reconnect(SJConnection conn) throws SJIOException
 	{
         ser.close();
 		
@@ -305,6 +309,6 @@ abstract public class SJAbstractSocket implements SJSocket
     public int typeLabel() throws SJIOException {
         assert protocol.type() instanceof SJSetType;
         SJSetType set = (SJSetType) protocol.type();
-        return set.memberRank(actualType);
+        return set.memberRank(runtimeType);
     }
 }
