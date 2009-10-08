@@ -533,50 +533,36 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	{
 		//if (ser.getConnection() instanceof SJLocalConnection) // Attempting to do a purely noalias transfer of session socket object.
 		if (ser.zeroCopySupported())
-		{	
 			ser.writeReference(s); // Or use pass (like sendChannel). // Maybe some way to better structure this aspect of the routine? Or maybe this decision should be made here.
-		}
 		else
-		{
-            standardDelegateSession(s);
-		}
+		    standardDelegateSession(s);
 	}
 
     //public SJAbstractSocket receiveSession(SJSessionType st) throws SJIOException
 	public SJAbstractSocket receiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException
 	{
 		if (ser.zeroCopySupported())
-		{
-            return zeroCopyReceiveSession();
-        }
-		else
-		{
-            return standardReceiveSession(st, params);
-		}
+		    return zeroCopyReceiveSession();
+        else
+		    return standardReceiveSession(st, params);
 	}
 
     private SJAbstractSocket standardReceiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException {
-        byte flag = receiveByte(); // Handles delegation by peer?
+        checkDelegationFlagPresent();
 
-        if (flag != DELEGATION_START) // Maybe replace by a proper control signal. Then would need to manually handle SJDelegationSignal.
-        {
-            throw new SJIOException("[SJSessionProtocolsImpl] Unexpected flag: " + flag);
-        }
+        boolean becomeOrigRequester;
+        boolean simultaneousDelegation;
+        SJSessionType runtimeSt = null;
 
-        boolean origReq;
-
-        LinkedList<SJMessage> controlMsgs = null;
+        List<SJMessage> controlMsgs = null;
 
         SJConnection conn = null;
-
-        boolean simdel;
-
         SJTransportManager sjtm = null;
         SJAcceptorThreadGroup atg = null;
 
         try {
-            //origReq = receiveBoolean(); // Don't want to handle control messages.
-            origReq = readOrigReq();
+            becomeOrigRequester = readOrigRequester();
+            runtimeSt = readRuntimeType();
 
             //int port = SJRuntime.findFreePort();
             //int port = SJRuntime.takeFreePort();
@@ -597,11 +583,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 
             controlMsgs = new LinkedList<SJMessage>();
 
-            simdel = bufferLostMessagesUntilACKOrFIN(ser, controlMsgs); // Includes final control message.
+            simultaneousDelegation = bufferLostMessagesUntilACKOrFIN(ser, controlMsgs); // Includes final control message.
 
             SJMessage m = controlMsgs.get(controlMsgs.size() - 1);
 
-            if (simdel && origReq) {
+            if (simultaneousDelegation && becomeOrigRequester) {
                 //throw new RuntimeException("foo");
                 // A test case for failure in the middle fot delegation. Not resolved yet, e.g. try delegation case 4.
 
@@ -611,7 +597,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
                 // FIXME: is this the right thing to do about parameters?
                 conn = sjtm.openConnection(ds.getHostName(), ds.getPort(), SJSessionParameters.DEFAULT_PARAMETERS);
                 // We're using SJSessionParameters
-            } else if (/*m != null && */!(m.getType() == SJ_CONTROL && m.getContent() instanceof SJFIN)) { // Why check for m is null?
+            } else if (!(m.getType() == SJ_CONTROL && m.getContent() instanceof SJFIN)) {
                 conn = atg.nextConnection(); // FIXME: if the passive peer has no compatible setups, we will hang.
 
                 //conn = ss.accept().getConnection();
@@ -620,11 +606,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
             }
 
             controlMsgs.remove(controlMsgs.size() - 1); // Remove the final control message (SJDelegationACK). // RAY: also SJDelegationSignal.
-        }
-        catch (SJControlSignal cs) {
+        } catch (SJControlSignal cs) {
             throw new SJIOException(cs);
-        }
-        finally {
+        } catch (ClassNotFoundException cnfe) {
+            throw new SJIOException(cnfe);
+        } finally {
             if (sjtm != null && atg != null) {
                 sjtm.closeAcceptorGroup(atg.getPort());
 
@@ -634,9 +620,17 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
             }
         }
 
-        SJSessionType runtimeSt = null;
-        SJAbstractSocket receivedSock = createSocket(origReq, st, runtimeSt);
-        return initReceivedSocket(origReq, controlMsgs, conn, simdel, receivedSock);
+        SJAbstractSocket receivedSock = createSocket(becomeOrigRequester, st, runtimeSt);
+        return initReceivedSocket(becomeOrigRequester, controlMsgs, conn, simultaneousDelegation, receivedSock);
+    }
+
+    private void checkDelegationFlagPresent() throws SJIOException {
+        byte flag = receiveByte(); // Handles delegation by peer?
+
+        if (flag != DELEGATION_START) // Maybe replace by a proper control signal. Then would need to manually handle SJDelegationSignal.
+        {
+            throw new SJIOException("[SJSessionProtocolsImpl] Unexpected flag: " + flag);
+        }
     }
 
     private void standardDelegateSession(SJAbstractSocket delegated) throws SJIOException {
@@ -649,7 +643,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 
         ser.writeByte(DELEGATION_START);
         ser.writeBoolean(delegated instanceof SJRequestingSocket); // Original requestor.
-
+        ser.writeObject(delegated.getRuntimeType());
         int port = receiveInt();
         // Should handle delegation case 3 (the two preceding delegation protocol messages are forwarded by peer).
 
@@ -737,7 +731,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         return receivedSocket;
     }
 
-    private boolean readOrigReq() throws SJIOException, SJControlSignal {
+    private boolean readOrigRequester() throws SJIOException, SJControlSignal {
         boolean origReq;
         if (lostMessages.isEmpty()) {
             origReq = ser.readBoolean();
@@ -754,6 +748,24 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         }
         return origReq;
     }
+
+   private SJSessionType readRuntimeType() throws SJIOException, SJControlSignal, ClassNotFoundException {
+        String runtimeTypeString;
+        if (lostMessages.isEmpty()) {
+            runtimeTypeString = (String) ser.readObject();
+        } else {
+            SJMessage m = lostMessages.remove(0);
+
+            byte t = m.getType();
+
+            if (t != SJ_OBJECT) {
+                throw new SJIOException("[SJSessionProtocolsImpl] Expected object, not: " + t);
+            }
+
+            runtimeTypeString = (String) m.getContent();
+        }
+        return SJRuntime.decodeSessionType(runtimeTypeString);
+   }
 
     private SJAbstractSocket zeroCopyReceiveSession() throws SJIOException {
         try {
