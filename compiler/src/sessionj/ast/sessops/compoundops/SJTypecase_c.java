@@ -7,6 +7,7 @@ import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
 import polyglot.visit.*;
+import polyglot.lex.IntegerLiteral;
 import sessionj.SJConstants;
 import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessvars.SJVariable;
@@ -48,7 +49,7 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
         return targets(resolved);
     }
 
-    public List targets() {
+    public List<Receiver> targets() {
         return Collections.singletonList(ambiguousSocket);
     }
 
@@ -86,7 +87,23 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
     }
 
     public Node translate(QQ qq) {
-        return this; // TODO
+        StringBuilder cases = new StringBuilder();
+        List<Object> parameters = new LinkedList<Object>();
+        SJSetType setType = (SJSetType) SJCompilerUtils.getSJSessionOperationExt(this).sessionType();
+
+        parameters.add(socket.sjname());
+
+        for (SJWhen when : whenStatements) {
+            cases.append("case %E: %LS; break;");
+            parameters.add(new IntLit_c(when.position(), IntLit.INT, setType.memberRank(when.type())));
+            parameters.add(copyOfStatements(when)); // QQ tries to modify the list in some cases
+        }
+        return qq.parseStmt("{int i = %s.typeLabel(); System.out.println(i); switch (i) { "+cases+" default: System.out.println(\"DEFAULT\");}}", parameters);
+
+    }
+
+    private List<Stmt> copyOfStatements(SJWhen when) {
+        return new LinkedList<Stmt>(when.statements());
     }
 
     private Collection<SJSessionType> branchTypes() {

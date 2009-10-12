@@ -79,7 +79,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 			newNode = translateSJRecurse(parent, (SJRecurse) n, createQQ(n));
 		}
 
-        if (shouldBuildAndCheckTypes(newNode))
+        if (shouldBuildAndCheckTypes(n))
             buildAndCheckTypes(this, newNode);
 		return newNode;
 	}
@@ -119,7 +119,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         Expr sockArray = buildNewArray(outwhile.position(), outwhile.targets());
 
         BooleanLit interruptible = new BooleanLit_c(outwhile.position(), outwhile.isInterruptible());
-        Stmt block = qq.parseStmt(
+        return qq.parseStmt(
 "{ sessionj.runtime.net.LoopCondition %s = " +
 "sessionj.runtime.net.SJRuntime.negotiateOutsync(%E, %E);" +
 " while (%s.call(%E)) %S }",
@@ -127,7 +127,6 @@ public class SJCompoundOperationTranslator extends ContextVisitor
                 interruptible, sockArray,
                 unique, outwhile.cond(), outwhile.body()
         );
-        return block;
     }
 
     private Node translateSJInwhile(SJInwhile inwhile, QQ qq) {
@@ -179,7 +178,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         return qq.parseStmt(code, subst);
     }
 
-    private Assign translateSJRecurse(Node parent, SJRecurse r, QQ qq) {
+    private Node translateSJRecurse(Node parent, SJRecurse r, QQ qq) {
 		if (!(parent instanceof Eval))
 		{
 			throw new RuntimeException("[SJCompoundOperationTranslator] Shouldn't get here.");			
@@ -192,11 +191,10 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		mapping.add(getRecursionBooleanName(getSJSessionOperationExt(r).targetNames(), r.label()));
 		mapping.add(r);
 
-        return (Assign) qq.parseExpr(translation, mapping.toArray());
+        return qq.parseExpr(translation, mapping.toArray());
 	}
 	
-	private Stmt translateSJInbranch(SJInbranch ib, QQ qq) throws SemanticException
-	{
+	private Node translateSJInbranch(SJInbranch ib, QQ qq) {
         StringBuilder translation = new StringBuilder("{ ");
 		Collection<Object> mapping = new LinkedList<Object>();
 		
@@ -227,7 +225,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         return qq.parseStmt(translation.toString(), mapping.toArray());
 	}
 
-    private Block translateSJRecursion(SJRecursion r, QQ qq) throws SemanticException
+    private Node translateSJRecursion(SJRecursion r, QQ qq)
     // recursionEnter inserted by node factory, but translation is finished here..
 	{
 		SJSessionOperationExt soe = getSJSessionOperationExt(r);
