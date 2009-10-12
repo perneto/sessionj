@@ -11,8 +11,8 @@ import sessionj.types.sesstypes.SJSessionType;
 
 abstract public class SJAbstractSocket implements SJSocket
 {
-	private final SJProtocol protocol;
-	private final SJSessionType runtimeType;
+	private SJProtocol protocol;
+	private SJSessionType runtimeType;
     private final SJSessionParameters params;
 	
 	private String hostName;
@@ -60,6 +60,10 @@ abstract public class SJAbstractSocket implements SJSocket
 
     public SJSessionType getRuntimeType() {
         return runtimeType;
+    }
+
+    public void setRuntimeType(SJSessionType runtimeType) {
+        this.runtimeType = runtimeType;
     }
 
     public void reconnect(SJConnection conn) throws SJIOException
@@ -307,8 +311,17 @@ abstract public class SJAbstractSocket implements SJSocket
 	}*/
 
     public int typeLabel() throws SJIOException {
+        // TODO: Better support for runtime type (this currently only works right after a session-receive)
         assert protocol.type() instanceof SJSetType;
         SJSetType set = (SJSetType) protocol.type();
         return set.memberRank(runtimeType);
+    }
+
+    /**
+     * For zero-copy delegation: receiver needs to keep its own static type
+     */
+    public void updateStaticAndRuntimeTypes(SJSessionType staticType, SJSessionType runtimeType) throws SJIOException {
+        this.runtimeType = runtimeType;
+        protocol = new SJProtocol(SJRuntime.encode(staticType));
     }
 }

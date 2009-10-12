@@ -40,14 +40,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 
 	public void accept() throws SJIOException, SJIncompatibleSessionException
 	{
-		//dualityCheck(ser, s.getProtocol().encoded());		
-		dualityCheck(s.getProtocol().encoded());
+		dualityCheck(s.getProtocol());
 	}
 	
 	public void request() throws SJIOException, SJIncompatibleSessionException
 	{
-		//dualityCheck(ser, s.getProtocol().encoded());
-		dualityCheck(s.getProtocol().encoded());
+		dualityCheck(s.getProtocol());
 	}
 	
 	public void close()
@@ -532,9 +530,10 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	public void delegateSession(SJAbstractSocket s, SJSessionType st) throws SJIOException
 	{
 		//if (ser.getConnection() instanceof SJLocalConnection) // Attempting to do a purely noalias transfer of session socket object.
-		if (ser.zeroCopySupported())
+		if (ser.zeroCopySupported()) {
 			ser.writeReference(s); // Or use pass (like sendChannel). // Maybe some way to better structure this aspect of the routine? Or maybe this decision should be made here.
-		else
+            ser.writeReference(st);
+        } else
 		    standardDelegateSession(s);
 	}
 
@@ -542,7 +541,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	public SJAbstractSocket receiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException
 	{
 		if (ser.zeroCopySupported())
-		    return zeroCopyReceiveSession();
+		    return zeroCopyReceiveSession(st);
         else
 		    return standardReceiveSession(st, params);
 	}
@@ -681,30 +680,30 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
     }
 
     private SJAbstractSocket initReceivedSocket
-        (boolean origReq, List<SJMessage> controlMsgs, SJConnection conn, boolean simdel, SJAbstractSocket receivedSocket)
+        (boolean origReq, List<SJMessage> controlMsgs, SJConnection conn, boolean simdel, SJAbstractSocket sock)
         throws SJIOException
     {
 
-        SJRuntime.bindSocket(receivedSocket, conn);
+        SJRuntime.bindSocket(sock, conn);
 
-        ((SJSessionProtocolsImpl) receivedSocket.getSJSessionProtocols()).lostMessages = controlMsgs;
+        ((SJSessionProtocolsImpl) sock.getSJSessionProtocols()).lostMessages = controlMsgs;
 
         if (conn != null) // Delegation case 2.
         {
             try // Duals the operations at the end of reconnectToDelegationTarget. But not sure if this should be done here.
             {
-                //receivedSocket.setHostName((String) receivedSocket.getSerializer().readObject());
+                //sock.setHostName((String) sock.getSerializer().readObject());
                 // Could instead get this information from conn (currently using IP addresses).
-                receivedSocket.setHostName(InetAddress.getByName(conn.getHostName()).getHostAddress());
+                sock.setHostName(InetAddress.getByName(conn.getHostName()).getHostAddress());
 
                 // RAY
                 if (simdel && origReq) {
-                    receivedSocket.getSerializer().writeInt(receivedSocket.getLocalPort());
+                    sock.getSerializer().writeInt(sock.getLocalPort());
                     // Mirrors the actions of reconnectToDelegationTarget.
                 } else
                 //YAR
                 {
-                    receivedSocket.setPort(receivedSocket.getSerializer().readInt());
+                    sock.setPort(sock.getSerializer().readInt());
                 // This could also be given by the delegator, passive party's session port shouldn't change - except for delegation case 4?
                 }
             }
@@ -716,7 +715,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
             }
         }
 
-        return receivedSocket;
+        return sock;
     }
 
     private SJAbstractSocket createSocket(boolean origReq, SJSessionType declaredType, SJSessionType runtimeType) throws SJIOException {
@@ -767,9 +766,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         return SJRuntime.decodeSessionType(runtimeTypeString);
    }
 
-    private SJAbstractSocket zeroCopyReceiveSession() throws SJIOException {
+    private SJAbstractSocket zeroCopyReceiveSession(SJSessionType staticType) throws SJIOException {
         try {
-            return (SJAbstractSocket) ser.readReference(); // Can use ordinary receive (like receiveChannel).
+            SJAbstractSocket s = (SJAbstractSocket) ser.readReference(); // Can use ordinary receive (like receiveChannel).
+            SJSessionType runtimeType = (SJSessionType) ser.readReference();
+            s.updateStaticAndRuntimeTypes(staticType, runtimeType);
+            return s;
         }
         catch (SJControlSignal cs) // May need revision to handle certain delegation cases.
         {
@@ -798,11 +800,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
     }
 	
-	private void dualityCheck(String encoded) throws SJIOException, SJIncompatibleSessionException
+	private void dualityCheck(SJProtocol proto) throws SJIOException, SJIncompatibleSessionException
 	{
+        String encoded = proto.encoded();
 		ser.writeObject(encoded);
 		
-		SJSessionType ours = SJRuntime.decodeSessionType(encoded);				
+		SJSessionType ours = proto.type();
 		
 		try
 		{

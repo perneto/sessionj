@@ -181,8 +181,7 @@
     </target>
 
     <target name="runtime" depends="init,configure" description="compile the runtime" if="has-runtime">
-        <mkdir dir="${runtime.classes}" />
-    	  <javac source="1.6" target="1.6" srcdir="${runtime.src}" destdir="${runtime.classes}" debug="on" includes="**"> 
+        <javac source="1.6" target="1.6" srcdir="${runtime.src}" destdir="${runtime.classes}" debug="on" includes="**">
             <classpath>
                 <path refid="standard.classpath" />
             </classpath>

@@ -1,4 +1,3 @@
-//DISABLED
 package sessionj.test.functional;
 
 import sessionj.runtime.*;
@@ -51,9 +50,16 @@ public class SessionSetTypes extends AbstractValidTest3Peers {
         try (s1, s2) {
             s1 = chan.request();
             s2 = ({!<int>, !<boolean>}) s1.receive();
+            // TODO: Currently, typecase will fail if another session operation is used
+            // between the session receive and the typecase.
+            // This is because encoded session types are set once at session receive,
+            // and are not normally updated by session operations.
             typecase (s2) {
                 when (!<int>) { s2.send(42); }
-                when (!<boolean>) { s2.send(true); }
+                when (!<boolean>) {
+                    s2.send(true);
+                    assert false : "Should not get here";
+                }
             }
         } finally {}
     }
