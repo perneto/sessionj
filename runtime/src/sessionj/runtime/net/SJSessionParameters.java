@@ -1,10 +1,10 @@
 package sessionj.runtime.net;
 
-import java.io.Serializable;
-import java.util.*;
+import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 
-import sessionj.runtime.transport.*;
-import sessionj.runtime.transport.sharedmem.*;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 
@@ -30,8 +30,8 @@ public class SJSessionParameters //implements Serializable
 	{
 		/*this.setups = new LinkedList<SJTransport>();
 		this.transports = new LinkedList<SJTransport>();*/
-		
-		this.useDefault = true;
+
+        useDefault = true;
 	}
 	
 	public SJSessionParameters(int boundedBufferSize)
