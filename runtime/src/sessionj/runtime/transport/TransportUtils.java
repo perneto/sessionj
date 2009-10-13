@@ -24,11 +24,8 @@ public class TransportUtils
 		}
 		else
 		{
-			List<SJTransport> ss = new LinkedList<SJTransport>();
-			List<SJTransport> ts = new LinkedList<SJTransport>();
-
-			parseTransportFlags(ss, setups);
-			parseTransportFlags(ts, transports);
+			List<SJTransport> ss = parseTransportFlags(setups);
+			List<SJTransport> ts = parseTransportFlags(transports);
 
 			params = new SJSessionParameters(ss, ts, boundedBufferSize);
 		}
@@ -46,31 +43,27 @@ public class TransportUtils
 		}
 		else
 		{
-			List<SJTransport> ss = new LinkedList<SJTransport>();
-			List<SJTransport> ts = new LinkedList<SJTransport>();
-
-			parseTransportFlags(ss, setups);
-			parseTransportFlags(ts, transports);
+			List<SJTransport> ss = parseTransportFlags(setups);
+			List<SJTransport> ts = parseTransportFlags(transports);
 
 			params = new SJSessionParameters(ss, ts);
 		}
 
 		return params;
 	}
-	
-	public static void parseTransportFlags(Collection<SJTransport> ts, String transports)
+
+	public static List<SJTransport> parseTransportFlags(String transports)
 	{
+        List<SJTransport> ts = new LinkedList<SJTransport>();
 		if (transports.contains("d"))
 		{
 			ts.add(new SJFifoPair());
 			ts.add(new SJStreamTCP());
 
-			return;
+			return ts;
 		}
 
-		char[] cs = transports.toCharArray();
-
-        for (char c : cs) {
+        for (char c : transports.toCharArray()) {
             switch (c) {
                 case 'f':
                     ts.add(new SJFifoPair());
@@ -94,6 +87,7 @@ public class TransportUtils
                     break;
             }
         }
+        return ts;
 	}
 	
 	public static void configureTransports(String setups, String transports)
@@ -102,20 +96,12 @@ public class TransportUtils
 		
 		if (!setups.contains("d"))
 		{
-			List<SJTransport> ss = new LinkedList<SJTransport>();
-			
-			parseTransportFlags(ss, setups);		
-			
-			sjtm.configureSetups(ss);
+            sjtm.configureSetups(parseTransportFlags(setups));
 		}
 		
 		if (!transports.contains("d"))
 		{
-			List<SJTransport> ts = new LinkedList<SJTransport>();
-			
-			parseTransportFlags(ts, transports);	
-			
-			sjtm.configureTransports(ts);
+            sjtm.configureTransports(parseTransportFlags(transports));
 		}		
 	}	
 }

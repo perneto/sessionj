@@ -7,10 +7,8 @@ import java.util.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
-import sessionj.runtime.transport.http.*;
 import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.tcp.*;
-import sessionj.runtime.transport.udp.*;
 
 import static sessionj.runtime.util.SJRuntimeUtils.*;
 
@@ -20,7 +18,9 @@ import static sessionj.runtime.util.SJRuntimeUtils.*;
  */
 public class SJTransportManager_c extends SJTransportManager
 {	
-	//private static final boolean debug = true;
+	private static final String DEFAULT_SETUPS_PROPERTY = "sessionj.default.setups";
+    private static final String DEFAULT_TRANSPORTS_PROPERTY = "sessionj.default.transports";
+    //private static final boolean debug = true;
 	private static final boolean debug = false;
 	
 	private List<SJTransport> setups = new LinkedList<SJTransport>(); // These may need some synchronisation (getters and setters are currently public and non-defensive).
@@ -44,11 +44,13 @@ public class SJTransportManager_c extends SJTransportManager
 	
 	private void defaultSetups()
 	{
-		//List<SJConnectionSetup> ss = new LinkedList<SJConnectionSetup>();
-		List<SJTransport> ss = new LinkedList<SJTransport>();
-				
-		ss.add(new SJFifoPair()); // FIXME: need to prevent conflicting use of (shared memory) ports by multiple Runtimes on the same host. Currently relying on SJStreamTCP to be a mandatory setup.
-		ss.add(new SJStreamTCP());
+        List<SJTransport> ss = TransportUtils.parseTransportFlags(
+            System.getProperty(DEFAULT_SETUPS_PROPERTY, "d")
+        );
+        //ss.add(new SJFifoPair());
+        // FIXME: need to prevent conflicting use of (shared memory) ports by multiple Runtimes on the same host.
+        // Currently relying on SJStreamTCP to be a mandatory setup.
+		//ss.add(new SJStreamTCP());
 		//ss.add(new SJManualTCP());
 		//ss.add(new SJHTTP());
 		//ss.add(new SJUDP());
@@ -58,14 +60,9 @@ public class SJTransportManager_c extends SJTransportManager
 	
 	private void defaultTransports()
 	{
-		List<SJTransport> ts = new LinkedList<SJTransport>();
-		
-		ts.add(new SJFifoPair());
-		ts.add(new SJStreamTCP());
-		//ts.add(new SJManualTCP());
-		//ts.add(new SJHTTP());
-		//ts.add(new SJHTTPS());
-		//ts.add(new SJUDP());
+        List<SJTransport> ts = TransportUtils.parseTransportFlags(
+            System.getProperty(DEFAULT_SETUPS_PROPERTY, "d")
+        );
 		
 		configureTransports(ts);
 	}
