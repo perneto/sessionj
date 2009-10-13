@@ -104,21 +104,20 @@ public class SJTransportManager_c extends SJTransportManager
 		
 	private SJAcceptorThreadGroup openAcceptorGroup(int port, List<SJTransport> ss, List<SJTransport> ts, List<String> sn, int boundedBufferSize) throws SJIOException // Synchronized where necessary from calling scope. 
 	{
-		Integer p = new Integer(port);
-		
-		if (debug)
+
+        if (debug)
 		{
 			System.out.println("[SJTransportManager_c] Openening acceptor group: " + port);
 		}
 		
 		synchronized (acceptorGroups)
 		{								
-			if (acceptorGroups.keySet().contains(p)) // FIXME: checks this transport manager hasn't already used the session p, but the session p could be used by another transport manager on the same machine, or the underlying transport p might not be available. 
+			if (acceptorGroups.keySet().contains(port)) // FIXME: checks this transport manager hasn't already used the session p, but the session p could be used by another transport manager on the same machine, or the underlying transport p might not be available.
 			{
-				throw new SJIOException("[SJTransportManager_c] Port already in use: " + p);
+				throw new SJIOException("[SJTransportManager_c] Port already in use: " + port);
 			}
 			
-			String name = p.toString(); // Factor out threadgroup name scheme.
+			String name = ((Integer) port).toString(); // Factor out threadgroup name scheme.
 			
 			SJAcceptorThreadGroup atg = new SJAcceptorThreadGroup(this, port, name); 
 			
@@ -220,7 +219,7 @@ public class SJTransportManager_c extends SJTransportManager
 				throw new SJIOException("[SJTransportManager_c] No valid acceptors: " + port);
 			}
 			
-			acceptorGroups.put(p, atg);
+			acceptorGroups.put(port, atg);
 			
 			if (debug)
 			{
@@ -235,7 +234,7 @@ public class SJTransportManager_c extends SJTransportManager
 	{
 		synchronized (acceptorGroups)
 		{
-			acceptorGroups.remove(new Integer(port)).close();
+			acceptorGroups.remove(port).close();
 		}
 	}
 	
@@ -252,7 +251,7 @@ public class SJTransportManager_c extends SJTransportManager
 	
 	public /*synchronized */SJConnection openConnection(String hostName, int port, SJSessionParameters params) throws SJIOException
 	{
-		SJConnection conn = null;
+		SJConnection conn;
 	
 		/*synchronized (connections)
 		{		
@@ -533,7 +532,7 @@ public class SJTransportManager_c extends SJTransportManager
 		
 		if (conn == null)
 		{
-			throw new SJIOException("[SJTransportManager_c] Setup failed: " + hostName + ":" + port);
+			throw new SJIOException("[SJTransportManager_c] Setup failed: " + hostName + ':' + port);
 		}			
 				
 		boolean transportAgreed;
@@ -552,7 +551,7 @@ public class SJTransportManager_c extends SJTransportManager
 			
 			byte b = conn.readByte();
 			
-			transportAgreed = (b == SJ_SERVER_TRANSPORT_SUPPORTED || b == SJ_SERVER_TRANSPORT_FORCE);
+			transportAgreed = b == SJ_SERVER_TRANSPORT_SUPPORTED || b == SJ_SERVER_TRANSPORT_FORCE;
 		}
 		else 
 		{
@@ -584,27 +583,19 @@ public class SJTransportManager_c extends SJTransportManager
 				}
 				
 				byte b = conn.readByte();
-				
-				if (b == SJ_SERVER_TRANSPORT_FORCE) // FIXME: currently, only comes from SJHTTPProxyServlet, but need to prepare for it more generally.
-				{
-					transportAgreed = true;
-				}
-				else
-				{
-					transportAgreed = false;
-				}
+
+				// FIXME: currently, only comes from SJHTTPProxyServlet, but need to prepare for it more generally.
+                transportAgreed = b == SJ_SERVER_TRANSPORT_FORCE;
 			}
 		}
 		
 		if (!transportAgreed) // Start main negotiations.
-		{						
-			byte[] bs;
-			
-			// Send our transports.
-			
-			bs = serializeObject(tn);
-			
-			conn.writeBytes(serializeInt(bs.length));
+		{
+            // Send our transports.
+
+            byte[] bs = serializeObject(tn);
+
+            conn.writeBytes(serializeInt(bs.length));
 			conn.writeBytes(bs); // This is currently pointless - Server has the same reply in any case.
 			
 			// Receive Server's transports.
@@ -621,7 +612,7 @@ public class SJTransportManager_c extends SJTransportManager
 			
 			if (debug)
 			{
-				System.out.println("[SJTransportManager_c] Server at " + hostName + ":" + port + " offers: " + servers);
+				System.out.println("[SJTransportManager_c] Server at " + hostName + ':' + port + " offers: " + servers);
 			}		
 			
 			for (SJTransport t : ts)
@@ -650,11 +641,11 @@ public class SJTransportManager_c extends SJTransportManager
 						
 						if (t instanceof SJBoundedFifoPair) // FIXME: currently hacked. Should there be a SJBoundedBufferTransport? 
 						{
-							tmp = ((SJBoundedFifoPair) t).connect(t.sessionHostToSetupHost(hostName), (p < 0 ? -1 * p : p), boundedBufferSize);
+							tmp = ((SJBoundedFifoPair) t).connect(t.sessionHostToSetupHost(hostName), p < 0 ? -1 * p : p, boundedBufferSize);
 						}
 						else // The original case. 
 						{
-							tmp = t.connect(t.sessionHostToSetupHost(hostName), (p < 0 ? -1 * p : p));
+							tmp = t.connect(t.sessionHostToSetupHost(hostName), p < 0 ? -1 * p : p);
 						}
 						
 						if (p < 0) // Connected to a setup, so bypass the preliminary negotiation phase.

@@ -12,9 +12,9 @@ import static sessionj.runtime.util.SJRuntimeUtils.*;
 
 class SJManualTCPAcceptor implements SJConnectionAcceptor
 {
-	private ServerSocket ss;
+	private final ServerSocket ss;
 	
-	public SJManualTCPAcceptor(int port) throws SJIOException
+	SJManualTCPAcceptor(int port) throws SJIOException
 	{
 		try
 		{
@@ -77,19 +77,19 @@ class SJManualTCPAcceptor implements SJConnectionAcceptor
 
 class SJManualTCPConnection implements SJConnection 
 {
-	private Socket s;
+	private final Socket s;
 	
-	private DataOutputStream dos;
-	private DataInputStream dis;
+	private final DataOutputStream dos;
+	private final DataInputStream dis;
 	
-	public SJManualTCPConnection(Socket s, OutputStream os, InputStream is) throws SJIOException
+	SJManualTCPConnection(Socket s, OutputStream os, InputStream is) throws SJIOException
 	{
 		this.s = s;
 		
 		//try
 		{
-			this.dos = new DataOutputStream(os);
-			this.dis = new DataInputStream(is);
+            dos = new DataOutputStream(os);
+            dis = new DataInputStream(is);
 		}
 		/*catch (IOException ioe)
 		{
@@ -97,14 +97,14 @@ class SJManualTCPConnection implements SJConnection
 		}*/
 	}
 
-	public SJManualTCPConnection(Socket s, InputStream is, OutputStream os) throws SJIOException
+	SJManualTCPConnection(Socket s, InputStream is, OutputStream os) throws SJIOException
 	{
 		this.s = s;
 		
 		//try
 		{
-			this.dis = new DataInputStream(is);
-			this.dos = new DataOutputStream(os);		
+            dis = new DataInputStream(is);
+            dos = new DataOutputStream(os);
 		}
 		/*catch (IOException ioe)
 		{
@@ -223,10 +223,8 @@ public class SJManualTCP implements SJTransport
 	
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
-	
-	public SJManualTCP() { }
 
-	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
+    public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
 		return new SJManualTCPAcceptor(port);
 	}
@@ -238,42 +236,39 @@ public class SJManualTCP implements SJTransport
 	
 	public SJManualTCPConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
 	{
-		try 
-		{
-			Socket s = new Socket(hostName, port);
-			
+        Socket s = null;
+
+		try {
+			s = new Socket(hostName, port);
 			s.setTcpNoDelay(TCP_NO_DELAY);
 			
 			return new SJManualTCPConnection(s, s.getOutputStream(), s.getInputStream()); // Have to get I/O streams here for exception handling.
-		} 
-		catch (IOException ioe) 
-		{
+
+		} catch (IOException ioe) {
 			throw new SJIOException(ioe);
-		}
+		} finally {
+            if (s != null) try {
+                s.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
 	}
 
 	public boolean portInUse(int port)
 	{
 		ServerSocket ss = null;
 		
-		try
-		{
+		try {
 			ss = new ServerSocket(port);
-		}
-		catch (IOException ioe)
-		{
+		} catch (IOException ioe) {
 			return true;
-		}
-		finally
-		{
-			if (ss != null) 
-			{
-				try
-				{
-					ss.close();
-				}
-				catch (IOException ioe) { }					
-			}
+		} finally {
+			if (ss != null) try {
+                ss.close();
+            } catch (IOException ioe) {
+                // ignore
+            }
 		}
 		
 		return false;
@@ -292,7 +287,7 @@ public class SJManualTCP implements SJTransport
 			}
 		}
 		
-		throw new SJIOException("[" + getTransportName() + "] No free port available.");
+		throw new SJIOException('[' + getTransportName() + "] No free port available.");
 	}
 	
 	public String getTransportName()
