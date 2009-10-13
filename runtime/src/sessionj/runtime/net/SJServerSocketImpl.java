@@ -1,11 +1,8 @@
 package sessionj.runtime.net;
 
-import java.util.*;
-
-import sessionj.types.sesstypes.SJSessionType;
-
-import sessionj.runtime.*;
-import sessionj.runtime.transport.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJProtocol;
+import sessionj.runtime.transport.SJAcceptorThreadGroup;
 
 /**
  * @author Raymond

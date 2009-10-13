@@ -14,9 +14,9 @@ import static sessionj.runtime.util.SJRuntimeUtils.*;
 
 class SJStreamTCPAcceptor implements SJConnectionAcceptor
 {
-	private ServerSocket ss;
+	private final ServerSocket ss;
 	
-	public SJStreamTCPAcceptor(int port) throws SJIOException
+	SJStreamTCPAcceptor(int port) throws SJIOException
 	{
 		try
 		{
@@ -34,7 +34,7 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 		{
 			if (ss == null)
 			{
-				throw new SJIOException("[" + getTransportName() + "] Connection acceptor not open.");
+				throw new SJIOException('[' + getTransportName() + "] Connection acceptor not open.");
 			}
 			
 			Socket s = ss.accept();
@@ -79,7 +79,7 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 
 class SJStreamTCPConnection extends SJStreamConnection
 {
-	private Socket s;
+	private final Socket s;
 	
 	protected SJStreamTCPConnection(Socket s, OutputStream os, InputStream is) throws SJIOException
 	{
@@ -144,10 +144,8 @@ public class SJStreamTCP implements SJTransport
 	
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
-	
-	public SJStreamTCP() { }
 
-	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
+    public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
 		return new SJStreamTCPAcceptor(port);
 	}
@@ -213,7 +211,7 @@ public class SJStreamTCP implements SJTransport
 			}
 		}
 		
-		throw new SJIOException("[" + getTransportName() + "] No free port available.");
+		throw new SJIOException('[' + getTransportName() + "] No free port available.");
 	}
 	
 	public String getTransportName()

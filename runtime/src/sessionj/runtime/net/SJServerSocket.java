@@ -3,12 +3,9 @@
  */
 package sessionj.runtime.net;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import sessionj.runtime.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJProtocol;
 import sessionj.runtime.transport.SJAcceptorThreadGroup;
-import sessionj.runtime.transport.SJConnection;
 
 /**
  * @author Raymond
@@ -55,17 +52,6 @@ abstract public class SJServerSocket implements SJChannel
 		
 		return ss;
 	}
-	
-	/*public static SJServerSocket create(SJProtocol protocol, SJPort sjPort, SJSessionParameters params) throws SJIOException // No, SJPorts session parameters already configured. 
-	{
-		SJServerSocket ss = new SJServerSocketImpl(protocol, sjPort.getValue(), params); 
-		
-		ss.sjPort = sjPort;
-		
-		ss.init();
-		
-		return ss;
-	}*/
 	
 	abstract public SJAbstractSocket accept() throws SJIOException, SJIncompatibleSessionException;
 	abstract public void close();

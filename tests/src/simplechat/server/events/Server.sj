@@ -97,7 +97,7 @@ public class Server
 			
 			sendToAll(selector, msg);
 			
-			selector.register(s, SJSelector.RECEIVE);
+			selector.registerReceive(s);
 		}
 		catch (SJIOException ioe)
 		{
