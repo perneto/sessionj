@@ -11,8 +11,9 @@ public class CachingWebServer {
 	private void runServer(int port) throws SJIOException, SJIncompatibleSessionException {
 	    // new statement: using, from C#
 		using (noalias SJServerSocket{sbegin.pServerToClient} ss = SJServerSocket.create(port);
-		       // {} annotation for socket/session socket/selector session types
-		       final noalias SJSelector{pSelect} selector = SJSelector.create(pServerToClient))
+		       // not done yet: {} annotation for socket/session socket/selector session types
+		       // noalias SJSelector{pSelect} selector = SJRuntime.selectorFor())
+		       noalias SJSelector selector = SJRuntime.selectFor(pSelect))
 		{
 			selector.registerAccept(ss);
 
