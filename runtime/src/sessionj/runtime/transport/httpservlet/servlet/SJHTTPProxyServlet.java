@@ -48,8 +48,8 @@ public class SJHTTPProxyServlet extends HttpServlet
 		ss.add(new SJManualTCP());			
 		ts.add(new SJManualTCP());
 
-		sjtm.configureSetups(ss); 
-		sjtm.configureTransports(ts);		
+		sjtm.configureNegociationTransports(ss);
+		sjtm.configureSessionTransports(ts);
 	}
 	
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException

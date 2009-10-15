@@ -10,7 +10,6 @@ import sessionj.runtime.transport.tcp.SJStreamTCP;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Collection;
 
 public class TransportUtils
 {
@@ -96,12 +95,12 @@ public class TransportUtils
 		
 		if (!setups.contains("d"))
 		{
-            sjtm.configureSetups(parseTransportFlags(setups));
+            sjtm.configureNegociationTransports(parseTransportFlags(setups));
 		}
 		
 		if (!transports.contains("d"))
 		{
-            sjtm.configureTransports(parseTransportFlags(transports));
+            sjtm.configureSessionTransports(parseTransportFlags(transports));
 		}		
 	}	
 }

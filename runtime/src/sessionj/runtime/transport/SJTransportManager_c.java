@@ -3,14 +3,13 @@
  */
 package sessionj.runtime.transport;
 
-import java.util.*;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
-import sessionj.runtime.transport.sharedmem.*;
-import sessionj.runtime.transport.tcp.*;
-
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
+import sessionj.runtime.net.SJSessionParameters;
+import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 import static sessionj.runtime.util.SJRuntimeUtils.*;
+
+import java.util.*;
 
 /**
  * @author Raymond
@@ -18,23 +17,23 @@ import static sessionj.runtime.util.SJRuntimeUtils.*;
  */
 public class SJTransportManager_c extends SJTransportManager
 {	
-	private static final String DEFAULT_SETUPS_PROPERTY = "sessionj.default.setups";
+	private static final String DEFAULT_SETUPS_PROPERTY = "sessionj.default.negociationTrans";
     private static final String DEFAULT_TRANSPORTS_PROPERTY = "sessionj.default.transports";
     //private static final boolean debug = true;
 	private static final boolean debug = false;
 	
-	private List<SJTransport> setups = new LinkedList<SJTransport>(); // These may need some synchronisation (getters and setters are currently public and non-defensive).
-	private List<SJTransport> transports = new LinkedList<SJTransport>(); 
+	private List<SJTransport> negociationTrans = new LinkedList<SJTransport>(); // These may need some synchronisation (getters and setters are currently public and non-defensive).
+	private List<SJTransport> sessionTrans = new LinkedList<SJTransport>();
 	
 	private List<String> snames = new LinkedList<String>(); // Used in negotiation protocol.
 	private List<String> tnames = new LinkedList<String>();
 	
 	//private List<SJSetupNegotiator> clientNegotiators = new LinkedList<SJSetupNegotiator>();
 	
-	private HashMap<Integer, SJAcceptorThreadGroup> acceptorGroups = new HashMap<Integer, SJAcceptorThreadGroup>(); 
-	
-	/*private HashMap<String, SJConnection> connections = new HashMap<String, SJConnection>();		
-	private HashMap<SJConnection, Integer> sessions = new HashMap<SJConnection, Integer>();*/
+	private HashMap<Integer, SJAcceptorThreadGroup> acceptorGroups = new HashMap<Integer, SJAcceptorThreadGroup>();
+
+    /*private HashMap<String, SJConnection> connections = new HashMap<String, SJConnection>();
+     private HashMap<SJConnection, Integer> sessions = new HashMap<SJConnection, Integer>();*/
 	
 	public SJTransportManager_c() 
 	{ 
@@ -55,7 +54,7 @@ public class SJTransportManager_c extends SJTransportManager
 		//ss.add(new SJHTTP());
 		//ss.add(new SJUDP());
 		
-		configureSetups(ss);
+		configureNegociationTransports(ss);
 	}
 	
 	private void defaultTransports()
@@ -64,7 +63,7 @@ public class SJTransportManager_c extends SJTransportManager
             System.getProperty(DEFAULT_TRANSPORTS_PROPERTY, "d")
         );
 		
-		configureTransports(ts);
+		configureSessionTransports(ts);
 	}
 	
 	public SJAcceptorThreadGroup openAcceptorGroup(int port, SJSessionParameters params) throws SJIOException 
@@ -72,13 +71,13 @@ public class SJTransportManager_c extends SJTransportManager
 		if (params.useDefault()) 
 		{
 			//synchronized (this)
-			synchronized (setups) // Worth taking defensive copies instead?
+			synchronized (negociationTrans) // Worth taking defensive copies instead?
 			{
-				synchronized (transports)
+				synchronized (sessionTrans)
 				{
 					synchronized (snames)
 					{
-						return openAcceptorGroup(port, setups, transports, snames, params.getBoundedBufferSize());
+						return openAcceptorGroup(port, negociationTrans, sessionTrans, snames, params.getBoundedBufferSize());
 					}
 				}
 			}
@@ -162,7 +161,7 @@ public class SJTransportManager_c extends SJTransportManager
 			
 			if (sts.isEmpty()) 
 			{
-				throw new SJIOException("[SJTransportManager_c] No valid setups: " + port);
+				throw new SJIOException("[SJTransportManager_c] No valid negociationTrans: " + port);
 			}
 			
 			List<SJAcceptorThread> ats = new LinkedList<SJAcceptorThread>(); 
@@ -263,14 +262,14 @@ public class SJTransportManager_c extends SJTransportManager
 				if (params.useDefault())
 				{  							
 					//synchronized (this)
-					synchronized (setups) // Worth taking defensive copies instead?
+					synchronized (negociationTrans) // Worth taking defensive copies instead?
 					{ 
-						synchronized (transports)
+						synchronized (sessionTrans)
 						{
 							synchronized (tnames)
 							{
-								//conn = clientNegotiation(hostName, port, setups, transports, tnames);
-								conn = clientNegotiation(hostName, port, setups, transports, tnames, params.getBoundedBufferSize()); // FIXME: make more general to allow additional parameters, such as the maximum bounded buffer size, to be passed (currently hacked for SJBoundedFifoPair). // Should be unbounded buffer by default.   
+								//conn = clientNegotiation(hostName, port, negociationTrans, sessionTrans, tnames);
+								conn = clientNegotiation(hostName, port, negociationTrans, sessionTrans, tnames, params.getBoundedBufferSize()); // FIXME: make more general to allow additional parameters, such as the maximum bounded buffer size, to be passed (currently hacked for SJBoundedFifoPair). // Should be unbounded buffer by default.
 							}
 						}
 					}
@@ -326,23 +325,23 @@ public class SJTransportManager_c extends SJTransportManager
 		}*/
 	}
 	
-	//public List<SJConnectionSetup> getRegisteredSetups()
-	public /*synchronized*/ List<SJTransport> getRegisteredSetups() 
+	//public List<SJConnectionSetup> registeredNegociationTransports()
+	public /*synchronized*/ List<SJTransport> registeredNegociationTransports()
 	{
-		synchronized (setups)
+		synchronized (negociationTrans)
 		{
-			return new LinkedList<SJTransport>(setups); // Not sure if need to synchronize on setups here.
+			return new LinkedList<SJTransport>(negociationTrans); // Not sure if need to synchronize on negociationTrans here.
 		}
 	}
 	
-	//public void setRegisteredSetups(List<SJConnectionSetup> setups)
-	public /*synchronized*/ void configureSetups(List<SJTransport> setups)
+	//public void setRegisteredSetups(List<SJConnectionSetup> negociationTrans)
+	public /*synchronized*/ void configureNegociationTransports(List<SJTransport> setups)
 	{
-		synchronized (this.setups)
+		synchronized (negociationTrans)
 		{
 			synchronized (snames)
 			{		
-				this.setups = new LinkedList<SJTransport>(setups); // Not sure if need to synchronize on setups argument here.
+				this.negociationTrans = new LinkedList<SJTransport>(setups); // Not sure if need to synchronize on negociationTrans argument here.
 				
 				//synchronized (snames)
 				{
@@ -357,21 +356,21 @@ public class SJTransportManager_c extends SJTransportManager
 		}
 	}	
 	
-	public /*synchronized*/ List<SJTransport> getRegisteredTransports()
+	public /*synchronized*/ List<SJTransport> registeredSessionTransports()
 	{
-		synchronized (transports)
+		synchronized (sessionTrans)
 		{
-			return new LinkedList<SJTransport>(transports);
+			return new LinkedList<SJTransport>(sessionTrans);
 		}
 	}
 	
-	public /*synchronized*/ void configureTransports(List<SJTransport> transports)
+	public /*synchronized*/ void configureSessionTransports(List<SJTransport> transports)
 	{
-		synchronized (this.transports)
+		synchronized (this.sessionTrans)
 		{
 			synchronized (tnames)
 			{
-				this.transports = new LinkedList<SJTransport>(transports);
+				this.sessionTrans = new LinkedList<SJTransport>(transports);
 				
 				//synchronized (tnames)
 				{

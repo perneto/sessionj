@@ -34,13 +34,13 @@ abstract public class SJTransportManager
 	abstract public SJConnection openConnection(String hostName, int port, SJSessionParameters params) throws SJIOException;
 	abstract public void closeConnection(SJConnection conn);
 	
-	/*abstract public List<SJConnectionSetup> getRegisteredSetups();
+	/*abstract public List<SJConnectionSetup> registeredNegociationTransports();
 	abstract public void setRegisteredSetups(List<SJConnectionSetup> setups);*/	
-	abstract public List<SJTransport> getRegisteredSetups();
-	abstract public void configureSetups(List<SJTransport> setups);
+	abstract public List<SJTransport> registeredNegociationTransports();
+	abstract public void configureNegociationTransports(List<SJTransport> transports);
 	
-	abstract public List<SJTransport> getRegisteredTransports();
-	abstract public void configureTransports(List<SJTransport> transports);
+	abstract public List<SJTransport> registeredSessionTransports();
+	abstract public void configureSessionTransports(List<SJTransport> transports);
 	
 	abstract protected void registerConnection(SJConnection conn);
 	

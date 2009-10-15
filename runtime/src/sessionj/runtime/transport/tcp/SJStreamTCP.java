@@ -1,18 +1,20 @@
 package sessionj.runtime.transport.tcp;
 
-import java.io.*;
-import java.net.*;
-import java.util.Random;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.ServerSocketChannel;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSelector;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJStreamConnection;
 import sessionj.runtime.transport.SJTransport;
 
-import static sessionj.runtime.util.SJRuntimeUtils.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.ServerSocketChannel;
+import java.util.Random;
 
 class SJStreamTCPAcceptor implements SJConnectionAcceptor
 {
@@ -53,10 +55,6 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 			throw new SJIOException(ioe);
 		}
 	}
-
-    public SelectableChannel acceptSelectableChannel() {
-        return ssc;
-    }
 
     public void close()
 	{	
@@ -192,7 +190,7 @@ public class SJStreamTCP implements SJTransport
 		{
 			ss = new ServerSocket(port);
 		}
-		catch (IOException ioe)
+		catch (IOException ignored)
 		{
 			return true;
 		}
@@ -204,7 +202,7 @@ public class SJStreamTCP implements SJTransport
 				{
 					ss.close();
 				}
-				catch (IOException ioe) { }					
+				catch (IOException ignored) { }					
 			}
 		}
 		

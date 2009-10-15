@@ -887,7 +887,7 @@ public class SJRuntime
 	}
 
     public static SJSelector selectorFor(SJProtocol proto) {
-        return new SJSelectorAllTransports(getTransportManager().getRegisteredTransports());
+        return new SJSelectorAllTransports(getTransportManager().registeredSessionTransports());
     }
 	
 	public static int findFreePort() throws SJIOException
