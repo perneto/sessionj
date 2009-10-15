@@ -14,6 +14,7 @@ import sessionj.ast.createops.SJCreateOperation;
 import sessionj.ast.servops.SJAccept;
 import sessionj.ast.sessops.basicops.SJBasicOperation;
 import sessionj.ast.sessops.basicops.SJReceive;
+import sessionj.ast.sessops.basicops.SJSend;
 import sessionj.ast.sessvars.SJLocalSocket;
 import sessionj.extension.SJExtFactory;
 import sessionj.extension.noalias.SJNoAliasExprExt;
@@ -45,7 +46,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 
 	// This pass is for checks that require field and method declarations from all classes to be already checked.
 	protected Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
-	{
+	{		
 		if (n instanceof Expr)
 		{			
 			if (n instanceof Variable)
@@ -73,7 +74,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 					n = buildNew((New) n);
 				}
 				else //if (n instanceof Call)
-				{
+				{					
 					if (n instanceof SJCreateOperation) // Do here, or in SJCreateOperationParser?
 					{
 						n = buildSJCreateOperation((SJCreateOperation) n);
@@ -391,7 +392,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		List<Field> fields = new LinkedList<Field>();
 		List<Local> locals = new LinkedList<Local>();
 		List<ArrayAccess> arrayAccesses = new LinkedList<ArrayAccess>();
-
+		
         for (Object anArgsList : argsList) {
             SJNoAliasExprExt naee = getSJNoAliasExprExt((Expr) anArgsList);
 
@@ -399,7 +400,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
             locals.addAll(naee.locals());
             arrayAccesses.addAll(naee.arrayAccesses());
         }
-		
+        
 		if (target instanceof Expr)
 		{		
 			Expr e = (Expr) c.target();
@@ -417,7 +418,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 			for (ArrayAccess aa : naee.arrayAccesses()) if (!vars.contains(aa)) arrayAccesses.add(aa);
 		}
 
-        removeNonFinalSocketArguments(c, locals);
+		removeNonFinalSocketArguments(c, locals);
 		
 		if (!isNoAlias)
 		{
@@ -426,7 +427,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 				//isNoAlias = isFinal = true; // FIXME: too restrictive, can't use SJ factory methods.
 			}
 		}
-		
+				
 		c = (Call) setSJNoAliasExprExt(sjef, c, isNoAlias, isFinal, fields, locals, arrayAccesses); // FIXME: na-final return types currently not supported.
 		
 		return c;
@@ -450,7 +451,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
             for (Object o : targets)
             {
                 SJLocalSocket s = (SJLocalSocket) o;
-
+                
                 if (!s.localInstance().flags().isFinal() && locals.contains(s))
                 // Requires that the SJLocalSocket found in targets and the one in locals be equals.
                 // Had to implement equals in SJLocalSocket_c, as parent classes come from Polyglot.

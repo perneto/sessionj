@@ -21,7 +21,7 @@ import static sessionj.util.SJCompilerUtils.*;
 /**
  * @author Raymond
  *
- * Post session type checking visitor which reads the session type information build and recorded by the preceding passes.
+ * Post session type checking visitor which reads the session type information built and recorded by the preceding passes.
  *
  */
 public class SJSessionVisitor extends SJAbstractSessionVisitor  

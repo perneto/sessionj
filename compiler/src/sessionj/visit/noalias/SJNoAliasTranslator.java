@@ -229,7 +229,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 		if (parent instanceof Eval) // OK because e.g. (T) a.m(...); is not a permitted statement (similarly for Conditional, etc.). 
 		{		
 			Set<Variable> vars = removeFinalParameters(pc, removeFinalVariables(setifyVariables(getSJNoAliasVariablesExt(pc)))); 				
-						
+			
 			if (!vars.isEmpty())
 			{				
 				QQ qq = new QQ(sjts.extensionInfo(), pc.position());

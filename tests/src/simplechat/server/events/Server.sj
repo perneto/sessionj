@@ -42,7 +42,7 @@ public class Server
 		
 		SJSelectorKey ssKey = null; // Keys can be used to organise external data specific to each socket or session, but cannot be used for any actual session operations - so not session typed. 
 		
-		using (noalias SJServerSocket = = SJServerSocket.create(p_serverToClient, port, sparams))
+		using (noalias SJServerSocket = SJServerSocket.create(p_serverToClient, port, sparams))
 		{
 			ssKey = selector.registerAccept(ss); // Passing session typed entities to selector registration typed in the same way as regular session argument passing (and spawn, delegation, etc.).
 			
