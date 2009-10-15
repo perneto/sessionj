@@ -3,12 +3,10 @@
  */
 package sessionj.runtime.transport;
 
-import java.io.*;
-import java.net.Socket;
-
 import sessionj.runtime.SJIOException;
-
 import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
+
+import java.io.*;
 
 /**
  * @author Raymond
@@ -16,27 +14,15 @@ import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
  */
 abstract public class SJStreamConnection implements SJConnection
 {
-	/*public static enum Role { ACCEPTOR, REQUESTOR }
+	private final DataOutputStream dos;
+	private final DataInputStream dis;
 	
-	private Role role;*/
-	
-	private DataOutputStream dos;
-	private DataInputStream dis;
-	
-	protected SJStreamConnection(OutputStream out, InputStream in) throws SJIOException
-	{
-		//this.role = Role.REQUESTOR;
-		
-		this.dos = new DataOutputStream(out);
-		this.dis = new DataInputStream(in);
-	}
-
-	protected SJStreamConnection(InputStream in, OutputStream out) throws SJIOException // HACK: to avoid deadlock when setting up I/O streams.
-	{
-		//this.role = Role.ACCEPTOR;
-		
-		this.dis = new DataInputStream(in);		
-		this.dos = new DataOutputStream(out);
+	protected SJStreamConnection(InputStream in, OutputStream out)
+    // HACK: to avoid deadlock when setting up I/O streams.
+	// ie. order of parameters, in before out
+    {
+        dis = new DataInputStream(in);
+        dos = new DataOutputStream(out);
 	}
 	
 	public OutputStream getOutputStream()
@@ -51,8 +37,8 @@ abstract public class SJStreamConnection implements SJConnection
 	
 	public void disconnect() //throws SJIOException 
 	{
-		try { closeStream(dos); } catch (IOException ioe) { }
-		try { closeStream(dis); } catch (IOException ioe) { }				
+		try { closeStream(dos); } catch (IOException ignored) {}
+		try { closeStream(dis); } catch (IOException ignored) {}
 	}
 
 	public void writeByte(byte b) throws SJIOException
@@ -115,9 +101,4 @@ abstract public class SJStreamConnection implements SJConnection
 			throw new SJIOException(ioe);
 		}				
 	}
-	
-	/*public Role getRole()
-	{
-		return role;
-	}*/
 }

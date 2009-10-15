@@ -21,8 +21,7 @@ public class SJServerSocketImpl extends SJServerSocket
 		super(protocol, port, SJSessionParameters.DEFAULT_PARAMETERS);
 	}*/
 	
-	protected SJServerSocketImpl(SJProtocol protocol, int port, SJSessionParameters params) throws SJIOException
-	{
+	protected SJServerSocketImpl(SJProtocol protocol, int port, SJSessionParameters params) {
 		super(protocol, port, params);
 	}
 	

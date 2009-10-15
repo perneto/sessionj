@@ -1,9 +1,6 @@
 package sessionj.runtime.transport;
 
-import java.io.*;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.SJServerIdentifier;
+import sessionj.runtime.SJIOException;
 
 /**
  * @author Raymond
@@ -12,20 +9,20 @@ import sessionj.runtime.net.SJServerIdentifier;
  */
 public interface SJConnection 
 {
-	public void disconnect();// throws SJIOException;
+	void disconnect();
 
-	public void writeByte(byte b) throws SJIOException;
-	public void writeBytes(byte[] bs) throws SJIOException;
+	void writeByte(byte b) throws SJIOException;
+	void writeBytes(byte[] bs) throws SJIOException;
 
-	public byte readByte() throws SJIOException;
-	public void readBytes(byte[] bs) throws SJIOException;
+	byte readByte() throws SJIOException;
+	void readBytes(byte[] bs) throws SJIOException;
 	
-	public void flush() throws SJIOException;
+	void flush() throws SJIOException;
 	
-	public String getHostName();
-	public int getPort();
+	String getHostName();
+	int getPort();
 	
-	public int getLocalPort();
-	
-	public String getTransportName();
+	int getLocalPort();
+
+	String getTransportName();
 }

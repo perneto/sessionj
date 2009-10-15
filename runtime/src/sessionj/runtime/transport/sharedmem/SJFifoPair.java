@@ -486,7 +486,7 @@ public class SJFifoPair implements SJTransport
     }
 	}
 	
-	public String sessionHostToSetupHost(String hostName)
+	public String sessionHostToNegociationHost(String hostName)
 	{
 		return hostName;
 	}

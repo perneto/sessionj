@@ -96,7 +96,7 @@ public class SJHTTP implements SJTransport{
 		return TRANSPORT_NAME;
 	}
 	
-	public String sessionHostToSetupHost(String hostName)
+	public String sessionHostToNegociationHost(String hostName)
 	{
 		return hostName;
 	}
@@ -104,5 +104,5 @@ public class SJHTTP implements SJTransport{
 	public int sessionPortToSetupPort(int port)
 	{
 		return port;
-	}	
+	}
 }

@@ -23,7 +23,7 @@ public interface SJTransport
 	
 	String getTransportName();
 	
-	String sessionHostToSetupHost(String hostName);
+	String sessionHostToNegociationHost(String hostName);
 	int sessionPortToSetupPort(int port);
 	
 	/*

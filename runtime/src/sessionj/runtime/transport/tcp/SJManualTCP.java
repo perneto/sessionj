@@ -304,7 +304,7 @@ public class SJManualTCP implements SJTransport
 		return TRANSPORT_NAME;
 	}
 	
-	public String sessionHostToSetupHost(String hostName)
+	public String sessionHostToNegociationHost(String hostName)
 	{
 		return hostName;
 	}
@@ -312,5 +312,5 @@ public class SJManualTCP implements SJTransport
 	public int sessionPortToSetupPort(int port)
 	{
 		return port + TCP_PORT_MAP_ADJUST; // To be compatible with SJStreamTCP.
-	}	
+	}
 }

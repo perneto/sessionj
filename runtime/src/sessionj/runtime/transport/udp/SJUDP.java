@@ -165,7 +165,7 @@ public class SJUDP implements SJTransport{
        return -1;
     }
 
-    public String sessionHostToSetupHost(String s) {
+    public String sessionHostToNegociationHost(String s) {
        return null;
     }
        

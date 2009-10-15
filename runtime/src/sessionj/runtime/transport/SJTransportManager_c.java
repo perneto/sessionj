@@ -502,11 +502,11 @@ public class SJTransportManager_c extends SJTransportManager
 			{
 				if (t instanceof SJBoundedFifoPair) // FIXME: currently hacked. Should there be a SJBoundedBufferTransport? 
 				{
-					conn = ((SJBoundedFifoPair) t).connect(t.sessionHostToSetupHost(hostName), t.sessionPortToSetupPort(port), boundedBufferSize);
+					conn = ((SJBoundedFifoPair) t).connect(t.sessionHostToNegociationHost(hostName), t.sessionPortToSetupPort(port), boundedBufferSize);
 				}
 				else 
 				{
-					conn = t.connect(t.sessionHostToSetupHost(hostName), t.sessionPortToSetupPort(port));
+					conn = t.connect(t.sessionHostToNegociationHost(hostName), t.sessionPortToSetupPort(port));
 				}
 				
 				if (debug)
@@ -631,17 +631,17 @@ public class SJTransportManager_c extends SJTransportManager
 					{
 						int p = servers.get(name).intValue();
 						
-						//SJConnection tmp = t.connect(t.sessionHostToSetupHost(hostName), Math.abs(p));
+						//SJConnection tmp = t.connect(t.sessionHostToNegociationHost(hostName), Math.abs(p));
 						
 						SJConnection tmp;
 						
 						if (t instanceof SJBoundedFifoPair) // FIXME: currently hacked. Should there be a SJBoundedBufferTransport? 
 						{
-							tmp = ((SJBoundedFifoPair) t).connect(t.sessionHostToSetupHost(hostName), p < 0 ? -1 * p : p, boundedBufferSize);
+							tmp = ((SJBoundedFifoPair) t).connect(t.sessionHostToNegociationHost(hostName), p < 0 ? -1 * p : p, boundedBufferSize);
 						}
 						else // The original case. 
 						{
-							tmp = t.connect(t.sessionHostToSetupHost(hostName), p < 0 ? -1 * p : p);
+							tmp = t.connect(t.sessionHostToNegociationHost(hostName), p < 0 ? -1 * p : p);
 						}
 						
 						if (p < 0) // Connected to a setup, so bypass the preliminary negotiation phase.
