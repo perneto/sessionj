@@ -1039,5 +1039,10 @@ public class SJRuntime
 		
 		return s.recurseBB(lab);	// If we adopt this in the future, the standard recurse routine should be modified accordingly.	
 	}*/	
+	
+	public static SJSelector selectFor(SJProtocol p)
+	{
+		throw new SJRuntimeException("[SJRuntime] selectFor not done yet.");
+	}
 }
 
