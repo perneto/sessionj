@@ -3,6 +3,7 @@ package sessionj.runtime.transport.http;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.nio.channels.SelectableChannel;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
@@ -46,8 +47,12 @@ public class SJHTTPAcceptor implements SJConnectionAcceptor{
 		}
 
 	}
-	
-	public void close(){
+
+    public SelectableChannel acceptSelectableChannel() {
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    public void close(){
 		
 		try 
 		{ 

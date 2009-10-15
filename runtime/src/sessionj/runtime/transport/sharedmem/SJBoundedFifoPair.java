@@ -3,6 +3,7 @@ package sessionj.runtime.transport.sharedmem;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.nio.channels.SelectableChannel;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
@@ -12,27 +13,26 @@ import sessionj.runtime.transport.*;
 
 class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
 {	
-	protected static HashMap<Integer, LinkedList<SJBoundedFifoPairConnection>> servers = new HashMap<Integer, LinkedList<SJBoundedFifoPairConnection>>(); 
+	protected static final HashMap<Integer, LinkedList<SJBoundedFifoPairConnection>> servers = new HashMap<Integer, LinkedList<SJBoundedFifoPairConnection>>(); 
 	
 	protected int port;
 	protected boolean isClosed = false;
 	
 	private int boundedBufferSize;
 	
-	public SJBoundedFifoPairAcceptor(int port, int boundedBufferSize) throws SJIOException
-	{
+	SJBoundedFifoPairAcceptor(int port, int boundedBufferSize) {
 		this.port = port;
 		
-		servers.put(new Integer(port), new LinkedList<SJBoundedFifoPairConnection>());
+		servers.put(port, new LinkedList<SJBoundedFifoPairConnection>());
 		
 		this.boundedBufferSize = boundedBufferSize;
 	}
 	
 	public SJBoundedFifoPairConnection accept() throws SJIOException
   {
-		LinkedList<SJBoundedFifoPairConnection> requests = servers.get(new Integer(port));
+		LinkedList<SJBoundedFifoPairConnection> requests = servers.get(Integer.valueOf(port));
 		
-		SJBoundedFifoPairConnection theirConn = null;
+		SJBoundedFifoPairConnection theirConn;
 		
 		synchronized (requests) // FIXME: requests can sometimes be null at this point (quite rarely). 
     {
@@ -45,7 +45,7 @@ class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
 			}
 			catch (InterruptedException ie)
 			{
-				throw new SJIOException("[" + getTransportName() + "] 1: " + ie);
+				throw new SJIOException('[' + getTransportName() + "] 1: " + ie, ie);
 			}
 			
 			theirConn = requests.remove(0);	
@@ -83,7 +83,7 @@ class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
 		{
 			SJBoundedFifoPair.freePort(port);
 			
-			servers.remove(new Integer(port));						
+			servers.remove(Integer.valueOf(port));
 		}			
 	}
 	
@@ -104,11 +104,10 @@ class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
 	
 	protected static void addRequest(int port, SJBoundedFifoPairConnection conn)
 	{
-		Integer p = new Integer(port);
 
-		synchronized (servers)
+        synchronized (servers)
 		{
-			List<SJBoundedFifoPairConnection> foo = servers.get(p); 
+			List<SJBoundedFifoPairConnection> foo = servers.get(port);
 		
 			synchronized (foo)
       {
@@ -126,15 +125,14 @@ class SJBoundedFifoPairConnection implements SJBoundedBufferConnection
 	
 	private int localPort;
 	
-	protected SJBoundedFifo ours;
-	protected SJBoundedFifo theirs;
+	private SJBoundedFifo ours;
+	private SJBoundedFifo theirs;
 	
-	protected boolean[] hasBeenAccepted = new boolean[] { false };
+	boolean[] hasBeenAccepted = { false };
 	
 	//private boolean initialised = false;
 	
-	protected SJBoundedFifoPairConnection(String hostName, int port, int localPort, SJBoundedFifo ours) throws SJIOException
-	{
+	protected SJBoundedFifoPairConnection(String hostName, int port, int localPort, SJBoundedFifo ours) {
 		this.hostName = hostName;
 		this.port = port;
 		this.localPort = localPort;
@@ -159,7 +157,7 @@ class SJBoundedFifoPairConnection implements SJBoundedBufferConnection
 		}
 	}*/
 	
-	public void disconnect() //throws SJIOException 
+	public void disconnect()
 	{		
 		if (theirs != null) // FIXME: need an isClosed, e.g. delegation protocol closes early.
 		{
@@ -185,12 +183,12 @@ class SJBoundedFifoPairConnection implements SJBoundedBufferConnection
   {    
   	if (theirs == null) // e.g. forwarding protocol closes connections early. Remember: we are at transport level here, don't get confused by session-type level properties, e.g. writes can happen asynchronously (i.e. by both ends at the same time) and we may incorrectly try to use closed connections, etc. 
   	{
-  		throw new SJIOException("[" + getTransportName() + "] Connection already closed.");
+  		throw new SJIOException('[' + getTransportName() + "] Connection already closed.");
   	}
   	
 		if (theirs.isClosed())
 		{
-			throw new SJIOException("[" + getTransportName() + "] Connection closed by peer.");
+			throw new SJIOException('[' + getTransportName() + "] Connection closed by peer.");
 		}
 		
 		theirs.writeByte(b);   
@@ -200,12 +198,12 @@ class SJBoundedFifoPairConnection implements SJBoundedBufferConnection
   {
   	if (theirs == null)  
   	{
-  		throw new SJIOException("[" + getTransportName() + "] Connection already closed.");
+  		throw new SJIOException('[' + getTransportName() + "] Connection already closed.");
   	}  	
   	
  		if (theirs.isClosed())
 		{
-			throw new SJIOException("[" + getTransportName() + "] Connection closed by peer.");
+			throw new SJIOException('[' + getTransportName() + "] Connection closed by peer.");
 		}  		
   		
  		theirs.writeBytes(bs); // FIXME: should copy-on-send. But should be OK, we're always writing the serialized messages (i.e. already copied and won't be modified)? 
@@ -228,7 +226,7 @@ class SJBoundedFifoPairConnection implements SJBoundedBufferConnection
   		throw new SJIOException("[" + getTransportName() + "] Connection already closed.");
   	}  	
   	  	
-		byte[] foo = (byte[]) ours.readBytes();
+		byte[] foo = ours.readBytes();
 		
 		if (foo.length != bs.length) // FIXME: need to decide whether we should block until bs can be filled or what.
 		{
@@ -312,7 +310,7 @@ public class SJBoundedFifoPair implements SJTransport
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
 	
-	private static final HashSet<Integer> portsInUse = new HashSet<Integer>(); 
+	private static final Collection<Integer> portsInUse = new HashSet<Integer>(); 
 	
 	public SJBoundedFifoPair() { }
 
@@ -329,9 +327,9 @@ public class SJBoundedFifoPair implements SJTransport
 			//throw new SJIOException("[" + getTransportName() + "] Maximum bound on buffer out of range: " + boundedBufferSize);
 		}		
 		
-		SJBoundedFifoPairAcceptor a = new SJBoundedFifoPairAcceptor(port, boundedBufferSize);
+		SJConnectionAcceptor a = new SJBoundedFifoPairAcceptor(port, boundedBufferSize);
 		
-		SJBoundedFifoPair.bindPort(port);
+		bindPort(port);
 		
 		return a;
 	}
@@ -345,8 +343,12 @@ public class SJBoundedFifoPair implements SJTransport
 	{
 		return connect(hostName, port, UNBOUNDED_BUFFER_SIZE);	
 	}
-	
-	public SJBoundedFifoPairConnection connect(String hostName, int port, int boundedBufferSize) throws SJIOException
+
+    public SJSelector transportSelector() {
+        return null;
+    }
+
+    public SJBoundedFifoPairConnection connect(String hostName, int port, int boundedBufferSize) throws SJIOException
 	{
 		// FIXME: need to map session-level addresses to transport specific values.
 		
@@ -421,7 +423,7 @@ public class SJBoundedFifoPair implements SJTransport
 	{
 		synchronized (portsInUse)
 		{
-			return !portsInUse.contains(new Integer(port));
+			return !portsInUse.contains(port);
 		}
 	}
 	
@@ -446,7 +448,7 @@ public class SJBoundedFifoPair implements SJTransport
 	{
 		synchronized (portsInUse)
     {
-	    portsInUse.add(new Integer(port));
+	    portsInUse.add(port);
     }
 	}
 	
@@ -454,7 +456,7 @@ public class SJBoundedFifoPair implements SJTransport
 	{		
 		synchronized (portsInUse)
     {
-	    portsInUse.remove(new Integer(port));
+	    portsInUse.remove(port);
     }
 	}
 	
@@ -494,21 +496,21 @@ class SJBoundedFifo
 
 	public synchronized void writeByte(byte b) throws SJIOException
 	{
-		this.writeObject(new Byte(b));
+        writeObject(b);
 	}
 	
 	public synchronized void writeBytes(byte[] bs) throws SJIOException
 	{
-		this.writeObject(bs);
+        writeObject(bs);
 	}
 	
 	public synchronized byte readByte() throws SJIOException
 	{		
-		Object o = this.readObject();
+		Object o = readObject();
 		
 		if (o instanceof Byte)
 		{
-			return ((Byte) o).byteValue();
+			return (Byte) o;
 		}
 		else
 		{
@@ -518,7 +520,7 @@ class SJBoundedFifo
 	
 	public synchronized byte[] readBytes() throws SJIOException
 	{			
-		Object o = this.readObject();
+		Object o = readObject();
 		
 		if (o instanceof byte[])
 		{
@@ -552,8 +554,8 @@ class SJBoundedFifo
 		}
 		
 		avail++;
-		
-		this.notifyAll();
+
+        notifyAll();
 	}
 		
 	public synchronized Object readObject() throws SJIOException

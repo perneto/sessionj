@@ -1,7 +1,7 @@
 package sessionj.runtime.transport;
 
-import sessionj.runtime.*;
-import sessionj.runtime.net.SJServerIdentifier;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSelector;
 
 /**
  * @author Raymond, Fred van den Driessche
@@ -10,17 +10,21 @@ import sessionj.runtime.net.SJServerIdentifier;
  */
 public interface SJTransport 
 {
-	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException; // Transport-level port.	
-	//public SJConnection connect(SJServerIdentifier si) throws SJIOException;
-	public SJConnection connect(String hostName, int port) throws SJIOException; // May be useful to pass additional higher-level information to these operations, such as the session type (e.g. for bounded-size buffers). 
+	SJConnectionAcceptor openAcceptor(int port) throws SJIOException; // Transport-level port.
+	//SJConnection connect(SJServerIdentifier si) throws SJIOException;
+    SJConnection connect(String hostName, int port) throws SJIOException;
+    // May be useful to pass additional higher-level information to these operations,
+    // such as the session type (e.g. for bounded-size buffers).
+
+    SJSelector transportSelector();
+
+	boolean portInUse(int port);
+	int getFreePort() throws SJIOException;
 	
-	public boolean portInUse(int port);
-	public int getFreePort() throws SJIOException;
+	String getTransportName();
 	
-	public String getTransportName();
-	
-	abstract public String sessionHostToSetupHost(String hostName);
-	abstract public int sessionPortToSetupPort(int port);	
+	String sessionHostToSetupHost(String hostName);
+	int sessionPortToSetupPort(int port);
 	
 	/*
 	 * TODO: Extras:

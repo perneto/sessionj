@@ -124,7 +124,11 @@ public class SJUDPAcceptor implements SJConnectionAcceptor{
            throw new SJIOException(ioe);
        }
     }
-       
+
+    public SelectableChannel acceptSelectableChannel() {
+        throw new UnsupportedOperationException("TODO");
+    }
+
     public void close(){
        try { 
            if (ss != null) {
