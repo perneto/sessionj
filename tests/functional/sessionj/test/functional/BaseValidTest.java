@@ -25,6 +25,7 @@ public abstract class BaseValidTest {
             ));
         }
         for (Future<?> f : futures) f.get();
+        es.shutdown();
     }
 
     private Callable<?> wrapDelay(final Callable<?> peer) {
