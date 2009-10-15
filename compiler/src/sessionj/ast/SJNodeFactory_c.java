@@ -227,6 +227,11 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	{
         return new SJLocalServer_c(pos, name);
 	}
+
+	public SJLocalSelector SJLocalSelector(Position pos, Id name)
+	{
+		return new SJLocalSelector_c(pos, name);
+	}	
 	
 	public SJAmbiguousTry SJAmbiguousTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets)
 	{

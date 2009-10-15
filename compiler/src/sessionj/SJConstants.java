@@ -123,6 +123,7 @@ public class SJConstants
 	public static Type SJ_LABEL_TYPE;
 	public static Type SJ_RUNTIME_TYPE;
 	public static Type SJ_THREAD_TYPE;
+	public static Type SJ_SELECTOR_TYPE;
 	
 	public static final String SJ_PROTOCOL_CLASS = "sessionj.runtime.SJProtocol";
 	public static final String SJ_CHANNEL_CLASS = "sessionj.runtime.net.SJService";
@@ -132,7 +133,8 @@ public class SJConstants
 	public static final String SJ_SERVER_INTERFACE = "sessionj.runtime.net.SJServerSocket";	
 	public static final String SJ_SERVER_CLASS = "sessionj.runtime.net.SJServerSocketImpl";	
 	public static final String SJ_RUNTIME_CLASS = "sessionj.runtime.net.SJRuntime"; 
-	public static final String SJ_THREAD_CLASS = "sessionj.runtime.SJThread"; 	
+	public static final String SJ_THREAD_CLASS = "sessionj.runtime.SJThread";
+	public static final String SJ_SELECTOR_CLASS = "sessionj.runtime.net.SJSelector";
 	
 	//public static final String SJ_LABEL_CLASS = "sessionj.util.SJLabel";
 	public static final String SJ_LABEL_CLASS = "java.lang.String";
