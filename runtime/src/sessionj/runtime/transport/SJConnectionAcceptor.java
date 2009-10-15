@@ -5,17 +5,19 @@ package sessionj.runtime.transport;
 
 import sessionj.runtime.SJIOException;
 
+import java.nio.channels.SelectableChannel;
+
 /**
  * @author Raymond
  *
  */
 public interface SJConnectionAcceptor
 {
-	public SJConnection accept() throws SJIOException;
-	public void close();
+	SJConnection accept() throws SJIOException;
+	void close();
 	
-	public boolean interruptToClose();
+	boolean interruptToClose();
 	
-	public boolean isClosed();
-	public String getTransportName(); 
+	boolean isClosed();
+	String getTransportName(); 
 }
