@@ -12,7 +12,7 @@ import sessionj.ast.SJNodeFactory;
 import sessionj.ast.SJSpawn;
 import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sesstry.SJTry;
-import sessionj.ast.sessvars.SJVariable;
+import sessionj.ast.sessvars.*;
 import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
 
 import java.util.LinkedList;
@@ -76,6 +76,8 @@ public class SJVariableParser extends ContextVisitor
 	{
 		SJVariable v = null;
 		
+		//System.out.println("a: " + l);
+		
 		if (l.type().isSubtype(SJ_CHANNEL_TYPE))
 		{
 			v = sjnf.SJLocalChannel(l.position(), l.id());
@@ -87,7 +89,11 @@ public class SJVariableParser extends ContextVisitor
 		else if (l.type().isSubtype(SJ_SERVER_INTERFACE_TYPE))
 		{
 			v = sjnf.SJLocalServer(l.position(), l.id());
-		}				
+		}
+		else if (l.type().isSubtype(SJ_SELECTOR_TYPE))
+		{
+			v = sjnf.SJLocalSelector(l.position(), l.id());
+		}
 		 
 		if (v != null)
 		{
@@ -112,22 +118,22 @@ public class SJVariableParser extends ContextVisitor
 	// Session operation targets currently not visited by base passes.
 	private SJTry parseSJTry(SJTry st) throws SemanticException
 	{										
-		return st.targets(parseSocketList(st.targets(), false));
+		return st.targets(parseSJVariableList(st.targets(), false));
 	}
 		
 	// Currently duplicated with SJTry (could make SJTry a SJNamed).
 	private SJSessionOperation parseSJSessionOperation(SJSessionOperation so) throws SemanticException
 	{
-		return so.targets(parseSocketList(so.targets(), false));
+		return so.targets(parseSJVariableList(so.targets(), false));
 	}	
 	
 	private SJSpawn parseSJSpawn(SJSpawn s) throws SemanticException // Based on parseSJSessionOperation.
 	{
-		return s.targets(parseSocketList(s.targets(), true));		
+		return s.targets(parseSJVariableList(s.targets(), true));		
 	}	
 	
 	// Should check no repeated sockets for session-try and session operations. // Now also optionally does channels (for SJSpawn).
-	private List<SJVariable> parseSocketList(List l, boolean channelsAllowed) throws SemanticException
+	private List<SJVariable> parseSJVariableList(List l, boolean channelsAllowed) throws SemanticException
 	{
 		List<SJVariable> targets = new LinkedList<SJVariable>();
 
@@ -140,8 +146,13 @@ public class SJVariableParser extends ContextVisitor
                 if (t.isSubtype(SJ_SOCKET_INTERFACE_TYPE) || t.isSubtype(SJ_SERVER_INTERFACE_TYPE)) {
                     targets.add((SJVariable) parseSJLocal((Local) r));
                 } else if (channelsAllowed && t.isSubtype(SJ_CHANNEL_TYPE)) {
-                    targets.add((SJVariable) parseSJLocal((Local) r));
-                } else {
+                    targets.add((SJChannelVariable) parseSJLocal((Local) r));                    
+                } 
+                else if (t.isSubtype(SJ_SELECTOR_TYPE))
+                {
+                	targets.add((SJSelectorVariable) parseSJLocal((Local) r));
+                }
+                else {
                     throw new SemanticException("[SJVariableParser] Expected session socket or server variable, not: " + r);
                 }
             } else {

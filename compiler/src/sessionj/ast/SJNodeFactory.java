@@ -24,9 +24,7 @@ import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sesstry.SJAmbiguousTry;
 import sessionj.ast.sesstry.SJServerTry;
 import sessionj.ast.sesstry.SJSessionTry;
-import sessionj.ast.sessvars.SJLocalChannel;
-import sessionj.ast.sessvars.SJLocalServer;
-import sessionj.ast.sessvars.SJLocalSocket;
+import sessionj.ast.sessvars.*;
 import sessionj.ast.typenodes.*;
 import sessionj.extension.SJExtFactory;
 import sessionj.util.SJLabel;
@@ -73,6 +71,7 @@ public interface SJNodeFactory extends NodeFactory
 	SJLocalChannel SJLocalChannel(Position pos, Id name);
 	SJLocalSocket SJLocalSocket(Position pos, Id name);
 	SJLocalServer SJLocalServer(Position pos, Id name);
+	SJLocalSelector SJLocalSelector(Position pos, Id name);
 	
 	SJAmbiguousTry SJAmbiguousTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
 	SJSessionTry SJSessionTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
