@@ -3,6 +3,8 @@ package sessionj.runtime.transport.tcp;
 import java.io.*;
 import java.net.*;
 import java.util.Random;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.ServerSocketChannel;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
@@ -15,12 +17,15 @@ import static sessionj.runtime.util.SJRuntimeUtils.*;
 class SJStreamTCPAcceptor implements SJConnectionAcceptor
 {
 	private final ServerSocket ss;
+    private final ServerSocketChannel ssc;
 	
 	SJStreamTCPAcceptor(int port) throws SJIOException
 	{
 		try
 		{
-			ss = new ServerSocket(port); // Didn't bother to explicitly check portInUse.
+            ssc = ServerSocketChannel.open();
+            ss = ssc.socket();
+			ss.bind(new InetSocketAddress(port)); // Didn't bother to explicitly check portInUse.
 		}
 		catch (IOException ioe)
 		{
@@ -48,8 +53,12 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 			throw new SJIOException(ioe);
 		}
 	}
-	
-	public void close()
+
+    public SelectableChannel acceptSelectableChannel() {
+        return ssc;
+    }
+
+    public void close()
 	{	
 		try 
 		{ 
@@ -171,7 +180,11 @@ public class SJStreamTCP implements SJTransport
 		}
 	}
 
-	public boolean portInUse(int port)
+    public SJSelector transportSelector() {
+        return null;
+    }
+
+    public boolean portInUse(int port)
 	{
 		ServerSocket ss = null;
 		

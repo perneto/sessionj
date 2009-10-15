@@ -61,7 +61,7 @@ public class SJTransportManager_c extends SJTransportManager
 	private void defaultTransports()
 	{
         List<SJTransport> ts = TransportUtils.parseTransportFlags(
-            System.getProperty(DEFAULT_SETUPS_PROPERTY, "d")
+            System.getProperty(DEFAULT_TRANSPORTS_PROPERTY, "d")
         );
 		
 		configureTransports(ts);

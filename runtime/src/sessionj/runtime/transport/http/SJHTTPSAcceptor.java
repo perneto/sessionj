@@ -5,6 +5,7 @@ import java.net.*;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.nio.channels.SelectableChannel;
 import javax.net.ssl.*;
 
 import sessionj.runtime.*;
@@ -74,8 +75,12 @@ public class SJHTTPSAcceptor implements SJConnectionAcceptor{
 		}
 
 	}
-	
-	public void close(){
+
+    public SelectableChannel acceptSelectableChannel() {
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    public void close(){
 		
 		try 
 		{ 
