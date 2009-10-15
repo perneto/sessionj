@@ -43,7 +43,11 @@ public class SJHTTP implements SJTransport{
 		}
 	}
 
-	public boolean portInUse(int port){
+    public SJSelector transportSelector() {
+        return null;
+    }
+
+    public boolean portInUse(int port){
 		
 		ServerSocket ss = null; 
 		

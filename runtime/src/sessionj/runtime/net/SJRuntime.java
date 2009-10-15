@@ -4,6 +4,7 @@ import polyglot.types.SemanticException;
 import sessionj.ExtensionInfo;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJRuntimeException;
+import sessionj.runtime.SJProtocol;
 import sessionj.runtime.session.SJManualSerializer;
 import sessionj.runtime.session.SJSerializer;
 import sessionj.runtime.session.SJStreamSerializer;
@@ -884,6 +885,10 @@ public class SJRuntime
 		
 		//return null; // Delegation case 2: no connection created between passive party and session acceptor. 
 	}
+
+    public static SJSelector selectorFor(SJProtocol proto) {
+        return new SJSelectorAllTransports(getTransportManager().getRegisteredTransports());
+    }
 	
 	public static int findFreePort() throws SJIOException
 	{

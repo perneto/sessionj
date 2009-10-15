@@ -72,8 +72,12 @@ public class SJHTTPS implements SJTransport{
 		}
 
 	}
-	
-	public boolean portInUse(int port){
+
+    public SJSelector transportSelector() {
+        return null;
+    }
+
+    public boolean portInUse(int port){
 		
 		//SSLServerSocket sss = null; 
 		ServerSocket ss = null;
