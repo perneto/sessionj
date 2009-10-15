@@ -308,7 +308,7 @@ public class SJRuntime
 	{
 		for (final SJSocket s : sockets)
 		{
-			// Need arbitrary interleaving of close() calls, as there
+			// Need to allow arbitrary interleaving of close() calls, as there
             // is a handshake with the other party in the close protocol.
             if (s != null) {
                 Runnable closer = new Runnable() {
@@ -316,7 +316,9 @@ public class SJRuntime
                         s.close();
                     }
                 };
-                new Thread(closer).start();
+                Thread t = new Thread(closer);
+                t.setDaemon(true);
+                t.start();
             }
 		}
 	}
@@ -658,8 +660,6 @@ public class SJRuntime
         boolean call(SJSocket s) throws SJIOException;
     }
 
-    private static final ExecutorService es = Executors.newCachedThreadPool();
-            
 	public static boolean insync(SJSocket... sockets) throws SJIOException {
 		//Semantics: require all sockets to terminate at the same time, otherwise fail on all sockets.
         return checkAllAgree(new SJSocketTest() {
@@ -672,6 +672,8 @@ public class SJRuntime
     }
 
     private static boolean checkAllAgree(final SJSocketTest test, SJSocket[] sockets, String message) throws SJIOException {
+        ExecutorService es = Executors.newFixedThreadPool(sockets.length);
+
         List<Future<Boolean>> values = new LinkedList<Future<Boolean>>();
         for (final SJSocket s : sockets) {
             values.add(es.submit(new Callable<Boolean>() {
@@ -680,6 +682,7 @@ public class SJRuntime
                 }
             }));
         }
+        
         boolean fold;
         try {
             fold = values.get(0).get();
@@ -690,6 +693,8 @@ public class SJRuntime
             throw new SJIOException(e);
         } catch (ExecutionException e) {
             throw new SJIOException(e);
+        } finally {
+            es.shutdown();
         }
 
         return fold;
