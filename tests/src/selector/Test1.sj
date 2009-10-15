@@ -5,8 +5,8 @@ public class Test1
 {
 	private static protocol p2 { ?(String) }
 	private static protocol p1 { !<int>.@(p2) } 
-	private static protocol p { sbegin.@(p_1) }
-	private static protocol p_select { @(p_1), @(p_2) }
+	private static protocol p { sbegin.@(p1) }
+	private static protocol p_select { @(p1), @(p2) }
 
 	public static void main(String[] args) throws SJIOException, SJIncompatibleSessionException 
 	{

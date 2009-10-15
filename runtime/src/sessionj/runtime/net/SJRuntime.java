@@ -1042,7 +1042,7 @@ public class SJRuntime
 	
 	public static SJSelector selectFor(SJProtocol p)
 	{
-		throw new SJRuntimeException("[SJRuntime] selectoFor not done yet.");
+		throw new SJRuntimeException("[SJRuntime] selectFor not done yet.");
 	}
 }
 
