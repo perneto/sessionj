@@ -3,6 +3,7 @@ package sessionj.runtime.transport.tcp;
 import java.io.*;
 import java.net.*;
 import java.util.Random;
+import java.nio.channels.SelectableChannel;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
@@ -46,8 +47,12 @@ class SJManualTCPAcceptor implements SJConnectionAcceptor
 			throw new SJIOException(ioe);
 		}
 	}
-	
-	public void close()
+
+    public SelectableChannel acceptSelectableChannel() {
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    public void close()
 	{	
 		try 
 		{ 
@@ -255,7 +260,11 @@ public class SJManualTCP implements SJTransport
         }
 	}
 
-	public boolean portInUse(int port)
+    public SJSelector transportSelector() {
+        return null;
+    }
+
+    public boolean portInUse(int port)
 	{
 		ServerSocket ss = null;
 		

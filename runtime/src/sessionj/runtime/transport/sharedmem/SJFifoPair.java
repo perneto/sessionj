@@ -1,34 +1,34 @@
 package sessionj.runtime.transport.sharedmem;
 
-import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.spi.AbstractSelectableChannel;
+import java.nio.channels.spi.SelectorProvider;
+import java.io.IOException;
 
 import sessionj.runtime.*;
-import sessionj.runtime.net.*;
+import sessionj.runtime.net.SJSelector;
 import sessionj.runtime.transport.*;
-
-import static sessionj.runtime.util.SJRuntimeUtils.*;
 
 class SJFifoPairAcceptor implements SJConnectionAcceptor
 {	
-	protected static HashMap<Integer, LinkedList<SJFifoPairConnection>> servers = new HashMap<Integer, LinkedList<SJFifoPairConnection>>(); 
+	private static final HashMap<Integer, LinkedList<SJFifoPairConnection>> servers = new HashMap<Integer, LinkedList<SJFifoPairConnection>>();
+
+	private final int port;
+	private boolean isClosed = false;
 	
-	protected int port;
-	protected boolean isClosed = false;
-	
-	public SJFifoPairAcceptor(int port) throws SJIOException
-	{
+	SJFifoPairAcceptor(int port) {
 		this.port = port;
 		
-		servers.put(new Integer(port), new LinkedList<SJFifoPairConnection>());
+		servers.put(port, new LinkedList<SJFifoPairConnection>());
 	}
 	
 	public SJFifoPairConnection accept() throws SJIOException
   {
-		LinkedList<SJFifoPairConnection> requests = servers.get(new Integer(port));
+		LinkedList<SJFifoPairConnection> requests = servers.get(port);
 		
-		SJFifoPairConnection theirConn = null;
+		SJFifoPairConnection theirConn;
 		
 		synchronized (requests) // FIXME: requests can sometimes be null at this point (quite rarely). 
     {
@@ -41,7 +41,7 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 			}
 			catch (InterruptedException ie)
 			{
-				throw new SJIOException("[" + getTransportName() + "] 1: " + ie);
+				throw new SJIOException('[' + getTransportName() + "] 1: " + ie, ie);
 			}
 			
 			theirConn = requests.remove(0);	
@@ -69,7 +69,7 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 		
 	  return ourConn;				
   }
-	
+
 	public void close()
 	{
 		isClosed = true;
@@ -78,7 +78,7 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 		{
 			SJFifoPair.freePort(port);
 			
-			servers.remove(new Integer(port));						
+			servers.remove(port);						
 		}			
 	}
 	
@@ -99,11 +99,10 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 	
 	protected static void addRequest(int port, SJFifoPairConnection conn)
 	{
-		Integer p = new Integer(port);
 
-		synchronized (servers)
+        synchronized (servers)
 		{
-			List<SJFifoPairConnection> foo = servers.get(p); 
+			List<SJFifoPairConnection> foo = servers.get(port);
 		
 			synchronized (foo)
       {
@@ -126,10 +125,9 @@ class SJFifoPairConnection implements SJLocalConnection
 	protected List<Object> ours;
 	protected List<Object> theirs;
 	
-	protected boolean[] hasBeenAccepted = new boolean[] { false };
+	protected boolean[] hasBeenAccepted = { false };
 	
-	protected SJFifoPairConnection(String hostName, int port, int localPort, List<Object> ours) throws SJIOException
-	{
+	protected SJFifoPairConnection(String hostName, int port, int localPort, List<Object> ours) {
 		this.hostName = hostName;
 		this.port = port;
 		this.localPort = localPort;
@@ -137,7 +135,7 @@ class SJFifoPairConnection implements SJLocalConnection
 		this.ours = ours;
 	}
 	
-	public void disconnect() //throws SJIOException 
+	public void disconnect() 
 	{		
 		if (theirs != null) // FIXME: need an isClosed, e.g. delegation protocol closes early.
 		{
@@ -169,17 +167,17 @@ class SJFifoPairConnection implements SJLocalConnection
   {    
   	if (theirs == null) // e.g. forwarding protocol closes connections early. Remember: we are at transport level here, don't get confused by session-type level properties, e.g. writes can happen asynchronously (i.e. by both ends at the same time) and we may incorrectly try to use closed connections, etc. 
   	{
-  		throw new SJIOException("[" + getTransportName() + "] Connection already closed.");
+  		throw new SJIOException('[' + getTransportName() + "] Connection already closed.");
   	}
   	
   	synchronized(theirs)
   	{
   		if (!theirs.isEmpty() && theirs.get(theirs.size() - 1) == EOF)
   		{
-  			throw new SJIOException("[" + getTransportName() + "] Connection closed by peer.");
+  			throw new SJIOException('[' + getTransportName() + "] Connection closed by peer.");
   		}
   		
-  		theirs.add(new Byte(b));
+  		theirs.add(b);
   		theirs.notifyAll();
   	}   
   }
@@ -188,14 +186,14 @@ class SJFifoPairConnection implements SJLocalConnection
   {
   	if (theirs == null)  
   	{
-  		throw new SJIOException("[" + getTransportName() + "] Connection already closed.");
+  		throw new SJIOException('[' + getTransportName() + "] Connection already closed.");
   	}  	
   	
   	synchronized(theirs)
   	{
   		if (!theirs.isEmpty() && theirs.get(theirs.size() - 1) == EOF)
   		{
-  			throw new SJIOException("[" + getTransportName() + "] Connection closed by peer.");
+  			throw new SJIOException('[' + getTransportName() + "] Connection closed by peer.");
   		}  		
   		
   		theirs.add(bs); // FIXME: should copy-on-send. But should be OK, we're always writing the serialized messages (i.e. already copied and won't be modified)? 
@@ -207,7 +205,7 @@ class SJFifoPairConnection implements SJLocalConnection
   {
   	if (theirs == null)  
   	{
-  		throw new SJIOException("[" + getTransportName() + "] Connection already closed.");
+  		throw new SJIOException('[' + getTransportName() + "] Connection already closed.");
   	}  	
   	
   	synchronized(ours)
@@ -228,11 +226,11 @@ class SJFifoPairConnection implements SJLocalConnection
   		
   		if (o instanceof Byte) // Needed?
   		{
-  			return ((Byte) o).byteValue();
+  			return (Byte) o;
   		}
   		else
   		{
-  			throw new SJIOException("[" + getTransportName() + "] Connection closed by peer.");
+  			throw new SJIOException('[' + getTransportName() + "] Connection closed by peer.");
   		}
   	}  	  	
   }
@@ -241,7 +239,7 @@ class SJFifoPairConnection implements SJLocalConnection
   {  
   	if (theirs == null) 
   	{
-  		throw new SJIOException("[" + getTransportName() + "] Connection already closed.");
+  		throw new SJIOException('[' + getTransportName() + "] Connection already closed.");
   	}  	
   	
   	synchronized(ours)
@@ -266,7 +264,7 @@ class SJFifoPairConnection implements SJLocalConnection
   			
   			if (foo.length != bs.length) // FIXME: need to decide whether we should block until bs can be filled or what.
     		{
-    			throw new SJIOException("[" + SJFifoPair.TRANSPORT_NAME + "] Bad buffer size: " + bs.length);
+    			throw new SJIOException('[' + SJFifoPair.TRANSPORT_NAME + "] Bad buffer size: " + bs.length);
     		}
     		
     		System.arraycopy(foo, 0, bs, 0, bs.length); // FIXME: need to buffer any extra data that doesn't fit into bs. // FIXME: could optimise by returning foo;  			
@@ -354,7 +352,7 @@ public class SJFifoPair implements SJTransport
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
 	
-	private static final HashSet<Integer> portsInUse = new HashSet<Integer>(); 
+	private static final Set<Integer> portsInUse = new HashSet<Integer>(); 
 	
 	public SJFifoPair() { }
 
@@ -378,19 +376,18 @@ public class SJFifoPair implements SJTransport
 		
 		try
 		{
-			if (!(hostName.equals("127.0.0.1") || hostName.equals(InetAddress.getLocalHost().getHostAddress()) || hostName.equals("localhost") || hostName.equals(InetAddress.getLocalHost().getHostName()))) // FIXME: check properly. We're now using IP addresses rather than host names. // Factor out constants.
+			if (notLocalHost(hostName))
 			{
-				throw new SJIOException("[" + getTransportName() + "] Connection not valid: " + hostName + ":" + port);
+				throw new SJIOException('[' + getTransportName() + "] Connection not valid: " + hostName + ':' + port);
 			}
 		}
-		catch (IOException ioe) // SJIOException is not an IOException.
-		{
-			throw new SJIOException(ioe);
-		}
-		
+        catch (UnknownHostException e) {
+            throw new SJIOException(e);
+        } 
+
 		if (!portInUse(port)) 
 		{
-			throw new SJIOException("[" + getTransportName() + "] Port not open: " + port);
+			throw new SJIOException('[' + getTransportName() + "] Port not open: " + port);
 		}
 		
 		int localPort = getFreePort();
@@ -414,14 +411,26 @@ public class SJFifoPair implements SJTransport
 			}
 			catch (InterruptedException ie) 
 			{
-				throw new SJIOException("[" + getTransportName() + "] 2: " + ie);
+				throw new SJIOException('[' + getTransportName() + "] 2: " + ie);
 			}
     }	
 				
 		return ourConn;
 	}
 
-	public boolean portInUse(int port)
+    public SJSelector transportSelector() {
+        return null; // TODO
+    }
+
+    private boolean notLocalHost(String hostName) throws UnknownHostException {
+        // FIXME: check properly. We're now using IP addresses rather than host names. 
+        return !(hostName.equals("127.0.0.1")
+            || hostName.equals(InetAddress.getLocalHost().getHostAddress())
+            || hostName.equals("localhost")
+            || hostName.equals(InetAddress.getLocalHost().getHostName()));
+    }
+
+    public boolean portInUse(int port)
 	{
 		return !portFree(port);
 	}
@@ -440,7 +449,7 @@ public class SJFifoPair implements SJTransport
 	{
 		synchronized (portsInUse)
 		{
-			return !portsInUse.contains(new Integer(port));
+			return !portsInUse.contains(port);
 		}
 	}
 	
@@ -457,7 +466,7 @@ public class SJFifoPair implements SJTransport
 			}
 		}
 		
-		throw new SJIOException("[" + SJFifoPair.TRANSPORT_NAME + "] No free port available.");
+		throw new SJIOException('[' + TRANSPORT_NAME + "] No free port available.");
 		//throw new SJIOException("[SJ(Bounded)FifoPair] No free port available.");
 	}
 	
@@ -465,7 +474,7 @@ public class SJFifoPair implements SJTransport
 	{
 		synchronized (portsInUse)
     {
-	    portsInUse.add(new Integer(port));
+	    portsInUse.add(port);
     }
 	}
 	
@@ -473,7 +482,7 @@ public class SJFifoPair implements SJTransport
 	{		
 		synchronized (portsInUse)
     {
-	    portsInUse.remove(new Integer(port));
+	    portsInUse.remove(port);
     }
 	}
 	
@@ -485,5 +494,5 @@ public class SJFifoPair implements SJTransport
 	public int sessionPortToSetupPort(int port)
 	{
 		return port;
-	}	
+	}
 }

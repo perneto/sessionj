@@ -1,17 +1,17 @@
 package sessionj.runtime.transport.udp;
 
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSelector;
+import sessionj.runtime.net.SJServerIdentifier;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJConnectionAcceptor;
+import sessionj.runtime.transport.SJTransport;
+
+import java.io.IOException;
 import java.net.*;
-import java.util.*;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
-
-import sessionj.runtime.transport.*;
-
-import static sessionj.runtime.util.SJRuntimeUtils.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.util.Random;
 
 public class SJUDP implements SJTransport{
        
@@ -136,6 +136,10 @@ public class SJUDP implements SJTransport{
 	    	
 	    	throw new SJIOException(ioe);
 	    }
+    }
+
+    public SJSelector transportSelector() {
+        return null;
     }
 
     public boolean portInUse (int port) {

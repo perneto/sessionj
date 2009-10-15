@@ -31,7 +31,11 @@ public class SJHTTPServlet implements SJTransport
 		return new SJHTTPServletConnection(hostName, port);
 	}
 
-	public boolean portInUse(int port)
+    public SJSelector transportSelector() {
+        return null;
+    }
+
+    public boolean portInUse(int port)
 	{	
 		ServerSocket ss = null; 
 		
