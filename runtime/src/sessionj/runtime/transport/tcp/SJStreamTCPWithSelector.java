@@ -1,7 +1,6 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelector;
 import sessionj.runtime.net.SJServerSocket;
 import sessionj.runtime.net.SJSocket;
 import sessionj.runtime.transport.*;
@@ -10,6 +9,7 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.Selector;
 import java.util.Random;
 
 /**
@@ -26,7 +26,7 @@ public class SJStreamTCPWithSelector implements SJTransport
 	
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
-    private final Selector selector = new Selector();
+    private final SJSelector selector = new SJSelector();
 
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
@@ -48,7 +48,7 @@ public class SJStreamTCPWithSelector implements SJTransport
 		}
 	}
 
-    public SJSelector transportSelector() {
+    public sessionj.runtime.net.SJSelector transportSelector() {
         return selector;
     }
 
@@ -100,7 +100,9 @@ public class SJStreamTCPWithSelector implements SJTransport
 		return port + TCP_PORT_MAP_ADJUST;
 	}
 
-    private class Selector implements SJSelector {
+    private class SJSelector implements sessionj.runtime.net.SJSelector {
+        private Selector sel;
+
         public void registerAccept(SJServerSocket ss) {
         }
 
