@@ -1,27 +1,26 @@
 package sessionj.runtime.transport.tcp;
 
-import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelector;
-import sessionj.runtime.net.SJServerSocket;
-import sessionj.runtime.net.SJSocket;
-import sessionj.runtime.transport.*;
-
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
 import java.util.Random;
+
+import sessionj.runtime.*;
+import sessionj.runtime.net.*;
+import sessionj.runtime.transport.SJConnectionAcceptor;
+import sessionj.runtime.transport.SJStreamConnection;
+import sessionj.runtime.transport.SJTransport;
+
+import static sessionj.runtime.util.SJRuntimeUtils.*;
 
 class SJStreamTCPAcceptor implements SJConnectionAcceptor
 {
-    private final ServerSocketChannel ssc;
+	private final ServerSocket ss;
 	
 	SJStreamTCPAcceptor(int port) throws SJIOException
 	{
 		try
 		{
-            ssc = ServerSocketChannel.open();
-            ssc.socket().bind(new InetSocketAddress(port)); // Didn't bother to explicitly check portInUse.
+			ss = new ServerSocket(port); // Didn't bother to explicitly check portInUse.
 		}
 		catch (IOException ioe)
 		{
@@ -31,27 +30,35 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 	
 	public SJStreamTCPConnection accept() throws SJIOException
 	{
-        if (!ssc.isBlocking()) throw new SJIOException("Server socket is in non-blocking mode, must use select");
-		try {
-            SocketChannel sc = ssc.accept();
+		try
+		{
+			if (ss == null)
+			{
+				throw new SJIOException('[' + getTransportName() + "] Connection acceptor not open.");
+			}
 			
-			sc.socket().setTcpNoDelay(SJStreamTCP.TCP_NO_DELAY);
+			Socket s = ss.accept();
 			
-			return new SJStreamTCPConnection(sc);
+			s.setTcpNoDelay(SJStreamTCP.TCP_NO_DELAY);
+			
+			return new SJStreamTCPConnection(s, s.getInputStream(), s.getOutputStream());
 		}
 		catch (IOException ioe)
 		{
 			throw new SJIOException(ioe);
 		}
 	}
-
-    public void close()
+	
+	public void close()
 	{	
 		try 
 		{ 
-            ssc.close();
+			if (ss != null)
+			{
+				ss.close(); 
+			}
 		}
-		catch (IOException ignored) { }
+		catch (IOException ioe) { }
 	}
 	
 	public boolean interruptToClose()
@@ -61,7 +68,7 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 	
 	public boolean isClosed()
 	{
-		return ssc.socket().isClosed(); // is this the same as !ssc.isOpen() ?
+		return ss.isClosed();
 	}
 	
 	public String getTransportName()
@@ -72,37 +79,42 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 
 class SJStreamTCPConnection extends SJStreamConnection
 {
-	private final SocketChannel sc;
+	private final Socket s;
 	
-	SJStreamTCPConnection(SocketChannel sc) throws IOException {
-		super(sc.socket().getInputStream(), sc.socket().getOutputStream());
-
-		this.sc = sc;
+	protected SJStreamTCPConnection(Socket s, InputStream is, OutputStream os) throws SJIOException
+	{
+		super(is, os);
+		
+		this.s = s;
 	}
-
-	public void disconnect() //throws SJIOException
+	
+	public void disconnect() //throws SJIOException 
 	{
 		super.disconnect();				
 		
-		try { 
-            sc.close(); 			
+		try 
+		{ 
+			if (s != null)
+			{
+				s.close(); 			
+			}
 		}
-		catch (IOException ignored) { }
+		catch (IOException ioe) { }
 	}
 
 	public String getHostName()
 	{
-		return sc.socket().getInetAddress().getHostName();
+		return s.getInetAddress().getHostName();
 	}
 	
 	public int getPort()
 	{
-		return sc.socket().getPort();
+		return s.getPort();
 	}
 	
 	public int getLocalPort()
 	{
-		return sc.socket().getLocalPort();
+		return s.getLocalPort();
 	}
 	
 	public String getTransportName()
@@ -115,7 +127,7 @@ class SJStreamTCPConnection extends SJStreamConnection
  * @author Raymond
  *
  */
-public class SJStreamTCP implements SJTransport 
+public class SJStreamTCP implements SJTransport
 {
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.tcp.SJStreamTCP";
 
@@ -125,7 +137,6 @@ public class SJStreamTCP implements SJTransport
 	
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
-    private final StreamTCPSelector selector = new StreamTCPSelector();
 
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
@@ -137,37 +148,48 @@ public class SJStreamTCP implements SJTransport
 		return connect(si.getHostName(), si.getPort());
 	}*/
 	
-	public SJConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
+	public SJStreamTCPConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
 	{
 		try 
 		{
-            SocketChannel sc = SocketChannel.open();
-            sc.socket().setTcpNoDelay(TCP_NO_DELAY);
-            sc.connect(new InetSocketAddress(hostName, port));
+			Socket s = new Socket(hostName, port);
 			
-			return new SJStreamTCPConnection(sc); // Have to get I/O streams here for exception handling.
-            
-		} catch (IOException ioe) {
+			s.setTcpNoDelay(TCP_NO_DELAY);
+			
+			return new SJStreamTCPConnection(s, s.getInputStream(), s.getOutputStream()); // Have to get I/O streams here for exception handling.
+		} 
+		catch (IOException ioe) 
+		{
 			throw new SJIOException(ioe);
 		}
 	}
 
     public SJSelector transportSelector() {
-        return selector;
+        return null;
     }
 
     public boolean portInUse(int port)
 	{
 		ServerSocket ss = null;
 		
-		try {
+		try
+		{
 			ss = new ServerSocket(port);
-		} catch (IOException ignored) {
+		}
+		catch (IOException ioe)
+		{
 			return true;
-		} finally {
-			if (ss != null) try {
-                ss.close();
-            } catch (IOException ignored) { }
+		}
+		finally
+		{
+			if (ss != null) 
+			{
+				try
+				{
+					ss.close();
+				}
+				catch (IOException ioe) { }					
+			}
 		}
 		
 		return false;
@@ -202,30 +224,5 @@ public class SJStreamTCP implements SJTransport
 	public int sessionPortToSetupPort(int port) // Maybe can factor out to an abstract TCP-based parent class.
 	{
 		return port + TCP_PORT_MAP_ADJUST;
-	}
-
-    private class StreamTCPSelector implements SJSelector {
-        public void registerAccept(SJServerSocket ss) {
-        }
-
-        public void registerSend(SJSocket s) {
-            if (isOurSocket(s)) {
-                
-            }
-        }
-
-        private boolean isOurSocket(SJSocket s) {
-            return s.getConnection().getTransportName().equals(getTransportName());
-        }
-
-        public void registerReceive(SJSocket s) {
-            if (isOurSocket(s)) {
-
-            }
-        }
-
-        public SJSocket select(int mask) throws SJIOException {
-            return null;
-        }
-    }
+	}	
 }
