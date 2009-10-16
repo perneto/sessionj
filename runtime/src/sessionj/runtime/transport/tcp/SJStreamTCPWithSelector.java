@@ -26,11 +26,11 @@ public class SJStreamTCPWithSelector implements SJTransport
 	
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
-    private final StreamTCPSelector selector = new StreamTCPSelector();
+    private final Selector selector = new Selector();
 
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
-		return new SJStreamTCPAcceptor(port);
+		return new Acceptor(port);
 	}
 	
 	public SJConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
@@ -41,7 +41,7 @@ public class SJStreamTCPWithSelector implements SJTransport
             sc.socket().setTcpNoDelay(TCP_NO_DELAY);
             sc.connect(new InetSocketAddress(hostName, port));
 			
-			return new SJStreamTCPConnection(sc); // Have to get I/O streams here for exception handling.
+			return new Connection(sc); // Have to get I/O streams here for exception handling.
             
 		} catch (IOException ioe) {
 			throw new SJIOException(ioe);
@@ -100,7 +100,7 @@ public class SJStreamTCPWithSelector implements SJTransport
 		return port + TCP_PORT_MAP_ADJUST;
 	}
 
-    private class StreamTCPSelector implements SJSelector {
+    private class Selector implements SJSelector {
         public void registerAccept(SJServerSocket ss) {
         }
 
@@ -125,11 +125,11 @@ public class SJStreamTCPWithSelector implements SJTransport
         }
     }
 
-    private class SJStreamTCPAcceptor implements SJConnectionAcceptor
+    private class Acceptor implements SJConnectionAcceptor
     {
         private final ServerSocketChannel ssc;
 
-        SJStreamTCPAcceptor(int port) throws SJIOException
+        Acceptor(int port) throws SJIOException
         {
             try
             {
@@ -150,7 +150,7 @@ public class SJStreamTCPWithSelector implements SJTransport
 
                 sc.socket().setTcpNoDelay(TCP_NO_DELAY);
 
-                return new SJStreamTCPConnection(sc);
+                return new Connection(sc);
             }
             catch (IOException ioe)
             {
@@ -183,11 +183,11 @@ public class SJStreamTCPWithSelector implements SJTransport
         }
     }
 
-    private class SJStreamTCPConnection extends SJStreamConnection
+    private class Connection extends SJStreamConnection
     {
         private final SocketChannel sc;
 
-        SJStreamTCPConnection(SocketChannel sc) throws IOException {
+        Connection(SocketChannel sc) throws IOException {
             super(sc.socket().getInputStream(), sc.socket().getOutputStream());
 
             this.sc = sc;
