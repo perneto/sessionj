@@ -13,14 +13,14 @@ import sessionj.runtime.transport.SJAcceptorThreadGroup;
  */
 abstract public class SJServerSocket implements SJChannel
 {
-	private SJProtocol protocol;
-	private int port; // The local port.
+	private final SJProtocol protocol;
+	private final int port; // The local port.
 
 	private SJPort sjPort; // Later probably replace port by just sjPort.
 	
 	protected boolean isOpen = false;
 	
-	private SJSessionParameters params;
+	private final SJSessionParameters params;
 	
 	protected SJServerSocket(SJProtocol protocol, int port, SJSessionParameters params) {
 		this.protocol = protocol;
