@@ -46,7 +46,15 @@ public class SJConstants
 	public static final String SJ_KEYWORD_INWHILE = "inwhile";
 	public static final String SJ_KEYWORD_RECURSION = "recursion";
 	
-	public static final String SJ_KEYWORD_ACCEPT = "accept";
+	public static final String SJ_KEYWORD_ACCEPT = "accept"; // Currently, this is not treated as a keyword (parsing done only by SJServerOperationParser, not by the actual parser as with session operations).
+	
+	public static final String SJ_KEYWORD_REGISTERACCEPT = "registerAccept";
+	//public static final String SJ_KEYWORD_REGISTEROUTPUT = "registerOutput";
+	//public static final String SJ_KEYWORD_REGISTERINPUT = "registerInput";
+	//public static final String SJ_KEYWORD_SELECTSESSION = "selectSession";	
+	public static final String SJ_KEYWORD_REGISTEROUTPUT = "registerSend";
+	public static final String SJ_KEYWORD_REGISTERINPUT = "registerReceive";
+	public static final String SJ_KEYWORD_SELECTSESSION = "select";
 	
 	public static final String SJ_KEYWORD_SPAWN = "spawn";
 	
@@ -78,6 +86,15 @@ public class SJConstants
 	public static final String SJ_SERVER_GETCLOSER = "getCloser";
 	
 	public static final String SJ_THREAD_SPAWN = "spawn";
+	
+	public static final String SJ_SELECTOR_REGISTERACCEPT = "registerAccept";
+	public static final String SJ_SELECTOR_REGISTEROUTPUT = "registerSend"; // It's for all ouput operations, not just send. Similarly for registerReceive.
+	public static final String SJ_SELECTOR_REGISTERINPUT = "registerReceive";
+	public static final String SJ_SELECTOR_SELECTSESSION = "select";
+	
+	public static final String SJ_SELECTOR_ACCEPT_FILTER = "ACCEPT";
+	public static final String SJ_SELECTOR_RECEIVE_FILTER = "RECEIVE";
+	public static final String SJ_SELECTOR_SEND_FILTER = "SEND";
 	
 	// Used for printing type objects and nodes. Not suitable to declare as first-class parsing tokens because symbols already used for base language.
 	public static final String SJ_STRING_SEPARATOR = ".";

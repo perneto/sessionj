@@ -1,5 +1,7 @@
 package sessionj.ast;
 
+import static sessionj.SJConstants.SJ_SELECTOR_REGISTERACCEPT;
+import static sessionj.SJConstants.SJ_SELECTOR_REGISTERINPUT;
 import polyglot.ast.*;
 import polyglot.frontend.ExtensionInfo;
 import polyglot.types.Flags;
@@ -14,6 +16,7 @@ import sessionj.ast.noalias.SJNoAliasArrayTypeNode;
 import sessionj.ast.noalias.SJNoAliasCanonicalTypeNode;
 import sessionj.ast.protocoldecls.SJFieldProtocolDecl;
 import sessionj.ast.protocoldecls.SJLocalProtocolDecl;
+import sessionj.ast.selectorops.*;
 import sessionj.ast.servops.SJAccept;
 import sessionj.ast.sesscasts.SJAmbiguousCast;
 import sessionj.ast.sesscasts.SJChannelCast;
@@ -107,6 +110,11 @@ public interface SJNodeFactory extends NodeFactory
     SJWhen SJWhen(Position pos, SJTypeNode type, Stmt body);
 	
 	SJAccept SJAccept(Position pos, Receiver target, List arguments);
+	
+  SJRegisterAccept SJRegisterAccept(Position pos, Receiver target, List arguments);
+  SJRegisterOutput SJRegisterOutput(Position pos, Receiver target, List arguments);
+  SJRegisterInput SJRegisterInput(Position pos, Receiver target, List arguments);     
+  SJSelectSession SJSelectSession(Position pos, Receiver target, List arguments);
 	
 	SJChannelCast SJChannelCast(Position pos, Expr expr, SJTypeNode tn);
 	SJSessionCast SJSessionCast(Position pos, Expr expr, SJTypeNode tn);
