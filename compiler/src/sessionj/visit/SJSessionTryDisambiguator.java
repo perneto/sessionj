@@ -88,7 +88,7 @@ public class SJSessionTryDisambiguator extends ContextVisitor
 				throw new SemanticException("[SJSessionTryDisambiguator] selector-try may only specify a single target: " + targets);
 			}
 				 
-			//st = sjnf.SJServerTry(st.position(), st.tryBlock(), st.catchBlocks(), st.finallyBlock(), targets);			
+			st = sjnf.SJSelectorTry(st.position(), st.tryBlock(), st.catchBlocks(), st.finallyBlock(), targets);			
 		}
 		else
 		{

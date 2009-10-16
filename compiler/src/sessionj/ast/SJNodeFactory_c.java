@@ -247,6 +247,11 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	{
         return new SJServerTry_c(pos, tryBlock, catchBlocks, finallyBlock, targets);
 	}
+
+	public SJSelectorTry SJSelectorTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets)
+	{
+		return new SJSelectorTry_c(pos, tryBlock, catchBlocks, finallyBlock, targets);
+	}
 	
 	public SJRequest SJRequest(Position pos, Receiver target, List arguments)
 	{	
