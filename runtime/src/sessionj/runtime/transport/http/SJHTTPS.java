@@ -1,18 +1,18 @@
 package sessionj.runtime.transport.http;
 
-import java.io.*;
-import java.net.*;
-import java.security.*;
-import java.util.*;
-import javax.net.ssl.*;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSelector;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJTransport;
 
-import static sessionj.runtime.util.SJRuntimeUtils.*;
+import javax.net.ssl.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.util.Random;
 
 public class SJHTTPS implements SJTransport{
 
@@ -31,10 +31,9 @@ public class SJHTTPS implements SJTransport{
 	}*/
 	
 	public SJConnection connect(String hostName, int port) throws SJIOException
-	{		
-		String DEFAULT_KEYSTORE = "C:\\cygwin\\home\\Raymond\\code\\java\\eclipse\\sessionj-cvs\\serverKeystore";
-		
-		try 
+	{
+
+        try
 		{
 			SSLSocketFactory ssf;
 			
@@ -43,7 +42,8 @@ public class SJHTTPS implements SJTransport{
 		    KeyStore serverStore = KeyStore.getInstance("JKS");
 		
 		    // Loads keystore
-		    serverStore.load(new FileInputStream(DEFAULT_KEYSTORE), "password".toCharArray());
+                String DEFAULT_KEYSTORE = "C:\\cygwin\\home\\Raymond\\code\\java\\eclipse\\sessionj-cvs\\serverKeystore";
+                serverStore.load(new FileInputStream(DEFAULT_KEYSTORE), "password".toCharArray());
 		    mgrFact.init(serverStore, "password".toCharArray());
 		
 		    // create a context and initialises it
@@ -52,7 +52,7 @@ public class SJHTTPS implements SJTransport{
 			
 		    
 		    
-			ssf = (SSLSocketFactory)sslContext.getSocketFactory();
+			ssf = sslContext.getSocketFactory();
 		} catch (NoSuchAlgorithmException e) {
 			throw new SJIOException(e);
 		} catch (Exception e) {
@@ -65,8 +65,8 @@ public class SJHTTPS implements SJTransport{
 			SSLSocket conn = (SSLSocket)ssf.createSocket(hostName, port);
 			
 			return new SJHTTPConnection(conn, conn.getOutputStream(), conn.getInputStream());
-		} 
-		catch (IOException ioe) 
+		}
+		catch (IOException ioe)
 		{
 			throw new SJIOException(ioe);
 		}
@@ -77,9 +77,7 @@ public class SJHTTPS implements SJTransport{
         return null;
     }
 
-    public boolean portInUse(int port){
-		
-		//SSLServerSocket sss = null; 
+    public boolean portInUse(int port) {
 		ServerSocket ss = null;
 		
 		try
@@ -91,21 +89,19 @@ public class SJHTTPS implements SJTransport{
 			ss = new ServerSocket(port);
 
 		}
-		catch (IOException ioe)
+		catch (IOException ignored)
 		{
 			return true;
 		}
 		finally
 		{
-			//if (sss != null) 
 			if (ss != null)
 			{
 				try
 				{
-					//sss.close();
 					ss.close();
 				}
-				catch (IOException ioe) { }					
+				catch (IOException ignored) { }					
 			}
 		}
 		
