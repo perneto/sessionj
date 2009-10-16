@@ -11,12 +11,9 @@ import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.chanops.SJRequest_c;
 import sessionj.ast.createops.*;
 import sessionj.ast.noalias.*;
-import sessionj.ast.protocoldecls.SJFieldProtocolDecl;
-import sessionj.ast.protocoldecls.SJFieldProtocolDecl_c;
-import sessionj.ast.protocoldecls.SJLocalProtocolDecl;
-import sessionj.ast.protocoldecls.SJLocalProtocolDecl_c;
-import sessionj.ast.servops.SJAccept;
-import sessionj.ast.servops.SJAccept_c;
+import sessionj.ast.protocoldecls.*;
+import sessionj.ast.servops.*;
+import sessionj.ast.selectorops.*;
 import sessionj.ast.sesscasts.*;
 import sessionj.ast.sessformals.SJFormal_c;
 import sessionj.ast.sessformals.SJFormal;
@@ -432,7 +429,35 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 
         return new SJAccept_c(pos, target, name, arguments);
 	}	
+    
+  public SJRegisterAccept SJRegisterAccept(Position pos, Receiver target, List arguments)
+  {
+  	Id name = Id(pos, SJ_SELECTOR_REGISTERACCEPT);
+  	
+  	return new SJRegisterAccept_c(pos, target, name, arguments);
+  }
+  
+  public SJRegisterOutput SJRegisterOutput(Position pos, Receiver target, List arguments)
+  {
+  	Id name = Id(pos, SJ_SELECTOR_REGISTEROUTPUT);
+  	
+  	return new SJRegisterOutput_c(pos, target, name, arguments);
+  }
+  
+  public SJRegisterInput SJRegisterInput(Position pos, Receiver target, List arguments)
+  {
+  	Id name = Id(pos, SJ_SELECTOR_REGISTERINPUT);
+  	
+  	return new SJRegisterInput_c(pos, target, name, arguments);
+  }  
 
+  public SJSelectSession SJSelectSession(Position pos, Receiver target, List arguments)
+  {
+  	Id name = Id(pos, SJ_SELECTOR_SELECTSESSION);
+  	
+  	return new SJSelectSession_c(pos, target, name, arguments);
+  }  
+  
 	public SJChannelCast SJChannelCast(Position pos, Expr expr, SJTypeNode tn)
 	{
 
