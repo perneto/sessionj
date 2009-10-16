@@ -136,6 +136,7 @@ public class SJSessionOperationParser extends ContextVisitor
 		return c;
 	}
 	
+	// Replaces (or updates) the "dummy array" argument created by original parsing with the actual session socket targets. 
 	private SJBasicOperation fixSJBasicOperationArguments(final SJBasicOperation bo) throws SemanticException
 	{
 		List targets = bo.targets(); // Already type built and checked by SJVariableParser.
