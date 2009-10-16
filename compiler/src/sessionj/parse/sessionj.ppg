@@ -94,6 +94,11 @@ terminal Token SJ_RECURSION;
 terminal Token SJ_TYPECASE;
 terminal Token SJ_WHEN;
 
+/*terminal Token SJ_REGISTERACCEPT; // Not needed: selector operations currently treated like e.g. server operations.
+terminal Token SJ_REGISTEROUTPUT;
+terminal Token SJ_REGISTERINPUT;
+terminal Token SJ_SELECTSESSION;*/
+
 terminal Token SJ_SPAWN;
 
 terminal Token SJ_RECURSE_LABEL;
@@ -117,7 +122,7 @@ non terminal SJLocalProtocolDecl sj_protocol_declaration_statement;
 
 non terminal SJAmbiguousTry sj_try_statement;
 
-non terminal SJBasicOperation sj_basic_operation;
+non terminal SJBasicOperation sj_basic_operation; // Not uniform that we do (or start) session operation parsing here, but server operations, etc. are not done until a later pass. But this is related to that fact that only session operations can have multiple targets at the moment.
 non terminal SJSend sj_send_operation;
 non terminal SJPass sj_pass_operation;
 non terminal SJCopy sj_copy_operation;
