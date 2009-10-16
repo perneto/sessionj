@@ -19,18 +19,18 @@ public class SJTransportManager_c extends SJTransportManager
 {	
 	private static final String DEFAULT_SETUPS_PROPERTY = "sessionj.default.negociationTrans";
     private static final String DEFAULT_TRANSPORTS_PROPERTY = "sessionj.default.transports";
-    //private static final boolean debug = true;
-	private static final boolean debug = false;
+    //private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	
-	private List<SJTransport> negociationTrans = new LinkedList<SJTransport>(); // These may need some synchronisation (getters and setters are currently public and non-defensive).
-	private List<SJTransport> sessionTrans = new LinkedList<SJTransport>();
+	private final List<SJTransport> negociationTrans = new LinkedList<SJTransport>(); // These may need some synchronisation (getters and setters are currently public and non-defensive).
+	private final List<SJTransport> sessionTrans = new LinkedList<SJTransport>();
 	
-	private List<String> snames = new LinkedList<String>(); // Used in negotiation protocol.
-	private List<String> tnames = new LinkedList<String>();
+	private final List<String> snames = new LinkedList<String>(); // Used in negotiation protocol.
+	private final List<String> tnames = new LinkedList<String>();
 	
 	//private List<SJSetupNegotiator> clientNegotiators = new LinkedList<SJSetupNegotiator>();
 	
-	private HashMap<Integer, SJAcceptorThreadGroup> acceptorGroups = new HashMap<Integer, SJAcceptorThreadGroup>();
+	private final Map<Integer, SJAcceptorThreadGroup> acceptorGroups = new HashMap<Integer, SJAcceptorThreadGroup>();
 
     /*private HashMap<String, SJConnection> connections = new HashMap<String, SJConnection>();
      private HashMap<SJConnection, Integer> sessions = new HashMap<SJConnection, Integer>();*/
@@ -101,7 +101,7 @@ public class SJTransportManager_c extends SJTransportManager
 	private SJAcceptorThreadGroup openAcceptorGroup(int port, List<SJTransport> ss, List<SJTransport> ts, List<String> sn, int boundedBufferSize) throws SJIOException // Synchronized where necessary from calling scope. 
 	{
 
-        if (debug)
+        if (DEBUG)
 		{
 			System.out.println("[SJTransportManager_c] Openening acceptor group: " + port);
 		}
@@ -136,7 +136,7 @@ public class SJTransportManager_c extends SJTransportManager
 					
 					st.start();
 					
-					if (debug)
+					if (DEBUG)
 					{
 						System.out.println("[SJTransportManager_c] " + t.getTransportName() + " setup ready on: " + port + "(" + t.sessionPortToSetupPort(port) + ")");
 					}
@@ -145,7 +145,7 @@ public class SJTransportManager_c extends SJTransportManager
 				}
 				catch (SJIOException ioe) // Need to close the failed acceptor?
 				{
-					if (debug)
+					if (DEBUG)
 					{
 						System.out.println("[SJTransportManager_c] " + ioe);
 					}
@@ -155,7 +155,7 @@ public class SJTransportManager_c extends SJTransportManager
 						foo.close();
 					}
 					
-					throw new SJSetupException("[SJTransportManager_c] Setup \"" + t.getTransportName() + "\" could not be opened for session port: " + port);
+					throw new SJSetupException("[SJTransportManager_c] Setup \"" + t.getTransportName() + "\" could not be opened for session port: " + port, ioe);
 				}
 			}
 			
@@ -191,7 +191,7 @@ public class SJTransportManager_c extends SJTransportManager
 						
 						at.start();
 						
-						if (debug)
+						if (DEBUG)
 						{
 							System.out.println("[SJTransportManager_c] " + t.getTransportName() + " transport ready on: " + foo);
 						}						
@@ -202,7 +202,7 @@ public class SJTransportManager_c extends SJTransportManager
 					}
 					catch (SJIOException ioe) // Need to close the failed acceptor?
 					{
-						if (debug)  
+						if (DEBUG)
 						{
 							System.out.println("[SJTransportManager_c] " + ioe);
 						}
@@ -217,7 +217,7 @@ public class SJTransportManager_c extends SJTransportManager
 			
 			acceptorGroups.put(port, atg);
 			
-			if (debug)
+			if (DEBUG)
 			{
 				System.out.println("[SJTransportManager_c] Opened acceptor group: " + port);
 			}
@@ -295,7 +295,7 @@ public class SJTransportManager_c extends SJTransportManager
 					throw new SJIOException("[SJTransportManager_c] Connection failed: " + hostName + ":" + port);
 				}				
 				
-				if(debug)
+				if(DEBUG)
 				{
 					System.out.println("[SJTransportManager_c] Connected on " + conn.getLocalPort() + " to " + hostName + ":" + port + " (" + conn.getPort() + ") using: " + conn.getTransportName());
 				}					
@@ -335,24 +335,23 @@ public class SJTransportManager_c extends SJTransportManager
 	}
 	
 	//public void setRegisteredSetups(List<SJConnectionSetup> negociationTrans)
-	public /*synchronized*/ void configureNegociationTransports(List<SJTransport> setups)
+	public /*synchronized*/ void configureNegociationTransports(List<SJTransport> transports)
 	{
 		synchronized (negociationTrans)
 		{
 			synchronized (snames)
 			{		
-				this.negociationTrans = new LinkedList<SJTransport>(setups); // Not sure if need to synchronize on negociationTrans argument here.
+				negociationTrans.clear();
+                negociationTrans.addAll(transports); // Not sure if need to synchronize on negociationTrans argument here.
 				
 				//synchronized (snames)
-				{
-					snames.clear();
-					
-					for (SJTransport t : setups)
-					{
-						snames.add(t.getTransportName());
-					}
-				}
-			}
+                snames.clear();
+
+                for (SJTransport t : transports)
+                {
+                    snames.add(t.getTransportName());
+                }
+            }
 		}
 	}	
 	
@@ -366,22 +365,21 @@ public class SJTransportManager_c extends SJTransportManager
 	
 	public /*synchronized*/ void configureSessionTransports(List<SJTransport> transports)
 	{
-		synchronized (this.sessionTrans)
+		synchronized (sessionTrans)
 		{
 			synchronized (tnames)
 			{
-				this.sessionTrans = new LinkedList<SJTransport>(transports);
+                sessionTrans.clear();
+                sessionTrans.addAll(transports);
 				
 				//synchronized (tnames)
-				{
-					tnames.clear();
-					
-					for (SJTransport t : transports)
-					{
-						tnames.add(t.getTransportName());
-					}
-				}
-			}
+                tnames.clear();
+
+                for (SJTransport t : transports)
+                {
+                    tnames.add(t.getTransportName());
+                }
+            }
 		}
 	}			
 	
@@ -413,7 +411,7 @@ public class SJTransportManager_c extends SJTransportManager
 				conn.writeByte(SJ_SERVER_TRANSPORT_FORCE); 
 				conn.flush();
 				
-				if (debug)
+				if (DEBUG)
 				{
 					System.out.println("[SJTransportManager_c] SJ_SERVER_TRANSPORT_FORCE: " + sname);
 				}
@@ -430,12 +428,12 @@ public class SJTransportManager_c extends SJTransportManager
 				conn.writeByte(SJ_SERVER_TRANSPORT_SUPPORTED);
 				conn.flush();
 				
-				if (debug)
+				if (DEBUG)
 				{
 					System.out.println("[SJTransportManager_c] SJ_SERVER_TRANSPORT_SUPPORTED: " + sname);
 				}
 				
-				transportAgreed = (conn.readByte() == SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED);
+				transportAgreed = conn.readByte() == SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED;
 			}
 		}
 		else
@@ -443,7 +441,7 @@ public class SJTransportManager_c extends SJTransportManager
 			conn.writeByte(SJ_SERVER_TRANSPORT_NOT_SUPPORTED); 
 			conn.flush();
 
-			if (debug)
+			if (DEBUG)
 			{
 				System.out.println("[SJTransportManager_c] SJ_SERVER_TRANSPORT_NOT_SUPPORTED: " + sname);
 			}
@@ -456,14 +454,13 @@ public class SJTransportManager_c extends SJTransportManager
 		boolean reuse = transportAgreed;
 		
 		if (!transportAgreed) // Start main negotiations.
-		{	
-			byte[] bs;
-				
-			// First send our transports (Client is also sending theirs now).
-			
-			bs = serializeObject(tn);
-			
-			if (debug)
+		{
+
+            // First send our transports (Client is also sending theirs now).
+
+            byte[] bs = serializeObject(tn);
+
+            if (DEBUG)
 			{
 				System.out.println("[SJTransportManager_c] Sending server transport configuration to: " + conn.getHostName() + ": " + conn.getPort());
 			}
@@ -486,7 +483,7 @@ public class SJTransportManager_c extends SJTransportManager
 		
 			// Find out if Client wants to reuse the setup connection; otherwise the Client will connect to a different acceptor thread.
 			
-			reuse = (conn.readByte() == SJTransportManager.REUSE_SETUP_CONNECTION);
+			reuse = conn.readByte() == REUSE_SETUP_CONNECTION;
 		}
 		
 		return reuse; 		
@@ -509,7 +506,7 @@ public class SJTransportManager_c extends SJTransportManager
 					conn = t.connect(t.sessionHostToNegociationHost(hostName), t.sessionPortToSetupPort(port));
 				}
 				
-				if (debug)
+				if (DEBUG)
 				{
 					System.out.println("[SJTransportManager_c] Setting up on " + conn.getLocalPort() + " to " + hostName + ":" + port + " using: " + t.getTransportName());									
 				}
@@ -518,7 +515,7 @@ public class SJTransportManager_c extends SJTransportManager
 			}
 			catch (SJIOException ioe)
 			{	
-				if (debug)
+				if (DEBUG)
 				{
 					//ioe.printStackTrace();
 					System.out.println("[SJTransportManager_c] " + t.getTransportName() + " setup failed: " + ioe.getMessage());
@@ -540,7 +537,7 @@ public class SJTransportManager_c extends SJTransportManager
 			conn.writeByte(SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED);
 			conn.flush();
 
-			if (debug)
+			if (DEBUG)
 			{
 				System.out.println("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED: " + sname);
 			}
@@ -556,7 +553,7 @@ public class SJTransportManager_c extends SJTransportManager
 				conn.writeByte(SJ_CLIENT_TRANSPORT_NO_FORCE); // Should be sent if the setup isn't a Client transport. 
 				conn.flush();				
 				
-				if (debug)
+				if (DEBUG)
 				{
 					System.out.println("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NO_FORCE: " + sname);
 				}
@@ -573,7 +570,7 @@ public class SJTransportManager_c extends SJTransportManager
 				conn.writeByte(SJ_CLIENT_TRANSPORT_NEGOTIATION_START);
 				conn.flush();
 				
-				if (debug)
+				if (DEBUG)
 				{
 					System.out.println("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NEGOTIATION_START: " + sname);
 				}
@@ -606,7 +603,7 @@ public class SJTransportManager_c extends SJTransportManager
 			
 			Map<String, Integer> servers = (Map<String, Integer>) deserializeObject(bs);
 			
-			if (debug)
+			if (DEBUG)
 			{
 				System.out.println("[SJTransportManager_c] Server at " + hostName + ':' + port + " offers: " + servers);
 			}		
@@ -617,7 +614,7 @@ public class SJTransportManager_c extends SJTransportManager
 				{
 					String name = t.getTransportName();
 									
-					if (sname.equals(name) && (servers.get(name) != null))
+					if (sname.equals(name) && servers.get(name) != null)
 					{
 						conn.writeByte(REUSE_SETUP_CONNECTION);
 						conn.flush();
@@ -629,7 +626,7 @@ public class SJTransportManager_c extends SJTransportManager
 					
 					if (servers.containsKey(name))
 					{
-						int p = servers.get(name).intValue();
+						int p = servers.get(name);
 						
 						//SJConnection tmp = t.connect(t.sessionHostToNegociationHost(hostName), Math.abs(p));
 						
@@ -671,7 +668,7 @@ public class SJTransportManager_c extends SJTransportManager
 				}
 				catch (SJIOException ioe)
 				{
-					if (debug)
+					if (DEBUG)
 					{
 						//ioe.printStackTrace();
 						System.out.println("[SJTransportManager_c] Transport connection failed: " + ioe.getMessage());

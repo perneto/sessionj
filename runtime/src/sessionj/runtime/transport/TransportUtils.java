@@ -7,13 +7,17 @@ import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 import sessionj.runtime.transport.sharedmem.SJFifoPair;
 import sessionj.runtime.transport.tcp.SJManualTCP;
 import sessionj.runtime.transport.tcp.SJStreamTCP;
+import sessionj.runtime.transport.tcp.SJStreamTCPWithSelector;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class TransportUtils
 {
-	public static SJSessionParameters createSJSessionParameters(String setups, String transports, int boundedBufferSize)
+    private TransportUtils() {
+    }
+
+    public static SJSessionParameters createSJSessionParameters(String setups, String transports, int boundedBufferSize)
 	{
 		SJSessionParameters params;
 
@@ -74,6 +78,10 @@ public class TransportUtils
                     break;
                 case 's':
                     ts.add(new SJStreamTCP());
+
+                    break;
+                case 't':
+                    ts.add(new SJStreamTCPWithSelector());
 
                     break;
                 case 'm':
