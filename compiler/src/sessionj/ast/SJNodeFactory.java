@@ -21,9 +21,7 @@ import sessionj.ast.sesscasts.SJSessionCast;
 import sessionj.ast.sessformals.SJFormal;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.sesstry.SJAmbiguousTry;
-import sessionj.ast.sesstry.SJServerTry;
-import sessionj.ast.sesstry.SJSessionTry;
+import sessionj.ast.sesstry.*;
 import sessionj.ast.sessvars.*;
 import sessionj.ast.typenodes.*;
 import sessionj.extension.SJExtFactory;
@@ -76,6 +74,7 @@ public interface SJNodeFactory extends NodeFactory
 	SJAmbiguousTry SJAmbiguousTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
 	SJSessionTry SJSessionTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
 	SJServerTry SJServerTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
+	SJSelectorTry SJSelectorTry(Position pos, Block tryBlock, List catchBlocks, Block finallyBlock, List targets);
 	
 	SJRequest SJRequest(Position pos, Receiver target, List arguments);
 	SJSend SJSend(Position pos, List arguments, List targets);
