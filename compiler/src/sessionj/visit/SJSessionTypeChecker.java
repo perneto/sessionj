@@ -26,9 +26,7 @@ import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessops.TraverseTypeBuildingContext;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.sesstry.SJServerTry;
-import sessionj.ast.sesstry.SJSessionTry;
-import sessionj.ast.sesstry.SJTry;
+import sessionj.ast.sesstry.*;
 import sessionj.ast.sessvars.*;
 import sessionj.extension.SJExtFactory;
 import sessionj.extension.sessops.SJSessionOperationExt;
@@ -911,10 +909,14 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 				{
 					sjcontext.pushSJSessionTry((SJSessionTry) n);
 				}
-				else //if (n instanceof SJServerTry)		
+				else if (n instanceof SJServerTry)		
 				{
 					sjcontext.pushSJServerTry((SJServerTry) n);
 				} 
+				else if (n instanceof SJSelectorTry)
+				{
+					// FIXME.
+				}
 			}
 			else
 			{
@@ -982,9 +984,12 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	{
 		SJContextElement ce = null;
 		
-		if (n instanceof Try) // Includes SJTry (SJSessionTry and SJServerTry).
+		if (n instanceof Try) // Includes SJTry (SJSessionTry, SJServerTry, etc.).
 		{
-			ce = sjcontext.pop();
+			if (!(n instanceof SJSelectorTry)) // FIXME: needs to be removed and treated properly.
+			{
+				ce = sjcontext.pop();	
+			}			
 		}
 		else if (n instanceof SJInbranch)
 		{

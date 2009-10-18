@@ -116,7 +116,7 @@ public class SJServerDeclTypeBuilder extends ContextVisitor
 		return ld;
 	}
 	
-	private SJChannelCreate buildSJChannelCreate(SJChannelCreate cc) throws SemanticException
+	/*private SJChannelCreate buildSJChannelCreate(SJChannelCreate cc) throws SemanticException
 	{		
 		NamedVariable nv = (NamedVariable) cc.arguments().get(0); // Factor out constant. // Or could be recorded in a SJChannelDecl. 
 		String pname = nv.name(); // FIXME: should parse and create SJProtocolVariables.
@@ -144,7 +144,7 @@ public class SJServerDeclTypeBuilder extends ContextVisitor
 		cc = (SJChannelCreate) setSJTypeableExt(sjef, cc, ni.sessionType());
 		
 		return cc;
-	}
+	}*/
 	
 	private SJServerCreate buildSJServerCreate(SJServerCreate sc) throws SemanticException
 	{		

@@ -12,9 +12,8 @@ import sessionj.ast.SJNodeFactory;
 import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.createops.SJCreateOperation;
 import sessionj.ast.servops.SJAccept;
-import sessionj.ast.sessops.basicops.SJBasicOperation;
-import sessionj.ast.sessops.basicops.SJReceive;
-import sessionj.ast.sessops.basicops.SJSend;
+import sessionj.ast.selectorops.*;
+import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.sessvars.SJLocalSocket;
 import sessionj.extension.SJExtFactory;
 import sessionj.extension.noalias.SJNoAliasExprExt;
@@ -75,6 +74,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 				}
 				else //if (n instanceof Call)
 				{					
+					// Basically, checking here for SessionSocketCreator operations - need to ensure they have noalias return types.
 					if (n instanceof SJCreateOperation) // Do here, or in SJCreateOperationParser?
 					{
 						n = buildSJCreateOperation((SJCreateOperation) n);
@@ -90,6 +90,10 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 					else if (n instanceof SJReceive) // Do here, or in SJSessionOperationParser?
 					{
 						n = buildSJReceive((SJReceive) n); 
+					}
+					else if (n instanceof SJSelectSession)
+					{
+						n = buildSJSelectSession((SJSelectSession) n);
 					}
 					else
 					{
@@ -335,6 +339,14 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		a = (SJAccept) setNoAliasReturn(a); 
 		
 		return a;
+	}
+
+	private SJSelectSession buildSJSelectSession(SJSelectSession ss) throws SemanticException
+	{
+		ss = (SJSelectSession) buildCall(ss); 
+		ss = (SJSelectSession) setNoAliasReturn(ss); 
+		
+		return ss;
 	}
 	
 	private SJReceive buildSJReceive(SJReceive r) throws SemanticException
@@ -677,7 +689,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		return na;
 	}
 	
-	private Call setNoAliasReturn(Call c) // For SJ create etc. operations.
+	private Call setNoAliasReturn(Call c) // For SJ create etc. operations. // I.e. SessionSocketCreates should have noalias return types.
 	{
 		SJNoAliasExprExt naee = getSJNoAliasExprExt(c);
 		

@@ -210,6 +210,14 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJServerCreate_c(pos, target, name, arguments);
 	}
 	
+	public SJSelectorCreate SJSelectorCreate(Position pos, List arguments)
+	{
+		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
+		Id name = Id(pos, SJ_SELECTOR_SELECTFOR);
+		
+		return new SJSelectorCreate_c(pos, target, name, arguments);
+	}	
+	
 	public SJLocalChannel SJLocalChannel(Position pos, Id name)
 	{
         return new SJLocalChannel_c(pos, name);

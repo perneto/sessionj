@@ -38,6 +38,7 @@ public interface SJTypeSystem extends TypeSystem
 	SJLocalChannelInstance SJLocalChannelInstance(SJLocalInstance ci, SJSessionType st, String sjname);
 	SJLocalSocketInstance SJLocalSocketInstance(SJLocalInstance si, SJSessionType st, String sjname);
 	SJLocalServerInstance SJLocalServerInstance(SJLocalInstance ci, SJSessionType st, String sjname);
+	SJLocalSelectorInstance SJLocalSelectorInstance(SJLocalInstance ci, SJSessionType st, String sjname);
 	
 	SJNoAliasReferenceType SJNoAliasReferenceType(ReferenceType rt);
 	SJNoAliasReferenceType SJNoAliasFinalReferenceType(ReferenceType rt, boolean isFinal);

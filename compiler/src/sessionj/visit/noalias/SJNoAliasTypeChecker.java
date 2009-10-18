@@ -91,7 +91,7 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 							{
 								n = checkSJPass((SJPass) n);
 							}
-						}
+						} // Other basic operations cannot have noalias arguments. // Implicit noalias return type for receive operations set by SJNoAliasExprBuilder and checked "on use" at e.g. assign and argument passing. 
 					}
 					else
 					{

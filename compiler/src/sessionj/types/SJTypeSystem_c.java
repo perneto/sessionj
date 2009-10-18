@@ -163,6 +163,11 @@ public class SJTypeSystem_c extends TypeSystem_c implements SJTypeSystem
 	{
 		return new SJLocalServerInstance_c(ci, st, sjname);
 	}
+
+	public SJLocalSelectorInstance SJLocalSelectorInstance(SJLocalInstance ci, SJSessionType st, String sjname)
+	{
+		return new SJLocalSelectorInstance_c(ci, st, sjname);
+	}
 	
 	public boolean wellFormedRecursions(SJSessionType st)
 	{
