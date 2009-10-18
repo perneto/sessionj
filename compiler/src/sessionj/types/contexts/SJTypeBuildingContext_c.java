@@ -23,7 +23,7 @@ import static sessionj.util.SJCompilerUtils.*;
  * @author Raymond
  *
  */
-public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildingContext
+public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildingContext // Currently the "main" session context manager (used by SJSessionTypeChecker).  
 {
 	private final SJTypeSystem sjts;
 	

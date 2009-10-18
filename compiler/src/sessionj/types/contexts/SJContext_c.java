@@ -34,7 +34,7 @@ import java.util.List;
  * Mostly based on (the old) SJTypeBuildingContext_c, but with type checking parts removed.
  *
  */
-public class SJContext_c extends SJContext
+public class SJContext_c extends SJContext // Currently only used by SJAbstractSessionVisitor. 
 {
 	private final SJTypeSystem sjts;
 	
@@ -64,6 +64,11 @@ public class SJContext_c extends SJContext
 	{
 		return getServer(sjname).sessionType();
 	}
+
+	public SJSessionType findSelector(String sjname) throws SemanticException
+	{
+		return getSelector(sjname).sessionType();
+	}
 	
 	public void addChannel(SJNamedInstance ni)
 	{
@@ -78,6 +83,11 @@ public class SJContext_c extends SJContext
 	public void addServer(SJNamedInstance ni)
 	{
 		currentContext().setServer(ni); 
+	}
+	
+	public void addSelector(SJNamedInstance ni)
+	{
+		currentContext().setSelector(ni); 
 	}
 	
 	public void addSession(SJNamedInstance ni)
@@ -198,6 +208,11 @@ public class SJContext_c extends SJContext
 	public boolean sessionActive(String sjname)
 	{
 		return currentContext().sessionActive(sjname);
+	}
+
+	public boolean selectorInScope(String sjname)
+	{
+		return currentContext().selectorInScope(sjname);
 	}
 	
 	public void pushBlock()
@@ -530,4 +545,16 @@ public class SJContext_c extends SJContext
 		
 		return ce.getServer(sjname);		
 	}
+	
+	public SJNamedInstance getSelector(String sjname) throws SemanticException
+	{
+		SJContextElement ce = currentContext();
+		
+		if (!ce.hasSelector(sjname))
+		{
+			throw new SemanticException("[SJContext_c] Selector not in context: " + sjname);
+		}
+		
+		return ce.getSelector(sjname);		
+	}	
 }

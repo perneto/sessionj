@@ -21,11 +21,14 @@ public class SJContextElement_c implements SJContextElement
 	private HashMap<String, SJNamedInstance> channels = new HashMap<String, SJNamedInstance>();
 	private HashMap<String, SJNamedInstance> sockets = new HashMap<String, SJNamedInstance>(); // To check if a session-try can create a session scope for the socket. // Actually, not used for that any more. 
 	private HashMap<String, SJNamedInstance> servers = new HashMap<String, SJNamedInstance>(); 
+	private HashMap<String, SJNamedInstance> selectors = new HashMap<String, SJNamedInstance>();
 	
-	private HashMap<String, SJSessionType> services = new HashMap<String, SJSessionType>();
+	private HashMap<String, SJSessionType> services = new HashMap<String, SJSessionType>(); // Basically, servicesInScope. // Could be refined to server types. // Services are server sockets that have been opened (are listening)?
 	private HashMap<String, SJSessionType> sessions = new HashMap<String, SJSessionType>();
 	private HashMap<String, SJSessionType> active = new HashMap<String, SJSessionType>();
 	private HashMap<String, SJSessionType> implemented = new HashMap<String, SJSessionType>();
+	
+	private HashMap<String, SJSessionType> selectorsInScope = new HashMap<String, SJSessionType>(); // Could be refined to SJSetTypes. Actually, we don't strictly need to record the types here since it is the same as for "selectors", but it is convenient to do so. 
 
     public SJContextElement_c()
 	{
@@ -42,9 +45,11 @@ public class SJContextElement_c implements SJContextElement
 			this.channels.putAll(foo.channels);
 			this.sockets.putAll(foo.sockets);
 			this.servers.putAll(foo.servers);
+			this.servers.putAll(foo.selectors);
 			this.services.putAll(foo.services);
 			this.sessions.putAll(foo.sessions);
 			this.active.putAll(foo.active);
+			this.selectorsInScope.putAll(foo.selectorsInScope);
 			//this.implemented.putAll(foo.implemented); // Would this ever be needed?
 		}
 	}
@@ -64,6 +69,11 @@ public class SJContextElement_c implements SJContextElement
 		return servers.get(sjname); 
 	}
 	
+	public SJNamedInstance getSelector(String sjname)
+	{
+		return selectors.get(sjname); 
+	}	
+	
 	public void setChannel(SJNamedInstance ni)
 	{
 		channels.put(ni.sjname(), ni);
@@ -77,6 +87,11 @@ public class SJContextElement_c implements SJContextElement
 	public void setServer(SJNamedInstance ni)
 	{
 		servers.put(ni.sjname(), ni);
+	}
+	
+	public void setSelector(SJNamedInstance ni)
+	{
+		selectors.put(ni.sjname(), ni);
 	}
 	
 	public SJSessionType getService(String sjname)
@@ -99,6 +114,11 @@ public class SJContextElement_c implements SJContextElement
 		return implemented.get(sjname);
 	}
 
+	public SJSessionType getSelectorType(String sjname)
+	{
+		return selectorsInScope.get(sjname);
+	}
+	
 	public void setService(String sjname, SJSessionType st)
 	{
 		services.put(sjname, st);
@@ -134,6 +154,11 @@ public class SJContextElement_c implements SJContextElement
 		return servers.keySet();
 	}
 	
+	public Set<String> selectorSet()
+	{
+		return selectors.keySet();
+	}
+	
 	public Set<String> servicesInScope()
 	{
 		return services.keySet();
@@ -149,6 +174,11 @@ public class SJContextElement_c implements SJContextElement
 		return active.keySet(); // Should be the same as implemented.keySet, and also the sessionsInScope that aren't SJUnknownType.
 	}
 	
+	public Set<String> selectorsInScope()
+	{
+		return selectorsInScope.keySet();
+	}
+	
 	public boolean hasChannel(String sjname)
 	{
 		return channelSet().contains(sjname); 
@@ -162,6 +192,11 @@ public class SJContextElement_c implements SJContextElement
 	public boolean hasServer(String sjname)
 	{
 		return serverSet().contains(sjname); 
+	}
+	
+	public boolean hasSelector(String sjname)
+	{
+		return selectorSet().contains(sjname); 
 	}
 	
 	public boolean serviceInScope(String sjname)
@@ -184,6 +219,12 @@ public class SJContextElement_c implements SJContextElement
 		return activeSessions().contains(sjname);
 	}
 
+	public boolean selectorInScope(String sjname)
+	{
+		return selectorsInScope().contains(sjname);
+	}
+
+	
     public void checkActiveSessionStartsWith(String sjname, Class<? extends SJSessionType> type, String message) throws SemanticException {
         SJSessionType active = getActive(sjname);
         if (!active.startsWith(type))
@@ -213,6 +254,16 @@ public class SJContextElement_c implements SJContextElement
 	public void clearServers()
 	{
 		servers.clear();
+	}
+	
+	public void clearSelectors()
+	{
+		selectors.clear();
+	}
+
+	public void clearSelectorsInScope()
+	{
+		selectorsInScope.clear();
 	}
 	
 	public void removeSession(String sjname)
