@@ -9,10 +9,23 @@ import java.util.*;
 public class SJSetType_c extends SJSessionType_c implements SJSetType {
     private final Collection<SJSessionType_c> members;
 
-    private boolean isSingleton() {
+    //private boolean isSingleton() 
+    public boolean isSingleton() // Any reason why this shouldn't be public? // FIXME: should be implemented using (the proposed) flatten method in order to avoid e.g. {{S1, S2}} being considered a singleton. 
+    {
+    	//return (this.flatten()).members.size() == 1;
         return members.size() == 1;
     }
 
+    public SJSessionType getSingletonMember() throws SemanticException
+    {
+    	if (!isSingleton())
+    	{
+    		throw new SemanticException("[SJSetType_c] Not a singleton so cannot obtain a singleton member: " + this);
+    	}
+    	
+    	return singletonMember();
+    }
+    
     public SJSetType_c(TypeSystem ts, List<SJSessionType_c> members) {
         super(ts);
         this.members = Collections.unmodifiableList(members);
@@ -194,8 +207,8 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
         return members.contains(sessionType);
     }
 
-    public boolean containsAllAndOnly(Collection<SJSessionType> types) {
-        return members.containsAll(types) && types.containsAll(members);
+    public boolean containsAllAndOnly(Collection<SJSessionType> types) {    	
+        return members.containsAll(types) && types.containsAll(members); // FIXME: should be modulo "flattening" (which is TODO. see SJSetType).
     }
 
     public int memberRank(SJSessionType member) {

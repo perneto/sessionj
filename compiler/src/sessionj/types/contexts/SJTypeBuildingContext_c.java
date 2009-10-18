@@ -409,8 +409,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
         assert sjnames.size() == 1;
 
         String sjname = sjnames.get(0);
-        current.checkActiveSessionStartsWith
-            (sjname, SJSetType.class, "[SJTypeBuildingContext_c] found typecase, but expected: ");
+        //current.checkActiveSessionStartsWith(sjname, SJSetType.class, "[SJTypeBuildingContext_c] found typecase, but expected: "); // Not necessary for the active type to be explicitly a set type. It's enough that all cases of the typecase "match" the active type, even if the active type is an implicit singelton. 
 
         pushContextElement(new SJTypecaseContext(current, typecase, sjname));
     }
