@@ -90,7 +90,7 @@ public class SJVariableParser extends ContextVisitor
 		{
 			v = sjnf.SJLocalServer(l.position(), l.id());
 		}
-		else if (l.type().isSubtype(SJ_SELECTOR_TYPE))
+		else if (l.type().isSubtype(SJ_SELECTOR_INTERFACE_TYPE))
 		{
 			v = sjnf.SJLocalSelector(l.position(), l.id());
 		}
@@ -148,7 +148,7 @@ public class SJVariableParser extends ContextVisitor
                 } else if (channelsAllowed && t.isSubtype(SJ_CHANNEL_TYPE)) {
                     targets.add((SJChannelVariable) parseSJLocal((Local) r));                    
                 } 
-                else if (t.isSubtype(SJ_SELECTOR_TYPE))
+                else if (t.isSubtype(SJ_SELECTOR_INTERFACE_TYPE))
                 {
                 	targets.add((SJSelectorVariable) parseSJLocal((Local) r));
                 }

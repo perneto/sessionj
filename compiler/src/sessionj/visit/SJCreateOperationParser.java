@@ -58,6 +58,10 @@ public class SJCreateOperationParser extends ContextVisitor
 			{
 				co = sjnf.SJServerCreate(c.position(), c.arguments());
 			}
+			else if (ctn.type().isSubtype(SJ_RUNTIME_TYPE) && c.name().equals(SJ_KEYWORD_SELECTORCREATE)) // Doesn't discriminate between instance/static methods (no need to do so).
+			{
+				co = sjnf.SJSelectorCreate(c.position(), c.arguments());
+			}
 			
 			if (co != null)
 			{

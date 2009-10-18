@@ -17,6 +17,7 @@ import sessionj.ast.sessvars.*;
 import sessionj.ast.chanops.*;
 import sessionj.ast.sessops.*;
 import sessionj.ast.servops.*;
+import sessionj.ast.selectorops.*;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.typenodes.SJTypeNode;
 import sessionj.extension.*;
@@ -36,7 +37,7 @@ import static sessionj.util.SJCompilerUtils.*;
  *
  * Very similar to SJChannelDeclTypeBuilder.
  *
- * Also builds types for session socket initialisers: SJRequest and SJAccept. 
+ * Also builds types for session socket initialisers: SJRequest, SJAccept, SJSelect, etc. // I.e. should be SessionSocketCreateors. 
  *
  */
 public class SJSocketDeclTypeBuilder extends ContextVisitor
@@ -82,6 +83,10 @@ public class SJSocketDeclTypeBuilder extends ContextVisitor
 		else if (n instanceof SJAccept)
 		{
 			n = buildSJAccept((SJAccept) n);
+		}
+		else if (n instanceof SJSelect)
+		{
+			n = buildSJSelect((SJSelect) n);
 		}
 		
 		return n;
@@ -215,7 +220,7 @@ public class SJSocketDeclTypeBuilder extends ContextVisitor
 		}
 	
 		r = (SJRequest) r.target(target);
-		r = (SJRequest) setSJNamedExt(sjef, r, st, sjname); 
+		r = (SJRequest) setSJNamedExt(sjef, r, st, sjname); // Should set the "second" extension object (the "first" should be for noalias typing).  
 		
 		return r;
 	}	
@@ -255,8 +260,49 @@ public class SJSocketDeclTypeBuilder extends ContextVisitor
 		}
 	
 		a = (SJAccept) a.target(target);
-		a = (SJAccept) setSJNamedExt(sjef, a, st, sjname); 
+		a = (SJAccept) setSJNamedExt(sjef, a, st, sjname); // Should set the "second" extension object (the "first" should be for noalias typing).
 		
 		return a;
+	}	
+	
+	private SJSelect buildSJSelect(SJSelect s) throws SemanticException // FIXME: try to factor stuff out with above.
+	{				
+		Receiver target = s.target();  				
+		
+		SJSessionType st = null;
+		String sjname = null;
+		
+		if (target instanceof SJSelectorVariable)
+		{
+			SJSelectorVariable sv = (SJSelectorVariable) target;
+			String sname = sv.sjname();
+		
+			SJNamedInstance ni = null;
+			
+			if (sv instanceof Field)
+			{		
+				throw new RuntimeException("[SJSocketDeclTypeBuilder] Shouldn't get here."); // Not currently permitted by SJVariableParser.
+			}
+			else //if (sv instanceof Local)
+			{
+				ni = (SJNamedInstance) context().findLocal(sname);
+			}
+			
+			st = ni.sessionType();
+			sjname = sv.sjname();
+			  
+			target = (SJSelectorVariable) setSJNamedExt(sjef, target, st, sjname);
+		}		
+		else
+		{
+			throw new SemanticException("[SJSocketDeclTypeBuilder] Unsupported server expression: " + target);
+		}
+	
+		System.out.println("a: " + s + ", " + st);
+		
+		s = (SJSelect) s.target(target);
+		s = (SJSelect) setSJNamedExt(sjef, s, st, sjname); // Should set the "second" extension object (the "first" should be for noalias typing).
+		
+		return s;
 	}	
 }

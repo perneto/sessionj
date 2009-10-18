@@ -183,10 +183,15 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 		{
 			return createGoal(job, SJServerOperationParser.class, SJChannelOperationParsing(job));
 		}	
+
+		public Goal SJSelectorOperationParsing(Job job)
+		{
+			return createGoal(job, SJSelectorOperationParser.class, SJServerOperationParsing(job));
+		}			
 		
 		public Goal SJSessionOperationParsing(Job job)
 		{
-			return createGoal(job, SJSessionOperationParser.class, SJServerOperationParsing(job));
+			return createGoal(job, SJSessionOperationParser.class, SJSelectorOperationParsing(job));
 		}		
 		
 		public Goal SJNoAliasTypeBuilding(Job job)
@@ -244,6 +249,11 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 		{
 			return createGoal(job, SJServerDeclTypeBuilder.class, SJChannelDeclTypeBuilding(job));
 		}				
+
+		public Goal SJSelectorDeclTypeBuilding(Job job)
+		{
+			return createGoal(job, SJSelectorDeclTypeBuilder.class, SJServerDeclTypeBuilding(job));
+		}
 		
 		/*public Goal SJChannelDeclTypeBuildingBarrier(final Job job) // Not needed because channels (and servers) can only be locals.
 		{
@@ -262,7 +272,7 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 		public Goal SJSocketDeclTypeBuilding(Job job)
 		{
             // SJChannelDeclTypeBuildingBarrier(job) // Barrier not needed, dealing with locals only.
-			return createGoal(job, SJSocketDeclTypeBuilder.class, SJServerDeclTypeBuilding(job));
+			return createGoal(job, SJSocketDeclTypeBuilder.class, SJSelectorDeclTypeBuilding(job));
 		}		
 		
 		public Goal SJSessionOperationTypeBuilding(Job job)
