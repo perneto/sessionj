@@ -33,11 +33,11 @@ public class Test1
 				{
 					s1 = selector.select(SJSelector.RECEIVE);
 					
-          typecase (s1) 
+          typecase (s1) // FIXME: currently, 
           {
             when (@(p)) 
             {
-            	s.send("ABC");
+            	String m = (String) s1.receive();
             }
           }
         }

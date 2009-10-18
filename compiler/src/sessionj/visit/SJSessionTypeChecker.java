@@ -621,7 +621,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		
 		if (!expected.isSubtype(st))
 		{
-            throw new SemanticException(getVisitorName() + " Expected " + expected + ", not: " + st);
+            throw new SemanticException(getVisitorName() + " (1) Expected " + expected + ", not: " + st);
 		}
 	
 		return p;
@@ -884,7 +884,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	private void enterSJContext(Node parent, Node n) throws SemanticException
     // Could be factored out into an SJContextVisitor. Olivier: Ongoing, see TraverseTypeBuildingContext
 	{
-        if (n instanceof TraverseTypeBuildingContext) // Not a context itself, but an AST node that should have enter/leave context actions.
+        if (n instanceof TraverseTypeBuildingContext) // Should rename: it's not a context itself, but an AST node that should have enter/leave context actions.
         {
         	System.out.println("a: " + n.getClass());
         	

@@ -480,6 +480,16 @@ public class SJContext_c extends SJContext // Currently only used by SJAbstractS
         // TODO when this fails, new context is not pushed, so next when will
         // blow. Look at bypass() methods in visitor
 
+        if (selected instanceof SJSetType)
+        {
+        	SJSetType st = (SJSetType) selected;
+        	
+        	if (st.isSingleton()) 
+        	{
+        		selected = st.getSingletonMember();
+        	}
+        }        
+        
         SJContextElement whenContext = new SJContextElement_c(current);
         whenContext.setActive(current.sjname, selected);
         pushContextElement(whenContext);
