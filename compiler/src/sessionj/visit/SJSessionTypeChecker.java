@@ -16,6 +16,8 @@ import sessionj.ast.chanops.SJChannelOperation;
 import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.createops.SJChannelCreate;
 import sessionj.ast.createops.SJServerCreate;
+import sessionj.ast.selectorops.SJSelect;
+import sessionj.ast.selectorops.SJSelectorOperation;
 import sessionj.ast.servops.SJAccept;
 import sessionj.ast.servops.SJServerOperation;
 import sessionj.ast.sesscasts.SJChannelCast;
@@ -111,6 +113,10 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			else if (n instanceof SJServerOperation)
 			{
 				n = checkSJServerOperation(parent, (SJServerOperation) n); // More of a type building routine.
+			}
+			else if (n instanceof SJSelectorOperation)
+			{
+				//TODO: n = checkSJSelectorOperation(parent, (SJSelectorOperation) n); // Should do register like delegation. But select should be done in assignToSocket.
 			}
 			else if (n instanceof Cast)
 			{
@@ -234,6 +240,10 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		{
             checkAssignToServer(a);
 		}
+		else if (a.type().isSubtype(SJ_SELECTOR_INTERFACE_TYPE))
+		{
+			//TODO: checkAssignToSelector(a);
+		}
 		else if (a.type().isSubtype(SJ_SOCKET_INTERFACE_TYPE)) // Only need to check assign, session socket declaration with initialisation not possible - the session must be in a session-try, and the session-try needs the uninitialised socket to be declared first. 
 		{
             a = checkAssignToSocket(a);
@@ -279,9 +289,13 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
             {
                 a = a.right(checkSJAccept((SJAccept) right, sjname, st));
             }
-            else //if (right instanceof SJSessionCast)
+            else if (right instanceof SJSelect)
             {
-                // Already checked.
+            	//TODO: a = a.right(checkSJSelect((SJSelect) right, sjname, st));
+            }
+            else if (!(right instanceof SJSessionCast)) // SJSessionCast already checked.
+            {
+            	throw new SemanticException(getVisitorName() + " Shouldn't get in here: " + right);
             }
 
             // No point to set individual instance type objects for each reference to a (session) variable (also see SJRequest building in SJSocketDeclTypeBuilder). Instance type objects only useful for storing static delcaration-related information, and actually want all instance objects to be the same for all references to a variable.
@@ -870,8 +884,10 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	private void enterSJContext(Node parent, Node n) throws SemanticException
     // Could be factored out into an SJContextVisitor. Olivier: Ongoing, see TraverseTypeBuildingContext
 	{
-        if (n instanceof TraverseTypeBuildingContext)
+        if (n instanceof TraverseTypeBuildingContext) // Not a context itself, but an AST node that should have enter/leave context actions.
         {
+        	System.out.println("a: " + n.getClass());
+        	
             ((TraverseTypeBuildingContext) n).enterSJContext(sjcontext);
         }
         else if (n instanceof LocalDecl) // Parsing (of initialisation expression) and type building done by SJChannel/SocketDeclTypeBuilder.
@@ -895,6 +911,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 				{				
 					sjcontext.addServer((SJNamedInstance) li);					
 				}
+				//else if ()
 				else
 				{
 					// No need to manually record protocol instances.

@@ -11,7 +11,7 @@ import java.util.List;
  * @author Raymond
  *
  */
-public interface SJTypeBuildingContext extends SJContextInterface
+public interface SJTypeBuildingContext extends SJContextInterface 
 {		
 	void recurseSessions(List<String> sjnames) throws SemanticException;
 	

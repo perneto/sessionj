@@ -298,8 +298,6 @@ public class SJSocketDeclTypeBuilder extends ContextVisitor
 			throw new SemanticException("[SJSocketDeclTypeBuilder] Unsupported server expression: " + target);
 		}
 	
-		System.out.println("a: " + s + ", " + st);
-		
 		s = (SJSelect) s.target(target);
 		s = (SJSelect) setSJNamedExt(sjef, s, st, sjname); // Should set the "second" extension object (the "first" should be for noalias typing).
 		
