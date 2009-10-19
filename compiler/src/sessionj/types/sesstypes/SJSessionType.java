@@ -51,4 +51,6 @@ public interface SJSessionType extends SJType
      * alternative type for the subtype comparison. Introduced for session set types
      */
     SJSessionType supertypeCandidate(SJSessionType potentialSubtype);
+    
+    SJSessionType getCanonicalForm(); // Basically for flattening set types and simplifying singletons.
 }

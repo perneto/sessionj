@@ -45,7 +45,8 @@ public class SJSetTypeNode_c extends SJTypeNode_c implements SJSetTypeNode {
         throws SemanticException
     {
         List<SJTypeNode> disambElem = new LinkedList<SJTypeNode>();
-        List<SJSessionType_c> elemTypes = new LinkedList<SJSessionType_c>();
+        //List<SJSessionType_c> elemTypes = new LinkedList<SJSessionType_c>();
+        List<SJSessionType> elemTypes = new LinkedList<SJSessionType>();
         for (SJTypeNode elem : elements) {
             SJTypeNode typeNode = SJCompilerUtils.disambiguateSJTypeNode(cv, elem);
             disambElem.add(typeNode);

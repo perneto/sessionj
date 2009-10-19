@@ -10,7 +10,8 @@ public interface SJSetType extends SJSessionType {
 
     int memberRank(SJSessionType member);    
     
-    //SJSetType flatten(); // TODO: "flatten" the set type.
+    Collection<SJSessionType> getMembers(); 
+    SJSetType getFlattenedForm(); // Get a copy of the "flatten" form of this set type.
     
     boolean isSingleton();
     SJSessionType getSingletonMember() throws SemanticException;

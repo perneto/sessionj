@@ -161,19 +161,33 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 
 	public boolean nodeEquals(SJSessionType st)
 	{
-		return eligibleForEquals(st) && compareNode(NodeComparison.EQUALS, st);
+		//return eligibleForEquals(st) && compareNode(NodeComparison.EQUALS, st);
+		
+		SJSessionType_c us = (SJSessionType_c) this.getCanonicalForm();
+		SJSessionType_c them = (SJSessionType_c) st.getCanonicalForm();
+
+		return us.eligibleForEquals(them) && us.compareNode(NodeComparison.EQUALS, them);
 	}
 	
 	public boolean nodeSubtype(SJSessionType potentialSupertype)
 	{
-        SJSessionType candidate = potentialSupertype.supertypeCandidate(this);
-		return eligibleForSubtype(candidate) && compareNode(NodeComparison.SUBTYPE, candidate);
+    //SJSessionType candidate = potentialSupertype.supertypeCandidate(this);
+		//return eligibleForSubtype(candidate) && compareNode(NodeComparison.SUBTYPE, candidate);
+		
+		SJSessionType_c us = (SJSessionType_c) this.getCanonicalForm();
+		SJSessionType_c them = (SJSessionType_c) potentialSupertype.getCanonicalForm();
+
+    SJSessionType candidate = them.supertypeCandidate(us);
+		return us.eligibleForSubtype(candidate) && us.compareNode(NodeComparison.SUBTYPE, candidate);
 	}
 	
 	public boolean nodeDualtype(SJSessionType st)
     // Should check message SVUID values?
 	{
-		return eligibleForDualtype(st) && compareNode(NodeComparison.DUALTYPE, st);
+		SJSessionType_c us = (SJSessionType_c) this.getCanonicalForm();
+		SJSessionType_c them = (SJSessionType_c) st.getCanonicalForm();
+		
+		return us.eligibleForDualtype(them) && us.compareNode(NodeComparison.DUALTYPE, them);
 	}
 	
 	abstract protected boolean eligibleForEquals(SJSessionType st);
@@ -277,5 +291,10 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
      */
     public SJSessionType supertypeCandidate(SJSessionType potentialSubtype) {
         return this;
+    }
+    
+    public SJSessionType getCanonicalForm() // Currently only overridden by SJSetType_c.
+    {
+    	return this;
     }
 }

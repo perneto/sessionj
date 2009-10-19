@@ -24,6 +24,7 @@ import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessops.TraverseTypeBuildingContext;
 import sessionj.ast.sessops.basicops.SJPass;
 import sessionj.ast.sessops.compoundops.*;
+import sessionj.ast.sesstry.SJSelectorTry;
 import sessionj.ast.sesstry.SJServerTry;
 import sessionj.ast.sesstry.SJSessionTry;
 import sessionj.ast.sesstry.SJTry;
@@ -359,10 +360,14 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 				{
 					sjcontext.pushSJSessionTry((SJSessionTry) n);
 				}
-				else //if (n instanceof SJServerTry)		
+				else if (n instanceof SJServerTry)		
 				{
 					sjcontext.pushSJServerTry((SJServerTry) n);
 				} 
+				/*else if (n instanceof SJSelectorTry) // FIXME: do as for SJSessionTypeChecker.
+				{
+					
+				}*/
 			}
 			else
 			{
@@ -432,7 +437,10 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		
 		if (n instanceof Try) // Includes SJTry (SJSessionTry and SJServerTry).
 		{
-			ce = sjcontext.pop();
+			if (!(n instanceof SJSelectorTry)) // FIXME: do as for SJSessionTypeChecker.
+			{
+				ce = sjcontext.pop();
+			}
 		}
 		else if (n instanceof SJInbranch || n instanceof SJTypecase)
 		{

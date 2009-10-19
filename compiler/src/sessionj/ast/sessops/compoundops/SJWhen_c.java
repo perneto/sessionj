@@ -42,7 +42,7 @@ public class SJWhen_c extends Block_c implements SJWhen {
         sjcontext.pushSJWhen(this);
     }
 
-    public SJSessionType selectMatching(SJSetType set) throws SemanticException {
+    public SJSessionType selectMatching(SJSetType set) throws SemanticException {    	
         if (set.contains(type())) return type();
         else throw new SemanticException("Expected a set type containing " + typeNode + " but got " + set);
     }

@@ -877,13 +877,17 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
                 if (ce instanceof SJSessionBranchContext)
                 {
                     delegated = checkBranches(ce, ces, inbranches);
+                    
+                    for (String m : delegated) // Should this be in here? Or outside with a null-guard?
+                    {
+                        inbranches.put(m, sjts.SJDelegatedType(inbranches.get(m)));
+                    }
                 }
-
-                for (String m : delegated)
+                else
                 {
-                    inbranches.put(m, sjts.SJDelegatedType(inbranches.get(m)));
+                	// Just a SJBranchContext, but not a SJSessionBranchContext. Do we need to do anything here?
                 }
-
+                
                 SJContextElement firstBranch = ces.remove(0); // Going to use the first one to hold subsumption results.
 
                 boolean hasSessionImplementations = false;
