@@ -81,9 +81,13 @@ public class SJTypeSystem_c extends TypeSystem_c implements SJTypeSystem
 		return new SJDelegatedType(this, st);
 	}
 
-    public SJSetType SJSetType(List<SJSessionType_c> members) {
+    /*public SJSetType SJSetType(List<SJSessionType_c> members) {
         return new SJSetType_c(this, members);
-    }
+    }*/
+	
+	public SJSetType SJSetType(List<SJSessionType> members) {
+    return new SJSetType_c(this, members);
+	}
 
     // Adapted from the Coffer example.
   public ParsedClassType createClassType(LazyClassInitializer init, 

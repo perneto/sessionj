@@ -76,8 +76,6 @@ public class SJVariableParser extends ContextVisitor
 	{
 		SJVariable v = null;
 		
-		//System.out.println("a: " + l);
-		
 		if (l.type().isSubtype(SJ_CHANNEL_TYPE))
 		{
 			v = sjnf.SJLocalChannel(l.position(), l.id());

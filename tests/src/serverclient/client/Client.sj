@@ -27,7 +27,8 @@ public class Client
 		{
 			//long start = System.nanoTime();
 							
-			s = SJService.create(p_client, server, port).request(createSJSessionParameters(setups, transports));
+			//s = SJService.create(p_client, server, port).request(createSJSessionParameters(setups, transports));
+			s = SJService.create(p_client, server, port).request();
 			
 			long start = System.nanoTime();
 			
@@ -81,7 +82,7 @@ public class Client
 		new Client().run(debug, setups, transports, server, port);
 	}
 
-	private static SJSessionParameters createSJSessionParameters(String setups, String transports)
+	/*private static SJSessionParameters createSJSessionParameters(String setups, String transports)
 	{
 		SJSessionParameters params;
 		
@@ -168,5 +169,5 @@ public class Client
 			
 			sjtm.configureTransports(ts);
 		}		
-	}	
+	}*/	
 }

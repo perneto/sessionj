@@ -7,15 +7,21 @@ import polyglot.types.TypeSystem;
 import java.util.*;
 
 public class SJSetType_c extends SJSessionType_c implements SJSetType {
-    private final Collection<SJSessionType_c> members;
+    //private final Collection<SJSessionType_c> members;
+	private final Collection<SJSessionType> members; // Converted this collection type to be more suitable for the interface methods like getMembers.
 
     //private boolean isSingleton() 
     public boolean isSingleton() // Any reason why this shouldn't be public? // FIXME: should be implemented using (the proposed) flatten method in order to avoid e.g. {{S1, S2}} being considered a singleton. 
     {
-    	//return (this.flatten()).members.size() == 1;
-        return members.size() == 1;
+      //return members.size() == 1;
+    	return (this.getFlattenedForm()).getMembers().size() == 1;
     }
 
+    public Collection<SJSessionType> getMembers()
+    {
+    	return Collections.unmodifiableCollection(members);
+    }
+    
     public SJSessionType getSingletonMember() throws SemanticException
     {
     	if (!isSingleton())
@@ -26,25 +32,25 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     	return singletonMember();
     }
     
-    public SJSetType_c(TypeSystem ts, List<SJSessionType_c> members) {
+    public SJSetType_c(TypeSystem ts, List<SJSessionType> members) {
         super(ts);
         this.members = Collections.unmodifiableList(members);
         // FIXME: Can't use a HashSet for now because hashCode is not implemented in SJSessionType_c subclasses 
         assert !members.contains(null);
     }
 
-    private SJSessionType_c singletonMember() {
-        Iterator<SJSessionType_c> it = members.iterator();
+    private SJSessionType singletonMember() { // Unchecked version of getSingletonMember.
+        Iterator<SJSessionType> it = members.iterator();
         return it.next();
     }
 
     protected boolean eligibleForEquals(SJSessionType st) {
         if (isSingleton()) {
-            SJSessionType_c member = singletonMember();
+            SJSessionType member = singletonMember();
             if (st instanceof SJSetType_c) {
-                return member.eligibleForEquals(((SJSetType_c) st).singletonMember());
+                return ((SJSessionType_c) member).eligibleForEquals(((SJSetType_c) st).singletonMember());
             } else {
-                return member.eligibleForEquals(st);
+                return ((SJSessionType_c) member).eligibleForEquals(st);
             }
         } else {
             return st instanceof SJSetType
@@ -54,13 +60,13 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
 
     protected boolean eligibleForSubtype(SJSessionType potentialSupertype) {
         if (isSingleton()) {
-            SJSessionType_c member = singletonMember();
+            SJSessionType member = singletonMember();
             if (potentialSupertype instanceof SJSetType_c) {
-                return member.eligibleForSubtype(
+                return ((SJSessionType_c) member).eligibleForSubtype(
                     ((SJSetType_c) potentialSupertype).singletonMember()
                 );
             } else {
-                return member.eligibleForSubtype(potentialSupertype);
+                return ((SJSessionType_c) member).eligibleForSubtype(potentialSupertype);
             }
         } else if (potentialSupertype instanceof SJSetType_c) {
             // When comparing 2 sets for subtyping, require that the supertype-set
@@ -85,11 +91,11 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
 
     protected boolean eligibleForDualtype(SJSessionType st) {
         if (isSingleton()) {
-            SJSessionType_c member = singletonMember();
+            SJSessionType member = singletonMember();
             if (st instanceof SJSetType_c) {
-                return member.eligibleForDualtype(((SJSetType_c) st).singletonMember());
+                return ((SJSessionType_c) member).eligibleForDualtype(((SJSetType_c) st).singletonMember());
             } else {
-                return member.eligibleForDualtype(st);
+                return ((SJSessionType_c) member).eligibleForDualtype(st);
             }
         }
         // TODO
@@ -97,7 +103,10 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     }
 
     protected boolean compareNode(NodeComparison o, SJSessionType st) {
-        return !isSingleton() || singletonMember().compareNode(o, st);
+    	
+    	System.out.println("d: " + this + ", " + st);
+    	
+        return !isSingleton() || ((SJSessionType_c) singletonMember()).compareNode(o, st); // Why should this always succeed if the set type is not a singleton?
     }
 
     private int subtypingPartialOrder(SJSessionType left, SJSessionType right) {
@@ -139,8 +148,8 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     }
 
     public SJSessionType nodeClone() {
-        List<SJSessionType_c> copiedMembers = new LinkedList<SJSessionType_c>();
-        for (SJSessionType m : members) copiedMembers.add((SJSessionType_c) m.copy());
+        List<SJSessionType> copiedMembers = new LinkedList<SJSessionType>();
+        for (SJSessionType m : members) copiedMembers.add((SJSessionType) m.copy());
         return typeSystem().SJSetType(copiedMembers);
     }
 
@@ -186,13 +195,13 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
 
     @Override
     protected SJSessionType getChild() {
-        if (isSingleton()) return singletonMember().getChild();
+        if (isSingleton()) return singletonMember().child();
         return null; // A set never has anything after it (enforced by grammar)
     }
 
     @Override
     public SJSessionType child(SJSessionType child) {
-        throw new UnsupportedOperationException("cannot set child: set types do not accopt a child");
+        throw new UnsupportedOperationException("cannot set child: set types do not accept a child");
     }
 
     @Override
@@ -219,5 +228,29 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
         }
         throw new IllegalArgumentException("Session type "
             + member + " is not a member of set type " + this);
+    }
+    
+    public SJSessionType getCanonicalForm() 
+    {
+    	SJSetType flattened = this.getFlattenedForm();
+    	
+    	if (isSingleton()) // This currently recalculates the flattened form (a bit of redundancy with the above).
+    	{
+    		return ((SJSetType_c) flattened).singletonMember();
+    	}
+    	
+    	return flattened;
+    }
+    
+    public SJSetType getFlattenedForm() 
+    {
+    	List<SJSessionType> flattened = new LinkedList<SJSessionType>(); 
+    	
+    	for (SJSessionType st : members)
+    	{
+    		flattened.add(st.getCanonicalForm());
+    	}
+    	
+    	return typeSystem().SJSetType(flattened); // Since SJSessionTypes are (intended to be) immutable, we could cache this flattened form instead of deriving it every time.
     }
 }

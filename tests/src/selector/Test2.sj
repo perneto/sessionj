@@ -13,7 +13,7 @@ public class Test2
 	private static protocol p { sbegin.@(p1) }
 	private static protocol p_select { @(p1), @(p2) }
 
-	public static void main(String[] args) throws SJIOException, SJIncompatibleSessionException 
+	public static void main(String[] args) throws Exception 
 	{
 		final noalias SJSelector selector = SJRuntime.selectFor(p_select);
 		

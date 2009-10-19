@@ -23,7 +23,8 @@ public class Server
 		
 		try (ss)
 		{
-			ss = SJServerSocket.create(p_server, port, createSJSessionParameters(setups, transports));						
+			//ss = SJServerSocket.create(p_server, port, createSJSessionParameters(setups, transports));
+			ss = SJServerSocket.create(p_server, port);
 			
 			while (true)
 			{
@@ -83,7 +84,7 @@ public class Server
 		new Server().run(debug, setups, transports, port);
 	}
 	
-	private static SJSessionParameters createSJSessionParameters(String setups, String transports)
+	/*private static SJSessionParameters createSJSessionParameters(String setups, String transports)
 	{
 		SJSessionParameters params;
 		
@@ -170,5 +171,5 @@ public class Server
 			
 			sjtm.configureTransports(ts);
 		}		
-	}	
+	}*/	
 }

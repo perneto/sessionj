@@ -475,7 +475,7 @@ public class SJContext_c extends SJContext // Currently only used by SJAbstractS
     public void pushSJWhen(SJWhen when) throws SemanticException {
         SJTypecaseContext current = (SJTypecaseContext) currentContext();
 
-        SJSetType set = current.getActiveSetType();
+        SJSetType set = current.getActiveSetType();        
         SJSessionType selected = when.selectMatching(set);
         // TODO when this fails, new context is not pushed, so next when will
         // blow. Look at bypass() methods in visitor

@@ -301,8 +301,9 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
             // No point to set individual instance type objects for each reference to a (session) variable (also see SJRequest building in SJSocketDeclTypeBuilder). Instance type objects only useful for storing static delcaration-related information, and actually want all instance objects to be the same for all references to a variable.
             a = a.left((Expr) setSJNamedExt(sjef, sv, st, sjname)); // Is this actually useful?
 
-            sjcontext.openSession(sjname, st);
-
+            //sjcontext.openSession(sjname, st);
+            sjcontext.openSession(sjname, st.getCanonicalForm()); // Set types are popping up in unexpected places: this modification was in response to the session-receive in the Service party of Travel Agency.
+            
             if (right instanceof SJRequest)
             {
                 sjcontext.advanceSession(sjname, sjts.SJCBeginType());
@@ -631,7 +632,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	{
 		if (!expected.startsWith(SJReceiveType.class))
 		{
-			throw new SemanticException(getVisitorName() + " Expected " + expected + ", not: " + st);
+			throw new SemanticException(getVisitorName() + " (2) Expected " + expected + ", not: " + st);
 		}
 		
 		if (((SJMessageCommunicationType) st).messageType() instanceof SJUnknownType) 
@@ -647,7 +648,9 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		}
 		else if (!expected.isSubtype(st))
 		{
-			throw new SemanticException(getVisitorName() + " Expected " + expected + ", not: " + st); // Includes higher-order session-receive. // And channel-receive.
+			System.out.println("1: " + expected + ", " + st);
+			
+			throw new SemanticException(getVisitorName() + " (3) Expected " + expected + ", not: " + st); // Includes higher-order session-receive. // And channel-receive.
 		}		
 		
 		return r;
