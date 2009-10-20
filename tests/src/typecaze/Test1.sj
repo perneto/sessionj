@@ -13,7 +13,7 @@ public class Test1
 
 	public static void main(String[] args) throws SJIOException, SJIncompatibleSessionException 
 	{
-		final noalias SJSelector selector = SJRuntime.selectFor(p);
+		final noalias SJSelector selector = SJRuntime.selectorFor(p);
 		
 		final noalias SJService c = SJService.create(p_service, "localhost", 8888);
 				

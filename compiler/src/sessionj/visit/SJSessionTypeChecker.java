@@ -120,7 +120,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			}
 			else if (n instanceof SJSelectorOperation)
 			{
-				//TODO: n = checkSJSelectorOperation(parent, (SJSelectorOperation) n); // Should do register like delegation. But select should be done in assignToSocket.
+				//TODO: n = checkSJSelectorOperation(parent, (SJSelectorOperation) n); // Does register operations. But select operations are done in assignToSocket (like other SessionSocketCreators).
 			}
 			else if (n instanceof Cast)
 			{
