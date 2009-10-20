@@ -44,7 +44,7 @@ public class SJContextElement_c implements SJContextElement
 			this.channels.putAll(foo.channels);
 			this.sockets.putAll(foo.sockets);
 			this.servers.putAll(foo.servers);
-			this.servers.putAll(foo.selectors);
+			this.selectors.putAll(foo.selectors);
 			this.services.putAll(foo.services);
 			this.sessions.putAll(foo.sessions);
 			this.active.putAll(foo.active);

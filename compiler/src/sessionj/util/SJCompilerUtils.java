@@ -54,7 +54,7 @@ public class SJCompilerUtils
 	{
 		if (n.ext(2) == null) // SJCompoundOperation.
 		{
-			return (SJTypeableExt) n.ext(1); // ...but there can be some exceptions?
+			return (SJTypeableExt) n.ext(1); // ...but there can be some exceptions? // Yes: compound operations.
 		}
 		else 
 		{

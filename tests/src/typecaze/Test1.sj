@@ -8,10 +8,11 @@ import sessionj.runtime.net.*;
 
 public class Test1 
 {
-	private static protocol p { ?(String) }
+	//private static protocol p { ?(String).!<int>, !<Boolean> }
+	private static protocol p { ?(String).!<int> }
 	private static protocol p_service { cbegin.@(p) } 
 
-	public static void main(String[] args) throws SJIOException, SJIncompatibleSessionException 
+	public static void main(String[] args) throws Exception 
 	{
 		final noalias SJSelector selector = SJRuntime.selectorFor(p);
 		
@@ -35,10 +36,17 @@ public class Test1
 					
           typecase (s1) // FIXME: currently, 
           {
-            when (@(p)) 
+            when (@(p))
+          	//when (?(String).!<int>)
             {
             	String m = (String) s1.receive();
+            	
+            	s1.send(123);
             }
+            /*when (!<Boolean>)
+            {
+            	s1.send(new Boolean(true));
+            }*/
           }
         }
 				finally 
