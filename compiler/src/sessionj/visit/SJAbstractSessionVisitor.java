@@ -15,6 +15,7 @@ import sessionj.ast.chanops.SJChannelOperation;
 import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.createops.SJChannelCreate;
 import sessionj.ast.createops.SJServerCreate;
+import sessionj.ast.selectorops.SJSelect;
 import sessionj.ast.servops.SJAccept;
 import sessionj.ast.servops.SJServerOperation;
 import sessionj.ast.sesscasts.SJChannelCast;
@@ -223,7 +224,10 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		{
 			Expr right = a.right();
 			
-			if (right instanceof SJRequest || right instanceof SJAccept || right instanceof SJSessionCast) // FIXME: make common interface for session return operations.   
+			if (right instanceof SJRequest 
+					|| right instanceof SJAccept 
+					|| right instanceof SJSessionCast
+					|| right instanceof SJSelect) // FIXME: use SessionSocketCreator.   				
 			{							
 				Expr left = a.left();				
 				SJSocketVariable sv = (SJSocketVariable) left;				

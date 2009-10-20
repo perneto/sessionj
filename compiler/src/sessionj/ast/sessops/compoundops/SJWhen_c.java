@@ -32,7 +32,14 @@ public class SJWhen_c extends Block_c implements SJWhen {
     public String toString() {
         return "when (" + typeNode + ") " + super.toString();
     }
-
+    
+    @Override
+    public Object copy() 
+    {
+  		SJWhen_c newThis = (SJWhen_c) super.copy(); // Polyglot copy uses clone.
+  		
+  		return newThis;
+    }
 
     public SJContextElement leaveSJContext(SJContextInterface sjcontext) throws SemanticException {
         return sjcontext.pop();

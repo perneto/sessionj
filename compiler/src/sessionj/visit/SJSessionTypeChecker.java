@@ -15,6 +15,7 @@ import sessionj.ast.SessionSocketCreator;
 import sessionj.ast.chanops.SJChannelOperation;
 import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.createops.SJChannelCreate;
+import sessionj.ast.createops.SJSelectorCreate;
 import sessionj.ast.createops.SJServerCreate;
 import sessionj.ast.selectorops.SJSelect;
 import sessionj.ast.selectorops.SJSelectorOperation;
@@ -48,6 +49,9 @@ import java.util.List;
 /**
  * @author Raymond
  *
+ * This visitor performs the core session type checking and completes session type building. 
+ * This means the session type information is recorded onto the AST nodes, so that the subsequent visitors based on SJSessionVisitor can just read this information from the AST. 
+ * So new session AST nodes need to be checked and type built by this visitor, and then SJ(Abstract)SessionVisitor needs to look up the recorded information.
  */
 public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an abstract SJContextVisitor parent class. 
 {	
@@ -240,10 +244,6 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		{
             checkAssignToServer(a);
 		}
-		else if (a.type().isSubtype(SJ_SELECTOR_INTERFACE_TYPE))
-		{
-			//TODO: checkAssignToSelector(a);
-		}
 		else if (a.type().isSubtype(SJ_SOCKET_INTERFACE_TYPE)) // Only need to check assign, session socket declaration with initialisation not possible - the session must be in a session-try, and the session-try needs the uninitialised socket to be declared first. 
 		{
             a = checkAssignToSocket(a);
@@ -291,7 +291,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
             }
             else if (right instanceof SJSelect)
             {
-            	//TODO: a = a.right(checkSJSelect((SJSelect) right, sjname, st));
+            	a = a.right(checkSJSelect((SJSelect) right, sjname, st));
             }
             else if (!(right instanceof SJSessionCast)) // SJSessionCast already checked.
             {
@@ -300,7 +300,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 
             // No point to set individual instance type objects for each reference to a (session) variable (also see SJRequest building in SJSocketDeclTypeBuilder). Instance type objects only useful for storing static delcaration-related information, and actually want all instance objects to be the same for all references to a variable.
             a = a.left((Expr) setSJNamedExt(sjef, sv, st, sjname)); // Is this actually useful?
-
+            
             //sjcontext.openSession(sjname, st);
             sjcontext.openSession(sjname, st.getCanonicalForm()); // Set types are popping up in unexpected places: this modification was in response to the session-receive in the Service party of Travel Agency.
             
@@ -363,7 +363,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
             throw new SemanticException(getVisitorName() + " Assign of session server type not yet supported: " + a.right());
         }
     }
-
+        
     private void checkUnusedLocalInstance(SJNamedInstance lsi) throws SemanticException {
         if (!(lsi.sessionType() instanceof SJUnknownType))
         // Cannot count on compiler pass completion order (i.e. noalias type checking before this pass), so cannot just throw RuntimeException.
@@ -562,6 +562,26 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return a;
 	}		
 	
+	private SJSelect checkSJSelect(SJSelect s, String sjname, SJSessionType st) throws SemanticException // Duplicated from checkSJAccept.
+	{
+		/*if (!sjcontext.sessionInScope(sjname))
+		{
+			throw new SemanticException(getVisitorName() + " Session not in scope, cannot be selected: " + sjname);
+		}
+		
+		if (sjcontext.sessionActive(sjname))
+		{
+			throw new SemanticException(getVisitorName() + " Session already open: " + sjname);
+		}
+		
+		if (!st.isWellFormed())
+		{
+			throw new SemanticException(getVisitorName() + " Session type not well-formed: " + st);					
+		}*/
+		
+		return s;
+	}
+	
 	private SJCopy checkSJCopy(SJCopy c, SJSessionType expected, SJSessionType st) throws SemanticException // FIXME: this is actually redundant now (pass is the delegation operation now).
 	{				
 		Expr arg = (Expr) c.arguments().get(0); // Factor out constant.
@@ -622,7 +642,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		
 		if (!expected.isSubtype(st))
 		{
-            throw new SemanticException(getVisitorName() + " (1) Expected " + expected + ", not: " + st);
+			throw new SemanticException(getVisitorName() + " (1) Expected " + expected + ", not: " + st);
 		}
 	
 		return p;
@@ -887,13 +907,13 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	private void enterSJContext(Node parent, Node n) throws SemanticException
     // Could be factored out into an SJContextVisitor. Olivier: Ongoing, see TraverseTypeBuildingContext
 	{
-        if (n instanceof TraverseTypeBuildingContext) // Should rename: it's not a context itself, but an AST node that should have enter/leave context actions.
-        {
-        	System.out.println("a: " + n.getClass());
-        	
-            ((TraverseTypeBuildingContext) n).enterSJContext(sjcontext);
-        }
-        else if (n instanceof LocalDecl) // Parsing (of initialisation expression) and type building done by SJChannel/SocketDeclTypeBuilder.
+    if (n instanceof TraverseTypeBuildingContext) // Should rename: it's not a context itself, but an AST node that should have enter/leave context actions.
+    {
+    	System.out.println("a: " + n.getClass());
+    	
+      ((TraverseTypeBuildingContext) n).enterSJContext(sjcontext);
+    }
+    else if (n instanceof LocalDecl) // Parsing (of initialisation expression) and type building done by SJChannel/SocketDeclTypeBuilder.
 		{
 			LocalDecl ld = (LocalDecl) n;
 			LocalInstance li = ld.localInstance(); 
@@ -912,12 +932,15 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 				}
 				else if (dt.isSubtype(SJ_SERVER_INTERFACE_TYPE))
 				{				
-					sjcontext.addServer((SJNamedInstance) li);					
+					sjcontext.addServer((SJLocalServerInstance) li); // Server fields not currently supported.					
 				}
-				//else if ()
-				else
+				else if (dt.isSubtype(SJ_SELECTOR_INTERFACE_TYPE))
 				{
-					// No need to manually record protocol instances.
+					sjcontext.addSelector((SJLocalSelectorInstance) li);
+				}
+				else if (!(dt.isSubtype(SJ_PROTOCOL_TYPE))) // No need to manually record protocol instances.
+				{
+					throw new SemanticException(getVisitorName() + " Shouldn't get in here: " + dt);
 				}
 			}
 		}
@@ -935,7 +958,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 				} 
 				else if (n instanceof SJSelectorTry)
 				{
-					// FIXME.
+					sjcontext.pushSJSelectorTry((SJSelectorTry) n); 
 				}
 			}
 			else
@@ -1006,7 +1029,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		
 		if (n instanceof Try) // Includes SJTry (SJSessionTry, SJServerTry, etc.).
 		{
-			if (!(n instanceof SJSelectorTry)) // FIXME: needs to be removed and treated properly.
+			//if (!(n instanceof SJSelectorTry)) 
 			{
 				ce = sjcontext.pop();	
 			}			

@@ -213,7 +213,7 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 	public SJSelectorCreate SJSelectorCreate(Position pos, List arguments)
 	{
 		CanonicalTypeNode target = CanonicalTypeNode(pos, SJ_RUNTIME_TYPE);
-		Id name = Id(pos, SJ_SELECTOR_SELECTFOR);
+		Id name = Id(pos, SJ_SELECTOR_SELECTORFOR);
 		
 		return new SJSelectorCreate_c(pos, target, name, arguments);
 	}	

@@ -149,7 +149,8 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
 
     public SJSessionType nodeClone() {
         List<SJSessionType> copiedMembers = new LinkedList<SJSessionType>();
-        for (SJSessionType m : members) copiedMembers.add((SJSessionType) m.copy());
+        for (SJSessionType m : members) 
+        	copiedMembers.add((SJSessionType) m.copy());
         return typeSystem().SJSetType(copiedMembers);
     }
 
@@ -230,7 +231,7 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
             + member + " is not a member of set type " + this);
     }
     
-    public SJSessionType getCanonicalForm() 
+    public SJSessionType getCanonicalForm() // Session set types currently do not have children. 
     {
     	SJSetType flattened = this.getFlattenedForm();
     	
@@ -239,10 +240,10 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     		return ((SJSetType_c) flattened).singletonMember();
     	}
     	
-    	return flattened;
+    	return flattened; 
     }
     
-    public SJSetType getFlattenedForm() 
+    public SJSetType getFlattenedForm() // Session set types currently do not have children.
     {
     	List<SJSessionType> flattened = new LinkedList<SJSessionType>(); 
     	

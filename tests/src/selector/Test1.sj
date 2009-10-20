@@ -38,7 +38,8 @@ public class Test1
             {
               when (@(p1)) 
               {
-              	s.send("ABC");
+              	//s.send("ABC");
+              	//s.send(123);
               }
             }
           }

@@ -15,4 +15,6 @@ public interface SJSelector {
     void registerReceive(SJSocket s); 
 
     SJSocket select(int mask) throws SJIOException;
+    
+    void close();
 }

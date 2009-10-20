@@ -106,10 +106,10 @@ public class SJSelectorDeclTypeBuilder extends ContextVisitor
 			}
 			else
 			{
-				throw new SemanticException("[SJCSelectorDeclTypeBuilder] Unexpected selector variable initializer: " + init);
+				throw new SemanticException("[SJSelectorDeclTypeBuilder] Unexpected selector variable initializer: " + init);
 			}		
 			
-			ld = ld.localInstance(sjts.SJLocalChannelInstance(li, st, sjname));
+			ld = ld.localInstance(sjts.SJLocalSelectorInstance(li, st, sjname));
 			ld = (LocalDecl) setSJNamedExt(sjef, ld, st, sjname);			
 		}
 		

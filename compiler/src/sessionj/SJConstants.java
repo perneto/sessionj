@@ -25,7 +25,7 @@ public class SJConstants
 	public static final String SJ_KEYWORD_CHANNELCREATE = "create";
 	public static final String SJ_KEYWORD_SOCKETCREATE = "create";
 	public static final String SJ_KEYWORD_SERVERCREATE = "create";
-	public static final String SJ_KEYWORD_SELECTORCREATE = "selectFor";
+	public static final String SJ_KEYWORD_SELECTORCREATE = "selectorFor";
 	
 	public static final String SJ_KEYWORD_REQUEST = "request";
 	public static final String SJ_KEYWORD_SEND = "send";
@@ -63,7 +63,7 @@ public class SJConstants
 	public static final String SJ_SOCKET_CREATE = "create";
 	public static final String SJ_SERVER_CREATE = "create";
 	
-	public static final String SJ_SELECTOR_SELECTFOR = "selectFor";
+	public static final String SJ_SELECTOR_SELECTORFOR = "selectorFor";
 	
 	public static final String SJ_CHANNEL_REQUEST = "request";
 	

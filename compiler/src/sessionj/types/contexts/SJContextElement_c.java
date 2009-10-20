@@ -27,7 +27,6 @@ public class SJContextElement_c implements SJContextElement
 	private HashMap<String, SJSessionType> sessions = new HashMap<String, SJSessionType>();
 	private HashMap<String, SJSessionType> active = new HashMap<String, SJSessionType>();
 	private HashMap<String, SJSessionType> implemented = new HashMap<String, SJSessionType>();
-	
 	private HashMap<String, SJSessionType> selectorsInScope = new HashMap<String, SJSessionType>(); // Could be refined to SJSetTypes. Actually, we don't strictly need to record the types here since it is the same as for "selectors", but it is convenient to do so. 
 
     public SJContextElement_c()
@@ -137,6 +136,11 @@ public class SJContextElement_c implements SJContextElement
 	public void setImplemented(String sjname, SJSessionType st)
 	{
 		implemented.put(sjname, st);
+	}
+	
+	public void setSelectorInScope(String sjname, SJSessionType st)
+	{
+		selectorsInScope.put(sjname, st);
 	}
 	
 	public Set<String> channelSet()

@@ -11,8 +11,10 @@ import polyglot.types.Type;
 import polyglot.visit.ContextVisitor;
 import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sessops.SJSessionOperation;
+import sessionj.ast.sesstry.SJSelectorTry;
 import sessionj.ast.sesstry.SJServerTry;
 import sessionj.ast.sesstry.SJSessionTry;
+import sessionj.ast.sessvars.SJSelectorVariable;
 import sessionj.ast.sessvars.SJServerVariable;
 import sessionj.ast.sessvars.SJSocketVariable;
 import sessionj.ast.sessformals.SJFormal;
@@ -348,7 +350,7 @@ public class SJContext_c extends SJContext // Currently only used by SJAbstractS
 	{
 		SJServerTryContext tc = new SJServerTryContext_c(currentContext());
 		 
-		tc.clearSessions(); // No need to clear services.
+		tc.clearSessions(); // No need to clear services. // CHECKME: how about selectors-in-scope?
 		
 		List<String> sjnames = new LinkedList<String>();
 
@@ -361,6 +363,28 @@ public class SJContext_c extends SJContext // Currently only used by SJAbstractS
         }
 		
 		tc.setServers(sjnames);
+		
+		pushContextElement(tc);		
+	}
+	
+	public void pushSJSelectorTry(SJSelectorTry st) throws SemanticException // Duplicated from pushSJServerTry.
+	{
+		SJSelectorTryContext tc = new SJSelectorTryContext_c(currentContext());
+		 
+		tc.clearSessions(); // No need to clear services. // CHECKME: how about selectors-in-scope?
+		
+		List<String> sjnames = new LinkedList<String>();
+
+    for (Object o : st.targets()) 
+    {
+      String sjname = ((SJSelectorVariable) o).sjname();
+
+      tc.setSelectorInScope(sjname, getSelector(sjname).sessionType()); // Unlike server variables, type should be known.
+
+      sjnames.add(sjname);
+    }
+		
+		tc.setSelectors(sjnames);
 		
 		pushContextElement(tc);		
 	}
@@ -466,31 +490,38 @@ public class SJContext_c extends SJContext // Currently only used by SJAbstractS
     public void pushSJTypecase(SJTypecase typecase) throws SemanticException {
         SJContextElement current = currentContext();
         List<String> sjnames = getTargetNames(typecase);
+        
         assert sjnames.size() == 1;
 
         String sjname = sjnames.get(0);        
+        
         pushContextElement(new SJTypecaseContext(current, typecase, sjname));
     }
 
     public void pushSJWhen(SJWhen when) throws SemanticException {
         SJTypecaseContext current = (SJTypecaseContext) currentContext();
 
-        SJSetType set = current.getActiveSetType();        
-        SJSessionType selected = when.selectMatching(set);
-        // TODO when this fails, new context is not pushed, so next when will
-        // blow. Look at bypass() methods in visitor
-
-        if (selected instanceof SJSetType)
-        {
-        	SJSetType st = (SJSetType) selected;
-        	
-        	if (st.isSingleton()) 
-        	{
-        		selected = st.getSingletonMember();
-        	}
-        }        
+        SJSessionType outer = current.getActive(current.getSessionName()).getCanonicalForm();
+        SJSessionType selected;
         
-        SJContextElement whenContext = new SJContextElement_c(current);
+        if (outer instanceof SJSetType)
+        {
+        	selected = when.selectMatching(((SJSetType) outer).getFlattenedForm()).getCanonicalForm();
+        }
+        else // FIXME: are we supposed to do "type checking" here, according to the current design? Peer methods don't seem to?
+        {
+        	SJSessionType wt = when.type();
+        	
+        	//if (!outer.isSubtype(wt)) 
+        	if (!outer.typeEquals(wt)) // TODO: treat subtyping.
+        	{
+        		throw new SemanticException("[SJContext_c] Expected type " + outer + " incompatible with when-case: " + wt);
+        	}
+        	
+        	selected = wt;
+        }
+        
+        SJContextElement whenContext = new SJContextElement_c(current); // FIXME: should be pushing a SJBranchCaseContext like inbranch cases and outbranch. 
         whenContext.setActive(current.sjname, selected);
         pushContextElement(whenContext);
     }

@@ -7,6 +7,7 @@ import polyglot.ast.MethodDecl;
 import polyglot.types.SemanticException;
 import polyglot.visit.ContextVisitor;
 import sessionj.ast.sessops.compoundops.*;
+import sessionj.ast.sesstry.SJSelectorTry;
 import sessionj.ast.sesstry.SJServerTry;
 import sessionj.ast.sesstry.SJSessionTry;
 import sessionj.types.sesstypes.SJSessionType;
@@ -59,6 +60,7 @@ public interface SJContextInterface
 	
 	void pushSJSessionTry(SJSessionTry st) throws SemanticException;
 	void pushSJServerTry(SJServerTry st) throws SemanticException;
+	void pushSJSelectorTry(SJSelectorTry st) throws SemanticException;
 	
 	void pushSJBranchOperation(SJBranchOperation b) throws SemanticException;
 	void pushSJBranchCase(SJBranchCase bc) throws SemanticException;
@@ -77,6 +79,7 @@ public interface SJContextInterface
 	SJNamedInstance getChannel(String sjname) throws SemanticException;
 	SJNamedInstance getSocket(String sjname) throws SemanticException;
 	SJNamedInstance getServer(String sjname) throws SemanticException;
-
+	SJNamedInstance getSelector(String sjname) throws SemanticException;
+	
     SJContextElement currentContext();
 }

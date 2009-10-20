@@ -40,7 +40,7 @@ public class SJSendType_c extends SJMessageCommunicationType_c implements SJSend
 		switch (op)
 		{
 			case EQUALS: return messageType().equals(((SJSendType) st).messageType()); 
-			case SUBTYPE: return ((SJSendType) st).messageType().isSubtype(messageType());  
+			case SUBTYPE: return ((SJSendType) st).messageType().isSubtype(messageType()); // Contravariant.  
 			case DUALTYPE: return messageType().isSubtype(((SJReceiveType) st).messageType());
 		}
 		
