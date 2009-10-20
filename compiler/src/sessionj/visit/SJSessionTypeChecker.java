@@ -298,7 +298,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 				
 				SJSessionType st = sjcontext.delegateSession(sjname);
 				
-				System.out.println("a3: " + getSessionType(so)); // FIXME: build types.
+				//System.out.println("a3: " + getSessionType(so)); // FIXME: build types.
 				
 				//System.out.println("a2: " + arg + ", " + st);
 				
