@@ -40,7 +40,7 @@ public interface SJContextInterface
 	void advanceSession(String sjname, SJSessionType st) throws SemanticException;
 	SJSessionType delegateSession(String sjname) throws SemanticException; // Maybe this operation should take the type as an argument instead of calculating it itself (which should be done by the equivalent in SJTypeBuildingContext).
 	
-	SJSessionType expectedSessionOperation(String sjname);
+	SJSessionType expectedSessionOperation(String sjname); // Gives the active type for the current context (not just the next operation, but not the full remaining type either).
 	SJSessionType sessionImplemented(String sjname);
 	SJSessionType sessionRemaining(String sjname) throws SemanticException;
 	
