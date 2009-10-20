@@ -560,7 +560,8 @@ public class SJNoAliasTranslator extends ContextVisitor
             }
         }
 				
-		b = sjnf.Block(b.position(), ss);
+		//b = sjnf.Block(b.position(), ss); // ERROR: wrong to force all Block subtypes to become exactly a Block (e.g. SJWhen).
+     b = b.statements(ss);
 		//b = (Block) buildAndCheckTypes(job(), this, b); // Not needed, types already built for newly inserted Stmts.
 		
 		return b;

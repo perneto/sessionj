@@ -1,6 +1,7 @@
 package sessionj.runtime.net;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.util.ValueLatch;
 
@@ -57,6 +58,9 @@ class SJSelectorAllTransports implements SJSelector {
         assert selected != null;
         return selected;
     }
-
+    
+    public void close()
+    {
+    	throw new SJRuntimeException("[SJSelectorAllTransports] TODO: close operation.");
+    }
 }
-

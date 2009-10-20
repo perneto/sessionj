@@ -10,12 +10,14 @@ public class Test2
 {
 	private static protocol p2 { ?(String) }
 	private static protocol p1 { !<int>.@(p2) } 
-	private static protocol p { sbegin.@(p1) }
-	private static protocol p_select { @(p1), @(p2) }
+	//private static protocol p { sbegin.@(p1) }
+	private static protocol p { sbegin.!<int>.?(String) }
+	//private static protocol p_select { @(p1), @(p2) }
+	private static protocol p_select { !<int>.?(String), ?(String) }
 
 	public static void main(String[] args) throws Exception 
 	{
-		final noalias SJSelector selector = SJRuntime.selectFor(p_select);
+		final noalias SJSelector selector = SJRuntime.selectorFor(p_select);
 		
 		try (selector)
 		{
@@ -37,15 +39,18 @@ public class Test2
 						
             typecase (s) 
             {
-              when (@(p1)) 
+              //when (@(p1))
+            	when (!<int>.?(String))
               {
               	s.send(123);
               	
               	selector.registerReceive(s);
               }
-              when (@(p2)) 
+              //when (@(p2))
+            	when (?(String))
               {
               	System.out.println("Received: " + (String) s.receive());
+            		//System.out.println("Received: " + (Integer) s.receive());
               }
             }
           }

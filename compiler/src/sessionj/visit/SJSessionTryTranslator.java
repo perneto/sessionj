@@ -10,10 +10,12 @@ import polyglot.util.Position;
 import polyglot.visit.NodeVisitor;
 import static sessionj.SJConstants.*;
 import sessionj.ast.SJNodeFactory;
+import sessionj.ast.sesstry.SJSelectorTry;
 import sessionj.ast.sesstry.SJServerTry;
 import sessionj.ast.sesstry.SJSessionTry;
 import sessionj.ast.sesstry.SJTry;
 import sessionj.ast.sessvars.SJLocalSocket;
+import sessionj.ast.sessvars.SJSelectorVariable;
 import sessionj.ast.sessvars.SJServerVariable;
 import sessionj.types.SJTypeSystem;
 import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
@@ -63,9 +65,17 @@ public class SJSessionTryTranslator extends SJSessionVisitor
 			{
 				n = translateSJSessionTry((SJSessionTry) n);
 			}
-			else //if (n instanceof SJServerTry)
+			else if (n instanceof SJServerTry)
 			{
 				n = translateSJServerTry((SJServerTry) n);
+			}
+			else if (n instanceof SJSelectorTry)
+			{
+				n = translateSJSelectorTry((SJSelectorTry) n);
+			}
+			else
+			{
+				throw new SemanticException("[SJSessionTryTranslator] ");
 			}
 		}
 
@@ -156,6 +166,28 @@ public class SJSessionTryTranslator extends SJSessionVisitor
 		i = (If) buildAndCheckTypes(this, i);
 		
 		st = (SJServerTry) appendToFinally(st, i);
+		
+		return st;
+	}
+	
+	private SJSelectorTry translateSJSelectorTry(SJSelectorTry st) throws SemanticException // Duplicated from translateSJServerTry
+	{
+		Position pos = st.position();		
+		QQ qq = new QQ(sjts.extensionInfo(), pos);
+		
+		String translation = "";
+		List<Object> mapping = new LinkedList<Object>();		
+		
+		SJSelectorVariable sv = (SJSelectorVariable) st.targets().get(0); // Factor out constant. // Currently, only a single server is permitted per server-try.
+		
+		translation += "if (%E != null) %E.close();";
+		mapping.add(sv);
+		mapping.add(sv);
+			
+		If i = (If) qq.parseStmt(translation, mapping);
+		i = (If) buildAndCheckTypes(this, i);
+		
+		st = (SJSelectorTry) appendToFinally(st, i);
 		
 		return st;
 	}

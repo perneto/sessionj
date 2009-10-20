@@ -1,6 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.net.SJSelector;
 import sessionj.runtime.net.SJServerSocket;
 import sessionj.runtime.net.SJSocket;
@@ -226,6 +227,11 @@ public class SJStreamTCP implements SJTransport
 
         public SJSocket select(int mask) throws SJIOException {
             return null;
+        }
+        
+        public void close()
+        {
+        	throw new SJRuntimeException("[SJStreamTCP] TODO: close operation.");
         }
     }
 }

@@ -295,6 +295,8 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
     
     public SJSessionType getCanonicalForm() // Currently only overridden by SJSetType_c.
     {
-    	return this;
+    	SJSessionType c = child();
+    	
+    	return (c == null) ? copy() : copy().child(c.getCanonicalForm());
     }
 }

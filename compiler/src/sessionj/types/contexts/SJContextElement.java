@@ -39,6 +39,7 @@ public interface SJContextElement
     // Used to check, in conjunction with the sessions in scope, whether sessions have been completed.
     // For noalias (not na-final) method parameters, sessions are initially active, but not yet in scope.
 	void setImplemented(String sjname, SJSessionType st); // The type of the session implemented so far.
+	void setSelectorInScope(String sjname, SJSessionType st);
 	
 	Set<String> channelSet();
 	Set<String> socketSet();
