@@ -11,8 +11,10 @@ public class Test2
 	private static protocol p2 { ?(String) }
 	private static protocol p1 { !<int>.@(p2) }
 	//private static protocol p1 { !<int>.!<Boolean> }
-	private static protocol p { sbegin.@(p1) }	
+	private static protocol p { sbegin.@(p1) }
+	//private static protocol p { sbegin.!<Boolean> }
 	private static protocol p_select { @(p1), @(p2) }
+	//private static protocol p_select { @(p2) }
 	//private static protocol p { sbegin.!<int>.?(String) }
 	//private static protocol p_select { !<int>.?(String), ?(String) }
 
@@ -48,6 +50,8 @@ public class Test2
               	//System.out.println("Received: " + (String) s.receive());
               	
               	selector.registerReceive(s);
+              	
+              	//System.out.println("Received: " + (String) s.receive());
               }
               when (@(p2))
             	//when (?(String))
@@ -55,6 +59,10 @@ public class Test2
               	System.out.println("Received: " + (String) s.receive());
             		//System.out.println("Received: " + (Integer) s.receive());
               }
+            	/*when (!<Boolean>)
+              {
+            		s.send(new Boolean(true));
+              }*/
             }
           }
 					finally 

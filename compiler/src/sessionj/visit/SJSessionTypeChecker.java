@@ -232,17 +232,22 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		return so;
 	}
 	
+	// FIXME: haven't taken into account the selector filters yet, e.g. SJSelector.ACCEPT.
 	private SJSelectorOperation checkSJSelectorOperation(Node parent, SJSelectorOperation so) throws SemanticException // Duplicated from checkSJServerOperation.
 	{
-		Receiver target = so.target();	
-		
-		SJSessionType selectorType;
+		Receiver target = so.target();					
 		
 		if (!(target instanceof SJSelectorVariable))  
 		{			
 			throw new RuntimeException(getVisitorName()
                   + " Shouldn't get in here (Anonymous (inline) server creation not permitted).");
 		}	
+		
+		SJSelectorVariable sv = (SJSelectorVariable) target;
+		String selectorName = sv.sjname();
+		
+		SJSessionType selectorType;		
+		SJSessionType st; // The type associated with the operation (so).
 		
 		if (so instanceof SJSelect) // Not really checking anything, rather finishing the type building process.
 		{
@@ -261,58 +266,64 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			{
 				// SJNamedExt already set by SJSocketDeclTypeBuilder with the associated session type.
 			}
+			
+			st = selectorType.copy();
 		}
 		else if (so instanceof SJRegister)
-		{
+		{			
+			selectorType = sjcontext.findSelector(selectorName);
+			
+			String argname;					
+			
 			if (so instanceof SJRegisterAccept)
 			{
 				// FIXME: need to remove the registered service (and the server) from scope (and outer scopes?).
+				
+				SJServerVariable arg = (SJServerVariable) so.arguments().get(0); // Factor out constant.
+				
+				argname = arg.sjname();
+								
+				st = sjcontext.currentContext().getService(argname).getCanonicalForm().child(); // Guaranteed to start with sbegin by server typing.				
 			}
 			else if (so instanceof SJRegisterOutput || so instanceof SJRegisterInput) // Treat like delegation in SJPass.
 			{
 				SJSocketVariable arg = (SJSocketVariable) so.arguments().get(0); // Factor out constant.
 				
-				String sjname = arg.sjname();
+				argname = arg.sjname();
 				
-				System.out.println("a1: " + sjname + ", " + sjcontext.currentContext().getActive(sjname) + ", " + sjcontext.currentContext() + ", " + sjcontext.currentContext().sessionActive(sjname));
-				
-				SJSessionType remaining = sjcontext.sessionRemaining(sjname);
-				
-				selectorType = sjcontext.findSelector(((SJSelectorVariable) target).sjname());
-				
-				System.out.println("a2: " + remaining + ", " + selectorType);
-				
-				if (selectorType instanceof SJSetType)
-				{
-					if (!((SJSetType) selectorType).contains(remaining))
-					{
-						throw new SemanticException(getVisitorName() + " Selector type " + selectorType + " incompatible with registered session: " + remaining);
-					}
-				}
-				else 
-				{
-					// FIXME: for singleton (canonicalised) set types. 
-				}
-				
-				// FIXME: build type for target (not done yet).
-				
-				SJSessionType st = sjcontext.delegateSession(sjname);
-				
-				//System.out.println("a3: " + getSessionType(so)); // FIXME: build types.
-				
-				//System.out.println("a2: " + arg + ", " + st);
-				
-				//p = (SJPass) setSJSessionOperationExt(sjef, p, st, soe.targetNames());
+				st = sjcontext.delegateSession(argname);
 			}
 			else 
 			{
 				throw new RuntimeException(getVisitorName() + " Shouldn't get in here: " + so);
 			}
+			
+			if (selectorType instanceof SJSetType)
+			{
+				if (!((SJSetType) selectorType).contains(st)) // FIXME: seems contains is not working as expected.
+				{
+					throw new SemanticException(getVisitorName() + " Selector type " + selectorType + " incompatible with registered session/service: " + st);
+				}
+			}
+			else // Not sure we're ever coming into here, even for singleton selector types? 
+			{
+				if (!selectorType.typeEquals(st)) // FIXME: following current set type handling, no subtyping supported for set type members.
+				{
+					throw new SemanticException(getVisitorName() + " Selector type " + selectorType + " incompatible with registered session/service: " + st);
+				}
+			}
+			
+			sv = (SJSelectorVariable) setSJNamedExt(sjef, target, selectorType, selectorName); // Unlike select operations, this hasn't been done yet.			
+			so = (SJRegister) so.target(sv);			
 		}
 		else
 		{
 			throw new RuntimeException(getVisitorName() + " Shouldn't get in here.");
 		}
+				
+		so = (SJSelectorOperation) setSJTypeableExt(sjef, so, st);
+		
+		//System.out.println(getVisitorName() + " " + selectorName + ": " + st);
 		
 		return so;
 	}
@@ -592,7 +603,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		
 		sjcontext.advanceSession(sjname, st);
 		
-		System.out.println("[SJTypeChecker] " + sjname + ": " + st);			
+		System.out.println(getVisitorName() + " " + sjname + ": " + st);			
 		
 		return bo;
 	}
@@ -794,7 +805,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
         
         co = (SJCompoundOperation) updateSessionType(co, typeForNode, sjef);
 
-		System.out.println("[SJTypeChecker] " + sjname + ": " + getSessionType(co));
+		System.out.println(getVisitorName() + " " + sjname + ": " + getSessionType(co));
 		
 		return co;
 	}

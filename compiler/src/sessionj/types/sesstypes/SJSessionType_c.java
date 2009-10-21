@@ -293,10 +293,21 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
         return this;
     }
     
-    public SJSessionType getCanonicalForm() // Currently only overridden by SJSetType_c.
-    {
-    	SJSessionType c = child();
-    	
-    	return (c == null) ? copy() : copy().child(c.getCanonicalForm());
-    }
+  final public SJSessionType getCanonicalForm()  
+  {
+  	return treeCanonicalForm();
+  }
+  
+  public SJSessionType nodeCanonicalForm() // FIXME: still need to override in most types, e.g. branch types. Currently only overridden by SJSetType_c and SJMessageCommunication_c.
+  {
+  	return nodeClone();
+  }
+    
+	final public SJSessionType treeCanonicalForm()
+	{
+		SJSessionType n = nodeCanonicalForm();
+  	SJSessionType c = child();		
+		
+  	return (c == null) ?  n : n.child(c.getCanonicalForm());
+	}   
 }

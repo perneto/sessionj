@@ -50,7 +50,7 @@ public class SJCompilerUtils
 	}
 
 	// Generally, the "first" extension object should be for noalias typing, and the "second" for session typing... 
-    public static SJTypeableExt getSJTypeableExt(Node n)
+  public static SJTypeableExt getSJTypeableExt(Node n)
 	{
 		if (n.ext(2) == null) // SJCompoundOperation.
 		{
