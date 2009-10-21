@@ -103,9 +103,6 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     }
 
     protected boolean compareNode(NodeComparison o, SJSessionType st) {
-    	
-    	System.out.println("d: " + this + ", " + st);
-    	
         return !isSingleton() || ((SJSessionType_c) singletonMember()).compareNode(o, st); // Why should this always succeed if the set type is not a singleton?
     }
 
@@ -213,12 +210,15 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
         return this;
     }
 
-    public boolean contains(SJSessionType sessionType) {
-        return members.contains(sessionType);
+    public boolean contains(SJSessionType sessionType)  // FIXME: not working for e.g. members !<int>.S and arg !<int>. Seems the children are not being taken into account. 
+    {    	
+    	//System.out.println("c1: " + members + ", " + sessionType + ", " + members.contains(sessionType));
+    	
+        return members.contains(sessionType); // This requires type equality between the argument and set type members?
     }
 
     public boolean containsAllAndOnly(Collection<SJSessionType> types) {    	
-        return members.containsAll(types) && types.containsAll(members); // FIXME: should be modulo "flattening" (which is TODO. see SJSetType).
+        return members.containsAll(types) && types.containsAll(members); // FIXME: should be modulo "flattening".
     }
 
     public int memberRank(SJSessionType member) {
@@ -231,7 +231,7 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
             + member + " is not a member of set type " + this);
     }
     
-    public SJSessionType getCanonicalForm() // Session set types currently do not have children. 
+    public SJSessionType nodeCanonicalForm() // Session set types currently do not have children. 
     {
     	SJSetType flattened = this.getFlattenedForm();
     	

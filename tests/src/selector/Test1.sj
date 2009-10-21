@@ -10,7 +10,9 @@ public class Test1
 {
 	private static protocol p1 { !<String>.!<String> } 
 	private static protocol p { sbegin.@(p1) }
+	//private static protocol p { sbegin.!<Integer> }
 	private static protocol p_select { @(p1) }
+	//private static protocol p_select { !<Integer> }
 
 	public static void main(String[] args) throws SJIOException, SJIncompatibleSessionException 
 	{

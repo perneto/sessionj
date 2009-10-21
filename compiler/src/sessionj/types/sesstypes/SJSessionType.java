@@ -30,7 +30,7 @@ public interface SJSessionType extends SJType
 	SJSessionType nodeClone();
 
 	SJSessionType clone();
-	SJSessionType copy();
+	SJSessionType copy(); // Does a treeClone.
 
 
     // TODO: this is duplicated between typenode and type classes, find a way to sort it out
@@ -53,4 +53,6 @@ public interface SJSessionType extends SJType
     SJSessionType supertypeCandidate(SJSessionType potentialSubtype);
     
     SJSessionType getCanonicalForm(); // Basically for flattening set types and simplifying singletons.
+    SJSessionType nodeCanonicalForm(); // Maybe these shouldn't be public.
+    SJSessionType treeCanonicalForm();
 }
