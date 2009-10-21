@@ -22,7 +22,7 @@ public class Test2
 	{
 		final noalias SJSelector selector = SJRuntime.selectorFor(p_select);
 		
-		try (selector)
+		try (selector) // FIXME.
 		{
 			noalias SJServerSocket ss;
 			
@@ -79,6 +79,6 @@ public class Test2
 		finally
 		{
 			
-		}		
+		}
 	}
 }
