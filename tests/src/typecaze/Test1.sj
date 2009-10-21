@@ -10,7 +10,8 @@ public class Test1
 {
 	//private static protocol p { ?(String).!<int>, !<Boolean> }
 	private static protocol p { ?(String).!<int> }
-	private static protocol p_service { cbegin.@(p) } 
+	private static protocol p_service { cbegin.@(p) }
+	//private static protocol p_service { cbegin.?(String).!<String> }
 
 	public static void main(String[] args) throws Exception 
 	{
