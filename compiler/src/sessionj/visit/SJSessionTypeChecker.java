@@ -195,7 +195,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	}
 	
 	private SJServerOperation checkSJServerOperation(Node parent, SJServerOperation so) throws SemanticException
-	{
+	{ // Probably better to check for in-scope rules here rather than e.g. in checkAssignToServer.
 		if (so instanceof SJAccept) // Not really checking anything, rather finishing the type building process.
 		{
 			if (!(parent instanceof Assign))
@@ -245,6 +245,11 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		
 		SJSelectorVariable sv = (SJSelectorVariable) target;
 		String selectorName = sv.sjname();
+		
+		if (!sjcontext.selectorInScope(selectorName)) // Should probably do something like this for servers, etc.
+		{
+			throw new SemanticException(getVisitorName() + " Selector not in scope: " + selectorName);
+		}
 		
 		SJSessionType selectorType;		
 		SJSessionType st; // The type associated with the operation (so).
@@ -337,8 +342,12 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		}
 		else if (a.type().isSubtype(SJ_SERVER_INTERFACE_TYPE)) // FIXME: factor out with above.
 		{
-            checkAssignToServer(a);
+            checkAssignToServer(a); // CHECKME: now that servers do not have to be final, do we need to do some extra work about assignment of services? 
 		}
+		else if (a.type().isSubtype(SJ_SELECTOR_INTERFACE_TYPE))
+		{
+			checkAssignToSelector(a);
+		}		
 		else if (a.type().isSubtype(SJ_SOCKET_INTERFACE_TYPE)) // Only need to check assign, session socket declaration with initialisation not possible - the session must be in a session-try, and the session-try needs the uninitialised socket to be declared first. 
 		{
             a = checkAssignToSocket(a);
@@ -460,6 +469,11 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
         }
     }
         
+    private void checkAssignToSelector(Assign a) throws SemanticException
+    {
+    	throw new SemanticException(getVisitorName() + " assignment of selectors not yet supported: " + a);
+    }
+    
     private void checkUnusedLocalInstance(SJNamedInstance lsi) throws SemanticException {
         if (!(lsi.sessionType() instanceof SJUnknownType))
         // Cannot count on compiler pass completion order (i.e. noalias type checking before this pass), so cannot just throw RuntimeException.
@@ -1026,7 +1040,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 				{				
 					sjcontext.addServer((SJLocalServerInstance) li); // Server fields not currently supported.					
 				}
-				else if (dt.isSubtype(SJ_SELECTOR_INTERFACE_TYPE))
+				else if (dt.isSubtype(SJ_SELECTOR_INTERFACE_TYPE)) // Unlike servers, selectors are initialised out-of-scope at declaration. We can get the type directly from here. 
 				{
 					sjcontext.addSelector((SJLocalSelectorInstance) li);
 				}
@@ -1121,10 +1135,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		
 		if (n instanceof Try) // Includes SJTry (SJSessionTry, SJServerTry, etc.).
 		{
-			//if (!(n instanceof SJSelectorTry)) 
-			{
-				ce = sjcontext.pop();	
-			}			
+			ce = sjcontext.pop();				
 		}
 		else if (n instanceof SJInbranch)
 		{

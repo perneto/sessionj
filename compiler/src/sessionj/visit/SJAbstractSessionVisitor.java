@@ -354,6 +354,10 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 				{				
 					sjcontext.addServer((SJNamedInstance) li);					
 				}
+				else if (dt.isSubtype(SJ_SELECTOR_INTERFACE_TYPE))  
+				{
+					sjcontext.addSelector((SJLocalSelectorInstance) li);
+				}
 			}
 		}
 		else if (n instanceof Try)
@@ -368,10 +372,10 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 				{
 					sjcontext.pushSJServerTry((SJServerTry) n);
 				} 
-				/*else if (n instanceof SJSelectorTry) // FIXME: do as for SJSessionTypeChecker.
+				else if (n instanceof SJSelectorTry) 
 				{
-					
-				}*/
+					sjcontext.pushSJSelectorTry((SJSelectorTry) n);
+				}
 			}
 			else
 			{
@@ -439,12 +443,9 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 	{
 		SJContextElement ce = null;
 		
-		if (n instanceof Try) // Includes SJTry (SJSessionTry and SJServerTry).
+		if (n instanceof Try) // Includes SJTry (SJSessionTry, SJServerTry, etc.).
 		{
-			if (!(n instanceof SJSelectorTry)) // FIXME: do as for SJSessionTypeChecker.
-			{
-				ce = sjcontext.pop();
-			}
+			ce = sjcontext.pop();
 		}
 		else if (n instanceof SJInbranch || n instanceof SJTypecase)
 		{

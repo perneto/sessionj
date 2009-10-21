@@ -17,7 +17,7 @@ public interface SJContextElement
 {
 	SJNamedInstance getChannel(String sjname);
 	SJNamedInstance getSocket(String sjname);
-	SJNamedInstance getServer(String sjname);
+	SJNamedInstance getServer(String sjname); 
 	SJNamedInstance getSelector(String sjname);
 	
 	void setChannel(SJNamedInstance ni);
@@ -26,11 +26,11 @@ public interface SJContextElement
 	void setSelector(SJNamedInstance ni);
 	
 	// FIXME: factor something out across "inactive" entities, e.g. servers and selectors, and their "active" (and linear) counterparts, e.g. services and selectorsInScope.
-	SJSessionType getService(String sjname); // Services are server sockets that are open (i.e. listening). Not to be confused with SJServices (shared channels). 
+	SJSessionType getService(String sjname); // Services are server sockets that are open (i.e. listening). Not to be confused with SJServices (shared channels). // Servers are the server variables, and services are initialised server variables. 
 	SJSessionType getSession(String sjname);
 	SJSessionType getActive(String sjname);
 	SJSessionType getImplemented(String sjname);
-	SJSessionType getSelectorType(String sjname); // Could be called getSelectorInScope.
+	SJSessionType getSelectorType(String sjname); // Could be called getSelectorInScope. 
 	
 	void setService(String sjname, SJSessionType st);
 	void setSession(String sjname, SJSessionType st); // Seems to be the "original" session type when entering a session-try.
@@ -39,7 +39,7 @@ public interface SJContextElement
     // Used to check, in conjunction with the sessions in scope, whether sessions have been completed.
     // For noalias (not na-final) method parameters, sessions are initially active, but not yet in scope.
 	void setImplemented(String sjname, SJSessionType st); // The type of the session implemented so far.
-	void setSelectorInScope(String sjname, SJSessionType st);
+	void setSelectorInScope(String sjname, SJSessionType st); // Selectors-in-scope vs. selectors analogous to services vs. servers.
 	
 	Set<String> channelSet();
 	Set<String> socketSet();
