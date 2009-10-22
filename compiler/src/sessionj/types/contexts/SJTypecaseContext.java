@@ -8,7 +8,10 @@ import polyglot.types.SemanticException;
 
 import java.util.List;
 import java.util.Collections;
+import java.util.Set;
 
+// Unlike all the other context elements, this one doesn't have a separate interface.
+// TODO: rework this context to be analogous to the contexts for inbranch. Only difference is checking the when sub-contexts as they are pushed.
 public class SJTypecaseContext extends SJContextElement_c implements SJSessionContext {
     public final String sjname;
     private final SJTypecase typecase;
@@ -40,5 +43,10 @@ public class SJTypecaseContext extends SJContextElement_c implements SJSessionCo
 
     public List<String> targets() {
         return Collections.singletonList(sjname);
+    }
+    
+    public String getSessionName() // Refactor: SJSessionContext already maintains the "targets".
+    {   	
+    	return sjname;
     }
 }

@@ -13,16 +13,17 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+// Ray: I replaced all occurrences of SJSessionType_c with SJSessionType (following the changes to the implementation of SJSetType_c).
 public class SetTypeTest {
     private SJSetType set;
-    private List<SJSessionType_c> members;
+    private List<SJSessionType> members;
     private SJTypeSystem ts;
     private SJSendType_c sendBool;
-    private SJSessionType_c sendString;
-    private SJSessionType_c receiveString;
-    private SJSessionType_c sendObject;
-    private SJSessionType_c receiveObject;
-    private SJSessionType_c sendInt;
+    private SJSessionType sendString;
+    private SJSessionType receiveString;
+    private SJSessionType sendObject;
+    private SJSessionType receiveObject;
+    private SJSessionType sendInt;
 
     @BeforeTest
     public void createSet() throws SemanticException {
@@ -38,7 +39,7 @@ public class SetTypeTest {
         sendInt = sendType(PrimitiveType.INT);
         receiveObject = new SJReceiveType_c(ts, ts.Object());
         receiveString = new SJReceiveType_c(ts, ts.String());
-        members = new LinkedList<SJSessionType_c>() {{
+        members = new LinkedList<SJSessionType>() {{
             add(sendBool);
             add(sendInt);
         }};
@@ -72,7 +73,7 @@ public class SetTypeTest {
 
     @Test
     public void subtypeSmallerSetType() {
-        List<SJSessionType_c> smaller = new LinkedList<SJSessionType_c>();
+        List<SJSessionType> smaller = new LinkedList<SJSessionType>();
         smaller.add(sendBool);
         Type smallerSet = new SJSetType_c(ts, smaller);
 
@@ -82,11 +83,11 @@ public class SetTypeTest {
 
     @Test 
     public void setElementsAreSubtypes() {
-        List<SJSessionType_c> listSubtypes = new LinkedList<SJSessionType_c>() {{
+        List<SJSessionType> listSubtypes = new LinkedList<SJSessionType>() {{
             add(sendObject);
             add(receiveString);
         }};
-        List<SJSessionType_c> listSupertypes = new LinkedList<SJSessionType_c>() {{
+        List<SJSessionType> listSupertypes = new LinkedList<SJSessionType>() {{
             add(sendString);
             add(receiveObject);
             add(sendBool);
@@ -108,7 +109,7 @@ public class SetTypeTest {
 
     //@Test
     public void subsumeSetAndSubtypeOfMemberOfSet() throws SemanticException {
-        SJSessionType setWithSupertype = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+        SJSessionType setWithSupertype = new SJSetType_c(ts, new LinkedList<SJSessionType>() {{
             add(sendString);
             add(sendBool);
         }});
@@ -121,12 +122,12 @@ public class SetTypeTest {
 
     //@Test
     public void subsumeFoo() throws SemanticException {
-        SJSessionType set1 = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+        SJSessionType set1 = new SJSetType_c(ts, new LinkedList<SJSessionType>() {{
             add(sendString);
             add(sendObject);
         }});
 
-        SJSessionType set2 = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+        SJSessionType set2 = new SJSetType_c(ts, new LinkedList<SJSessionType>() {{
             add(sendString);
         }});
         SJSessionType result = set1.subsume(set2);
@@ -146,7 +147,7 @@ public class SetTypeTest {
 
     @Test
     public void biggerSetShouldntContainsAllAndOnly() {
-        SJSetType bigger = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+        SJSetType bigger = new SJSetType_c(ts, new LinkedList<SJSessionType>() {{
             add(sendBool);
             add(sendInt);
             add(sendString);
@@ -156,7 +157,7 @@ public class SetTypeTest {
 
     @Test
     public void setsSameMembersShouldBeEqual() {
-        Object same = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+        Object same = new SJSetType_c(ts, new LinkedList<SJSessionType>() {{
             add(sendInt); add(sendBool);
             // same members but different order - should make no difference        
         }});
@@ -172,7 +173,7 @@ public class SetTypeTest {
 
     @Test
     public void setsWithDifferentMembersShouldntBeEqual() {
-        Object diffMembers = new SJSetType_c(ts, new LinkedList<SJSessionType_c>() {{
+        Object diffMembers = new SJSetType_c(ts, new LinkedList<SJSessionType>() {{
             add(sendBool); add(sendInt); add(sendObject);
         }});
         assert !diffMembers.equals(set);

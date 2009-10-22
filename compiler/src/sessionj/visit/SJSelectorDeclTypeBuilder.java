@@ -14,6 +14,7 @@ import sessionj.ast.*;
 import sessionj.ast.createops.*;
 import sessionj.ast.protocoldecls.*;
 import sessionj.ast.sessvars.*;
+import sessionj.ast.sesscasts.SJChannelCast;
 import sessionj.ast.sessops.*;
 import sessionj.ast.sessops.basicops.*;
 import sessionj.ast.typenodes.SJTypeNode;
@@ -32,8 +33,10 @@ import static sessionj.util.SJCompilerUtils.*;
 /**
  * @author Raymond
  *
+ *	Similar to SJChannelDeclTypebuilder.
+ *
  */
-public class SJServerDeclTypeBuilder extends ContextVisitor
+public class SJSelectorDeclTypeBuilder extends ContextVisitor
 {	
 	private SJTypeSystem sjts = (SJTypeSystem) typeSystem();
 	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
@@ -42,7 +45,7 @@ public class SJServerDeclTypeBuilder extends ContextVisitor
 	/**
 	 * 
 	 */
-	public SJServerDeclTypeBuilder(Job job, TypeSystem ts, NodeFactory nf)
+	public SJSelectorDeclTypeBuilder(Job job, TypeSystem ts, NodeFactory nf)
 	{
 		super(job, ts, nf);
 	}
@@ -65,9 +68,9 @@ public class SJServerDeclTypeBuilder extends ContextVisitor
 				n = buildLocalDecl((LocalDecl) n);
 			}
 		}		
-		else if (n instanceof SJServerCreate)
+		else if (n instanceof SJSelectorCreate)
 		{
-			n = buildSJServerCreate((SJServerCreate) n);
+			n = buildSJSelectorCreate((SJSelectorCreate) n); // We don't currently check that all created selectors are assigned to a variable (shouldn't be needed). 
 		}
 		
 		return n;
@@ -77,9 +80,9 @@ public class SJServerDeclTypeBuilder extends ContextVisitor
 	{	
 		Type t = fd.declType();
 		
-		if (t.isSubtype(SJ_SERVER_INTERFACE_TYPE)) // Could make a SJChannelDecl.
+		if (t.isSubtype(SJ_SELECTOR_INTERFACE_TYPE)) 
 		{
-			throw new SemanticException("[SJServerDeclTypeBuilder] Field type not supported: " + t);
+			throw new SemanticException("[SJSelectorDeclTypeBuilder] Field type not supported: " + t);
 		}
 		
 		return fd;
@@ -90,35 +93,32 @@ public class SJServerDeclTypeBuilder extends ContextVisitor
 		Type t = ld.declType();
 		SJLocalInstance li = (SJLocalInstance) ld.localInstance();
 
-        if (t.isSubtype(SJ_SERVER_INTERFACE_TYPE))
-		{
+    if (t.isSubtype(SJ_SELECTOR_INTERFACE_TYPE))
+		{    	
 			Expr init = ld.init();
-			SJSessionType st;
+			
+			SJSessionType st = null;
 			String sjname = ld.name();
 									
-			if (init == null || init instanceof NullLit)
-			{
-				st = sjts.SJUnknownType();
-			}
-			/*else if (init instanceof SJServerCreate)
+			if (init instanceof SJSelectorCreate) // Bit of a discrepancy between selectors and servers, etc. Selector must currently be assigned at the variable declaration (like channels and unlike servers), but must still be used inside a try. Because a selector is not "active" until at least one session has been registered, which can only happen inside the try. 
 			{			
  				st = getSessionType(init);				
-			}*/
+			}
 			else
 			{
-				throw new SemanticException("[SJServerDeclTypeBuilder] Unexpected server variable initializer: " + init);
+				throw new SemanticException("[SJSelectorDeclTypeBuilder] Unexpected selector variable initializer: " + init);
 			}		
 			
-			ld = ld.localInstance(sjts.SJLocalServerInstance(li, st, sjname));
+			ld = ld.localInstance(sjts.SJLocalSelectorInstance(li, st, sjname));
 			ld = (LocalDecl) setSJNamedExt(sjef, ld, st, sjname);			
 		}
 		
 		return ld;
 	}
 	
-	/*private SJChannelCreate buildSJChannelCreate(SJChannelCreate cc) throws SemanticException
+	private SJSelectorCreate buildSJSelectorCreate(SJSelectorCreate sc) throws SemanticException
 	{		
-		NamedVariable nv = (NamedVariable) cc.arguments().get(0); // Factor out constant. // Or could be recorded in a SJChannelDecl. 
+		NamedVariable nv = (NamedVariable) sc.arguments().get(0); // Factor out constant.  
 		String pname = nv.name(); // FIXME: should parse and create SJProtocolVariables.
 				
 		SJNamedInstance ni = null;
@@ -133,7 +133,7 @@ public class SJServerDeclTypeBuilder extends ContextVisitor
 			}
 			else
 			{
-				throw new RuntimeException("[SJServerDeclTypeBuilder] Shouldn't get in here.");
+				throw new RuntimeException("[SJSelectorDeclTypeBuilder] Shouldn't get in here.");
 			}
 		}
 		else //if (nv instanceof Local)
@@ -141,38 +141,8 @@ public class SJServerDeclTypeBuilder extends ContextVisitor
 			ni = (SJNamedInstance) context().findLocal(pname);
 		}								
 	
-		cc = (SJChannelCreate) setSJTypeableExt(sjef, cc, ni.sessionType());
-		
-		return cc;
-	}*/
-	
-	private SJServerCreate buildSJServerCreate(SJServerCreate sc) throws SemanticException
-	{		
-		NamedVariable nv = (NamedVariable) sc.arguments().get(0); // Factor out constant. // Or could be recorded in a SJServerDecl. 
-		String pname = nv.name(); // FIXME: should parse and create SJProtocolVariables.
-				
-		SJNamedInstance ni = null;
-		
-		if (nv instanceof Field) // FIXME: factor out with above routine for channel declarations.
-		{		
-			ParsedClassType pct = (ParsedClassType) ((Field) nv).target().type();
-			
-			if (pct instanceof SJParsedClassType)
-			{	
-				ni = (SJFieldProtocolInstance) sjts.findField(pct, pname, context.currentClass()); 
-			}
-			else
-			{
-				throw new RuntimeException("[SJServerDeclTypeBuilder] Shouldn't get in here.");
-			}
-		}
-		else //if (nv instanceof Local)
-		{
-			ni = (SJNamedInstance) context().findLocal(pname);
-		}								
-	
-		sc = (SJServerCreate) setSJTypeableExt(sjef, sc, ni.sessionType());
+		sc = (SJSelectorCreate) setSJTypeableExt(sjef, sc, ni.sessionType());
 		
 		return sc;
-	}	
+	}
 }

@@ -64,7 +64,8 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
 
     public Node buildType(ContextVisitor cv, SJTypeSystem sjts, SJExtFactory sjef) {
         List<String> sjnames = getTargetNames(resolvedTargets(), false);
-        SJSessionType st = sjts.SJSetType(Collections.singletonList((SJSessionType_c) sjts.SJUnknownType()));
+        //SJSessionType st = sjts.SJSetType(Collections.singletonList((SJSessionType_c) sjts.SJUnknownType()));
+        SJSessionType st = sjts.SJSetType(Collections.singletonList((SJSessionType) sjts.SJUnknownType()));
         return SJCompilerUtils.setSJSessionOperationExt(sjef, this, st, sjnames);
     }
 

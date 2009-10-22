@@ -22,8 +22,10 @@ import static sessionj.util.SJCompilerUtils.*;
 /**
  * @author Raymond
  *
+ * SJSessionTypeChecker uses this context manager to complete type building, i.e. we do some type checking in here. Subsequent passes should just use SJContext_c (probably via SJSessionVisitor), which should involve much less "calculation" and more simple lookups.
+ *
  */
-public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildingContext
+public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildingContext   
 {
 	private final SJTypeSystem sjts;
 	
@@ -42,10 +44,10 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		{
 			throw new SemanticException("[SJTypeBuildingContext_c] Unsupported branch context for session implementation: " + sjname);			
 		}
-		
-		if (st != null && !(st.child() == null))
+				
+		if (st != null && st.child() != null)
 		{
-			throw new RuntimeException("[SJContent_c] Shouldn't get in here.");
+			throw new RuntimeException("[SJContent_c] Shouldn't get in here: " + st);
 		}
 
 		super.advanceSession(sjname, st);
@@ -169,22 +171,35 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		return currentContext().getImplemented(sjname);
 	}*/
 	
-	public SJSessionType sessionRemaining(String sjname) throws SemanticException
+	public SJSessionType sessionRemaining(String sjname) throws SemanticException  
 	{
 		SJSessionType remaining = null;
 		SJSessionType innermostRemaining = null;
+		
+		boolean enterWhenCase = false; // HACK: we "reset" the algorithm when we enter a typecase - typecases currently cannot have continuations for the target session. The result should end up the same as expectedSessionOperation. 
 		
 		for (SJContextElement ce : contexts()) // Starts from bottom of the stack (outermost context). We take the maximum possible active type (remaining session to be implemented) from the outermost scope, and take away the bits we've found have implemented as we move through the inner scopes. Remember, nesting of active types should only come from the first elements at each level being an open branch scope - delegation within loops not allowed.
 		//for (int i = 0; i < contexts().size(); i++)
 		{		
 			//SJContextElement ce = contexts().get(i);
 			
-			if (remaining == null)
+			if (remaining == null || enterWhenCase)
 			{
 				if (ce.sessionActive(sjname))
 				{	
 					remaining = ce.getActive(sjname);
+					
+					/*if (remaining != null)
+					{
+						remaining = remaining.getCanonicalForm();
+					}*/
+					
 					innermostRemaining = remaining;
+					
+					if (enterWhenCase)
+					{
+						enterWhenCase = false;
+					}
 				}
 			}
 			else
@@ -217,9 +232,18 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 					
 					remaining = remaining.append(child); // FIXME: gets the full remainder of the session for completion. But will break the advanceSession routine below if we're currently inside an inner scope that only has a fragment of the remainder as the active type, e.g. if we're delegating a session from within a branch on that session and there are operations after the branch. 
 				}
-				//else 
+				else if (ce instanceof SJTypecaseContext) // FIXME: typecase contexts currently cannot have continuations for the target session (unlike the above branch contexts).
+				{
+					enterWhenCase = true; // FIXME: is this OK? How about nested typecase. And should typecase be allowed to have continuations in the future?
+				}
+				else
 				{					
 					SJSessionType implemented = ce.getImplemented(sjname);
+					
+					/*if (implemented != null)
+					{
+						implemented = implemented.getCanonicalForm();
+					}*/
 					
 					for ( ; implemented != null; implemented = implemented.child())
 					{
@@ -402,19 +426,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		
 		pushContextElement(tc);		
 	}
-
-    public void pushSJTypecase(SJTypecase typecase) throws SemanticException {
-        SJContextElement current = currentContext();
-        List<String> sjnames = getTargetNames(typecase);
-        assert sjnames.size() == 1;
-
-        String sjname = sjnames.get(0);
-        current.checkActiveSessionStartsWith
-            (sjname, SJSetType.class, "[SJTypeBuildingContext_c] found typecase, but expected: ");
-
-        pushContextElement(new SJTypecaseContext(current, typecase, sjname));
-    }
-
+	
     public void pushSJBranchOperation(SJBranchOperation b) throws SemanticException // SJInbranch.
 	{
 		assert !(b instanceof SJOutbranch) : "Should call pushSJBranchCase instead";
@@ -469,7 +481,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		}
 		else //if (bc instanceof SJInbranchCase)
 		{
-			pushContextElement(new SJBranchCaseContext_c(current, lab));			
+			pushContextElement(new SJBranchCaseContext_c(current, lab)); // FIXME: to fit the current context pop+check algorithm, we need to push a session context (as for outbranches) here - otherwise incomplete (sub)sessions are not caught (this is what currently happens). // Currently, hacked a fix into the algorithm for now (similarly for typecase cases). 			
 			
 			for (String sjname : ((SJSessionContext) current).targets()) // Should only be a single target.
 			{
@@ -581,6 +593,50 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		}
 	}
 	
+	public void pushSJWhen(SJWhen when) throws SemanticException 
+	{
+    SJTypecaseContext current = (SJTypecaseContext) currentContext();
+
+    /*SJSetType set = current.getActiveSetType(); // Active type does not need to explicitly be a set type to use a typecase: all session types are set types implicitly.         
+    SJSessionType selected = when.selectMatching(set);
+    // TODO when this fails, new context is not pushed, so next when will
+    // blow. Look at bypass() methods in visitor
+
+    if (selected instanceof SJSetType)
+    {
+    	SJSetType st = (SJSetType) selected;
+    	
+    	if (st.isSingleton()) 
+    	{
+    		selected = st.getSingletonMember();
+    	}
+    }*/
+    
+    SJSessionType outer = current.getActive(current.getSessionName()).getCanonicalForm();
+    SJSessionType selected;
+    
+    if (outer instanceof SJSetType)
+    {
+    	selected = when.selectMatching(((SJSetType) outer).getFlattenedForm()).getCanonicalForm();
+    }
+    else // Could be a (flattened) singleton typecase...
+    {
+    	SJSessionType wt = when.type().getCanonicalForm(); // ...so still need to get canonical form. 
+    	
+    	//if (!outer.isSubtype(wt)) 
+    	if (!outer.typeEquals(wt)) // TODO: treat subtyping.
+    	{
+    		throw new SemanticException("[SJContext_c] Expected type " + outer + " incompatible with when-case: " + wt);
+    	}
+    	
+    	selected = wt;
+    }
+ 
+    SJContextElement whenContext = new SJContextElement_c(current); // FIXME: should be pushing a SJBranchCaseContext like inbranch cases and outbranch. 
+    whenContext.setActive(current.sjname, selected);
+    pushContextElement(whenContext);
+	}	
+	
 	public SJContextElement pop() throws SemanticException
 	{
 		return popContextElement();				
@@ -626,9 +682,9 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 	{
 		SJContextElement poppedContext = contexts().pop();
 
-        popBranchContext(poppedContext);
+    popBranchContext(poppedContext);
 
-        // Until here, just sorting out popped branch (and inbranch) contexts (i.e. the branch case contexts ces for branch context poppedContext).
+    // Until here, just sorting out popped branch (and inbranch) contexts (i.e. the branch case contexts ces for branch context poppedContext).
 		
 		if (!contexts().isEmpty())
 		{
@@ -639,7 +695,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
             // (Now not necessary? Since channels must be na-final, so cannot assign different
             // values across branches, or even use after being received in a branch - but this may be too restrictive).  
 			{
-                pullUpBranchContext(poppedContext, current);
+        pullUpBranchContext(poppedContext, current);
 			}
 			else
 			{			
@@ -659,12 +715,12 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 					SJSessionType implemented = poppedContext.getImplemented(sjname);
 					
 					if (current.sessionActive(sjname))
-                    // Can be not in scope but still active for e.g. try (s) { try { try (s) { ... 
+          // Can be not in scope but still active for e.g. try (s) { try { try (s) { ... 
 					{
 						if (poppedContext instanceof SJSessionTryContext) // FIXME: make SJSessionTryContext a SJSessionContext.
 						{
-                            handleSessionTryContext(poppedContext, sjname);
-                        }
+              handleSessionTryContext(poppedContext, sjname);
+            }
 						
 						if (poppedContext instanceof SJSessionContext)
 						{																				
@@ -672,76 +728,105 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 							
 							if (sc.targets().contains(sjname)) // Need to build back the type structure that was stripped when the compound operation context was entered.
 							{							
-								SJSessionType expected = poppedContext.getActive(sjname);
-								
-								if (expected != null && isNotTypecaseSet(poppedContext, expected)) // Maybe can be better factored out with above check for branch contexts and below check.
+								SJSessionType expected = poppedContext.getActive(sjname);							
+																 
+								// FIXME: should treate typecase contexts just like branch contexts. 
+								// FIXME: when branches in a typecase do not properly advance session types of sockets other than the one the typecase is acting on. 
+								// Need to handle those the same way as branch contexts.
+								//if (expected != null && isNotTypecaseSet(poppedContext, expected))
+				        if (expected != null && !(poppedContext instanceof SJTypecaseContext)) // Maybe can be better factored out with above check for branch contexts and below check.
 								{
-                                    // No need to check for delegated types here because delegation within a branch must be terminal (and delegateSession clears the active type).
-                                    throw new SemanticException("[SJTypeBuildingContext_c] Session " + sjname + " incomplete [4], expected: " + expected);
-                                }
+                  // No need to check for delegated types here because delegation within a branch must be terminal (and delegateSession clears the active type).
+                  throw new SemanticException("[SJTypeBuildingContext_c] Session " + sjname + " incomplete [4], expected: " + expected);
+                }
 
-                                if (poppedContext instanceof SJSessionBranchContext)
+                if (poppedContext instanceof SJSessionBranchContext)
 								{
 									// SJInbranch (and SJInbranchCase) done above with branch merging.
 								}
 								else if (poppedContext instanceof SJOutbranchContext)
 								{
-                                    implemented = handleOutbranchContext(poppedContext, implemented);
+                  implemented = handleOutbranchContext(poppedContext, implemented);
 								}
 								else if (poppedContext instanceof SJSessionLoopContext)
 								{
-                                    implemented = handleSessionLoopContext(sjname, implemented, ((SJSessionContext) poppedContext).node());
-                                }
-                                else if (poppedContext instanceof SJTypecaseContext)
-                                {
-                                    implemented = ((SJTypecaseContext) poppedContext).getActiveSetType();
-                                }
+                  implemented = handleSessionLoopContext(sjname, implemented, ((SJSessionContext) poppedContext).node());
+                }
+                else if (poppedContext instanceof SJTypecaseContext) // FIXME: should treate typecase contexts just like branch contexts.
+                {
+                  //implemented = ((SJTypecaseContext) poppedContext).getActiveSetType();
+                	
+                	SJTypecaseContext tc = (SJTypecaseContext) poppedContext; 
+                	
+                	implemented = tc.getActive(tc.getSessionName());
+                	
+                	if (!(implemented instanceof SJSetType)) // FIXME: ideally, should not need to do this. We should work using the canonical forms of session types.
+                	{
+                		List<SJSessionType> members = new LinkedList<SJSessionType>();
+                		
+                		members.add(implemented);
+                		
+                		implemented = sjts.SJSetType(members);
+                	}
+                }
 								else 
 								{
 									throw new SemanticException("[SJTypeBuildingContext_c] Session context not yet supported: " + poppedContext);
 								}
 								
 								poppedContext.setImplemented(sjname, implemented);
-                                // So that the returned context contains the right session type,
-                                // used in SJSessionTypeChecker.leaveCall   
+                // So that the returned context contains the right session type,
+                // used in SJSessionTypeChecker.leaveCall   
 							}				
-						}
-                        else if (current instanceof SJTypecaseContext) {
-                            implemented = null; // TODO: hack, to avoid advance session
-                            // as long as we've not exited the typecase
-                        }
-
-                        advanceSessionWithImplementedPart(sjname, implemented);
-                    }
+						} 
+            else if (current instanceof SJTypecaseContext) // poppedContext is currently a SJContextElement pushed for a when-case.
+            {            	            	
+              // FIXME: we're currently ignoring implementations on non-target sessions within the typecase. Should be treated like a branch. 
+              // Currently we just check that the specified type for each when-branch is implemented correctly and we don't bother to record the actual implementation type.
+            	
+            	checkExpectedIsNull(poppedContext, sjname); // Since the poppedContext for the when-case is not a SJSessionContext, we need to check for session completion within the popped context manually. Similar to the hack in pullUpBranchContext for inbranches (since inbranch case contexts are also currently not session contexts).     	
+            	
+              implemented = null; // TODO: hack, to avoid advance session as long as we've not exited the typecase.
+              
+              // FIXME: should avoid needing manual expected-is-null checks for when-cases (and inbranch-cases).
+            } 
+						
+						advanceSessionWithImplementedPart(sjname, implemented);
+          }
 					else // Session from popped context is not active in current context - the session must have been completed.  
 					{						
-						SJSessionType expected = poppedContext.getActive(sjname);
-						/*SJSessionType overflow = currentContext().getImplementedOverflow(sjname);
-						
-						while (expected != null && overflow != null)
-						{
-							expected = expected.child();
-							overflow = overflow.child();
-						}												
-						
-						if (overflow != null)
-						{
-							throw new SJRuntimeException("[SJTypeBuildingContext_c] Shouldn't get here: " + overflow);
-						}
-						
-						currentContext().removeImplementedOverflow(sjname);*/ 
-						
-						if (expected != null)
-						{
-							// No need to check for delegated types here because delegation within a branch must be terminal (and delegateSession clears the active type).
-                            throw new SemanticException("[SJTypeBuildingContext_c] Session " + sjname + " incomplete [5], expected: " + expected);
-                        }
+						checkExpectedIsNull(poppedContext, sjname);
 					}
 				}			
 			}		
 		}
 		
 		return poppedContext;
+	}
+
+	private void checkExpectedIsNull(SJContextElement poppedContext, String sjname) throws SemanticException
+	{
+		SJSessionType expected = poppedContext.getActive(sjname);
+		/*SJSessionType overflow = currentContext().getImplementedOverflow(sjname);
+		
+		while (expected != null && overflow != null)
+		{
+			expected = expected.child();
+			overflow = overflow.child();
+		}												
+		
+		if (overflow != null)
+		{
+			throw new SJRuntimeException("[SJTypeBuildingContext_c] Shouldn't get here: " + overflow);
+		}
+		
+		currentContext().removeImplementedOverflow(sjname);*/ 
+		
+		if (expected != null)
+		{
+			// No need to check for delegated types here because delegation within a branch must be terminal (and delegateSession clears the active type).
+		  throw new SemanticException("[SJTypeBuildingContext_c] Session " + sjname + " incomplete [5], expected: " + expected);
+		}
 	}
 
     private boolean isNotTypecaseSet(SJContextElement poppedContext, SJSessionType expected) {
@@ -755,13 +840,14 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
             {
                 SJSessionType expected = ce.getActive(sjname);
 
-                if (expected != null)
+                if (expected != null) // Could use checkExpectedIsNull, but the error messages are currently distinguished for ease of compiler debugging.
                 {
                     throw new SemanticException("[SJTypeBuildingContext_c] Session " + sjname + " incomplete [1], expected: " + expected);
                 }
             }
-
-            if (ce instanceof SJSessionContext && ((SJSessionContext) ce).targets().contains(sjname))
+            
+            if (ce instanceof SJSessionContext && ((SJSessionContext) ce).targets().contains(sjname)
+            		|| current instanceof SJSessionBranchContext) // FIXME: added this hack for inbranch cases. Is it OK?
             {
                 SJSessionType expected = ce.getActive(sjname);
 
@@ -786,6 +872,12 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
     }
 
     private void advanceSessionWithImplementedPart(String sjname, SJSessionType implemented) throws SemanticException {
+    	
+    		if (implemented != null)
+    		{
+    			implemented = implemented.getCanonicalForm(); // HACK: found that set types can pop up here.
+    		}
+    	
         while (implemented != null) {
             /*if (expectedSessionOperation(sjname) == null) // Hacky? Early session completion (e.g. delegation, method passing) will give the full remaining type as implemented.
             {
@@ -796,7 +888,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
                 break;
             }
             else*/
-            advanceSession(sjname, implemented.nodeClone()); // Already type checked within the inner block.
+            advanceSession(sjname, implemented.nodeClone()); // Already type checked within the inner block. 		
             implemented = implemented.child();
         }
     }
@@ -878,13 +970,17 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
                 if (ce instanceof SJSessionBranchContext)
                 {
                     delegated = checkBranches(ce, ces, inbranches);
+                    
+                    for (String m : delegated) // Should this be in here? Or outside with a null-guard?
+                    {
+                        inbranches.put(m, sjts.SJDelegatedType(inbranches.get(m)));
+                    }
                 }
-
-                for (String m : delegated)
+                else
                 {
-                    inbranches.put(m, sjts.SJDelegatedType(inbranches.get(m)));
+                	// Just a SJBranchContext, but not a SJSessionBranchContext. Do we need to do anything here?
                 }
-
+                
                 SJContextElement firstBranch = ces.remove(0); // Going to use the first one to hold subsumption results.
 
                 boolean hasSessionImplementations = false;
@@ -1017,12 +1113,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		
 		for (String sjname : ce.activeSessions()) // Duplicated from popContextElement.
 		{
-			SJSessionType expected = ce.getActive(sjname);
-			
-			if (expected != null)
-			{
-				throw new SemanticException("[SJTypeBuildingContext_c] Session " + sjname + " incomplete [5], expected: " + expected);
-			}
+			checkExpectedIsNull(ce, sjname);
 		}
 	}
 	

@@ -124,8 +124,6 @@ public class SJCreateOperationTypeBuilder extends ContextVisitor
 	
 	private LocalDecl buildLocalDecl(LocalDecl ld) throws SemanticException
 	{	
-		System.out.println("a: " + ld);
-		
 		Type t = ld.declType();
 		SJLocalInstance li = (SJLocalInstance) ld.localInstance();
 		SJNamedInstance ni = null; 

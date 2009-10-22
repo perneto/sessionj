@@ -10,4 +10,5 @@ public interface SJSelectorBase {
     int INPUT = SelectionKey.OP_READ;
 
     SJSocket select(int mask) throws SJIOException;
+    void close();
 }

@@ -44,7 +44,7 @@ public class SJReceiveType_c extends SJMessageCommunicationType_c implements SJR
 			case DUALTYPE: return ((SJMessageCommunicationType) st).messageType().isSubtype(messageType());
 		}
 		
-		throw new RuntimeException("[SJCBeginType_c] Shouldn't get here: " + op);
+		throw new RuntimeException("[SJReceiveType_c] Shouldn't get here: " + op);
 	}
 
 	public SJSessionType nodeSubsume(SJSessionType st) throws SemanticException

@@ -1,4 +1,7 @@
 package sessionj.ast;
 
-public interface SessionSocketCreator {
+// Should extend SJTypeable.
+public interface SessionSocketCreator 
+{
+	
 }

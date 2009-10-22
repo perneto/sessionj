@@ -15,6 +15,7 @@ import sessionj.ast.chanops.SJChannelOperation;
 import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.createops.SJChannelCreate;
 import sessionj.ast.createops.SJServerCreate;
+import sessionj.ast.selectorops.SJSelect;
 import sessionj.ast.servops.SJAccept;
 import sessionj.ast.servops.SJServerOperation;
 import sessionj.ast.sesscasts.SJChannelCast;
@@ -24,6 +25,7 @@ import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessops.TraverseTypeBuildingContext;
 import sessionj.ast.sessops.basicops.SJPass;
 import sessionj.ast.sessops.compoundops.*;
+import sessionj.ast.sesstry.SJSelectorTry;
 import sessionj.ast.sesstry.SJServerTry;
 import sessionj.ast.sesstry.SJSessionTry;
 import sessionj.ast.sesstry.SJTry;
@@ -222,7 +224,10 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		{
 			Expr right = a.right();
 			
-			if (right instanceof SJRequest || right instanceof SJAccept || right instanceof SJSessionCast) // FIXME: make common interface for session return operations.   
+			if (right instanceof SJRequest 
+					|| right instanceof SJAccept 
+					|| right instanceof SJSessionCast
+					|| right instanceof SJSelect) // FIXME: use SessionSocketCreator.   				
 			{							
 				Expr left = a.left();				
 				SJSocketVariable sv = (SJSocketVariable) left;				
@@ -349,6 +354,10 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 				{				
 					sjcontext.addServer((SJNamedInstance) li);					
 				}
+				else if (dt.isSubtype(SJ_SELECTOR_INTERFACE_TYPE))  
+				{
+					sjcontext.addSelector((SJLocalSelectorInstance) li);
+				}
 			}
 		}
 		else if (n instanceof Try)
@@ -359,10 +368,14 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 				{
 					sjcontext.pushSJSessionTry((SJSessionTry) n);
 				}
-				else //if (n instanceof SJServerTry)		
+				else if (n instanceof SJServerTry)		
 				{
 					sjcontext.pushSJServerTry((SJServerTry) n);
 				} 
+				else if (n instanceof SJSelectorTry) 
+				{
+					sjcontext.pushSJSelectorTry((SJSelectorTry) n);
+				}
 			}
 			else
 			{
@@ -430,7 +443,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 	{
 		SJContextElement ce = null;
 		
-		if (n instanceof Try) // Includes SJTry (SJSessionTry and SJServerTry).
+		if (n instanceof Try) // Includes SJTry (SJSessionTry, SJServerTry, etc.).
 		{
 			ce = sjcontext.pop();
 		}

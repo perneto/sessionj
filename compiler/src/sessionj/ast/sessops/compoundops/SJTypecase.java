@@ -8,7 +8,7 @@ import sessionj.ast.sessops.TraverseTypeBuildingContext;
 import sessionj.types.sesstypes.SJSessionType;
 
 public interface SJTypecase extends SJCompoundOperation, TraverseTypeBuildingContext, SessionTypedNode {
-    SJCompoundOperation sessionTypeCheck(SJSessionType typeForNode) throws SemanticException;
+    SJCompoundOperation sessionTypeCheck(SJSessionType typeForNode) throws SemanticException; // TODO: factor out the session type checking interface.
 
     Node translate(QQ qq);
 }

@@ -85,4 +85,20 @@ abstract public class SJMessageCommunicationType_c extends SJSessionType_c imple
 	
 	abstract protected String messageCommunicationOpen();
 	abstract protected String messageCommunicationClose();
+	
+  public SJSessionType nodeCanonicalForm()  
+  {
+  	SJMessageCommunicationType mct = (SJMessageCommunicationType) nodeClone();
+  	
+  	Type mt = mct.messageType();
+  	
+  	try
+  	{
+  		return (mt instanceof SJSessionType) ? mct.messageType(((SJSessionType) mt).getCanonicalForm()) : mct;
+  	}
+  	catch (SemanticException se)
+  	{
+  		throw new RuntimeException("[SJMessageCommunicationType_c] Shouldn't get in here: " + mt, se);
+  	}
+  }	
 }

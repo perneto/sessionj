@@ -25,7 +25,8 @@ public interface SJTypeSystem extends TypeSystem
 	SJRecurseType SJRecurseType(SJLabel lab);
 	SJUnknownType SJUnknownType();
 	SJDelegatedType SJDelegatedType(SJSessionType st);
-    SJSetType SJSetType(List<SJSessionType_c> members);
+    //SJSetType SJSetType(List<SJSessionType_c> members);
+	SJSetType SJSetType(List<SJSessionType> members);
 	
 	SJParsedClassType SJParsedClassType(LazyClassInitializer init, Source fromSource);
 	SJFieldInstance SJFieldInstance(FieldInstance fi, boolean isNoAlias, boolean isFinal);
@@ -38,6 +39,7 @@ public interface SJTypeSystem extends TypeSystem
 	SJLocalChannelInstance SJLocalChannelInstance(SJLocalInstance ci, SJSessionType st, String sjname);
 	SJLocalSocketInstance SJLocalSocketInstance(SJLocalInstance si, SJSessionType st, String sjname);
 	SJLocalServerInstance SJLocalServerInstance(SJLocalInstance ci, SJSessionType st, String sjname);
+	SJLocalSelectorInstance SJLocalSelectorInstance(SJLocalInstance ci, SJSessionType st, String sjname);
 	
 	SJNoAliasReferenceType SJNoAliasReferenceType(ReferenceType rt);
 	SJNoAliasReferenceType SJNoAliasFinalReferenceType(ReferenceType rt, boolean isFinal);
