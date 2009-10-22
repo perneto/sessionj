@@ -11,14 +11,14 @@ import sessionj.runtime.transport.tcp.SJStreamTCPWithSelector;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.io.IOException;
 
 public class TransportUtils
 {
     private TransportUtils() {
     }
 
-    public static SJSessionParameters createSJSessionParameters(String setups, String transports, int boundedBufferSize)
-	{
+    public static SJSessionParameters createSJSessionParameters(String setups, String transports, int boundedBufferSize) throws IOException {
 		SJSessionParameters params;
 
 		if (setups.contains("d") && transports.contains("d"))
@@ -36,8 +36,7 @@ public class TransportUtils
 		return params;
 	}
 
-	public static SJSessionParameters createSJSessionParameters(String setups, String transports)
-	{
+	public static SJSessionParameters createSJSessionParameters(String setups, String transports) throws IOException {
 		SJSessionParameters params;
 
 		if (setups.contains("d") && transports.contains("d"))
@@ -55,8 +54,7 @@ public class TransportUtils
 		return params;
 	}
 
-	public static List<SJTransport> parseTransportFlags(String transports)
-	{
+	public static List<SJTransport> parseTransportFlags(String transports) throws IOException {
         List<SJTransport> ts = new LinkedList<SJTransport>();
 		if (transports.contains("d"))
 		{
@@ -97,8 +95,7 @@ public class TransportUtils
         return ts;
 	}
 	
-	public static void configureTransports(String setups, String transports)
-	{
+	public static void configureTransports(String setups, String transports) throws IOException {
 		SJTransportManager sjtm = SJRuntime.getTransportManager();	
 		
 		if (!setups.contains("d"))

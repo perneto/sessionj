@@ -486,17 +486,17 @@
         <condition property="testcase" value="null">
             <not><isset property="testcase"/></not>
         </condition>
-        <condition property="sessionj.default.setups" value="d">
-            <not><isset property="sessionj.default.setups"/></not>
+        <condition property="sessionj.transports.session" value="d">
+            <not><isset property="sessionj.transports.session"/></not>
         </condition>
-        <condition property="sessionj.default.transports" value="d">
-            <not><isset property="sessionj.default.setups"/></not>
+        <condition property="sessionj.transports.negociation" value="d">
+            <not><isset property="sessionj.transports.negociation"/></not>
         </condition>
         <testng failureproperty="functionaltests.failed">
             <sysproperty key="sessionj.test.functional.classesdir" value="${tempdir.name}"/>
             <sysproperty key="testcase" value="${testcase}"/>
-            <sysproperty key="sessionj.default.setups" value="${sessionj.default.setups}"/>
-            <sysproperty key="sessionj.default.transports" value="${sessionj.default.setups}"/>
+            <sysproperty key="sessionj.transports.negociation" value="${sessionj.transports.negociation}"/>
+            <sysproperty key="sessionj.transports.session" value="${sessionj.transports.session}"/>
             <xmlfileset dir="${functionaltest.src}" includes="testng.xml"/>
             <classpath>
                 <path refid="standard.classpath"/>

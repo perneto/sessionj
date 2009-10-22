@@ -324,4 +324,6 @@ abstract public class SJAbstractSocket implements SJSocket
         this.runtimeType = runtimeType;
         protocol = new SJProtocol(SJRuntime.encode(staticType));
     }
+
+    public abstract boolean isOriginalRequestor();
 }

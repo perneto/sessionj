@@ -1,15 +1,18 @@
 package sessionj.runtime.transport.tcp;
 
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSelector;
+import sessionj.runtime.net.SJSelectorInternal;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJConnectionAcceptor;
+import sessionj.runtime.transport.SJTransport;
+import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
+
 import java.io.*;
-import java.net.*;
-import java.util.Random;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.channels.SelectableChannel;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
-import sessionj.runtime.transport.*;
-
-import static sessionj.runtime.util.SJRuntimeUtils.*;
+import java.util.Random;
 
 class SJManualTCPAcceptor implements SJConnectionAcceptor
 {
@@ -260,8 +263,12 @@ public class SJManualTCP implements SJTransport
         }
 	}
 
-    public SJSelector transportSelector() {
+    public SJSelectorInternal transportSelector() {
         return null;
+    }
+
+    public boolean blockingModeSupported() {
+        return true;
     }
 
     public boolean portInUse(int port)

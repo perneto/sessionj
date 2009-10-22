@@ -20,4 +20,9 @@ public class SJAcceptingSocket extends SJAbstractSocket
     public SJAcceptingSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType actualType) throws SJIOException {
         super(protocol, params, actualType);
     }
+
+    @Override
+    public boolean isOriginalRequestor() {
+        return false;
+    }
 }

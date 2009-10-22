@@ -8,7 +8,9 @@ import sessionj.runtime.SJProtocol;
 import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.net.*;
 import static sessionj.runtime.session.SJMessage.*;
-import sessionj.runtime.transport.*;
+import sessionj.runtime.transport.SJAcceptorThreadGroup;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJTransportManager;
 import sessionj.types.sesstypes.SJSessionType;
 
 import java.net.InetAddress;
@@ -641,7 +643,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         }
 
         ser.writeByte(DELEGATION_START);
-        ser.writeBoolean(delegated instanceof SJRequestingSocket); // Original requestor.
+        ser.writeBoolean(delegated.isOriginalRequestor()); // Original requestor.
         ser.writeObject(delegated.getRuntimeType());
         int port = receiveInt();
         // Should handle delegation case 3 (the two preceding delegation protocol messages are forwarded by peer).

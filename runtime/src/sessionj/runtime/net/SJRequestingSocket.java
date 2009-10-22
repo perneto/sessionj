@@ -24,8 +24,13 @@ public class SJRequestingSocket extends SJAbstractSocket
 	{
 		super(p, params, actualType); // FIXME: null service OK? Probably OK for received sessions.
 	}
-	
-	public SJServerIdentifier getServerIdentifier()
+
+    @Override
+    public boolean isOriginalRequestor() {
+        return true;
+    }
+
+    public SJServerIdentifier getServerIdentifier()
 	{
 		return service.getServerIdentifier();
 	}

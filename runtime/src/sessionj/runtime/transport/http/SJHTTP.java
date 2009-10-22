@@ -43,8 +43,12 @@ public class SJHTTP implements SJTransport{
 		}
 	}
 
-    public SJSelector transportSelector() {
+    public SJSelectorInternal transportSelector() {
         return null;
+    }
+
+    public boolean blockingModeSupported() {
+        return true;
     }
 
     public boolean portInUse(int port){

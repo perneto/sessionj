@@ -10,7 +10,7 @@ public class Test1
 
 	public static void main(String[] args) throws SJIOException, SJIncompatibleSessionException 
 	{
-		final noalias SJSelector selector = SJRuntime.selectFor(p_select);
+		final noalias SJSelector selector = SJRuntime.selectorFor(p_select);
 		
 		try (selector)
 		{

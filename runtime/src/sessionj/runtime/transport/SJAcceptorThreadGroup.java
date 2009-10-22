@@ -130,7 +130,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 	
 	protected void addTransport(String name, int port)
 	{
-		transports.put(name, new Integer(port));
+		transports.put(name, port);
 	}
 	
 	protected Map<String, Integer> getTransports()

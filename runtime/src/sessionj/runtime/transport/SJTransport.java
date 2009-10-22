@@ -1,7 +1,7 @@
 package sessionj.runtime.transport;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelector;
+import sessionj.runtime.net.SJSelectorInternal;
 
 /**
  * @author Raymond, Fred van den Driessche
@@ -16,7 +16,8 @@ public interface SJTransport
     // May be useful to pass additional higher-level information to these operations,
     // such as the session type (e.g. for bounded-size buffers).
 
-    SJSelector transportSelector();
+    SJSelectorInternal transportSelector();
+    boolean blockingModeSupported();
 
 	boolean portInUse(int port);
 	int getFreePort() throws SJIOException;
