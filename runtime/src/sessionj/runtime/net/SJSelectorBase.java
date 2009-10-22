@@ -9,6 +9,6 @@ public interface SJSelectorBase {
     int OUTPUT = SelectionKey.OP_WRITE;
     int INPUT = SelectionKey.OP_READ;
 
-    SJSocket select(int mask) throws SJIOException;
-    void close();
+    SJSocket select(int mask) throws SJIOException, SJIncompatibleSessionException;
+    void close() throws SJIOException;
 }

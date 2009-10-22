@@ -1,9 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelectorInternal;
-import sessionj.runtime.net.SJServerSocket;
-import sessionj.runtime.net.SJSocket;
+import sessionj.runtime.net.*;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJTransport;
@@ -14,6 +12,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 /**
@@ -32,6 +31,7 @@ public class SJStreamTCPWithSelector implements SJTransport
 	private static final int PORT_RANGE = 65535 - 1024;
     private final Selector selector;
     private final java.nio.channels.Selector sel;
+    private static final int BUFFER_SIZE = 16384;
 
     public SJStreamTCPWithSelector() throws IOException {
         sel = SelectorProvider.provider().openSelector();
@@ -40,9 +40,7 @@ public class SJStreamTCPWithSelector implements SJTransport
 
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
-		Acceptor acceptor = new Acceptor(port);
-	    selector.preregisterAcceptor(port, acceptor);
-	    return acceptor;
+        throw new UnsupportedOperationException("Blocking mode unsupported");
     }
 	
 	public SJConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
@@ -118,12 +116,21 @@ public class SJStreamTCPWithSelector implements SJTransport
 	}
 
     private class Selector implements SJSelectorInternal {
-        private final Map<Integer, Acceptor> acceptors = new HashMap<Integer, Acceptor>();
+        private Map<SelectionKey, SJServerSocket> serverSockets =
+            new HashMap<SelectionKey, SJServerSocket>();
+        private Map<SelectionKey, SJSocket> sockets =
+            new HashMap<SelectionKey, SJSocket>();
 
-        public boolean registerAccept(SJServerSocket ss) throws ClosedChannelException {
-            ServerSocketChannel ssc = retrieveServerChannel(ss);
-            if (ssc != null) {
-                ssc.register(sel, SelectionKey.OP_ACCEPT);
+        public boolean registerAccept(SJServerSocket ss) throws IOException {
+            if (supportsUs(ss)) {
+                // We don't support early listening for server sockets managed by the
+                // transport manager, so we start listening here, later than other transports.
+                ServerSocketChannel ssc = ServerSocketChannel.open();
+                ssc.socket().bind(new InetSocketAddress(ss.getLocalPort()));
+                ssc.configureBlocking(false);
+                SelectionKey key = ssc.register(sel, SelectionKey.OP_ACCEPT);
+                serverSockets.put(key, ss);
+                return true;
             }
             return false;
         }
@@ -131,7 +138,8 @@ public class SJStreamTCPWithSelector implements SJTransport
         public boolean registerInput(SJSocket s) throws ClosedChannelException {
             SocketChannel sc = retrieveSocketChannel(s);
             if (sc != null) {
-                sc.register(sel, SelectionKey.OP_READ);
+                SelectionKey key = sc.register(sel, SelectionKey.OP_READ);
+                sockets.put(key, s);
                 return true;
             }
             return false;
@@ -140,13 +148,14 @@ public class SJStreamTCPWithSelector implements SJTransport
         public boolean registerOutput(SJSocket s) throws ClosedChannelException {
             SocketChannel sc = retrieveSocketChannel(s);
             if (sc != null) {
-                sc.register(sel, SelectionKey.OP_WRITE);
+                SelectionKey key = sc.register(sel, SelectionKey.OP_WRITE);
+                sockets.put(key, s);
                 return true;
             }
             return false;
         }
 
-        public SJSocket select(int mask) throws SJIOException {
+        public SJSocket select(int mask) throws SJIOException, SJIncompatibleSessionException {
             SJSocket s = null;
             try {
                 sel.select(mask);
@@ -156,11 +165,11 @@ public class SJStreamTCPWithSelector implements SJTransport
                     it.remove();
 
                     if (key.isValid()) {
-                        // TODO: check if this works with the delegation protocol 
-                        //s = new SJAcceptingSocket(
-                        //    new SJProtocol(SJRuntime.encode()),
-
-                        //);
+                        if (key.isAcceptable()) {
+                            s = finishAccept(key);
+                        } else {
+                            s = lookupSocket(key);
+                        }
                     }
                 }
             } catch (IOException e) {
@@ -170,20 +179,39 @@ public class SJStreamTCPWithSelector implements SJTransport
             return s;
         }
 
-        public void close() {
-            throw new UnsupportedOperationException("TODO");
+        private SJSocket lookupSocket(SelectionKey key) {
+            SJSocket s = sockets.get(key);
+            assert s != null;
+            return s;
         }
 
-        private ServerSocketChannel retrieveServerChannel(SJServerSocket ss) {
-            ServerSocketChannel ssc = null;
-            for (SJTransport t : ss.getParameters().getSessionTransports()) {
-                if (isUs(t)) {
-                    Acceptor forSocket = acceptors.get(ss.getLocalPort());
-                    ssc = forSocket.ssc;
-                    assert ssc != null;
-                }
+        private SJSocket finishAccept(SelectionKey key) throws IOException, SJIOException, SJIncompatibleSessionException {
+            ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
+
+            SocketChannel socketChannel = serverSocketChannel.accept();
+            socketChannel.configureBlocking(false);
+            SJServerSocket ss = serverSockets.get(key);
+
+            SJAbstractSocket s = new SJAcceptingSocket(ss.getProtocol(), ss.getParameters());
+            SJConnection conn = new Connection(socketChannel);
+            SJRuntime.bindSocket(s, conn);
+            SJRuntime.accept(s);
+            return s;
+        }
+
+        public void close() throws SJIOException {
+            try {
+                sel.close();
+            } catch (IOException e) {
+                throw new SJIOException(e);
             }
-            return ssc;
+        }
+
+        private boolean supportsUs(SJServerSocket ss) {
+            for (SJTransport t : ss.getParameters().getSessionTransports()) {
+                if (isUs(t)) return true;
+            }
+            return false;
         }
 
         private SocketChannel retrieveSocketChannel(SJSocket s) {
@@ -202,69 +230,15 @@ public class SJStreamTCPWithSelector implements SJTransport
         }
 
         private boolean isOurName(String name) { return name.equals(getTransportName()); }
-
-        void preregisterAcceptor(int port, Acceptor acceptor) {
-            acceptors.put(port, acceptor);
-        }
-    }
-
-    private class Acceptor implements SJConnectionAcceptor
-    {
-        private final ServerSocketChannel ssc;
-
-        Acceptor(int port) throws SJIOException
-        {
-            try
-            {
-                ssc = ServerSocketChannel.open();
-                ssc.configureBlocking(false);
-                ssc.socket().bind(new InetSocketAddress(port)); // Didn't bother to explicitly check portInUse.
-            }
-            catch (IOException ioe)
-            {
-                throw new SJIOException(ioe);
-            }
-        }
-
-        public SJConnection accept() throws SJIOException
-        {
-            throw new UnsupportedOperationException
-                ("Transport "+getTransportName()+" does not support blocking mode");
-        }
-
-        public void close()
-        {
-            try
-            {
-                ssc.keyFor(sel).cancel(); // does close do this automatically?
-                ssc.close();
-            }
-            catch (IOException ignored) { }
-        }
-
-        public boolean interruptToClose()
-        {
-            return false;
-        }
-
-        public boolean isClosed()
-        {
-            return !ssc.isOpen();
-            //ssc.socket().isClosed(); is this the same as !ssc.isOpen() ?
-        }
-
-        public String getTransportName()
-        {
-            return TRANSPORT_NAME;
-        }
     }
 
     private class Connection implements SJConnection
     {
         private final SocketChannel sc;
-
+        private final ByteBuffer buffer;
         Connection(SocketChannel sc) {
             this.sc = sc;
+            buffer = ByteBuffer.allocate(BUFFER_SIZE);
         }
 
         public void disconnect()
@@ -278,6 +252,14 @@ public class SJStreamTCPWithSelector implements SJTransport
         }
 
         public void writeBytes(byte[] bs) throws SJIOException {
+            buffer.clear();
+            try {
+                sc.write(buffer);
+                if (buffer.remaining() > 0)// TODO
+                    ;
+            } catch (IOException e) {
+                throw new SJIOException(e);
+            }
         }
 
         public byte readByte() throws SJIOException {
