@@ -49,11 +49,12 @@ public class SJCompilerUtils
 		pct.setFields(fields); // Works because ParsedClassType is mutable (no need to reassign defensive copy).
 	}
 
-    public static SJTypeableExt getSJTypeableExt(Node n)
+	// Generally, the "first" extension object should be for noalias typing, and the "second" for session typing... 
+  public static SJTypeableExt getSJTypeableExt(Node n)
 	{
 		if (n.ext(2) == null) // SJCompoundOperation.
 		{
-			return (SJTypeableExt) n.ext(1);
+			return (SJTypeableExt) n.ext(1); // ...but there can be some exceptions? // Yes: compound operations.
 		}
 		else 
 		{

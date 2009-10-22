@@ -25,6 +25,8 @@ import static sessionj.util.SJCompilerUtils.*;
 /**
  * @author Raymond
  *
+ * Currently has the explicit hooks to control noalias typing for session entities, e.g. channels, selectors, etc.
+ *
  */
 public class SJNoAliasTypeChecker extends ContextVisitor
 {
@@ -91,7 +93,7 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 							{
 								n = checkSJPass((SJPass) n);
 							}
-						}
+						} // Other basic operations cannot have noalias arguments. // Implicit noalias return type for receive operations set by SJNoAliasExprBuilder and checked "on use" at e.g. assign and argument passing. 
 					}
 					else
 					{
@@ -157,7 +159,7 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 	{
 		Expr init = fd.init();
 				
-		if (init != null) // Protocol declarations already checked and channel/socket fields not permitted (by SJProtocolDeclTypeBuilder).
+		if (init != null) // Protocol declarations already checked and channel/socket/server/selector fields not permitted (by SJChannelDeclTypeBuilder/etc.).
 		{
 			if (isNoAlias(fd))				
 			{
@@ -194,6 +196,14 @@ public class SJNoAliasTypeChecker extends ContextVisitor
 			}
 		}
 				
+		if (t.isSubtype(SJ_SELECTOR_INTERFACE_TYPE))
+		{
+			if (!(ld.flags().isFinal() && isNoAlias(ld)))
+			{
+				throw new SemanticException("[SJNoAliasTypeChecker] Selector variables must be final noalias: " + ld);
+			}
+		}
+		
 		if (t.isSubtype(SJ_SOCKET_INTERFACE_TYPE) || t.isSubtype(SJ_SERVER_INTERFACE_TYPE)) // FIXME: the session entity checks should be moved into a session-related pass.
 		{
 			if (!isNoAlias(ld))

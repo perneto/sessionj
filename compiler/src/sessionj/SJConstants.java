@@ -25,6 +25,7 @@ public class SJConstants
 	public static final String SJ_KEYWORD_CHANNELCREATE = "create";
 	public static final String SJ_KEYWORD_SOCKETCREATE = "create";
 	public static final String SJ_KEYWORD_SERVERCREATE = "create";
+	public static final String SJ_KEYWORD_SELECTORCREATE = "selectorFor";
 	
 	public static final String SJ_KEYWORD_REQUEST = "request";
 	public static final String SJ_KEYWORD_SEND = "send";
@@ -61,6 +62,8 @@ public class SJConstants
 	public static final String SJ_CHANNEL_CREATE = "create";
 	public static final String SJ_SOCKET_CREATE = "create";
 	public static final String SJ_SERVER_CREATE = "create";
+	
+	public static final String SJ_SELECTOR_SELECTORFOR = "selectorFor";
 	
 	public static final String SJ_CHANNEL_REQUEST = "request";
 	
@@ -140,7 +143,7 @@ public class SJConstants
 	public static Type SJ_LABEL_TYPE;
 	public static Type SJ_RUNTIME_TYPE;
 	public static Type SJ_THREAD_TYPE;
-	public static Type SJ_SELECTOR_TYPE;
+	public static Type SJ_SELECTOR_INTERFACE_TYPE;
 	
 	public static final String SJ_PROTOCOL_CLASS = "sessionj.runtime.SJProtocol";
 	public static final String SJ_CHANNEL_CLASS = "sessionj.runtime.net.SJService";
@@ -151,7 +154,7 @@ public class SJConstants
 	public static final String SJ_SERVER_CLASS = "sessionj.runtime.net.SJServerSocketImpl";	
 	public static final String SJ_RUNTIME_CLASS = "sessionj.runtime.net.SJRuntime"; 
 	public static final String SJ_THREAD_CLASS = "sessionj.runtime.SJThread";
-	public static final String SJ_SELECTOR_CLASS = "sessionj.runtime.net.SJSelector";
+	public static final String SJ_SELECTOR_INTERFACE = "sessionj.runtime.net.SJSelector";
 	
 	//public static final String SJ_LABEL_CLASS = "sessionj.util.SJLabel";
 	public static final String SJ_LABEL_CLASS = "java.lang.String";

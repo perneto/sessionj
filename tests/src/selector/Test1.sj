@@ -1,12 +1,18 @@
+//$ bin/sessionjc tests/src/selector/Test1.sj -d tests/classes/
+//$ bin/sessionj -cp tests/classes/ selector.Test1
+
+package selector;
+
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 
 public class Test1 
 {
-	private static protocol p2 { ?(String) }
-	private static protocol p1 { !<int>.@(p2) } 
+	private static protocol p1 { !<String>.!<String> } 
 	private static protocol p { sbegin.@(p1) }
-	private static protocol p_select { @(p1), @(p2) }
+	//private static protocol p { sbegin.!<Integer> }
+	private static protocol p_select { @(p1) }
+	//private static protocol p_select { !<Integer> }
 
 	public static void main(String[] args) throws SJIOException, SJIncompatibleSessionException 
 	{
@@ -28,19 +34,15 @@ public class Test1
 					
 					try (s)
 					{
-						s = selector.select(SJSelector.ACCEPT | SJSelector.RECEIVE);
+						s = selector.select(SJSelector.ACCEPT);
 						
             typecase (s) 
             {
               when (@(p1)) 
               {
-              	s.send(123);
-              	
-              	selector.registerReceive(s);
-              }
-              when (@(p2)) 
-              {
-              	System.out.println("Received: " + (String) s.receive());
+              	s.send("ABC");
+              	s.send("DEF");
+              	//s.send(123);
               }
             }
           }

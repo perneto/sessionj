@@ -44,7 +44,7 @@ parser Grm extends polyglot.parse.Grm {:
     			SJConstants.SJ_THREAD_TYPE = ts.typeForName(SJConstants.SJ_THREAD_CLASS);
     			SJConstants.SJ_ABSTRACT_CHANNEL_TYPE = ts.typeForName(SJConstants.SJ_ABSTRACT_CHANNEL_CLASS);
     			SJConstants.SJ_CHANNEL_SOCKET_HACK_TYPE = ts.typeForName(SJConstants.SJ_CHANNEL_SOCKET_HACK_CLASS);
-    			SJConstants.SJ_SELECTOR_TYPE = ts.typeForName(SJConstants.SJ_SELECTOR_CLASS);
+    			SJConstants.SJ_SELECTOR_INTERFACE_TYPE = ts.typeForName(SJConstants.SJ_SELECTOR_INTERFACE);
     		}
     		catch (SemanticException se) 
     		{		

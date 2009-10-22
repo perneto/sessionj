@@ -13,7 +13,7 @@ import sessionj.util.SJLabel;
  * 
  * @author Raymond
  *
- * Maybe should be renamed SJSessionBranchCaseContext.
+ * Maybe should be renamed SJSessionBranchCaseContext. // But is it really a session context? Doesn't inherit from SJSessionContext.
  *
  */
 public interface SJBranchCaseContext extends SJContextElement

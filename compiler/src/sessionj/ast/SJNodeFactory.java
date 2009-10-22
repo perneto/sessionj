@@ -9,6 +9,7 @@ import polyglot.util.Position;
 import polyglot.parse.Name;
 import sessionj.ast.chanops.SJRequest;
 import sessionj.ast.createops.SJChannelCreate;
+import sessionj.ast.createops.SJSelectorCreate;
 import sessionj.ast.createops.SJServerCreate;
 import sessionj.ast.createops.SJSocketCreate;
 import sessionj.ast.noalias.SJAmbNoAliasTypeNode;
@@ -68,6 +69,7 @@ public interface SJNodeFactory extends NodeFactory
 	SJChannelCreate SJChannelCreate(Position pos, List arguments);
 	SJSocketCreate SJSocketCreate(Position pos, List arguments);
 	SJServerCreate SJServerCreate(Position pos, List arguments);
+	SJSelectorCreate SJSelectorCreate(Position pos, List arguments);
 	
 	SJLocalChannel SJLocalChannel(Position pos, Id name);
 	SJLocalSocket SJLocalSocket(Position pos, Id name);

@@ -170,6 +170,10 @@ public class SJStreamTCPWithSelector implements SJTransport
             return s;
         }
 
+        public void close() {
+            throw new UnsupportedOperationException("TODO");
+        }
+
         private ServerSocketChannel retrieveServerChannel(SJServerSocket ss) {
             ServerSocketChannel ssc = null;
             for (SJTransport t : ss.getParameters().getSessionTransports()) {

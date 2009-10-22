@@ -36,15 +36,15 @@ public class SJSendType_c extends SJMessageCommunicationType_c implements SJSend
 	}
 	
 	protected boolean compareNode(NodeComparison op, SJSessionType st)
-	{
+	{	
 		switch (op)
 		{
 			case EQUALS: return messageType().equals(((SJSendType) st).messageType()); 
-			case SUBTYPE: return ((SJSendType) st).messageType().isSubtype(messageType());  
+			case SUBTYPE: return ((SJSendType) st).messageType().isSubtype(messageType()); // Contravariant.  
 			case DUALTYPE: return messageType().isSubtype(((SJReceiveType) st).messageType());
 		}
 		
-		throw new RuntimeException("[SJCBeginType_c] Shouldn't get here: " + op);
+		throw new RuntimeException("[SJSendType_c] Shouldn't get here: " + op);
 	}
 	
 	public SJSessionType nodeSubsume(SJSessionType st) throws SemanticException

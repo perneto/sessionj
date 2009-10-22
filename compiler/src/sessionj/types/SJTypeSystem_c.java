@@ -81,9 +81,13 @@ public class SJTypeSystem_c extends TypeSystem_c implements SJTypeSystem
 		return new SJDelegatedType(this, st);
 	}
 
-    public SJSetType SJSetType(List<SJSessionType_c> members) {
+    /*public SJSetType SJSetType(List<SJSessionType_c> members) {
         return new SJSetType_c(this, members);
-    }
+    }*/
+	
+	public SJSetType SJSetType(List<SJSessionType> members) {
+    return new SJSetType_c(this, members);
+	}
 
     // Adapted from the Coffer example.
   public ParsedClassType createClassType(LazyClassInitializer init, 
@@ -162,6 +166,11 @@ public class SJTypeSystem_c extends TypeSystem_c implements SJTypeSystem
 	public SJLocalServerInstance SJLocalServerInstance(SJLocalInstance ci, SJSessionType st, String sjname)
 	{
 		return new SJLocalServerInstance_c(ci, st, sjname);
+	}
+
+	public SJLocalSelectorInstance SJLocalSelectorInstance(SJLocalInstance ci, SJSessionType st, String sjname)
+	{
+		return new SJLocalSelectorInstance_c(ci, st, sjname);
 	}
 	
 	public boolean wellFormedRecursions(SJSessionType st)
