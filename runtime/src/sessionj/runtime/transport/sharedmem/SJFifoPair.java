@@ -1,15 +1,14 @@
 package sessionj.runtime.transport.sharedmem;
 
-import java.net.*;
-import java.util.*;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.spi.AbstractSelectableChannel;
-import java.nio.channels.spi.SelectorProvider;
-import java.io.IOException;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSelectorInternal;
+import sessionj.runtime.transport.SJConnectionAcceptor;
+import sessionj.runtime.transport.SJLocalConnection;
+import sessionj.runtime.transport.SJTransport;
 
-import sessionj.runtime.*;
-import sessionj.runtime.net.SJSelector;
-import sessionj.runtime.transport.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.*;
 
 class SJFifoPairAcceptor implements SJConnectionAcceptor
 {	
@@ -418,8 +417,12 @@ public class SJFifoPair implements SJTransport
 		return ourConn;
 	}
 
-    public SJSelector transportSelector() {
+    public SJSelectorInternal transportSelector() {
         return null; // TODO
+    }
+
+    public boolean blockingModeSupported() {
+        return true;
     }
 
     private boolean notLocalHost(String hostName) throws UnknownHostException {

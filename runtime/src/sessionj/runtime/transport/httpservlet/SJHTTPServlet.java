@@ -1,16 +1,15 @@
 package sessionj.runtime.transport.httpservlet;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSelector;
+import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJTransport;
 
-import static sessionj.runtime.util.SJRuntimeUtils.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.Random;
 
 public class SJHTTPServlet implements SJTransport
 {	
@@ -31,8 +30,12 @@ public class SJHTTPServlet implements SJTransport
 		return new SJHTTPServletConnection(hostName, port);
 	}
 
-    public SJSelector transportSelector() {
+    public SJSelectorInternal transportSelector() {
         return null;
+    }
+
+    public boolean blockingModeSupported() {
+        return true;
     }
 
     public boolean portInUse(int port)

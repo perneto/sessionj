@@ -18,6 +18,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.io.IOException;
 
 @SuppressWarnings({"StaticMethodOnlyUsedInOneClass"})
 public class SJRuntime
@@ -75,10 +76,18 @@ public class SJRuntime
 
 	private static final int LOWER_PORT_LIMIT = 1024;
 	private static final int UPPER_PORT_LIMIT = 65535;
-	
-	private static final SJTransportManager sjtm = new SJTransportManager_c();
-	
-	private static final Set<Integer> portsInUse = new HashSet<Integer>();
+
+    private static SJTransportManager sjtm;
+    static {
+        try {
+            sjtm = new SJTransportManager_c();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+    }
+
+    private static final Set<Integer> portsInUse = new HashSet<Integer>();
 	
 	private static final Map<SJPort, SJAcceptorThreadGroup> reservedPorts = new HashMap<SJPort, SJAcceptorThreadGroup>();
     // FIXME: need to free up unclaimed ports.
@@ -1040,9 +1049,5 @@ public class SJRuntime
 		return s.recurseBB(lab);	// If we adopt this in the future, the standard recurse routine should be modified accordingly.	
 	}*/	
 	
-	public static SJSelector selectFor(SJProtocol p)
-	{
-		throw new SJRuntimeException("[SJRuntime] selectFor not done yet.");
-	}
 }
 

@@ -52,8 +52,8 @@ public class SJConstants
 	//public static final String SJ_KEYWORD_REGISTEROUTPUT = "registerOutput";
 	//public static final String SJ_KEYWORD_REGISTERINPUT = "registerInput";
 	//public static final String SJ_KEYWORD_SELECTSESSION = "selectSession";	
-	public static final String SJ_KEYWORD_REGISTEROUTPUT = "registerSend";
-	public static final String SJ_KEYWORD_REGISTERINPUT = "registerReceive";
+	public static final String SJ_KEYWORD_REGISTEROUTPUT = "registerOutput";
+	public static final String SJ_KEYWORD_REGISTERINPUT = "registerInput";
 	public static final String SJ_KEYWORD_SELECTSESSION = "select";
 	
 	public static final String SJ_KEYWORD_SPAWN = "spawn";
@@ -88,13 +88,13 @@ public class SJConstants
 	public static final String SJ_THREAD_SPAWN = "spawn";
 	
 	public static final String SJ_SELECTOR_REGISTERACCEPT = "registerAccept";
-	public static final String SJ_SELECTOR_REGISTEROUTPUT = "registerSend"; // It's for all ouput operations, not just send. Similarly for registerReceive.
-	public static final String SJ_SELECTOR_REGISTERINPUT = "registerReceive";
+	public static final String SJ_SELECTOR_REGISTEROUTPUT = "registerOutput"; // It's for all ouput operations, not just send. Similarly for registerInput.
+	public static final String SJ_SELECTOR_REGISTERINPUT = "registerInput";
 	public static final String SJ_SELECTOR_SELECTSESSION = "select";
 	
 	public static final String SJ_SELECTOR_ACCEPT_FILTER = "ACCEPT";
-	public static final String SJ_SELECTOR_RECEIVE_FILTER = "RECEIVE";
-	public static final String SJ_SELECTOR_SEND_FILTER = "SEND";
+	public static final String SJ_SELECTOR_RECEIVE_FILTER = "INPUT";
+	public static final String SJ_SELECTOR_SEND_FILTER = "OUTPUT";
 	
 	// Used for printing type objects and nodes. Not suitable to declare as first-class parsing tokens because symbols already used for base language.
 	public static final String SJ_STRING_SEPARATOR = ".";

@@ -1,8 +1,7 @@
 package sessionj.runtime.transport.udp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelector;
-import sessionj.runtime.net.SJServerIdentifier;
+import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJTransport;
@@ -38,12 +37,6 @@ public class SJUDP implements SJTransport{
        return a;
     }
        
-    public SJConnection connect(SJServerIdentifier si) 
-       throws SJIOException
-    {
-       return connect(si.getHostName(), si.getPort());
-    }
-
     public SJConnection connect(String s, int i) throws SJIOException 
     {
     	try 
@@ -138,8 +131,12 @@ public class SJUDP implements SJTransport{
 	    }
     }
 
-    public SJSelector transportSelector() {
+    public SJSelectorInternal transportSelector() {
         return null;
+    }
+
+    public boolean blockingModeSupported() {
+        return true;
     }
 
     public boolean portInUse (int port) {

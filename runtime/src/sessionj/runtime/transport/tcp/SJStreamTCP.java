@@ -1,16 +1,18 @@
 package sessionj.runtime.transport.tcp;
 
-import java.io.*;
-import java.net.*;
-import java.util.Random;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSelector;
+import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJStreamConnection;
 import sessionj.runtime.transport.SJTransport;
 
-import static sessionj.runtime.util.SJRuntimeUtils.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Random;
 
 class SJStreamTCPAcceptor implements SJConnectionAcceptor
 {
@@ -81,8 +83,7 @@ class SJStreamTCPConnection extends SJStreamConnection
 {
 	private final Socket s;
 	
-	protected SJStreamTCPConnection(Socket s, InputStream is, OutputStream os) throws SJIOException
-	{
+	protected SJStreamTCPConnection(Socket s, InputStream is, OutputStream os) {
 		super(is, os);
 		
 		this.s = s;
@@ -164,8 +165,12 @@ public class SJStreamTCP implements SJTransport
 		}
 	}
 
-    public SJSelector transportSelector() {
+    public SJSelectorInternal transportSelector() {
         return null;
+    }
+
+    public boolean blockingModeSupported() {
+        return true;
     }
 
     public boolean portInUse(int port)
@@ -224,5 +229,5 @@ public class SJStreamTCP implements SJTransport
 	public int sessionPortToSetupPort(int port) // Maybe can factor out to an abstract TCP-based parent class.
 	{
 		return port + TCP_PORT_MAP_ADJUST;
-	}	
+	}
 }

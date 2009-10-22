@@ -5,8 +5,6 @@ package sessionj.runtime.transport;
 
 import sessionj.runtime.SJIOException;
 
-import java.nio.channels.SelectableChannel;
-
 /**
  * @author Raymond
  *

@@ -344,8 +344,12 @@ public class SJBoundedFifoPair implements SJTransport
 		return connect(hostName, port, UNBOUNDED_BUFFER_SIZE);	
 	}
 
-    public SJSelector transportSelector() {
+    public SJSelectorInternal transportSelector() {
         return null;
+    }
+
+    public boolean blockingModeSupported() {
+        return true;
     }
 
     public SJBoundedFifoPairConnection connect(String hostName, int port, int boundedBufferSize) throws SJIOException
