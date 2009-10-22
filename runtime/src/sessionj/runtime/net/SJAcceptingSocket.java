@@ -9,7 +9,7 @@ public class SJAcceptingSocket extends SJAbstractSocket
     /**
      * For accept(): user-level session types cannot be set types.
      */
-    SJAcceptingSocket(SJProtocol protocol, SJSessionParameters params) throws SJIOException
+    public SJAcceptingSocket(SJProtocol protocol, SJSessionParameters params) throws SJIOException
 	{
 		super(protocol, params);
 	}

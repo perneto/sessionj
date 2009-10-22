@@ -286,7 +286,7 @@ public class SJRuntime
 		}
 	}
 	
-	protected static void accept(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException
+	public static void accept(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException
 	{
 		try
 		{
