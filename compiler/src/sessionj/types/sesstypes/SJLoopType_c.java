@@ -130,4 +130,9 @@ abstract public class SJLoopType_c extends SJSessionType_c implements SJLoopType
 	
 	abstract protected String loopConstructorOpen();
 	abstract protected String loopConstructorClose();
+	
+	public SJSessionType unfold()
+	{
+		throw new RuntimeException("[SJLoopType_c] Unfold on not yet supported for: " + this);
+	}
 }

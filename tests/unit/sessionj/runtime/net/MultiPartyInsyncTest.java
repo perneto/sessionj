@@ -4,6 +4,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeTest;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
+import sessionj.runtime.session.SJStateManager;
 import sessionj.runtime.transport.SJConnection;
 
 @SuppressWarnings({"ALL"})
@@ -144,6 +145,12 @@ public class MultiPartyInsyncTest {
         public int typeLabel() throws SJIOException {
             return 0;
         }
+
+				public SJStateManager getStateManager()
+				{
+					// TODO Auto-generated method stub.
+					return null;
+				}
     }
 
     @BeforeTest
