@@ -146,10 +146,18 @@ public class MultiPartyInsyncTest {
             return 0;
         }
 
+				@Override
 				public SJStateManager getStateManager()
 				{
-					// TODO Auto-generated method stub.
+					// TODO: Auto-generated method stub.
 					return null;
+				}
+
+				@Override
+				public void setStateManager(SJStateManager sm)
+				{
+					// TODO: Auto-generated method stub.
+					
 				}
     }
 
