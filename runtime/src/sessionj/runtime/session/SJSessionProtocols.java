@@ -15,7 +15,6 @@ import sessionj.types.sesstypes.SJSessionType;
  */
 public interface SJSessionProtocols
 {
-
 	void accept() throws SJIOException, SJIncompatibleSessionException;
 	void request() throws SJIOException, SJIncompatibleSessionException;
 	void close();
@@ -66,7 +65,6 @@ public interface SJSessionProtocols
 		return zeroCopySupported;
 	}*/
 	
-	//Hacks for bounded-buffer communication.
-	
+	//Hacks for bounded-buffer communication.	
 	//abstract public boolean recurseBB(String lab) throws SJIOException;
 }

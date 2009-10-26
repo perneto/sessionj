@@ -309,5 +309,23 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
   	SJSessionType c = child();		
 		
   	return (c == null) ?  n : n.child(c.getCanonicalForm());
-	}   
+	}
+	
+  public boolean canImplement(SJSessionType st)
+  {
+  	return treeCanImplement(st);
+  }
+  
+  public boolean nodeCanImplement(SJSessionType st) // TODO: should be overridden by all concrete classes.
+  {
+    throw new RuntimeException("[SJSessionType_c] nodeCanImplemented on " + this + " not yet suppported: " + st);
+  }
+  
+  public boolean treeCanImplement(SJSessionType st)
+  {
+		SJSessionType ours = child(); // This basic structure (check if child is null, etc.) is used by a bunch of routines.
+		SJSessionType theirs = st.child();
+		
+		return nodeCanImplement(st) && (ours == null ? theirs == null : ours.canImplement(theirs));
+  }
 }

@@ -11,9 +11,11 @@ import sessionj.types.sesstypes.SJSessionType;
 
 abstract public class SJAbstractSocket implements SJSocket
 {
+	private SJStateManager sm; // A runtime version of SJContext, specialised for a single session.
+	
 	private SJProtocol protocol;
 	private SJSessionType runtimeType;
-    private final SJSessionParameters params;
+  private final SJSessionParameters params;
 	
 	private String hostName;
 	private int port;
@@ -28,12 +30,12 @@ abstract public class SJAbstractSocket implements SJSocket
 	
 	private boolean isActive = false;
 
-    protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params) throws SJIOException
+  protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params) throws SJIOException
 	{
 		this(protocol, params, protocol.type());
-    }
+  }
 
-    protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType runtimeType)
+  protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType runtimeType)
         throws SJIOException
     {
         this.protocol = protocol; // Remainder of initialisation for client sockets performed when init is called.
@@ -48,7 +50,9 @@ abstract public class SJAbstractSocket implements SJSocket
 		{
 			throw new SJIOException(ioe);
 		}
-    }
+		
+		//this.sm = new SJStateManager_c(SJRuntime.getTypeSystem(), protocol.type()); // Replaced by a setter (called by SJProtocolsImp).
+  }
 	
 	protected void init(SJConnection conn) throws SJIOException // conn can be null (delegation case 2?).
 	{
@@ -58,7 +62,7 @@ abstract public class SJAbstractSocket implements SJSocket
         sp = new SJSessionProtocolsImpl(this, ser); // ... user configurable.
 	}
 
-    public SJSessionType getRuntimeType() {
+    public SJSessionType getRuntimeType() { // FIXME: these are subsumed by the more general SJStateManager.
         return runtimeType;
     }
 
@@ -310,20 +314,30 @@ abstract public class SJAbstractSocket implements SJSocket
 		return sp.recurseBB(lab);
 	}*/
 
-    public int typeLabel() throws SJIOException {
-        // TODO: Better support for runtime type (this currently only works right after a session-receive)
-        assert protocol.type() instanceof SJSetType;
-        SJSetType set = (SJSetType) protocol.type();
-        return set.memberRank(runtimeType);
-    }
+  public int typeLabel() throws SJIOException {
+      // TODO: Better support for runtime type (this currently only works right after a session-receive)
+      assert protocol.type() instanceof SJSetType;
+      SJSetType set = (SJSetType) protocol.type();
+      return set.memberRank(runtimeType);
+  }
 
-    /**
-     * For zero-copy delegation: receiver needs to keep its own static type
-     */
-    public void updateStaticAndRuntimeTypes(SJSessionType staticType, SJSessionType runtimeType) throws SJIOException {
-        this.runtimeType = runtimeType;
-        protocol = new SJProtocol(SJRuntime.encode(staticType));
-    }
+  /**
+   * For zero-copy delegation: receiver needs to keep its own static type
+   */
+  public void updateStaticAndRuntimeTypes(SJSessionType staticType, SJSessionType runtimeType) throws SJIOException {
+      this.runtimeType = runtimeType;
+      protocol = new SJProtocol(SJRuntime.encode(staticType));
+  }
 
-    public abstract boolean isOriginalRequestor();
+  public abstract boolean isOriginalRequestor();
+  
+  public SJStateManager getStateManager()
+  {
+  	return sm;
+  }
+  
+  public void setStateManager(SJStateManager sm)
+  {
+  	this.sm = sm;
+  }
 }

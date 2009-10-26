@@ -67,8 +67,16 @@ class SJSelectorAllTransports implements SJSelector {
         for (final SJSelectorInternal sel : transportSelectors) {
             executor.submit(new Callable<Object>() {
                 public Object call() throws SJIOException {
+                	try 
+                	{
                     latch.submitValue(sel.select(mask));
-                    return null;
+                	}
+                	catch (SJIncompatibleSessionException ise) // Ray: temporary fix to get around build error.
+                	{
+                		throw new SJIOException(ise);
+                	}
+                   
+                	return null;                    
                 }
             });
         }

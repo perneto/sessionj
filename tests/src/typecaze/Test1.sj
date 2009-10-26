@@ -27,13 +27,13 @@ public class Test1
 			{
 				s = c.request();
 				
-				selector.registerReceive(s);
+				selector.registerInput(s);
 
 				noalias SJSocket s1;
 					
 				try (s1)
 				{
-					s1 = selector.select(SJSelector.RECEIVE);
+					s1 = selector.select(SJSelector.INPUT);
 					
           typecase (s1) // FIXME: currently, 
           {

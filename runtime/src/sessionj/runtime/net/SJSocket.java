@@ -1,6 +1,7 @@
 package sessionj.runtime.net;
 
 import sessionj.runtime.*;
+import sessionj.runtime.session.SJStateManager;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.types.sesstypes.SJSessionType;
 
@@ -65,14 +66,17 @@ public interface SJSocket extends SJChannel
 	
 	//public boolean recurseBB(String lab) throws SJIOException;
 
-    SJConnection getConnection();
+  SJConnection getConnection();
 
-    void reconnect(SJConnection connection) throws SJIOException;
+  void reconnect(SJConnection connection) throws SJIOException;
 
-    void setHostName(String hostAddress);
+  void setHostName(String hostAddress);
 
-    void setPort(int port);
+  void setPort(int port);
 
-    /** Used for the translation of the typecase construct */
-    int typeLabel() throws SJIOException;
+  /** Used for the translation of the typecase construct */
+  int typeLabel() throws SJIOException;
+  
+  public SJStateManager getStateManager();
+  public void setStateManager(SJStateManager sm);
 }
