@@ -171,7 +171,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		pushTopLevel(protocolType());//.treeClone());
 	}
 
-	public final SJSessionType send(Object obj) throws SJIOException // Also need a sendSession for type tracking.
+	public final SJSessionType send(Object obj) throws SJIOException  
 	{
 		SJSendType sjst = null;
 
@@ -218,7 +218,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		/*SJSessionType active = activeType().nodeClone();
 
-		if (!active.isSubtype(sjst)) // No point to check own actions.
+		if (!active.isSubtype(sjst)) // Currently not "checking" our own outputs, i.e. we trust our own compiler and runtime.
 		{
 			throw new SJIOException("Expected `" + active + "' but implemented: " + sjst);
 		}*/
@@ -412,7 +412,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		/*SJSessionType active = activeType();//.nodeClone();
 
-		if (!sjrt.nodeSubtype(active))
+		if (!sjrt.nodeSubtype(active)) // FIXME: shouldn't be disabled, we don't necessarily trust our session peer. And should factor out configuration parameters for the "security levels".
 		{
 			throw new SJIOException("Expected `" + active + "' but received: " + sjrt);
 		}*/
