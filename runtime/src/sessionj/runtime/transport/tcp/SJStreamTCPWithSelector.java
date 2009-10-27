@@ -281,7 +281,7 @@ public class SJStreamTCPWithSelector implements SJTransport
         }
 
         public void readBytes(byte[] bs) throws SJIOException {
-            //readBytes // Ray: this was incomplete.
+            //readBytes
         }
 
         public void flush() throws SJIOException {
