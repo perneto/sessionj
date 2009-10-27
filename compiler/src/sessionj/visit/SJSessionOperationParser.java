@@ -27,15 +27,17 @@ import java.util.*;
 public class SJSessionOperationParser extends ContextVisitor
 // Doesn't do any "proper" parsing of session operations (done by actual parser), but does some argument adjusting. // Except SJSpawns.
 {
-	public static final Set<String> RUNTIME_SOCKET_OPERATIONS = new HashSet<String>(); // Factor out as constants.
-	
+	public static final Set<String> UNTYPED_SOCKET_OPERATIONS = new HashSet<String>(); 	
 	{
-		RUNTIME_SOCKET_OPERATIONS.add("getProtocol"); // Just the getters.
-		RUNTIME_SOCKET_OPERATIONS.add("getHostName");
-		RUNTIME_SOCKET_OPERATIONS.add("getPort");
-		RUNTIME_SOCKET_OPERATIONS.add("getLocalHostName");
-		RUNTIME_SOCKET_OPERATIONS.add("getLocalPort");
-		RUNTIME_SOCKET_OPERATIONS.add("getParameters");
+		UNTYPED_SOCKET_OPERATIONS.add("getProtocol"); // Just the getters. // FIXME: factor out as constants.
+		UNTYPED_SOCKET_OPERATIONS.add("getHostName");
+		UNTYPED_SOCKET_OPERATIONS.add("getPort");
+		UNTYPED_SOCKET_OPERATIONS.add("getLocalHostName");
+		UNTYPED_SOCKET_OPERATIONS.add("getLocalPort");
+		UNTYPED_SOCKET_OPERATIONS.add("getParameters");
+		UNTYPED_SOCKET_OPERATIONS.add("getStateManager");
+		UNTYPED_SOCKET_OPERATIONS.add("currentSessionType");
+		UNTYPED_SOCKET_OPERATIONS.add("remainingSessionType");
 	}
 	
 	private static final Set<String> SJ_BASIC_OPERATION_KEYWORDS = new HashSet<String>();
@@ -127,7 +129,7 @@ public class SJSessionOperationParser extends ContextVisitor
 				c = bo;
 			}
 			else */
-            if (!RUNTIME_SOCKET_OPERATIONS.contains(name))// FIXME: should allow for socket parameter setter methods, etc.
+            if (!UNTYPED_SOCKET_OPERATIONS.contains(name))// FIXME: should allow for socket parameter setter methods, etc.
 			{
 				throw new SemanticException("[SJSessionOperationParser] Unknown session operation: " + c);
 			}
