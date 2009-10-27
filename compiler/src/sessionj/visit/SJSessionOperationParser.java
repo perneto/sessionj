@@ -35,6 +35,7 @@ public class SJSessionOperationParser extends ContextVisitor
 		UNTYPED_SOCKET_OPERATIONS.add("getLocalHostName");
 		UNTYPED_SOCKET_OPERATIONS.add("getLocalPort");
 		UNTYPED_SOCKET_OPERATIONS.add("getParameters");
+		UNTYPED_SOCKET_OPERATIONS.add("getStateManager");
 		UNTYPED_SOCKET_OPERATIONS.add("currentSessionType");
 		UNTYPED_SOCKET_OPERATIONS.add("remainingSessionType");
 	}
