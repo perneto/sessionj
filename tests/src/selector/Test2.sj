@@ -38,7 +38,7 @@ public class Test2
 					
 					try (s)
 					{
-						s = selector.select(SJSelector.ACCEPT | SJSelector.RECEIVE);
+						s = selector.select(SJSelector.ACCEPT | SJSelector.INPUT);
 						
             typecase (s) 
             {
@@ -49,7 +49,7 @@ public class Test2
               	
               	//System.out.println("Received: " + (String) s.receive());
               	
-              	selector.registerReceive(s);
+              	selector.registerInput(s);
               	
               	//System.out.println("Received: " + (String) s.receive());
               }

@@ -17,7 +17,7 @@ import sessionj.types.typeobjects.SJNamedInstance;
  * @author Raymond
  *
  */
-public interface SJContextInterface
+public interface SJContextInterface // For SJContext (not SJContextElement).
 {	
 	void setVisitor(ContextVisitor cv);
 	

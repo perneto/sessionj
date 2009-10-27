@@ -12,6 +12,7 @@ import sessionj.runtime.transport.SJAcceptorThreadGroup;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJTransportManager;
 import sessionj.types.sesstypes.SJSessionType;
+import sessionj.util.SJLabel;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -23,9 +24,14 @@ import java.util.List;
  *
  * Currently, this class collects together init., delegation and close protocol (with corresponding signal handling) into one class, but can easily be separated.
  * 
+ * Currently, there is an instance of this class per session socket. (Later refactor to make it safe for sessions to share protocol objects?)
+ * 
  */
 public class SJSessionProtocolsImpl implements SJSessionProtocols
 {
+	private static final boolean RUNTIME_MONITORING = false; 
+	//private static final boolean RUNTIME_MONITORING = true; // FIXME: factor out as a configurable parameter.
+	
 	private static final byte DELEGATION_START = -1; // Would be more uniform to be a control signal (although slower).
 	//private static final byte DELEGATION_ACK = -2;	
 
@@ -33,21 +39,47 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	private List<SJMessage> lostMessages = new LinkedList<SJMessage>(); // Doesn't need synchronization, shouldn't be adding and removing in different threads.
     protected SJSocket s;
     protected SJSerializer ser;
-
-    public SJSessionProtocolsImpl(SJSocket s, SJSerializer ser)
+    
+   protected SJStateManager sm; 
+    
+  public SJSessionProtocolsImpl(SJSocket s, SJSerializer ser)
 	{
-        this.s = s;
-        this.ser = ser;
+		this.s = s;
+		this.ser = ser;
+		
+		if (RUNTIME_MONITORING)
+		{
+			try
+			{
+				this.sm = new SJStateManager_c(SJRuntime.getTypeSystem(), s.getProtocol().type());
+				
+				s.setStateManager(sm);
+			}
+			catch (SJIOException ioe)
+			{
+				throw new SJRuntimeException("[SJProtocolsImpl] Shouldn't get in here: ", ioe);
+			}
+	  }
 	}
 
 	public void accept() throws SJIOException, SJIncompatibleSessionException
 	{
 		dualityCheck(s.getProtocol());
+		
+		if (RUNTIME_MONITORING)
+		{
+			sm.accept();
+		}			
 	}
 	
 	public void request() throws SJIOException, SJIncompatibleSessionException
 	{
 		dualityCheck(s.getProtocol());
+		
+		if (RUNTIME_MONITORING)
+		{
+			sm.request();
+		}		
 	}
 	
 	public void close()
@@ -100,6 +132,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
 		finally
 		{
+			if (RUNTIME_MONITORING)
+			{
+				sm.close();
+			}			
+			
 			//if (ser != null) // Delegation case 2: no connection created between passive party and session acceptor.
 			{
 				if (!ser.isClosed()) 
@@ -115,6 +152,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	public void send(Object o) throws SJIOException
 	{
 		ser.writeObject(o);
+		
+		if (RUNTIME_MONITORING)
+		{
+			sm.send(o);
+		}			
 	}
 
 	public void sendByte(byte b) throws SJIOException
@@ -212,7 +254,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 						o = m.getContent();
 					}
 					else handleMessage(m, t);
-                }
+				}
+				
+				if (RUNTIME_MONITORING)
+				{
+					sm.receive(o);
+				}	
 				
 				return o;
 			}
@@ -381,6 +428,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         } else {
             ser.writeObject(lab);
         }
+        
+		if (RUNTIME_MONITORING)
+		{
+			sm.outbranch(new SJLabel(lab));
+		}		        
 	}
 	
 	public String inlabel() throws SJIOException 
@@ -409,6 +461,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 						else handleMessage(m, t);
                     }
 					
+      		if (RUNTIME_MONITORING)
+      		{
+      			sm.inbranch(new SJLabel(lab));
+      		}	          
+                    
 					return lab;
 				}
 				catch (SJControlSignal cs)
@@ -420,12 +477,17 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		catch (ClassNotFoundException cnfe)
 		{
 			throw new SJRuntimeException(cnfe);
-		}
+		}		
 	}
 	
 	public void outsync(boolean b) throws SJIOException // FIXME: make support for zerocopy? (And other primitives?)
 	{
 		ser.writeBoolean(b);
+		
+		if (RUNTIME_MONITORING)
+		{
+			sm.outwhile(b);
+		}			
 	}
 	
 	public boolean insync() throws SJIOException
@@ -452,6 +514,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 					else handleMessage(m, t);
                 }
 				
+    		if (RUNTIME_MONITORING)
+    		{
+    			sm.inwhile(b);
+    		}	                
+                
 				return b;
 			}
 			catch (SJControlSignal cs)
@@ -461,7 +528,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
 	}
 
-    public boolean interruptibleOutsync(boolean condition) throws SJIOException {
+    public boolean interruptibleOutsync(boolean condition) throws SJIOException { // FIXME: need to add SJStateManager monitor calls to these routines.
         ser.writeBoolean(condition);
         return condition && readBooleanWrapCS();
     }
@@ -515,18 +582,30 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
           {
               send(c);
           }*/
+        
+		if (RUNTIME_MONITORING)
+		{
+			sm.sendChannel(SJRuntime.decodeSessionType(c.getProtocol().encoded()));
+		}	        
 	}
 	
 	public SJService receiveChannel(SJSessionType st) throws SJIOException
 	{
 		try
 		{
-			return (SJService) receive();
+			SJService c = (SJService) receive(); 
+			
+			if (RUNTIME_MONITORING)
+			{
+				sm.receiveChannel(SJRuntime.decodeSessionType(c.getProtocol().encoded()));
+			}					
+			
+			return c;
 		}
 		catch (ClassNotFoundException cnfe)
 		{
 			throw new SJIOException(cnfe);
-		}
+		}		
 	}
 	
 	public void delegateSession(SJAbstractSocket s, SJSessionType st) throws SJIOException
@@ -537,15 +616,36 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
             ser.writeReference(st);
         } else
 		    standardDelegateSession(s);
+		
+		if (RUNTIME_MONITORING)
+		{
+			//sm.sendSession(s.getStateManager().currentState());
+			sm.sendSession(st);
+			s.getStateManager().close();
+		}				
 	}
 
     //public SJAbstractSocket receiveSession(SJSessionType st) throws SJIOException
 	public SJAbstractSocket receiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException
 	{
+		SJAbstractSocket as;
+		
 		if (ser.zeroCopySupported())
-		    return zeroCopyReceiveSession(st);
-        else
-		    return standardReceiveSession(st, params);
+		{
+			as = zeroCopyReceiveSession(st);
+		}
+    else
+    {
+    	as = standardReceiveSession(st, params);
+    }
+		
+		if (RUNTIME_MONITORING)
+		{
+			//sm.receiveSession(as.getStateManager().currentState());
+			sm.receiveSession(st);
+		}			
+		
+		return as;
 	}
 
     private SJAbstractSocket standardReceiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException {
@@ -1008,13 +1108,13 @@ throw new SJRuntimeException("[SJSessionProtocolsImpl] Simultaneous delegation n
 		}		
 	}*/
 
-    public SJSerializer getSerializer()
-    {
-        return ser;
-    }
+  public SJSerializer getSerializer()
+  {
+      return ser;
+  }
 
-    public void setSerializer(SJSerializer ser)
-    {
-        this.ser = ser;
-    }
+  public void setSerializer(SJSerializer ser)
+  {
+      this.ser = ser;
+  }  
 }

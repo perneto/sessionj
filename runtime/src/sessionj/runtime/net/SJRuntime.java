@@ -5,6 +5,7 @@ import sessionj.ExtensionInfo;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.SJProtocol;
+import sessionj.runtime.session.SJControlSignal;
 import sessionj.runtime.session.SJManualSerializer;
 import sessionj.runtime.session.SJSerializer;
 import sessionj.runtime.session.SJStreamSerializer;
@@ -30,7 +31,14 @@ public class SJRuntime
 	
 	private static final String LOCAL_HOST_NAME;
 
-    static
+  private static SJTransportManager sjtm;
+
+	private static final int LOWER_PORT_LIMIT = 1024;
+	private static final int UPPER_PORT_LIMIT = 65535;
+  
+  private static final Set<Integer> portsInUse = new HashSet<Integer>();
+  
+  static
 	{
 		try
 		{
@@ -58,36 +66,17 @@ public class SJRuntime
 			throw new SJRuntimeException(uhe);
 		}
 	}	
-	
+
+	static { // Should be merged with the above static initialiser.
+    try {
+        sjtm = new SJTransportManager_c();
+    } catch (IOException e) {
+        e.printStackTrace();
+        System.exit(-1);
+    }
+	}
+  
 	private SJRuntime() { }
-
-	public static SJTypeSystem getTypeSystem()
-	{
-		return sjts;
-	}
-	
-	public static SJSessionType decodeType(String encoded) throws SJIOException {
-		return sjte.decode(encoded);
-	}
-
-    public static String encode(SJSessionType st) throws SJIOException {
-        return sjte.encode(st);
-    }
-
-	private static final int LOWER_PORT_LIMIT = 1024;
-	private static final int UPPER_PORT_LIMIT = 65535;
-
-    private static SJTransportManager sjtm;
-    static {
-        try {
-            sjtm = new SJTransportManager_c();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
-    }
-
-    private static final Set<Integer> portsInUse = new HashSet<Integer>();
 	
 	private static final Map<SJPort, SJAcceptorThreadGroup> reservedPorts = new HashMap<SJPort, SJAcceptorThreadGroup>();
     // FIXME: need to free up unclaimed ports.
@@ -288,7 +277,7 @@ public class SJRuntime
 	
 	public static void accept(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException
 	{
-		try
+		/*try
 		{
 			s.setHostName((String) s.receive()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
 			s.setPort(s.receiveInt());
@@ -296,15 +285,36 @@ public class SJRuntime
 		catch (ClassNotFoundException cnfe)
 		{
 			throw new SJRuntimeException(cnfe);
-		}				
+		}*/				
+		
+		try // Cannot use send/receive because it will interfere with the type monitoring.
+		{
+			SJSerializer ser = s.getSerializer();
+			
+			s.setHostName((String) ser.readObject()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
+			s.setPort(ser.readInt());
+		}
+		catch (ClassNotFoundException cnfe)
+		{
+			throw new SJRuntimeException(cnfe);
+		}
+		catch (SJControlSignal cs)
+		{
+			throw new SJRuntimeException("[SJRuntime] Shouldn't get in here: ", cs);
+		}
 		
 		s.accept();
 	}
 	
 	protected static void request(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException
 	{		
-		s.send(s.getLocalHostName());		
-		s.sendInt(s.getLocalPort());
+		/*s.send(s.getLocalHostName());		
+		s.sendInt(s.getLocalPort());*/
+		
+		SJSerializer ser = s.getSerializer(); // Cannot use send/receive because it will interfere with the type monitoring.
+		
+		ser.writeObject(s.getLocalHostName()); 		
+		ser.writeInt(s.getLocalPort());
 		
 		s.request();
 	}
@@ -1048,6 +1058,18 @@ public class SJRuntime
 		
 		return s.recurseBB(lab);	// If we adopt this in the future, the standard recurse routine should be modified accordingly.	
 	}*/	
+
+	public static SJTypeSystem getTypeSystem()
+	{
+		return sjts;
+	}
 	
+	public static SJSessionType decodeType(String encoded) throws SJIOException {
+		return sjte.decode(encoded);
+	}
+
+  public static String encode(SJSessionType st) throws SJIOException {
+      return sjte.encode(st);
+  }
 }
 
