@@ -6,6 +6,7 @@ import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
 import sessionj.runtime.session.SJStateManager;
 import sessionj.runtime.transport.SJConnection;
+import sessionj.types.sesstypes.SJSessionType;
 
 @SuppressWarnings({"ALL"})
 public class MultiPartyInsyncTest {
@@ -158,6 +159,20 @@ public class MultiPartyInsyncTest {
 				{
 					// TODO: Auto-generated method stub.
 					
+				}
+
+				@Override
+				public SJSessionType currentSessionType()
+				{
+					// TODO: Auto-generated method stub.
+					return null;
+				}
+
+				@Override
+				public SJSessionType remainingSessionType()
+				{
+					// TODO: Auto-generated method stub.
+					return null;
 				}
     }
 

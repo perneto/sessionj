@@ -18,8 +18,8 @@ import sessionj.runtime.session.contexts.*;
  */
 public class SJStateManager_c implements SJStateManager // Analogous to SJContext. But only tracks the session types for a single session, as each session has an individual underlying socket, with its own socket state object. // We currently record the type of the session completed so far. An alternative would be to track the concrete operation history: basically, loops unrolled. This might make the lost message resending algorithm simpler. 
 {
-	//private static final boolean DEBUG = false; // TODO: centralise debugging routines.
-	private static final boolean DEBUG = true; 
+	private static final boolean DEBUG = false; // TODO: centralise debugging routines.
+	//private static final boolean DEBUG = true; 
 	
 	//private final SJRSocket rsocket; // HACK: only socket state knows when we're leaving a recursion scope.
 	private final SJTypeSystem sjts;
@@ -673,6 +673,8 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	
 	public final void close()
 	{
+		debugPrintln("Closing: " + currentState());	
+		
 		reset();
 		
 		debugPrintln("Performed: end");	// Factor out constant?	
@@ -783,8 +785,6 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	public final void pushTopLevel(SJSessionType sjtype)
 	{
 		pushContext(new SJTopLevelContext(sjtype));
-		
-		System.out.println("b: " + contexts);
 	}
 
 	public final void pushOutbranch(SJLabel lab, SJSessionType sjtype)
@@ -906,11 +906,16 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return m;
 	}
 	
-	private static final void debugPrintln(String m)
+	private /*static*/ final void debugPrintln(String m)
 	{
 		if (DEBUG)
 		{
 			System.out.println("[SJStateManager_c] " + m);
+			
+			/*if (!contexts.isEmpty()) // May call debugPrintln outside of stable SJStateManager state, e.g. before fully intialised. 
+			{
+				System.out.println("[SJStateManager_c] Current session type: " + currentState());
+			}*/
 		}
 	}
 }

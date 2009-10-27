@@ -29,8 +29,8 @@ import java.util.List;
  */
 public class SJSessionProtocolsImpl implements SJSessionProtocols
 {
-	private static final boolean RUNTIME_MONITORING = false; 
-	//private static final boolean RUNTIME_MONITORING = true; // FIXME: factor out as a configurable parameter.
+	//private static final boolean RUNTIME_MONITORING = false; 
+	private static final boolean RUNTIME_MONITORING = true; // FIXME: factor out as a configurable parameter.
 	
 	private static final byte DELEGATION_START = -1; // Would be more uniform to be a control signal (although slower).
 	//private static final byte DELEGATION_ACK = -2;	
@@ -214,11 +214,16 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         } else {
             ser.writeObject(o);
         }
+        
+		if (RUNTIME_MONITORING)
+		{
+			sm.send(o);
+		}	        
 	}
 	
 	public void copy(Object o) throws SJIOException
 	{
-		send(o);
+		send(o); // Already taken care of type monitoring.		
 	}
 	
 	/*public void copyInt(int i) throws SJIOException
