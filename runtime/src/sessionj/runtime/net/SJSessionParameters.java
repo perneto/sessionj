@@ -17,7 +17,7 @@ public class SJSessionParameters //implements Serializable
 {
 	public static final SJSessionParameters DEFAULT_PARAMETERS = new SJSessionParameters();
 	
-	private List<SJTransport> negociationTransports; 
+	private List<SJTransport> negociationTransports; // FIXME: should be "negotiation".
 	private List<SJTransport> sessionTransports;
 
 	private boolean useDefault = false;

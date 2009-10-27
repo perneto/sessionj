@@ -340,4 +340,14 @@ abstract public class SJAbstractSocket implements SJSocket
   {
   	this.sm = sm;
   }
+  
+  public SJSessionType currentSessionType()
+  {
+  	return getStateManager().currentState(); // FIXME: state manager needs to use proper unrolling of loop types.
+  }
+  
+  public SJSessionType remainingSessionType()
+  {
+  	return getStateManager().expectedType(); // FIXME: state manager needs to use proper unrolling of loop types.
+  }
 }

@@ -23,7 +23,7 @@ public interface SJStateManager // Analogous to SJContext. But only tracks the s
 	public SJSessionType currentState(); // i.e. the session type performed so far.	
 	//private SJSessionType currentState(int i);
 
-	public SJSessionType expectedType();
+	public SJSessionType expectedType(); 
 
 	public SJSessionType accept() throws SJIOException;
 	public SJSessionType request() throws SJIOException;
