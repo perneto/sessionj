@@ -153,7 +153,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	{
 		ser.writeObject(o);
 		
-		if (RUNTIME_MONITORING)
+		if (RUNTIME_MONITORING) // FIXME: provide a common structure for handling the monitor after each typeable action (so that new actions don't forget to update the monitor). Can specify via an interface.
 		{
 			sm.send(o);
 		}			
@@ -169,6 +169,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{
 			ser.writeByte(b);
 		}
+		
+		if (RUNTIME_MONITORING)
+		{
+			sm.sendByte(b);
+		}				
 	}
 	
 	public void sendInt(int i) throws SJIOException
@@ -181,6 +186,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{
 			ser.writeInt(i);
 		}
+		
+		if (RUNTIME_MONITORING)
+		{
+			sm.sendInt(i);
+		}			
 	}
 
 	public void sendBoolean(boolean b) throws SJIOException
@@ -193,6 +203,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{
 			ser.writeBoolean(b);
 		}
+		
+		if (RUNTIME_MONITORING)
+		{
+			sm.sendBoolean(b);
+		}			
 	}
 	
 	public void sendDouble(double d) throws SJIOException
@@ -205,6 +220,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{
 			ser.writeDouble(d);
 		}
+		
+		if (RUNTIME_MONITORING)
+		{
+			sm.sendDouble(d);
+		}			
 	}
 	
 	public void pass(Object o) throws SJIOException
@@ -266,7 +286,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 					sm.receive(o);
 				}	
 				
-				return o;
+				return o; // FIXME: refactor all receive methods to put the return at the end of the top-level (easier to read). 
 			}
 			catch (SJControlSignal cs)
 			{
@@ -299,7 +319,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 					}
 					else handleMessage(m, t);
                 }
-					
+
+				if (RUNTIME_MONITORING)
+				{
+					sm.receiveByte(b);
+				}					
+				
 				return b; 
 			}
 			catch (SJControlSignal cs)
@@ -333,7 +358,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 					}
 					else return handleMessage(m, t);
                 }
-				
+
+				if (RUNTIME_MONITORING)
+				{
+					sm.receiveInt(i);
+				}	                
+                
 				return i;
 			}
 			catch (SJControlSignal cs)
@@ -342,17 +372,6 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 			}
 		}
 	}
-
-    private static int handleMessage(SJMessage m, byte t) throws SJControlSignal, SJIOException {
-        if (t == SJ_CONTROL)
-        {
-            throw (SJControlSignal) m.getContent();
-        }
-        else
-        {
-            throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
-        }
-    }
 
     public boolean receiveBoolean() throws SJIOException
 	{
@@ -383,7 +402,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
                     throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
                 }
 
-                return b;
+				if (RUNTIME_MONITORING)
+				{
+					sm.receiveBoolean(b);
+				}	                
+                
+        return b;
 			}
 			catch (SJControlSignal cs)
 			{
@@ -416,7 +440,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 					}
 					else handleMessage(m, t);
                 }
-				
+
+				if (RUNTIME_MONITORING)
+				{
+					sm.receiveDouble(d);
+				}	                
+                
 				return d;
 			}
 			catch (SJControlSignal cs)
@@ -425,6 +454,18 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 			}
 		}
 	}
+	
+  private static int handleMessage(SJMessage m, byte t) throws SJControlSignal, SJIOException 
+  {
+    if (t == SJ_CONTROL)
+    {
+      throw (SJControlSignal) m.getContent();
+    }
+    else
+    {
+      throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
+    }
+  }	
 	
 	public void outlabel(String lab) throws SJIOException 
 	{

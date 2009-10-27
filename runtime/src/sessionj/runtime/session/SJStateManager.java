@@ -1,5 +1,7 @@
 package sessionj.runtime.session;
 
+import java.util.Stack;
+
 import sessionj.types.sesstypes.*;
 import sessionj.util.*;
 
@@ -32,15 +34,18 @@ public interface SJStateManager // Analogous to SJContext. But only tracks the s
 	public void open(); // To receive delegated sessions.
 
 	public SJSessionType send(Object obj) throws SJIOException; // Also need a sendSession for type tracking.
+	public SJSessionType sendByte(byte b) throws SJIOException;
 	public SJSessionType sendInt(int v) throws SJIOException;
 	public SJSessionType sendBoolean(boolean v) throws SJIOException;
+	public SJSessionType sendDouble(double d) throws SJIOException;
 	public SJSessionType sendSession(SJSessionType sjtype) throws SJIOException;
 	public SJSessionType sendChannel(SJSessionType sjtype) throws SJIOException;
 	
 	public SJSessionType receive(Object obj) throws SJIOException;
-	public SJSessionType receiveInt(int v) throws SJIOException;
+	public SJSessionType receiveByte(byte b) throws SJIOException;
+	public SJSessionType receiveInt(int v) throws SJIOException;	
 	public SJSessionType receiveBoolean(boolean v) throws SJIOException;
-	public SJSessionType receiveByte(int v) throws SJIOException;
+	public SJSessionType receiveDouble(double d) throws SJIOException;
 	public SJSessionType receiveSession(SJSessionType sjtype) throws SJIOException;	
 	public SJSessionType receiveChannel(SJSessionType sjtype) throws SJIOException;
 		
@@ -70,4 +75,6 @@ public interface SJStateManager // Analogous to SJContext. But only tracks the s
 	//private void pushContext(SJRuntimeContextElement sjsc);
 	//private void popContext();
 	//private String fullClassName(Object obj); // Move to SJRuntimeUtils?
+	
+	public Stack<SJRuntimeContextElement> getContexts(); // HACK: just for debugging.
 }

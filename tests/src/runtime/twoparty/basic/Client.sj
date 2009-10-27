@@ -30,6 +30,9 @@ public class Client
 			s = SJService.create(p_client, server, port).request();
 			
 			System.out.println("Current session type: " + s.currentSessionType());
+			
+			//System.out.println("Foo: " + s.getStateManager().getContexts().get(0) + ", "  + s.getStateManager().getContexts().get(1));
+			
 			System.out.println("Remaining session type: " + s.remainingSessionType());
 			
 			long start = System.nanoTime();
