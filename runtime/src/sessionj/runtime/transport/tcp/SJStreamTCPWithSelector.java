@@ -238,7 +238,7 @@ public class SJStreamTCPWithSelector implements SJTransport
         private final ByteBuffer buffer;
         Connection(SocketChannel sc) {
             this.sc = sc;
-            buffer = ByteBuffer.allocate(BUFFER_SIZE);
+            buffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
         }
 
         public void disconnect()
@@ -249,27 +249,45 @@ public class SJStreamTCPWithSelector implements SJTransport
         }
 
         public void writeByte(byte b) throws SJIOException {
+            buffer.clear();
+            buffer.put(b);
+            writeBufferContents();
         }
 
         public void writeBytes(byte[] bs) throws SJIOException {
             buffer.clear();
+            buffer.put(bs);
+            writeBufferContents();
+        }
+
+        private void writeBufferContents() throws SJIOException {
             try {
                 sc.write(buffer);
                 if (buffer.remaining() > 0)// TODO
-                    ;
+                    System.err.println("Could not write all data");
             } catch (IOException e) {
                 throw new SJIOException(e);
             }
         }
 
         public byte readByte() throws SJIOException {
-            return 0;
+            buffer.clear();
+            try {
+                sc.read(buffer);
+            } catch (IOException e) {
+                throw new SJIOException(e);
+            }
+            return buffer.get();
         }
 
         public void readBytes(byte[] bs) throws SJIOException {
+            readBytes
         }
 
         public void flush() throws SJIOException {
+            // Do nothing; to do anything meaningful we would need to make
+            // this blocking, and all the writeXXX() methods in the serializers call
+            // this method.
         }
 
         public String getHostName()
