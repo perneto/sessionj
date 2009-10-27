@@ -79,4 +79,7 @@ public interface SJSocket extends SJChannel
   
   public SJStateManager getStateManager();
   public void setStateManager(SJStateManager sm);
+  
+  public SJSessionType currentSessionType(); // Session actions performed so far (modulo loop types).
+  public SJSessionType remainingSessionType();
 }

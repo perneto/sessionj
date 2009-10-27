@@ -44,9 +44,15 @@ public class Client
 				s.outbranch(L1)
 				{								
 					//Thread.sleep(10000);					
+
+					/*System.out.println("Current session type: " + s.currentSessionType());
+					System.out.println("Remaining session type: " + s.remainingSessionType());*/
 					
 					s.send("Hello from Client!");
 					//s.send(123);
+										
+					/*System.out.println("Current session type: " + s.currentSessionType());
+					System.out.println("Remaining session type: " + s.remainingSessionType());*/
 					
 					//System.out.println("Received: " + (String) s.receive(5000));
 					System.out.println("Received: " + (String) s.receive());
