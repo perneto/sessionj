@@ -18,8 +18,8 @@ import sessionj.runtime.session.contexts.*;
  */
 public class SJStateManager_c implements SJStateManager // Analogous to SJContext. But only tracks the session types for a single session, as each session has an individual underlying socket, with its own socket state object. // We currently record the type of the session completed so far. An alternative would be to track the concrete operation history: basically, loops unrolled. This might make the lost message resending algorithm simpler. 
 {
-	//private static final boolean DEBUG = false; // TODO: centralise debugging routines.
-	private static final boolean DEBUG = true; 
+	private static final boolean DEBUG = false; // TODO: centralise debugging routines.
+	//private static final boolean DEBUG = true; 
 	
 	//private final SJRSocket rsocket; // HACK: only socket state knows when we're leaving a recursion scope.
 	private final SJTypeSystem sjts;
@@ -137,7 +137,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		SJBeginType sjbt = begin(sjts.SJSBeginType());
 		
-		debugPrintln("Performed: " + sjbt);
+		debugPrintln("accept: " + sjbt);
 		
 		return sjbt; 
 	}
@@ -146,7 +146,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		SJBeginType sjbt = begin(sjts.SJCBeginType());
 		
-		debugPrintln("Performed: " + sjbt);		
+		debugPrintln("request: " + sjbt);		
 		
 		return begin(sjbt);
 	}
@@ -173,178 +173,64 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final SJSessionType send(Object obj) throws SJIOException  
 	{
-		SJSendType sjst = null;
+		Type mt;
 
 		try
 		{
-			String m = fullClassName(obj);
-
-			if (m.contains("[]"))
-			{
-				String n = m.substring(0, m.indexOf('['));
-
-				Type messageType = null;
-
-				if (n.equals("boolean")) // Factor out constants
-				{
-					messageType = sjts.Boolean();
-				}
-				else if (n.equals("int"))
-				{
-					messageType = sjts.Int();
-				}
-				else if (n.equals("byte"))
-				{
-					messageType = sjts.Byte();
-				}
-				else
-				{
-					messageType = sjts.typeForName(n);
-				}
-
-				int dims = (m.length() - m.indexOf('[')) / "[]".length();
-
-				sjst = sjts.SJSendType(sjts.arrayOf(messageType, dims));
-			}
-			else
-			{
-				sjst = sjts.SJSendType(sjts.typeForName(m));
-			}
+			mt = parseClassName(sjts, fullClassName(obj));
 		}
 		catch (SemanticException se) // Not possible.
 		{
 			throw new SJIOException(se);
 		}
-
-		/*SJSessionType active = activeType().nodeClone();
-
-		if (!active.isSubtype(sjst)) // Currently not "checking" our own outputs, i.e. we trust our own compiler and runtime.
-		{
-			throw new SJIOException("Expected `" + active + "' but implemented: " + sjst);
-		}*/
-
-		advanceContext(sjst);
-
-		debugPrintln("Performed: " + sjst);
 		
-		return sjst;//.nodeClone());
+		return sendAux(mt);
 	}
-
+	
 	public final SJSessionType sendBoolean(boolean v) throws SJIOException
 	{
-		SJSendType sjst = null;
-
-		try
-		{
-			sjst = sjts.SJSendType(sjts.Boolean());
-		}
-		catch (SemanticException se) // Not possible.
-		{
-			throw new SJIOException(se);
-		}
-
-		/*SJSessionType active = activeType().nodeClone();
-
-		if (!active.isSubtype(sjst))
-		{
-			throw new SJIOException("Expected `" + active + "' but implemented: " + sjst);
-		}*/
-
-		advanceContext(sjst);
-
-		debugPrintln("Performed: " + sjst);
-		
-		return sjst;//.nodeClone());
+		return sendAux(sjts.Boolean());
 	}
 
 	public final SJSessionType sendInt(int v) throws SJIOException
 	{
-		SJSendType sjst = null;
-
-		try
-		{
-			sjst = sjts.SJSendType(sjts.Int());
-		}
-		catch (SemanticException se)
-		{
-			throw new SJIOException(se);
-		}
-
-		/*SJSessionType active = activeType().nodeClone();
-
-		if (!active.isSubtype(sjst))
-		{
-			throw new SJIOException("Expected `" + active + "' but implemented: " + sjst);
-		}*/
-
-		advanceContext(sjst);
-
-		debugPrintln("Performed: " + sjst);
-		
-		return sjst;//.nodeClone());
+		return sendAux(sjts.Int());
 	}
 
 	public final SJSessionType sendByte(byte v) throws SJIOException
 	{
-		SJSendType sjst = null;
-
-		try
-		{
-			sjst = sjts.SJSendType(sjts.Byte());
-		}
-		catch (SemanticException se)
-		{
-			throw new SJIOException(se);
-		}
-
-		/*SJSessionType active = activeType().nodeClone();
-
-		if (!active.isSubtype(sjst))
-		{
-			throw new SJIOException("Expected `" + active + "' but implemented: " + sjst);
-		}*/
-
-		advanceContext(sjst);
-
-		debugPrintln("Performed: " + sjst);
-		
-		return sjst;//.nodeClone());
+		return sendAux(sjts.Byte());
 	}
 
+	public final SJSessionType sendDouble(double d) throws SJIOException
+	{
+		return sendAux(sjts.Double());
+	}
+	
 	public final SJSessionType sendSession(SJSessionType sjtype) throws SJIOException
 	{
-		SJSendType sjst = null;
-
-		try
-		{
-			sjst = sjts.SJSendType(sjtype);
-		}
-		catch (SemanticException se)
-		{
-			throw new SJIOException(se);
-		}
-
-		/*SJSessionType active = activeType().nodeClone();
-
-		if (!active.isSubtype(sjst))
-		{
-			throw new SJIOException("Expected `" + active + "' but implemented: " + sjst);
-		}*/
-
-		advanceContext(sjst);
-
-		debugPrintln("Performed: " + sjst);
-		
-		return sjst;//.nodeClone());
+		return sendAux(sjtype); // Subtyping direction is the same for ordinary and session message types.
 	}
 
 	public final SJSessionType sendChannel(SJSessionType sjtype) throws SJIOException
 	{
+		/*SJSessionType active = activeType().nodeClone();
+		
+		if (!(sjtype instanceof SJBeginType)) // sendAux checks subtype direction.
+		{
+			throw new SJIOException("Expected `" + active + "' but implemented: " + sjst);
+		}*/
+		
+		return sendAux(sjtype);
+	}	
+	
+	private SJSendType sendAux(Type mt) throws SJIOException
+	{
 		SJSendType sjst = null;
 
 		try
 		{
-			sjst = sjts.SJSendType(sjtype);
+			sjst = sjts.SJSendType(mt);
 		}
 		catch (SemanticException se)
 		{
@@ -353,192 +239,78 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		/*SJSessionType active = activeType().nodeClone();
 
-		if (!(sjtype instanceof SJBeginType) || !active.isSubtype(sjst))
+		if (!active.isSubtype(sjst))
 		{
 			throw new SJIOException("Expected `" + active + "' but implemented: " + sjst);
 		}*/
 
 		advanceContext(sjst);
 
-		debugPrintln("Performed: " + sjst);
+		debugPrintln("send: " + sjst);		
 		
 		return sjst;//.nodeClone());
 	}
 
 	public final SJSessionType receive(Object obj) throws SJIOException
 	{
-		SJReceiveType sjrt = null;
+		Type mt;
 
 		try
 		{
-			String m = fullClassName(obj);
-
-			if (m.contains("[]")) // Duplicated from send case.
-			{
-				String n = m.substring(0, m.indexOf('['));
-
-				Type messageType = null;
-
-				if (n.equals("boolean")) // Factor out constants
-				{
-					messageType = sjts.Boolean();
-				}
-				else if (n.equals("int"))
-				{
-					messageType = sjts.Int();
-				}
-				else if (n.equals("byte"))
-				{
-					messageType = sjts.Byte();
-				}
-				else
-				{
-					messageType = sjts.typeForName(n);
-				}
-
-				int dims = (m.length() - m.indexOf('[')) / "[]".length();
-
-				sjrt = sjts.SJReceiveType(sjts.arrayOf(messageType, dims));
-			}
-			else
-			{
-				sjrt = sjts.SJReceiveType(sjts.typeForName(m));
-			}
+			mt = parseClassName(sjts, fullClassName(obj));
 		}
 		catch (SemanticException se) // Not possible.
 		{
 			throw new SJIOException(se);
 		}
 
-		/*SJSessionType active = activeType();//.nodeClone();
-
-		if (!sjrt.nodeSubtype(active)) // FIXME: shouldn't be disabled, we don't necessarily trust our session peer. And should factor out configuration parameters for the "security levels".
-		{
-			throw new SJIOException("Expected `" + active + "' but received: " + sjrt);
-		}*/
-
-		advanceContext(sjrt);
-
-		debugPrintln("Performed: " + sjrt);
-		
-		return sjrt;//.nodeClone());
+		return receiveAux(mt);
 	}
 
 	public final SJSessionType receiveBoolean(boolean v) throws SJIOException
 	{
-		SJReceiveType sjrt = null;
-
-		try
-		{
-			sjrt = sjts.SJReceiveType(sjts.Boolean());
-		}
-		catch (SemanticException se) // Not possible.
-		{
-			throw new SJIOException(se);
-		}
-
-		/*SJSessionType active = activeType();//.nodeClone();
-
-		if (!sjrt.nodeSubtype(active))
-		{
-			throw new SJIOException("Expected `" + active + "' but received: " + sjrt);
-		}*/
-
-		advanceContext(sjrt);
-
-		debugPrintln("Performed: " + sjrt);
-		
-		return sjrt;//.nodeClone());
+		return receiveAux(sjts.Boolean());
 	}
 
 	public final SJSessionType receiveInt(int v) throws SJIOException
 	{
-		SJReceiveType sjrt = null;
-
-		try
-		{
-			sjrt = sjts.SJReceiveType(sjts.Int());
-		}
-		catch (SemanticException se) // Not possible.
-		{
-			throw new SJIOException(se);
-		}
-
-		/*SJSessionType active = activeType();//.nodeClone();
-
-		if (!sjrt.nodeSubtype(active))
-		{
-			throw new SJIOException("Expected `" + active + "' but received: " + sjrt);
-		}*/
-
-		advanceContext(sjrt);
-
-		debugPrintln("Performed: " + sjrt);
-		
-		return sjrt;//.nodeClone());
+		return receiveAux(sjts.Int());
 	}
 
-	public final SJSessionType receiveByte(int v) throws SJIOException
+	public final SJSessionType receiveByte(byte b) throws SJIOException
 	{
-		SJReceiveType sjrt = null;
-
-		try
-		{
-			sjrt = sjts.SJReceiveType(sjts.Byte());
-		}
-		catch (SemanticException se) // Not possible.
-		{
-			throw new SJIOException(se);
-		}
-
-		/*SJSessionType active = activeType();//.nodeClone();
-
-		if (!sjrt.nodeSubtype(active))
-		{
-			throw new SJIOException("Expected `" + active + "' but received: " + sjrt);
-		}*/
-
-		advanceContext(sjrt);
-
-		debugPrintln("Performed: " + sjrt);
-		
-		return sjrt;//.nodeClone());
+		return receiveAux(sjts.Byte());
 	}
 
+	public final SJSessionType receiveDouble(double d) throws SJIOException
+	{
+		return receiveAux(sjts.Double());
+	}
+	
 	public final SJSessionType receiveSession(SJSessionType sjtype) throws SJIOException
 	{
-		SJReceiveType sjrt = null;
-
-		try
-		{
-			sjrt = sjts.SJReceiveType(sjtype);
-		}
-		catch (SemanticException se) // Not possible.
-		{
-			throw new SJIOException(se);
-		}
-
-		/*SJSessionType active = activeType();//.nodeClone();
-
-		if (!sjrt.nodeSubtype(active))
-		{
-			throw new SJIOException("Expected `" + active + "' but received: " + sjrt);
-		}*/
-
-		advanceContext(sjrt);
-
-		debugPrintln("Performed: " + sjrt);
-		
-		return sjrt;//.nodeClone());
+		return receiveAux(sjtype); // Subtyping direction is the same for ordinary and session message types.
 	}
 
 	public final SJSessionType receiveChannel(SJSessionType sjtype) throws SJIOException
 	{
+		/*SJSessionType active = activeType();//.nodeClone();
+
+		if (!(sjtype instanceof SJBeginType)) // receiveAux checks subtyping direciton.
+		{
+			throw new SJIOException("Expected `" + active + "' but received: " + sjrt);
+		}*/
+		
+		return receiveAux(sjtype);
+	}
+
+	private SJSessionType receiveAux(Type mt) throws SJIOException
+	{
 		SJReceiveType sjrt = null;
 
 		try
 		{
-			sjrt = sjts.SJReceiveType(sjtype);
+			sjrt = sjts.SJReceiveType(mt);
 		}
 		catch (SemanticException se) // Not possible.
 		{
@@ -547,18 +319,18 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		/*SJSessionType active = activeType();//.nodeClone();
 
-		if (!(sjtype instanceof SJBeginType) || !sjrt.nodeSubtype(active))
+		if (!sjrt.nodeSubtype(active)) // Opposite direction to send.
 		{
 			throw new SJIOException("Expected `" + active + "' but received: " + sjrt);
 		}*/
 
 		advanceContext(sjrt);
 
-		debugPrintln("Performed: " + sjrt);
+		debugPrintln("receive: " + sjrt);
 		
 		return sjrt;//.nodeClone());
 	}
-
+	
 	public final void outbranch(SJLabel lab) throws SJIOException
 	{
 		SJSessionType active = activeType();//.nodeClone(); // Clone only needed to get expected type.
@@ -666,16 +438,18 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		advanceContext(sjrt);
 
-		debugPrintln("Performed: " + sjrt);
+		debugPrintln("recurse: " + sjrt);
 		
 		return sjrt;//.nodeClone());
 	}
 	
-	public final void close()
+	public final void close() // Still called for failed sessions, so using currentState here is not always safe.
 	{
+		//debugPrintln("Closing: " + currentState());	
+		
 		reset();
 		
-		debugPrintln("Performed: end");	// Factor out constant?	
+		//debugPrintln("close: end");	// Factor out constant?	
 	}
 
 	public final void reset()
@@ -782,9 +556,12 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final void pushTopLevel(SJSessionType sjtype)
 	{
-		pushContext(new SJTopLevelContext(sjtype));
+		/*if (contexts.size() == 0)
+		{
+			throw new SJRuntimeException("bar");
+		}*/
 		
-		System.out.println("b: " + contexts);
+		pushContext(new SJTopLevelContext(sjtype));
 	}
 
 	public final void pushOutbranch(SJLabel lab, SJSessionType sjtype)
@@ -861,7 +638,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		//SJRuntimeUtils.debugPrintln("Popped " + sjsc + " to: " + activeType() + ", " + implementedType());
 	}
 
-	private final String fullClassName(Object obj) // Move to SJRuntimeUtils?
+	private static final String fullClassName(Object obj) // Move to SJRuntimeUtils?
 	{
 		String m = obj.getClass().toString().substring("class ".length());
 
@@ -906,11 +683,65 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return m;
 	}
 	
-	private static final void debugPrintln(String m)
+	private static final Type parseClassName(SJTypeSystem sjts, String m) throws SemanticException // Move to SJRuntimeUtils?
+	{
+		Type mt; 
+		
+		if (m.contains("[]"))
+		{
+			String n = m.substring(0, m.indexOf('['));
+	
+			Type messageType = null;
+	
+			if (n.equals("boolean")) // Factor out constants. // But shouldn't get in here? (Primitive-typed operations have been separated?)
+			{
+				messageType = sjts.Boolean();
+			}
+			else if (n.equals("int"))
+			{
+				messageType = sjts.Int();
+			}
+			else if (n.equals("byte"))
+			{
+				messageType = sjts.Byte();
+			}
+			else if (n.equals("double"))
+			{
+				messageType = sjts.Double();
+			}
+			else
+			{
+				messageType = sjts.typeForName(n);
+			}
+	
+			int dims = (m.length() - m.indexOf('[')) / "[]".length();
+	
+			mt = sjts.arrayOf(messageType, dims);
+		}
+		else
+		{
+			mt = sjts.typeForName(m);
+		}
+		
+		return mt;
+	}
+	
+	private /*static*/ final void debugPrintln(String m)
 	{
 		if (DEBUG)
 		{
 			System.out.println("[SJStateManager_c] " + m);
+			
+			if (!contexts.isEmpty()) // May call debugPrintln outside of stable SJStateManager state, e.g. before fully intialised or on session failure. 
+			{
+				System.out.println("[SJStateManager_c] Current session type: " + currentState());
+				System.out.println("[SJStateManager_c] Contexts: " + contexts);
+			}
 		}
+	}
+	
+	public Stack<SJRuntimeContextElement> getContexts()
+	{
+		return contexts;
 	}
 }
