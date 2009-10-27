@@ -33,6 +33,7 @@ vmargs=
 classpath=
 java=java
 ext=sessionj
+eclipse=0
 
 polyglot() {
   eval "$java" "$vmargs" -classpath "'$classpath'" sessionj.Main "$@"
@@ -66,6 +67,10 @@ while true; do
             usage=1
             break
             ;;
+        -E)
+            eclipse=1
+            break
+            ;;
         *)
             args="$args '$1'"
             shift
@@ -78,10 +83,16 @@ done
 #fi
 
 
-classpath="$dir/compiler/classes:$dir/runtime/classes:$dir/lib/polyglot.jar:$dir/lib/java_cup.jar"
+if [ "$eclipse" = 1 ]; then
+  classpath="$dir/eclipse-bin:$dir/lib/polyglot.jar:$dir/lib/java_cup.jar"
+else
+  classpath="$dir/compiler/classes:$dir/runtime/classes:$dir/lib/polyglot.jar:$dir/lib/java_cup.jar"
+fi
+
 if [ -n "$ext" ]; then
   classpath="$classpath:$dir/lib/$ext.jar:$dir/lib/${ext}-rt.jar"
 fi
+
 classpath="$classpath:$extra_cp"
 classpath=`fixclasspath "$classpath"`
 

@@ -23,8 +23,10 @@ public class SJProtocol implements Serializable
 		return encoded; // Maybe should return the decoded type. 
 	}
 
-    public SJSessionType type() throws SJIOException {
-        return SJRuntime.decodeType(encoded);
+    public SJSessionType type() throws SJIOException 
+    {
+        //return SJRuntime.decodeType(encoded); 
+    	return SJRuntime.decodeType(encoded).getCanonicalForm(); // FIXME: should cache this value for performance.
     }
 	
 	public String toString()

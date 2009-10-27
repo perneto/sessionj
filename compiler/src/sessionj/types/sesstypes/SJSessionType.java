@@ -53,6 +53,11 @@ public interface SJSessionType extends SJType
     SJSessionType supertypeCandidate(SJSessionType potentialSubtype);
     
     SJSessionType getCanonicalForm(); // Basically for flattening set types and simplifying singletons.
-    SJSessionType nodeCanonicalForm(); // Maybe these shouldn't be public.
-    SJSessionType treeCanonicalForm();
+    SJSessionType treeCanonicalForm(); // Maybe these shouldn't be public.
+    SJSessionType nodeCanonicalForm();     
+    
+    // TODO: refactor type checking routines to use these.
+    boolean canImplement(SJSessionType st); // Separate to subtyping because our subtyping is not based on subsumption (it is based on I/O safety). But this routine should be generally implemented in terms of subtyping.
+    boolean treeCanImplement(SJSessionType st);
+    boolean nodeCanImplement(SJSessionType st);
 }
