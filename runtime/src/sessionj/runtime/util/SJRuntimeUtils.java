@@ -1,15 +1,13 @@
 package sessionj.runtime.util;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
-import polyglot.types.*;
-
+import polyglot.types.Type;
+import sessionj.runtime.SJIOException;
 import sessionj.types.sesstypes.*;
 import sessionj.util.SJLabel;
 
-import sessionj.runtime.*;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class SJRuntimeUtils
 {
