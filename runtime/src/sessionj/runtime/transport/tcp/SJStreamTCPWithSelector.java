@@ -1,6 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.util.ValueLatch;
 import sessionj.runtime.net.*;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
@@ -14,6 +15,7 @@ import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * @author Raymond
@@ -30,11 +32,8 @@ public class SJStreamTCPWithSelector implements SJTransport
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
     private final Selector selector;
-    private final java.nio.channels.Selector sel;
-    private static final int BUFFER_SIZE = 16384;
 
     public SJStreamTCPWithSelector() throws IOException {
-        sel = SelectorProvider.provider().openSelector();
         selector = new Selector();
     }
 
@@ -116,20 +115,17 @@ public class SJStreamTCPWithSelector implements SJTransport
 	}
 
     private class Selector implements SJSelectorInternal {
-        private Map<SelectionKey, SJServerSocket> serverSockets =
-            new HashMap<SelectionKey, SJServerSocket>();
-        private Map<SelectionKey, SJSocket> sockets =
-            new HashMap<SelectionKey, SJSocket>();
+        private SelectingThread thread;
 
         public boolean registerAccept(SJServerSocket ss) throws IOException {
             if (supportsUs(ss)) {
-                // We don't support early listening for server sockets managed by the
-                // transport manager, so we start listening here, later than other transports.
+                // Async transports don't support early listening for server sockets (as managed by
+                // SJTransportManager_c), so we start listening here, later than other transports.
                 ServerSocketChannel ssc = ServerSocketChannel.open();
                 ssc.socket().bind(new InetSocketAddress(ss.getLocalPort()));
                 ssc.configureBlocking(false);
                 SelectionKey key = ssc.register(sel, SelectionKey.OP_ACCEPT);
-                serverSockets.put(key, ss);
+                //serverSockets.put(key, ss);
                 return true;
             }
             return false;
@@ -157,30 +153,15 @@ public class SJStreamTCPWithSelector implements SJTransport
 
         public SJSocket select(int mask) throws SJIOException, SJIncompatibleSessionException {
             SJSocket s = null;
-            try {
-                sel.select(mask);
-                Iterator it = sel.selectedKeys().iterator();
-                while (it.hasNext()) {
-                    SelectionKey key = (SelectionKey) it.next();
-                    it.remove();
-
-                    if (key.isValid()) {
-                        if (key.isAcceptable()) {
-                            s = finishAccept(key);
-                        } else {
-                            s = lookupSocket(key);
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                throw new SJIOException(e);
+            if ((mask & INPUT) != 0) {
+                SocketChannel sc = thread.selectForInput();
+                
             }
-            assert s != null;
-            return s;
-        }
 
-        private SJSocket lookupSocket(SelectionKey key) {
-            SJSocket s = sockets.get(key);
+            if ((mask & ACCEPT) != 0) {
+                
+            }
+
             assert s != null;
             return s;
         }
@@ -234,54 +215,39 @@ public class SJStreamTCPWithSelector implements SJTransport
 
     private class Connection implements SJConnection
     {
-        private final SocketChannel sc;
-        private final ByteBuffer buffer;
-        Connection(SocketChannel sc) {
+        private SelectingThread thread;
+        private SocketChannel sc;
+
+        private Connection(SelectingThread thread, SocketChannel sc) {
+            this.thread = thread;
             this.sc = sc;
-            buffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
         }
 
         public void disconnect()
         {
             try {
-                sc.close();
+                thread.close(sc);
             } catch (IOException ignored) { }
         }
 
         public void writeByte(byte b) throws SJIOException {
-            buffer.clear();
-            buffer.put(b);
-            writeBufferContents();
+            thread.enqueueOutput(sc, b);
         }
 
         public void writeBytes(byte[] bs) throws SJIOException {
-            buffer.clear();
-            buffer.put(bs);
-            writeBufferContents();
-        }
-
-        private void writeBufferContents() throws SJIOException {
-            try {
-                sc.write(buffer);
-                if (buffer.remaining() > 0)// TODO
-                    System.err.println("Could not write all data");
-            } catch (IOException e) {
-                throw new SJIOException(e);
-            }
+            thread.enqueueOutput(sc, bs);
         }
 
         public byte readByte() throws SJIOException {
-            buffer.clear();
-            try {
-                sc.read(buffer);
-            } catch (IOException e) {
-                throw new SJIOException(e);
-            }
-            return buffer.get();
+            byte[] input = thread.dequeueInput(sc);
+            assert input.length == 1;
+            return input[0];
         }
 
         public void readBytes(byte[] bs) throws SJIOException {
-            //readBytes // Ray: this was incomplete.
+            byte[] input = thread.dequeueInput(sc);
+            assert input.length == bs.length;
+            System.arraycopy(input, 0, bs, 0, input.length); // FIXME: change signature to return byte[]
         }
 
         public void flush() throws SJIOException {
@@ -311,4 +277,75 @@ public class SJStreamTCPWithSelector implements SJTransport
         }
     }
 
+    private class SelectingThread implements Runnable {
+        private static final int BUFFER_SIZE = 16384;
+        private final java.nio.channels.Selector sel;
+        private final Map<SJServerSocket, ValueLatch<ServerSocketChannel>> accepts;
+        private final ConcurrentHashMap<SocketChannel, Queue<byte[]>> inputs;
+        private final Map<SocketChannel, Queue<byte[]>> outputs;
+
+        private SelectingThread() throws IOException {
+            sel = SelectorProvider.provider().openSelector();
+            accepts = new ConcurrentHashMap<SJServerSocket, ValueLatch<ServerSocketChannel>>();
+            inputs = new ConcurrentHashMap<SocketChannel, Queue<byte[]>>();
+            outputs = new ConcurrentHashMap<SocketChannel, Queue<byte[]>>(); 
+        }
+
+        void registerAccept(SJServerSocket ssc) {
+            accepts.put(ssc, new ValueLatch<ServerSocketChannel>());
+        }
+
+        void registerReceive(SocketChannel sc) {
+            inputs.put(sc, new LinkedBlockingQueue<byte[]>());
+        }
+
+        public byte[] dequeueInput(SocketChannel sc) {
+            return inputs.get(sc).remove();
+        }
+
+        public void enqueueOutput(SocketChannel sc, byte[] bs) {
+            outputs.get(sc).add(bs);
+        }
+
+        public void enqueueOutput(SocketChannel sc, byte b) {
+            enqueueOutput(sc, new byte[] {b});
+        }
+
+        public void close(SocketChannel sc) throws IOException {
+            // TODO deregister, etc
+            sc.close();
+        }
+
+        public SocketChannel selectForInput() throws InterruptedException {
+            inputsBarrier
+        }
+
+        public ServerSocketChannel selectForAccept() {
+            
+        }
+
+        public void run() {
+            while (true) {
+                // TODO selector stuff
+/*                try {
+                    sel.select(mask);
+                    Iterator it = sel.selectedKeys().iterator();
+                    while (it.hasNext()) {
+                        SelectionKey key = (SelectionKey) it.next();
+                        it.remove();
+
+                        if (key.isValid()) {
+                            if (key.isAcceptable()) {
+                                s = finishAccept(key);
+                            } else {
+                                s = lookupSocket(key);
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new SJIOException(e);
+                }*/
+            }
+        }
+    }
 }
