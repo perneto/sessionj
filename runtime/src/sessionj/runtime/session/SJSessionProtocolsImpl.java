@@ -25,6 +25,8 @@ import java.util.List;
  * Currently, this class collects together init., delegation and close protocol (with corresponding signal handling) into one class, but can easily be separated.
  * 
  * Currently, there is an instance of this class per session socket. (Later refactor to make it safe for sessions to share protocol objects?)
+ *
+ * FIXME: translation of typecase needs to add appropriate calls to the SJ Runtime so signify when we enter a typecase-case and handle runtime type monitoring accordingly. Related to this, execution of typecase should support singleton session types. 
  * 
  */
 public class SJSessionProtocolsImpl implements SJSessionProtocols
@@ -813,6 +815,8 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         //ser.writeObject(delegated.getRuntimeType()); // Ray: incorrect, standardReceiveSession implicitly expects a String here...
         //ser.writeObject(SJRuntime.encode(delegated.currentSessionType())); 
         ser.writeObject(SJRuntime.encode(st)); //... but would it be faster to just serialize the SJSessionType?
+        
+        // We could also pass on the active type of the session being delegated (the session type performed up to this point). 
         
         int port = receiveInt(false); // Should handle delegation case 3 (the two preceding delegation protocol messages are forwarded by peer).
 

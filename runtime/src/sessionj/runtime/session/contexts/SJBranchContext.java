@@ -5,7 +5,7 @@ import sessionj.util.SJLabel;
 
 public abstract class SJBranchContext extends SJRuntimeContextElement
 {
-	private SJLabel lab;
+	private SJLabel lab; // This is a session-branch context.
 
 	public SJBranchContext(SJLabel lab, SJSessionType active)
 	{

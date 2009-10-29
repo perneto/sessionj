@@ -39,7 +39,9 @@ class SJSelectorAllTransports implements SJSelector {
         Collection<Boolean> results = new HashSet<Boolean>();
         for (SJSelectorInternal sel : transportSelectors)
             try {
-                results.add(sel.registerOutput(s));
+            	//RAY
+                // results.add(sel.registerOutput(s)); // Temporarily commented out to be build-able. Seemed less trouble than addind a dummy method to the target interface.
+              //YAR
             } catch (Exception e) {
                 throw new SJIOException(e);
             }
