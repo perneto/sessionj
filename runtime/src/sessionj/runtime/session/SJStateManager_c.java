@@ -287,7 +287,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return receiveAux(sjts.Double());
 	}
 	
-	public final SJSessionType receiveSession(SJSessionType sjtype) throws SJIOException
+	public final SJSessionType receiveSession(SJSessionType sjtype) throws SJIOException 
 	{
 		return receiveAux(sjtype); // Subtyping direction is the same for ordinary and session message types.
 	}

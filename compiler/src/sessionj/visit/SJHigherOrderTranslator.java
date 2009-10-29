@@ -48,6 +48,8 @@ public class SJHigherOrderTranslator extends ContextVisitor
 
 	private SJBasicOperation translateHOOperation(SJBasicOperation bo, SJSessionType mt) throws SemanticException // Includes both higher-order channel and session communication.
 	{
+		mt = mt.getCanonicalForm(); // Comes as a set type, even for singleton session types.
+		
 		StringLit encoded = sjnf.StringLit(bo.position(), sjte.encode(mt));
 		
 		if (bo instanceof SJPass)

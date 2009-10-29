@@ -295,7 +295,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
 	}
 
-	public byte receiveByte() throws SJIOException
+	public byte receiveByte(boolean monitoring) throws SJIOException // Need such variants because sometimes want to handle inductive delegation cases but not affect e.g. monitoring. Such variants probably needed for other routines as well. // Would be good to make it more general than just for delegation and monitoring. More general meaning allowing for other affected services (that may be added later) as well.
 	{
 		byte b = -1; 
 		
@@ -320,7 +320,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 					else handleMessage(m, t);
                 }
 
-				if (RUNTIME_MONITORING)
+				if (RUNTIME_MONITORING && monitoring)
 				{
 					sm.receiveByte(b);
 				}					
@@ -334,7 +334,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
 	}
 	
-	public int receiveInt() throws SJIOException
+	public byte receiveByte() throws SJIOException
+	{
+		return receiveByte(true);
+	}	
+	
+	public int receiveInt(boolean monitoring) throws SJIOException
 	{
 
         while (true)
@@ -359,7 +364,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 					else return handleMessage(m, t);
                 }
 
-				if (RUNTIME_MONITORING)
+				if (RUNTIME_MONITORING && monitoring)
 				{
 					sm.receiveInt(i);
 				}	                
@@ -373,6 +378,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
 	}
 
+	public int receiveInt() throws SJIOException
+	{
+		return receiveInt(true);
+	}
+	
     public boolean receiveBoolean() throws SJIOException
 	{
 		boolean b = false;
@@ -655,17 +665,22 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	}
 	
 	public void delegateSession(SJAbstractSocket s, SJSessionType st) throws SJIOException
-	{
+	{				
 		//if (ser.getConnection() instanceof SJLocalConnection) // Attempting to do a purely noalias transfer of session socket object.
-		if (ser.zeroCopySupported()) {
+		if (ser.zeroCopySupported()) // This is matched by zeroCopyReceiveSession. 
+		{
 			ser.writeReference(s); // Or use pass (like sendChannel). // Maybe some way to better structure this aspect of the routine? Or maybe this decision should be made here.
-            ser.writeReference(st);
-        } else
-		    standardDelegateSession(s);
+			ser.writeReference(st); 
+    } 
+		else
+		{
+			standardDelegateSession(s, st);
+		}
 		
 		if (RUNTIME_MONITORING)
 		{
 			//sm.sendSession(s.getStateManager().currentState());
+			
 			sm.sendSession(st);
 			s.getStateManager().close();
 		}				
@@ -673,7 +688,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 
     //public SJAbstractSocket receiveSession(SJSessionType st) throws SJIOException
 	public SJAbstractSocket receiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException
-	{
+	{		
 		SJAbstractSocket as;
 		
 		if (ser.zeroCopySupported())
@@ -689,6 +704,8 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{
 			//sm.receiveSession(as.getStateManager().currentState());
 			sm.receiveSession(st);
+			
+			as.getStateManager().open(); // The socket has been initialised and the protocols object created, but the state manager still needs initialising (must push the top-level monitoring context element).
 		}			
 		
 		return as;
@@ -696,7 +713,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 
     private SJAbstractSocket standardReceiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException {
         checkDelegationFlagPresent();
-
+        
         boolean becomeOrigRequester;
         boolean simultaneousDelegation;
         SJSessionType runtimeSt = null;
@@ -771,8 +788,10 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         return initReceivedSocket(becomeOrigRequester, controlMsgs, conn, simultaneousDelegation, receivedSock);
     }
 
-    private void checkDelegationFlagPresent() throws SJIOException {
-        byte flag = receiveByte(); // Handles delegation by peer?
+    private void checkDelegationFlagPresent() throws SJIOException 
+    {
+    	//byte flag = ser.readByte(); // Will avoid unwanted monitoring actions, but won't handle delegation (case 3).
+      byte flag = receiveByte(false); // Handles delegation by peer? // This isn't a "monitored input".    
 
         if (flag != DELEGATION_START) // Maybe replace by a proper control signal. Then would need to manually handle SJDelegationSignal.
         {
@@ -780,7 +799,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         }
     }
 
-    private void standardDelegateSession(SJAbstractSocket delegated) throws SJIOException {
+    private void standardDelegateSession(SJAbstractSocket delegated, SJSessionType st) throws SJIOException {
         SJSessionProtocols sp = delegated.getSJSessionProtocols();
 
         if (!(sp instanceof SJSessionProtocolsImpl))
@@ -790,9 +809,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 
         ser.writeByte(DELEGATION_START);
         ser.writeBoolean(delegated.isOriginalRequestor()); // Original requestor.
-        ser.writeObject(delegated.getRuntimeType());
-        int port = receiveInt();
-        // Should handle delegation case 3 (the two preceding delegation protocol messages are forwarded by peer).
+        
+        //ser.writeObject(delegated.getRuntimeType()); // Ray: incorrect, standardReceiveSession implicitly expects a String here...
+        //ser.writeObject(SJRuntime.encode(delegated.currentSessionType())); 
+        ser.writeObject(SJRuntime.encode(st)); //... but would it be faster to just serialize the SJSessionType?
+        
+        int port = receiveInt(false); // Should handle delegation case 3 (the two preceding delegation protocol messages are forwarded by peer).
 
         SJSerializer delegatedPeerSer = sp.getSerializer();
 
@@ -832,7 +854,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         throws SJIOException
     {
 
-        SJRuntime.bindSocket(sock, conn);
+        SJRuntime.bindSocket(sock, conn); // Calls SJAbstractSocket.init (which creates the serializer and protocols components).
 
         ((SJSessionProtocolsImpl) sock.getSJSessionProtocols()).lostMessages = controlMsgs;
 
@@ -917,7 +939,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
     private SJAbstractSocket zeroCopyReceiveSession(SJSessionType staticType) throws SJIOException {
         try {
             SJAbstractSocket s = (SJAbstractSocket) ser.readReference(); // Can use ordinary receive (like receiveChannel).
-            SJSessionType runtimeType = (SJSessionType) ser.readReference();
+            SJSessionType runtimeType = (SJSessionType) ser.readReference(); // For zero-copy, fastest to just send a reference to the current session type.
             s.updateStaticAndRuntimeTypes(staticType, runtimeType);
             return s;
         }
