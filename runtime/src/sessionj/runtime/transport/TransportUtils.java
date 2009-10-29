@@ -7,7 +7,7 @@ import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 import sessionj.runtime.transport.sharedmem.SJFifoPair;
 import sessionj.runtime.transport.tcp.SJManualTCP;
 import sessionj.runtime.transport.tcp.SJStreamTCP;
-import sessionj.runtime.transport.tcp.SJStreamTCPWithSelector;
+import sessionj.runtime.transport.tcp.SJAsyncStreamTCP;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -79,7 +79,7 @@ public class TransportUtils
 
                     break;
                 case 't':
-                    ts.add(new SJStreamTCPWithSelector());
+                    ts.add(new SJAsyncStreamTCP());
 
                     break;
                 case 'm':
