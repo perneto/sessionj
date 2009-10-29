@@ -136,7 +136,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	public final SJSessionType accept() throws SJIOException
 	{
 		SJBeginType sjbt = begin(sjts.SJSBeginType());
-		
+				
 		debugPrintln("accept: " + sjbt);
 		
 		return sjbt; 
@@ -144,11 +144,11 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final SJSessionType request() throws SJIOException
 	{
-		SJBeginType sjbt = begin(sjts.SJCBeginType());
+		SJBeginType sjbt = begin(sjts.SJCBeginType());	
 		
 		debugPrintln("request: " + sjbt);		
 		
-		return begin(sjbt);
+		return sjbt;
 	}
 
 	private final SJBeginType begin(SJBeginType sjbt) throws SJIOException
@@ -556,11 +556,6 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final void pushTopLevel(SJSessionType sjtype)
 	{
-		/*if (contexts.size() == 0)
-		{
-			throw new SJRuntimeException("bar");
-		}*/
-		
 		pushContext(new SJTopLevelContext(sjtype));
 	}
 
@@ -732,11 +727,11 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		{
 			System.out.println("[SJStateManager_c] " + m);
 			
-			if (!contexts.isEmpty()) // May call debugPrintln outside of stable SJStateManager state, e.g. before fully intialised or on session failure. 
+			/*if (!contexts.isEmpty()) // May call debugPrintln outside of stable SJStateManager state, e.g. before fully intialised or on session failure. 
 			{
 				System.out.println("[SJStateManager_c] Current session type: " + currentState());
 				System.out.println("[SJStateManager_c] Contexts: " + contexts);
-			}
+			}*/
 		}
 	}
 	
