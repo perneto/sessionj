@@ -22,7 +22,7 @@ public class SJTransportManager_c extends SJTransportManager
     private static final String DEFAULT_TRANSPORTS_PROPERTY = "sessionj.transports.session";
 	private static final boolean DEBUG = false;
 	
-	private final List<SJTransport> negociationTrans = new LinkedList<SJTransport>(); // These may need some synchronisation (getters and setters are currently public and non-defensive).
+	private final List<SJTransport> negociationTrans = new LinkedList<SJTransport>(); // These may need some synchronisation (getters and setters are currently public and non-defensive). // FIXME: should be "negotiation".
 	private final List<SJTransport> sessionTrans = new LinkedList<SJTransport>();
 	
 	private final Collection<String> snames = new LinkedList<String>(); // Used in negotiation protocol.
@@ -43,7 +43,7 @@ public class SJTransportManager_c extends SJTransportManager
 	private void defaultSetups() throws IOException {
         String chosen = System.getProperty(DEFAULT_SETUPS_PROPERTY, "d");
         List<SJTransport> ss = TransportUtils.parseTransportFlags(chosen);
-        System.out.println("Negociation transports: " + chosen + ": "+ ss);
+        System.out.println("Negotiation transports: " + chosen + ": "+ ss);
         //ss.add(new SJFifoPair());
         // FIXME: need to prevent conflicting use of (shared memory) ports by multiple Runtimes on the same host.
         // Currently relying on SJStreamTCP to be a mandatory setup.
@@ -332,7 +332,7 @@ public class SJTransportManager_c extends SJTransportManager
 	}
 	
 	//public void setRegisteredSetups(List<SJConnectionSetup> negociationTrans)
-	public /*synchronized*/ void configureNegociationTransports(List<SJTransport> transports)
+	public /*synchronized*/ void configureNegociationTransports(List<SJTransport> transports) // FIXME: should be "Negotiation".
 	{
 		synchronized (negociationTrans)
 		{

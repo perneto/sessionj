@@ -1,15 +1,13 @@
 package sessionj.runtime.util;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
-import polyglot.types.*;
-
+import polyglot.types.Type;
+import sessionj.runtime.SJIOException;
 import sessionj.types.sesstypes.*;
 import sessionj.util.SJLabel;
 
-import sessionj.runtime.*;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class SJRuntimeUtils
 {
@@ -60,8 +58,7 @@ public final class SJRuntimeUtils
 		}
 	}	
 	
-	public static byte[] serializeInt(int i) throws SJIOException
-	{
+	public static byte[] serializeInt(int i) {
 		byte[] bs = new byte[4];
 
 		bs[0] = (byte)(i >> 24);
@@ -72,14 +69,13 @@ public final class SJRuntimeUtils
 		return bs;
 	}	
 	
-	public static int deserializeInt(byte[] bs) throws SJIOException
-	{
+	public static int deserializeInt(byte[] bs) {
 		int i = 0;
 		
 		i += (bs[0] & 255) << 24;
 		i += (bs[1] & 255) << 16;
 		i += (bs[2] & 255) << 8;
-		i += (bs[3] & 255);
+		i += bs[3] & 255;
 		
 		return i;		
 	}		
