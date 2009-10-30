@@ -12,14 +12,16 @@ import sessionj.runtime.transport.*;
 public class Selector extends AbstractValidTest3Peers {
     protocol from2 ?(int)
     protocol from3 ?(boolean)
-    protocol pSel { @from2, @from3 }
+    protocol pSel { @(from2), @(from3) }
+    protocol selStart sbegin.@(pSel)
+    protocol from3Start sbegin.@(from3)
 
     public void peer1(int port) throws Exception {
         final noalias SJSelector sel = SJRuntime.selectorFor(pSel);
         noalias SJServerSocket ss;
         noalias SJSocket s;
         try (ss) {
-            ss = SJServerSocket.create(sbegin.@pSel, port);
+            ss = SJServerSocket.create(selStart, port);
             try (sel) {
                 sel.registerAccept(ss);
                 int i = 0; boolean b; int j;
@@ -27,8 +29,8 @@ public class Selector extends AbstractValidTest3Peers {
                     try (s) {
                         s = sel.select(SJSelector.ACCEPT | SJSelector.INPUT);
                         typecase (s) {
-                            when (@from2) j = s.receiveInt();
-                            when (@from3) b = s.receiveBoolean();
+                            when (@(from2)) j = s.receiveInt();
+                            when (@(from3)) b = s.receiveBoolean();
                         }
                     } finally {}
                     i++;

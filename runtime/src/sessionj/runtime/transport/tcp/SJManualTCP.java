@@ -201,7 +201,7 @@ public class SJManualTCP implements SJTransport
 {
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.tcp.SJManualTCP";
 
-	public static final int TCP_PORT_MAP_ADJUST = 100; // FIXME: sort out port potential mapping clashes better.
+	public static final int TCP_PORT_MAP_ADJUST = 20; // FIXME: sort out port potential mapping clashes better.
 
 	protected static final boolean TCP_NO_DELAY = true;
 	

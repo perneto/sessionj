@@ -6,9 +6,13 @@ import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJLocalConnection;
 import sessionj.runtime.transport.SJTransport;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class SJFifoPairAcceptor implements SJConnectionAcceptor
 {	
@@ -16,8 +20,8 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 
 	private final int port;
 	private boolean isClosed = false;
-	
-	SJFifoPairAcceptor(int port) {
+
+    SJFifoPairAcceptor(int port) {
 		this.port = port;
 		
 		servers.put(port, new LinkedList<SJFifoPairConnection>());
@@ -49,9 +53,9 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 		List<Object> ours = new LinkedList<Object>();
 		
 		int localPort = SJFifoPair.findFreePort();
-		
+
 		SJFifoPair.bindPort(localPort); // Can the connection establishment after this fail? Would need to free the port.
-		
+
 		SJFifoPairConnection ourConn = new SJFifoPairConnection(null, theirConn.getLocalPort(), localPort, ours); // FIXME: need peer hostname.
 		//SJFifoPairConnection ourConn = new SJFifoPairConnection(null, theirConn.getLocalPort(), port, ours); // FIXME: need peer hostname. // Reusing server port value for local port, as in TCP. // Problem: hard to tell when need to free port after a connection is closed (don't know if server is using that port still).
 		
@@ -75,9 +79,13 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 		
 		synchronized (servers)
 		{
-			SJFifoPair.freePort(port);
-			
-			servers.remove(port);						
+            try {
+                SJFifoPair.freePort(port);
+            } catch (SJIOException e) {
+                SJFifoPair.logger.log(Level.INFO, "Could not free port cleanly", e);
+            }
+
+            servers.remove(port);
 		}			
 	}
 	
@@ -158,9 +166,13 @@ class SJFifoPairConnection implements SJLocalConnection
 				}
 			}
 		}
-		
-		SJFifoPair.freePort(localPort); // This is a problem if we try to reuse server port for accepted connections a la TCP. 
-	}
+
+        try {
+            SJFifoPair.freePort(localPort); // This is a problem if we try to reuse server port for accepted connections a la TCP.
+        } catch (SJIOException e) {
+            SJFifoPair.logger.log(Level.WARNING, "Could not cleanly free port", e);
+        }
+    }
 
   public void writeByte(byte b) throws SJIOException
   {    
@@ -346,6 +358,19 @@ class SJFifoPairConnection implements SJLocalConnection
  */
 public class SJFifoPair implements SJTransport 
 {
+    static final Logger logger = Logger.getLogger(SJFifoPair.class.getName());
+    
+    private static final File locksDir;
+    static {
+        String tmpDir = System.getProperty("java.io.tmpdir");
+        String separator = System.getProperty("file.separator");
+        locksDir = new File(tmpDir + separator + "sessionj-fifopair-ports");
+        if (!locksDir.isDirectory()) {
+            boolean created = locksDir.mkdir();
+            if (!created) logger.log(Level.SEVERE, "Directory " + locksDir + " could not be created, transport will not work reliably");
+        }
+    }
+
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.sharedmem.SJFifoPair";
 	
 	private static final int LOWER_PORT_LIMIT = 1024; 
@@ -473,19 +498,31 @@ public class SJFifoPair implements SJTransport
 		//throw new SJIOException("[SJ(Bounded)FifoPair] No free port available.");
 	}
 	
-	protected static void bindPort(int port) 
-	{
+	protected static void bindPort(int port) throws SJIOException {
 		synchronized (portsInUse)
     {
 	    portsInUse.add(port);
+        File portFile = portFile(port);
+        boolean created;
+        try {
+            created = portFile.createNewFile();
+        } catch (IOException e) {
+            throw new SJIOException(e);
+        }
+        if (!created) throw new SJIOException("Could not create port file:" + portFile);
     }
 	}
-	
-	protected static void freePort(int port)
-	{		
+
+    private static File portFile(int port) {
+        return new File(locksDir, Integer.toString(port));
+    }
+
+    protected static void  freePort(int port) throws SJIOException {
 		synchronized (portsInUse)
     {
-	    portsInUse.remove(port);
+	    boolean removed = portsInUse.remove(port);
+        boolean deleted = portFile(port).delete();
+        if (removed && !deleted) throw new SJIOException("Could not delete port file: " + portFile(port));
     }
 	}
 	
