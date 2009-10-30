@@ -1,7 +1,8 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.*;
+import sessionj.runtime.net.SJSelectorInternal;
+import sessionj.runtime.session.SJManualDeserializer;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJTransport;
@@ -14,9 +15,9 @@ import java.util.Random;
 /**
  *
  */
-public final class SJAsyncStreamTCP implements SJTransport
+public final class SJAsyncManualTCP implements SJTransport
 {
-	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.tcp.SJAsyncStreamTCP";
+	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.tcp.SJAsyncManualTCP";
 
 	public static final int TCP_PORT_MAP_ADJUST = 2;
 	
@@ -24,30 +25,27 @@ public final class SJAsyncStreamTCP implements SJTransport
 	
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
-    private final AsyncStreamTCPSelector selector;
+    private final AsyncManualTCPSelector selector;
 
-    public SJAsyncStreamTCP() throws IOException {
-        SelectingThread thread = new SelectingThread();
-        selector = new AsyncStreamTCPSelector(thread, TRANSPORT_NAME);
+    public SJAsyncManualTCP() throws IOException {
+        SelectingThread thread = new SelectingThread(new SJManualDeserializer());
+        selector = new AsyncManualTCPSelector(thread, TRANSPORT_NAME);
         Thread t = new Thread(thread);
         t.setDaemon(true);
         t.start();
     }
 
-    public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
-	{
+    public SJConnectionAcceptor openAcceptor(int port) {
         throw new UnsupportedOperationException("Blocking mode unsupported");
     }
 	
 	public SJConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
 	{
-        try
-        {
+        try {
             Socket s = new Socket(hostName, port);
-
             s.setTcpNoDelay(TCP_NO_DELAY);
 
-            return new SJStreamTCPConnection(s, s.getInputStream(), s.getOutputStream()); // Have to get I/O streams here for exception handling.
+            return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream()); // Have to get I/O streams here for exception handling.
         }
         catch (IOException ioe)
         {
@@ -60,7 +58,7 @@ public final class SJAsyncStreamTCP implements SJTransport
     }
 
     public boolean blockingModeSupported() {
-        return true;
+        return false;
     }
 
     public boolean portInUse(int port)

@@ -56,9 +56,8 @@ abstract public class SJAbstractSocket implements SJSocket
 	
 	protected void init(SJConnection conn) throws SJIOException // conn can be null (delegation case 2?).
 	{
-		this.conn = conn;
-		//this.ser = new SJDefaultSerializer(conn); // FIXME: should be...
-        ser = SJRuntime.getSerializer(conn);
+		this.conn = conn;		
+        ser = SJRuntime.getSerializer(conn); // FIXME: should be...
         sp = new SJSessionProtocolsImpl(this, ser); // ... user configurable.
 	}
 
@@ -75,8 +74,7 @@ abstract public class SJAbstractSocket implements SJSocket
         ser.close();
 		
 		this.conn = conn;
-		//this.ser = new SJDefaultSerializer(conn);
-        ser = SJRuntime.getSerializer(conn);
+		ser = SJRuntime.getSerializer(conn);
         sp.setSerializer(ser);
 	}
 	
