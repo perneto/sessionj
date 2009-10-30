@@ -1,7 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
-import sessionj.runtime.util.SJRuntimeUtils;
-import static sessionj.runtime.util.SJRuntimeUtils.SJ_SERIALIZED_INT_LENGTH;
+import sessionj.runtime.session.SJDeserializer;
+import sessionj.runtime.session.OngoingRead;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -9,10 +9,14 @@ import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.Queue;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import org.testng.reporters.DotTestListener;
 
 /**
  */
@@ -20,6 +24,7 @@ final class SelectingThread implements Runnable {
     private static final int BUFFER_SIZE = 16384;
     private final Selector selector;
     private final ByteBuffer readBuffer;
+    private final SJDeserializer deserializer;
 
     private final Queue<ChangeRequest> pendingChangeRequests;
 
@@ -29,8 +34,10 @@ final class SelectingThread implements Runnable {
     private final BlockingQueue<SocketChannel> readyForInput;
     private final BlockingQueue<ServerSocketChannel> readyForAccept;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
+    private static final Logger logger = Logger.getLogger(SelectingThread.class.getName());
 
-    SelectingThread() throws IOException {
+    SelectingThread(SJDeserializer deserializer) throws IOException {
+        this.deserializer = deserializer;
         selector = SelectorProvider.provider().openSelector();
         pendingChangeRequests = new ConcurrentLinkedQueue<ChangeRequest>();
         readyInputs = new ConcurrentHashMap<SocketChannel, Queue<byte[]>>();
@@ -73,7 +80,7 @@ final class SelectingThread implements Runnable {
         enqueueOutput(sc, new byte[]{b});
     }
 
-    public void close(SocketChannel sc) throws IOException {
+    public void close(SelectableChannel sc) throws IOException {
         sc.keyFor(selector).cancel();
         sc.close();
     }
@@ -166,8 +173,7 @@ final class SelectingThread implements Runnable {
         try {
             numRead = socketChannel.read(readBuffer);
         } catch (IOException e) {
-            // The remote forcibly closed the connection, cancel
-            // the selection key and close the channel.
+            logger.log(Level.INFO, "Remote peer forcibly closed connection, closing channel and cancelling key", e);
             key.cancel();
             socketChannel.close();
             return;
@@ -181,15 +187,16 @@ final class SelectingThread implements Runnable {
             return;
         }
 
-        decideIfMoreToRead(key,
-                (SocketChannel) key.channel(), readBuffer.asReadOnlyBuffer(), // just to be safe (shouldn't hurt speed)
-                numRead);
+        readBuffer.position(0); // read() advances the position, so need to set it back to 0.
+        decideIfMoreToRead(key, (SocketChannel) key.channel(),
+                readBuffer.asReadOnlyBuffer() // just to be safe (shouldn't hurt speed)
+        );
     }
 
-    private void decideIfMoreToRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes, int numRead) {
+    private void decideIfMoreToRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes) {
         OngoingRead read = (OngoingRead) key.attachment();
         if (read == null) {
-            read = new OngoingRead();
+            read = deserializer.newOngoingRead();
             key.attach(read);
         }
         read.updatePendingInput(bytes);
@@ -208,7 +215,7 @@ final class SelectingThread implements Runnable {
         }
     }
 
-    static class ChangeRequest {
+    private static class ChangeRequest {
         final SelectableChannel chan;
         final ChangeAction changeAction;
         final int interestOps;
@@ -220,45 +227,6 @@ final class SelectingThread implements Runnable {
         }
     }
 
-    enum ChangeAction {
-        REGISTER, CHANGEOPS
-    }
+    private enum ChangeAction { REGISTER, CHANGEOPS }
 
-    private static class OngoingRead {
-        private int dataRead = 0;
-        private int expected = -1;
-        private int lengthRead = 0;
-        private final byte[] lengthBytes = new byte[SJ_SERIALIZED_INT_LENGTH];
-        private byte[] data = null;
-
-        public void updatePendingInput(ByteBuffer bytes) {
-            if (data == null) {
-                while (bytes.remaining() != 0 && lengthRead < SJ_SERIALIZED_INT_LENGTH) {
-                    lengthBytes[lengthRead] = bytes.get();
-                    lengthRead++;
-                }
-                if (lengthRead == SJ_SERIALIZED_INT_LENGTH) {
-                    expected = SJRuntimeUtils.deserializeInt(lengthBytes);
-                    data = new byte[expected]; 
-                }
-            }
-
-            if (data != null && bytes.remaining() > 0) {
-                int offset = dataRead - SJ_SERIALIZED_INT_LENGTH;
-                dataRead += bytes.remaining();
-                bytes.get(data, offset, bytes.remaining());
-            }
-        }
-
-        public boolean finished() {
-            return dataRead == expected; // TODO handle single byte writes
-        }
-
-        public byte[] getCompleteInput() {
-            byte[] completed = new byte[expected + SJ_SERIALIZED_INT_LENGTH];
-            System.arraycopy(lengthBytes, 0, completed, 0, lengthBytes.length);
-            System.arraycopy(data, 0, completed, SJ_SERIALIZED_INT_LENGTH, data.length);
-            return completed;
-        }
-    }
 }

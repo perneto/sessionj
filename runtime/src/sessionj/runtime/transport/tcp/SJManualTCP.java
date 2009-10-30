@@ -1,7 +1,6 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelector;
 import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
@@ -11,7 +10,6 @@ import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.channels.SelectableChannel;
 import java.util.Random;
 
 class SJManualTCPAcceptor implements SJConnectionAcceptor
@@ -51,10 +49,6 @@ class SJManualTCPAcceptor implements SJConnectionAcceptor
 		}
 	}
 
-    public SelectableChannel acceptSelectableChannel() {
-        throw new UnsupportedOperationException("TODO");
-    }
-
     public void close()
 	{	
 		try 
@@ -90,34 +84,16 @@ class SJManualTCPConnection implements SJConnection
 	private final DataOutputStream dos;
 	private final DataInputStream dis;
 	
-	SJManualTCPConnection(Socket s, OutputStream os, InputStream is) throws SJIOException
-	{
+	SJManualTCPConnection(Socket s, OutputStream os, InputStream is) {
 		this.s = s;
-		
-		//try
-		{
-            dos = new DataOutputStream(os);
-            dis = new DataInputStream(is);
-		}
-		/*catch (IOException ioe)
-		{
-			throw new SJIOException(ioe);
-		}*/
+        dos = new DataOutputStream(os);
+        dis = new DataInputStream(is);
 	}
 
-	SJManualTCPConnection(Socket s, InputStream is, OutputStream os) throws SJIOException
-	{
+	SJManualTCPConnection(Socket s, InputStream is, OutputStream os) {
 		this.s = s;
-		
-		//try
-		{
-            dis = new DataInputStream(is);
-            dos = new DataOutputStream(os);
-		}
-		/*catch (IOException ioe)
-		{
-			throw new SJIOException(ioe);
-		}*/
+        dis = new DataInputStream(is);
+        dos = new DataOutputStream(os);		
 	}
 	
 	public void disconnect() //throws SJIOException 
