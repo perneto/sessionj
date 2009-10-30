@@ -18,7 +18,7 @@ public final class SJAsyncStreamTCP implements SJTransport
 {
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.tcp.SJAsyncStreamTCP";
 
-	public static final int TCP_PORT_MAP_ADJUST = 2;
+	public static final int TCP_PORT_MAP_ADJUST = 200;
 	
 	static final boolean TCP_NO_DELAY = true;
 	

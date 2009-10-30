@@ -26,7 +26,7 @@ public class Server
 			//ss = SJServerSocket.create(p_server, port, createSJSessionParameters(setups, transports));
 			ss = SJServerSocket.create(p_server, port);
 			
-			while (true)
+			//while (true)
 			{
 				final noalias SJSocket s;
 				
