@@ -34,12 +34,12 @@ class AsyncConnection implements SJConnection
     public byte readByte() throws SJIOException {
         byte[] input = thread.dequeueInput(sc);
         assert input.length == 1;
-        return input[0];
+        return input[0]; // TODO put back in queue if not consumed completely
     }
 
     public void readBytes(byte[] bs) throws SJIOException {
         byte[] input = thread.dequeueInput(sc);
-        assert input.length == bs.length;
+        assert input.length == bs.length; // TODO put back in queue if not consumed completely
         System.arraycopy(input, 0, bs, 0, input.length); // FIXME: change signature to return byte[]
     }
 
