@@ -11,7 +11,7 @@ class AsyncConnection implements SJConnection
     private SelectingThread thread;
     private SocketChannel sc;
 
-    public AsyncConnection(SelectingThread thread, SocketChannel sc) {
+    AsyncConnection(SelectingThread thread, SocketChannel sc) {
         this.thread = thread;
         this.sc = sc;
     }
@@ -66,7 +66,7 @@ class AsyncConnection implements SJConnection
 
     public String getTransportName()
     {
-        return SJAsyncStreamTCP.TRANSPORT_NAME;
+        return SJAsyncManualTCP.TRANSPORT_NAME;
     }
 
     public SocketChannel socketChannel() {

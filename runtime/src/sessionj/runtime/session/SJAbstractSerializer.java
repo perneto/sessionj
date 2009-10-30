@@ -1,6 +1,5 @@
 package sessionj.runtime.session;
 
-import sessionj.runtime.*;
 import sessionj.runtime.transport.SJConnection;
 
 /**

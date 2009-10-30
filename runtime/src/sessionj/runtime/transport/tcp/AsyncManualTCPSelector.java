@@ -14,13 +14,13 @@ import java.util.Map;
 
 /**
  */
-class AsyncStreamTCPSelector implements SJSelectorInternal {
+class AsyncManualTCPSelector implements SJSelectorInternal {
     private final SelectingThread thread;
     private final String transportName;
     private final Map<SocketChannel, SJSocket> registeredInputs;
     private final Map<ServerSocketChannel, SJServerSocket> registeredAccepts;
 
-    AsyncStreamTCPSelector(SelectingThread thread, String transportName) {
+    AsyncManualTCPSelector(SelectingThread thread, String transportName) {
         this.thread = thread;
         this.transportName = transportName;
         registeredInputs = new HashMap<SocketChannel, SJSocket>();
