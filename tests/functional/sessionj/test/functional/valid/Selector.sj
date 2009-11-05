@@ -11,20 +11,23 @@ import sessionj.runtime.transport.*;
  */
 public class Selector extends AbstractValidTest3Peers {
     protocol from2 ?(int)
-    protocol pClient2 cbegin.@(from2)
+    protocol pClient2 cbegin.^(from2)
     protocol from3 ?(boolean)
-    protocol pClient3 cbegin.@(from3)
+    protocol pClient3 cbegin.^(from3)
     protocol pSel { @(from2), @(from3) }
-    protocol pServer sbegin.@(pSel)
+    protocol pServer2 sbegin.@(from2)
+    protocol pServer3 sbegin.@(from3)
 
     public void peer1(int port) throws Exception {
         final noalias SJSelector sel = SJRuntime.selectorFor(pSel);
-        noalias SJServerSocket ss;
+        noalias SJServerSocket ss1, ss2;
         noalias SJSocket s;
-        try (ss) {
-            ss = SJServerSocket.create(pServer, port);
+        try (ss1, ss2) {
+            ss1 = SJServerSocket.create(pServer2, port);
+            ss2 = SJServerSocket.create(pServer3, port);
             try (sel) {
-                sel.registerAccept(ss);
+                sel.registerAccept(ss1);
+                sel.registerAccept(ss2);
                 int i = 0; boolean b; int j;
                 while (i < 2) {
                     try (s) {
