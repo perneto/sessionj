@@ -3,8 +3,6 @@
  */
 package sessionj.visit;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.*;
 import polyglot.types.*;
@@ -12,20 +10,10 @@ import polyglot.visit.*;
 
 import sessionj.ast.*;
 import sessionj.ast.createops.*;
-import sessionj.ast.protocoldecls.*;
-import sessionj.ast.sessvars.*;
-import sessionj.ast.sesscasts.SJChannelCast;
-import sessionj.ast.sessops.*;
-import sessionj.ast.sessops.basicops.*;
-import sessionj.ast.typenodes.SJTypeNode;
 import sessionj.extension.*;
-import sessionj.extension.noalias.*;
 import sessionj.types.*;
-import sessionj.types.contexts.*;
 import sessionj.types.sesstypes.SJSessionType;
 import sessionj.types.typeobjects.*;
-import sessionj.types.noalias.*;
-import sessionj.util.noalias.*;
 
 import static sessionj.SJConstants.*;
 import static sessionj.util.SJCompilerUtils.*;
@@ -106,7 +94,7 @@ public class SJSelectorDeclTypeBuilder extends ContextVisitor
 			}
 			else
 			{
-				throw new SemanticException("[SJSelectorDeclTypeBuilder] Unexpected selector variable initializer: " + init);
+				throw new SemanticException("[SJSelectorDeclTypeBuilder] Unexpected selector variable initializer: " + init.getClass());
 			}		
 			
 			ld = ld.localInstance(sjts.SJLocalSelectorInstance(li, st, sjname));
