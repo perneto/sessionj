@@ -74,10 +74,12 @@ public class SJSessionTryDisambiguator extends ContextVisitor
 		}
 		else if (v instanceof SJServerVariable)
 		{
+            /*
 			if (targets.size() != 1) // Do this check elsewhere? Relax this restriction?
 			{
 				throw new SemanticException("[SJSessionTryDisambiguator] server-try may only specify a single target: " + targets);
 			}
+			*/
 				 
 			st = sjnf.SJServerTry(st.position(), st.tryBlock(), st.catchBlocks(), st.finallyBlock(), targets);
 		}
