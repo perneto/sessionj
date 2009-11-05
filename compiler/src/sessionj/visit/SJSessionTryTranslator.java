@@ -116,7 +116,7 @@ public class SJSessionTryTranslator extends SJSessionVisitor
             }
         }
 
-		if (sockets.size() > 0)
+		if (!sockets.isEmpty())
 		{
 			Position pos = st.position();		
 			QQ qq = new QQ(sjts.extensionInfo(), pos);
@@ -153,20 +153,23 @@ public class SJSessionTryTranslator extends SJSessionVisitor
 		Position pos = st.position();		
 		QQ qq = new QQ(sjts.extensionInfo(), pos);
 		
-		String translation = "";
+		String translation = "{";
 		List<Object> mapping = new LinkedList<Object>();		
-		
-		SJServerVariable sv = (SJServerVariable) st.targets().get(0); // Factor out constant. // Currently, only a single server is permitted per server-try.
-		
-		translation += "if (%E != null) %E.close();";
-		mapping.add(sv);
-		mapping.add(sv);
-			
-		If i = (If) qq.parseStmt(translation, mapping);
-		i = (If) buildAndCheckTypes(this, i);
-		
-		st = (SJServerTry) appendToFinally(st, i);
-		
+
+        for (Object o : st.targets()) {
+            SJServerVariable sv = (SJServerVariable) o;
+
+            translation += "if (%E != null) %E.close();";
+            mapping.add(sv);
+            mapping.add(sv);
+
+        }
+        translation += "}";
+        Block b = (Block) qq.parseStmt(translation, mapping);
+        b = (Block) buildAndCheckTypes(this, b);
+
+        st = (SJServerTry) appendToFinally(st, b);
+
 		return st;
 	}
 	
