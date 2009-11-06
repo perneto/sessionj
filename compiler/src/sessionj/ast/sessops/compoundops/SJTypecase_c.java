@@ -99,7 +99,9 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
             parameters.add(new IntLit_c(when.position(), IntLit.INT, setType.memberRank(when.type())));
             parameters.add(copyOfStatements(when)); // QQ tries to modify the list in some cases
         }
-        return qq.parseStmt("{int i = %s.typeLabel(); System.out.println(i); switch (i) { "+cases+" default: System.out.println(\"DEFAULT\");}}", parameters);
+        String tmpVar = SJConstants.SJ_TMP_LOCAL + '_' + UUID.randomUUID();
+        return qq.parseStmt("{int "+tmpVar+" = %s.typeLabel(); System.out.println(i); switch ("
+            +tmpVar+" ) { "+cases+" default: System.out.println(\"DEFAULT\");}}", parameters);
 
     }
 
