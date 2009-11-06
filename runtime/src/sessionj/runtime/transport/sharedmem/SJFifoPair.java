@@ -380,9 +380,27 @@ public class SJFifoPair implements SJTransport
                 logger.log(Level.SEVERE, "Lock file " + dirLock + " could not be created, transport will not work", e);
             }
         }
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                deleteDir(locksDir);
+            }
+        });
     }
 
-	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.sharedmem.SJFifoPair";
+    private static boolean deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            for (String aChildren : children) {
+                boolean success = deleteDir(new File(dir, aChildren));
+                if (!success) return false;
+            }
+        }
+
+        return dir.delete();
+    }
+
+    public static final String TRANSPORT_NAME = "sessionj.runtime.transport.sharedmem.SJFifoPair";
 	
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
