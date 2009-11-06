@@ -3,21 +3,18 @@
  */
 package sessionj.util.noalias;
 
-import java.util.*;
-
 import polyglot.ast.*;
 import polyglot.frontend.Job;
-import polyglot.qq.*;
-import polyglot.types.*;
-import polyglot.visit.*;
+import polyglot.types.Flags;
+import polyglot.types.SemanticException;
+import polyglot.visit.ErrorHandlingVisitor;
+import polyglot.visit.NodeVisitor;
+import static sessionj.SJConstants.SJ_TMP_LOCAL;
+import sessionj.ast.SJNodeFactory;
+import sessionj.types.SJTypeSystem;
+import static sessionj.util.SJCompilerUtils.isNoAlias;
 
-import sessionj.ast.*;
-import sessionj.types.*;
-import sessionj.types.typeobjects.*;
-import sessionj.types.noalias.*;
-
-import static sessionj.SJConstants.*;
-import static sessionj.util.SJCompilerUtils.*;
+import java.util.Set;
 
 /**
  * @author Raymond
@@ -31,19 +28,14 @@ public class SJNoAliasVariableRenamer extends ErrorHandlingVisitor
 	SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 	
 	private Set<Variable> vars;
-	private ContextVisitor cv;
-	
-	/**
-	 * @param job
-	 * @param ts
-	 * @param nf
+
+    /**
 	 */
-	public SJNoAliasVariableRenamer(Job job, ContextVisitor cv, Set<Variable> vars)
+	public SJNoAliasVariableRenamer(Job job, ErrorHandlingVisitor cv, Set<Variable> vars)
 	{
 		super(job, cv.typeSystem(), cv.nodeFactory());
-		
-		this.cv = cv;
-		this.vars = vars;
+
+        this.vars = vars;
 	}
 
 	protected ErrorHandlingVisitor enterCall(Node parent, Node n)  
@@ -91,7 +83,7 @@ public class SJNoAliasVariableRenamer extends ErrorHandlingVisitor
 			{
 				if (var instanceof Field)
 				{											
-					String vname = renameNoAliasVariable((Field) var);
+					String vname = renameNoAliasVariable(var);
 					
 					Local local = sjnf.Local(var.position(), sjnf.Id(var.position(), vname));
 					//n = buildAndCheckTypes(job(), n, cv); // The existing context has not yet recorded the variables that we have just declared.								
@@ -103,7 +95,7 @@ public class SJNoAliasVariableRenamer extends ErrorHandlingVisitor
 				}
 				else if (var instanceof Local)
 				{
-					String vname = renameNoAliasVariable((Local) var);			
+					String vname = renameNoAliasVariable(var);			
 					
 					n = ((Local) var).name(vname);
 				}
@@ -125,8 +117,7 @@ public class SJNoAliasVariableRenamer extends ErrorHandlingVisitor
 		return n;
 	}
 	
-	public static String renameNoAliasVariable(Variable v) throws SemanticException
-	{
+	public static String renameNoAliasVariable(Variable v) {
 		String vname = v.toString(); 
 		
 		if (v instanceof Field)
