@@ -17,7 +17,7 @@ public class SJSessionParameters //implements Serializable
 {
 	public static final SJSessionParameters DEFAULT_PARAMETERS = new SJSessionParameters();
 	
-	private List<SJTransport> negociationTransports; // FIXME: should be "negotiation".
+	private List<SJTransport> negotiationTransports; // FIXME: should be "negotiation".
 	private List<SJTransport> sessionTransports;
 
 	private boolean useDefault = false;
@@ -28,7 +28,7 @@ public class SJSessionParameters //implements Serializable
 
     public SJSessionParameters()
 	{
-		/*this.negociationTransports = new LinkedList<SJTransport>();
+		/*this.negotiationTransports = new LinkedList<SJTransport>();
 		this.sessionTransports = new LinkedList<SJTransport>();*/
 
         useDefault = true;
@@ -45,45 +45,45 @@ public class SJSessionParameters //implements Serializable
 	{
 		//if (!useDefault)
 		{
-			this.negociationTransports = new LinkedList<SJTransport>();
+			this.negotiationTransports = new LinkedList<SJTransport>();
 			this.sessionTransports = new LinkedList<SJTransport>();
 		}
 		
 		this.useDefault = useDefault;
 	}*/
 	
-	public SJSessionParameters(List<SJTransport> negociationTransports, List<SJTransport> sessionTransports)
+	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports)
 	{
-		/*this.negociationTransports = negociationTransports;
+		/*this.negotiationTransports = negotiationTransports;
 		this.sessionTransports = sessionTransports;*/
 		
-		this.negociationTransports = new LinkedList<SJTransport>(negociationTransports); // Relying on implicit iterator ordering.
+		this.negotiationTransports = new LinkedList<SJTransport>(negotiationTransports); // Relying on implicit iterator ordering.
 		this.sessionTransports = new LinkedList<SJTransport>(sessionTransports);
 		
-		/*Collections.copy(this.negociationTransports, negociationTransports);
+		/*Collections.copy(this.negotiationTransports, negotiationTransports);
 		Collections.copy(this.sessionTransports, sessionTransports);*/
 	}
 	
-	public SJSessionParameters(List<SJTransport> negociationTransports, List<SJTransport> sessionTransports, int boundedBufferSize)
+	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, int boundedBufferSize)
 	{
-		this(negociationTransports, sessionTransports);
+		this(negotiationTransports, sessionTransports);
 		
 		this.boundedBufferSize = boundedBufferSize;
 	}
 	
 	/*public void addSetup(SJTransport setup) // Work towards making this class immutable.
 	{
-		negociationTransports.add(setup);
+		negotiationTransports.add(setup);
 	}
 	
-	public void addSetups(List<SJTransport> negociationTransports)
+	public void addSetups(List<SJTransport> negotiationTransports)
 	{
-		this.negociationTransports = negociationTransports;
+		this.negotiationTransports = negotiationTransports;
 	}*/
 	
-	public List<SJTransport> getNegociationTransports()
+	public List<SJTransport> getNegotiationTransports()
 	{
-		return new LinkedList<SJTransport>(negociationTransports);
+		return new LinkedList<SJTransport>(negotiationTransports);
 	}
 	
 	/*public void addTransport(SJTransport transport)
@@ -116,7 +116,7 @@ public class SJSessionParameters //implements Serializable
 		}
 		else
 		{
-			m += getNegociationTransports().toString() + ", " + getSessionTransports().toString();
+			m += getNegotiationTransports().toString() + ", " + getSessionTransports().toString();
 		}
 		
 		m += ", " + getBoundedBufferSize();

@@ -24,12 +24,12 @@ public class Selector extends AbstractValidTest3Peers {
         noalias SJSocket s;
         try (ss1, ss2) {
             ss1 = SJServerSocket.create(pServer2, port);
-            ss2 = SJServerSocket.create(pServer3, port);
+            ss2 = SJServerSocket.create(pServer3, port+1);
             try (sel) {
                 sel.registerAccept(ss1);
                 sel.registerAccept(ss2);
-                int k = 0; boolean b; int j;
-                while (k < 2) {
+                int i = 0; boolean b; int j;
+                while (i < 2) {
                     try (s) {
                         s = sel.select(SJSelector.ACCEPT | SJSelector.INPUT);
                         typecase (s) {
@@ -37,7 +37,7 @@ public class Selector extends AbstractValidTest3Peers {
                             when (@(from3)) b = s.receiveBoolean();
                         }
                     } finally {}
-                    k++;
+                    i++;
                 }
             } finally {}
         } finally {}
@@ -53,7 +53,7 @@ public class Selector extends AbstractValidTest3Peers {
     }
 
     public void peer3(int port) throws Exception {
-        final noalias SJService serv = SJService.create(pClient3, "", port);
+        final noalias SJService serv = SJService.create(pClient3, "", port+1);
         noalias SJSocket s;
         try (s) {
             s = serv.request();
