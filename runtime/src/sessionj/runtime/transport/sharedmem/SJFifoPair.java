@@ -8,8 +8,10 @@ import sessionj.runtime.transport.SJTransport;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.channels.FileLock;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -361,6 +363,7 @@ public class SJFifoPair implements SJTransport
     static final Logger logger = Logger.getLogger(SJFifoPair.class.getName());
     
     private static final File locksDir;
+    private static final File dirLock;
     static {
         String tmpDir = System.getProperty("java.io.tmpdir");
         String separator = System.getProperty("file.separator");
@@ -369,14 +372,20 @@ public class SJFifoPair implements SJTransport
             boolean created = locksDir.mkdir();
             if (!created) logger.log(Level.SEVERE, "Directory " + locksDir + " could not be created, transport will not work reliably");
         }
+        dirLock = new File(locksDir, "lock");
+        if (!dirLock.isFile()) {
+            try {
+                dirLock.createNewFile();
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Lock file " + dirLock + " could not be created, transport will not work", e);
+            }
+        }
     }
 
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.sharedmem.SJFifoPair";
 	
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
-	
-	private static final Set<Integer> portsInUse = new HashSet<Integer>(); 
 	
 	public SJFifoPair() { }
 
@@ -388,11 +397,6 @@ public class SJFifoPair implements SJTransport
 		
 		return a;
 	}
-	
-	/*public SJFifoPairConnection connect(SJServerIdentifier si) throws SJIOException
-	{
-		return connect(si.getHostName(), si.getPort());
-	}*/
 	
 	public SJFifoPairConnection connect(String hostName, int port) throws SJIOException
 	{
@@ -435,7 +439,7 @@ public class SJFifoPair implements SJTransport
 			}
 			catch (InterruptedException ie) 
 			{
-				throw new SJIOException('[' + getTransportName() + "] 2: " + ie);
+				throw new SJIOException('[' + getTransportName() + "] 2: " + ie, ie);
 			}
     }	
 				
@@ -443,7 +447,7 @@ public class SJFifoPair implements SJTransport
 	}
 
     public SJSelectorInternal transportSelector() {
-        return null; // TODO
+        return null; 
     }
 
     public boolean blockingModeSupported() {
@@ -475,11 +479,17 @@ public class SJFifoPair implements SJTransport
 	
 	public static boolean portFree(int port)
 	{
-		synchronized (portsInUse)
-		{
-			return !portsInUse.contains(port);
-		}
-	}
+        FileLock lock = null;
+        try {
+            lock = lock();
+            return portFile(port).isFile();
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Could not lock port directory, assuming port "+port+" is free", e);
+            return true;
+        } finally {
+            release(lock);
+        }
+    }
 	
 	protected static int findFreePort() throws SJIOException
 	{
@@ -495,35 +505,47 @@ public class SJFifoPair implements SJTransport
 		}
 		
 		throw new SJIOException('[' + TRANSPORT_NAME + "] No free port available.");
-		//throw new SJIOException("[SJ(Bounded)FifoPair] No free port available.");
 	}
 	
 	protected static void bindPort(int port) throws SJIOException {
-		synchronized (portsInUse)
-    {
-	    portsInUse.add(port);
         File portFile = portFile(port);
         boolean created;
+        FileLock lock = null;
         try {
+            lock = lock();
             created = portFile.createNewFile();
         } catch (IOException e) {
             throw new SJIOException(e);
+        } finally {
+            release(lock);
         }
         if (!created) throw new SJIOException("Could not create port file:" + portFile);
-    }
 	}
+
+    private static void release(FileLock lock) {
+        if (lock != null) try {
+            lock.release();
+            lock.channel().close();
+        } catch (IOException ignored) {
+            // or rethrow?
+        }
+    }
+
+    private static FileLock lock() throws IOException {
+        // Channel is closed in release.
+        //noinspection ChannelOpenedButNotSafelyClosed
+        return new RandomAccessFile(dirLock, "rw").getChannel().lock();
+    }
 
     private static File portFile(int port) {
         return new File(locksDir, Integer.toString(port));
     }
 
     protected static void  freePort(int port) throws SJIOException {
-		synchronized (portsInUse)
-    {
-	    boolean removed = portsInUse.remove(port);
-        boolean deleted = portFile(port).delete();
-        if (removed && !deleted) throw new SJIOException("Could not delete port file: " + portFile(port));
-    }
+        File file = portFile(port);
+        boolean deleted = file.delete();
+        if (!deleted && file.isFile()) throw new SJIOException("Could not delete port file: " + file
+            + ", port will still be considered in use");
 	}
 	
 	public String sessionHostToNegociationHost(String hostName)
