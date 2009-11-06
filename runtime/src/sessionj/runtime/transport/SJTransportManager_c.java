@@ -81,7 +81,7 @@ public class SJTransportManager_c extends SJTransportManager
 		}
 		else
 		{
-			List<SJTransport> ss = params.getNegociationTransports(); // Has an implicit defensive copy. Maybe find a way to avoid that from here.
+			List<SJTransport> ss = params.getNegotiationTransports(); // Has an implicit defensive copy. Maybe find a way to avoid that from here.
 			List<SJTransport> ts = params.getSessionTransports();
 			
 			List<String> sn = new LinkedList<String>();
@@ -273,7 +273,7 @@ public class SJTransportManager_c extends SJTransportManager
 				}
 				else
 				{
-					List<SJTransport> ss = params.getNegociationTransports();
+					List<SJTransport> ss = params.getNegotiationTransports();
 					List<SJTransport> ts = params.getSessionTransports();
 					
 					List<String> tn = new LinkedList<String>();

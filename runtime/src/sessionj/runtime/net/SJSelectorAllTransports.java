@@ -1,13 +1,12 @@
 package sessionj.runtime.net;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.util.ValueLatch;
 
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -96,8 +95,7 @@ class SJSelectorAllTransports implements SJSelector {
         return selected;
     }
     
-    public void close()
-    {
-    	throw new SJRuntimeException("[SJSelectorAllTransports] TODO: close operation.");
+    public void close() throws SJIOException {
+        for (SJSelectorInternal sel : transportSelectors) sel.close();
     }
 }
