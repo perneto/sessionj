@@ -1,7 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
-import sessionj.runtime.session.SJDeserializer;
 import sessionj.runtime.session.OngoingRead;
+import sessionj.runtime.session.SJDeserializer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -9,14 +9,9 @@ import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.Queue;
-import java.util.logging.Logger;
+import java.util.concurrent.*;
 import java.util.logging.Level;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import org.testng.reporters.DotTestListener;
+import java.util.logging.Logger;
 
 /**
  */
