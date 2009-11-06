@@ -1,7 +1,6 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelector;
 import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJStreamConnection;
@@ -144,11 +143,6 @@ public class SJStreamTCP implements SJTransport
 		return new SJStreamTCPAcceptor(port);
 	}
 	
-	/*public SJStreamTCPConnection connect(SJServerIdentifier si) throws SJIOException
-	{
-		return connect(si.getHostName(), si.getPort());
-	}*/
-	
 	public SJStreamTCPConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
 	{
 		try 
@@ -175,48 +169,30 @@ public class SJStreamTCP implements SJTransport
 
     public boolean portInUse(int port)
 	{
-		ServerSocket ss = null;
-		
-		try
-		{
-			ss = new ServerSocket(port);
-		}
-		catch (IOException ioe)
-		{
-			return true;
-		}
-		finally
-		{
-			if (ss != null) 
-			{
-				try
-				{
-					ss.close();
-				}
-				catch (IOException ioe) { }					
-			}
-		}
-		
-		return false;
+        return isTCPPortInUse(port);
 	}
-	
+
 	public int getFreePort() throws SJIOException
 	{
-		int start = new Random().nextInt(PORT_RANGE);
-		int seed = start + 1;
-		
-		for (int port = seed % PORT_RANGE; port != start; port = seed++ % PORT_RANGE)  
-		{
-			if (!portInUse(port + LOWER_PORT_LIMIT))
-			{
-				return port + LOWER_PORT_LIMIT;
-			}
-		}
-		
-		throw new SJIOException('[' + getTransportName() + "] No free port available.");
+        return getFreeTCPPort(getTransportName());
 	}
-	
-	public String getTransportName()
+
+    static int getFreeTCPPort(String transportName) throws SJIOException {
+        int start = new Random().nextInt(PORT_RANGE);
+        int seed = start + 1;
+
+        for (int port = seed % PORT_RANGE; port != start; port = seed++ % PORT_RANGE)
+        {
+            if (!isTCPPortInUse(port + LOWER_PORT_LIMIT))
+            {
+                return port + LOWER_PORT_LIMIT;
+            }
+        }
+
+        throw new SJIOException('[' + transportName + "] No free port available.");
+    }
+
+    public String getTransportName()
 	{
 		return TRANSPORT_NAME;
 	}
@@ -230,4 +206,20 @@ public class SJStreamTCP implements SJTransport
 	{
 		return port + TCP_PORT_MAP_ADJUST;
 	}
+
+    static boolean isTCPPortInUse(int port) {
+        ServerSocket ss = null;
+
+        try {
+            ss = new ServerSocket(port);
+        } catch (IOException ignored) {
+            return true;
+        } finally {
+            if (ss != null) try {
+                ss.close();
+            } catch (IOException ignored) { }
+        }
+
+        return false;
+    }
 }

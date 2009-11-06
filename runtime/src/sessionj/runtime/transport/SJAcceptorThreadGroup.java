@@ -13,13 +13,13 @@ import sessionj.runtime.*;
  */
 public class SJAcceptorThreadGroup extends ThreadGroup
 {
-	private SJTransportManager sjtm;
+	private final SJTransportManager sjtm;
 	
-	private int port; // The session port.
+	private final int port; // The session port.
 	
-	private Map<String, Integer> transports = new HashMap<String, Integer>();
+	private final Map<String, Integer> transports = new HashMap<String, Integer>();
 	
-	private List<SJConnection> pending = new LinkedList<SJConnection>();
+	private final List<SJConnection> pending = new LinkedList<SJConnection>();
 	
 	private boolean isClosed = false;
 	
@@ -94,7 +94,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 	
 	public SJConnection nextConnection() throws SJIOException
 	{
-		SJConnection next = null;
+		SJConnection next;
 		
 		synchronized (pending)
 		{		
