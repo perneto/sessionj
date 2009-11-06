@@ -55,15 +55,9 @@ public class TransportUtils
 	}
 
 	public static List<SJTransport> parseTransportFlags(String transports) throws IOException {
+		if (transports.contains("d")) return defaultTransports();
+
         List<SJTransport> ts = new LinkedList<SJTransport>();
-		if (transports.contains("d"))
-		{
-			ts.add(new SJFifoPair());
-			ts.add(new SJStreamTCP());
-
-			return ts;
-		}
-
         for (char c : transports.toCharArray()) {
             switch (c) {
                 case 'f':
@@ -94,8 +88,17 @@ public class TransportUtils
         }
         return ts;
 	}
-	
-	public static void configureTransports(String setups, String transports) throws IOException {
+
+    private static List<SJTransport> defaultTransports() throws IOException {
+        List<SJTransport> ts = new LinkedList<SJTransport>();
+        ts.add(new SJFifoPair());
+        ts.add(new SJStreamTCP());
+        ts.add(new SJAsyncManualTCP());
+
+        return ts;
+    }
+
+    public static void configureTransports(String setups, String transports) throws IOException {
 		SJTransportManager sjtm = SJRuntime.getTransportManager();	
 		
 		if (!setups.contains("d"))
