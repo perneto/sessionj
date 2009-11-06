@@ -28,8 +28,8 @@ public class Selector extends AbstractValidTest3Peers {
             try (sel) {
                 sel.registerAccept(ss1);
                 sel.registerAccept(ss2);
-                int i = 0; boolean b; int j;
-                while (i < 2) {
+                int k = 0; boolean b; int j;
+                while (k < 2) {
                     try (s) {
                         s = sel.select(SJSelector.ACCEPT | SJSelector.INPUT);
                         typecase (s) {
@@ -37,7 +37,7 @@ public class Selector extends AbstractValidTest3Peers {
                             when (@(from3)) b = s.receiveBoolean();
                         }
                     } finally {}
-                    i++;
+                    k++;
                 }
             } finally {}
         } finally {}

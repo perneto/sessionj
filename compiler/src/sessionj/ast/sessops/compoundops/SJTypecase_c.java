@@ -6,8 +6,8 @@ import polyglot.types.Context;
 import polyglot.types.SemanticException;
 import polyglot.util.CodeWriter;
 import polyglot.util.Position;
+import polyglot.util.UniqueID;
 import polyglot.visit.*;
-import polyglot.lex.IntegerLiteral;
 import sessionj.SJConstants;
 import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessvars.SJVariable;
@@ -16,7 +16,6 @@ import sessionj.types.SJTypeSystem;
 import sessionj.types.contexts.SJContextElement;
 import sessionj.types.contexts.SJContextInterface;
 import sessionj.types.sesstypes.SJSessionType;
-import sessionj.types.sesstypes.SJSessionType_c;
 import sessionj.types.sesstypes.SJSetType;
 import sessionj.util.SJCompilerUtils;
 import static sessionj.visit.SJSessionOperationTypeBuilder.getTargetNames;
@@ -99,8 +98,8 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
             parameters.add(new IntLit_c(when.position(), IntLit.INT, setType.memberRank(when.type())));
             parameters.add(copyOfStatements(when)); // QQ tries to modify the list in some cases
         }
-        String tmpVar = SJConstants.SJ_TMP_LOCAL + '_' + UUID.randomUUID();
-        return qq.parseStmt("{int "+tmpVar+" = %s.typeLabel(); System.out.println(i); switch ("
+        String tmpVar = UniqueID.newID(SJConstants.SJ_TMP_LOCAL);
+        return qq.parseStmt("{int "+tmpVar+" = %s.typeLabel(); switch ("
             +tmpVar+" ) { "+cases+" default: System.out.println(\"DEFAULT\");}}", parameters);
 
     }
