@@ -1,6 +1,7 @@
 package sessionj.runtime.net;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
 
 public class SJPort
 {
@@ -13,7 +14,15 @@ public class SJPort
 		SJRuntime.takePort(port); // Takes the session port, but does not guarantee the setups are available. In keeping with specifying e.g. TCP 8888 - could already have been taken. 
 		
 		this.port = port;
-        params = new SJSessionParameters();
+		
+		try
+		{
+			params = new SJSessionParameters();
+		}
+		catch (SJSessionParametersException spe)
+		{
+			throw new SJRuntimeException("[SJPort] Shouldn't get in here.", spe);
+		}
 	}
 	
 	public SJPort(int port, SJSessionParameters params) throws SJIOException

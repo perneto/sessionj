@@ -238,6 +238,23 @@ public final class SJRuntimeUtils
 		}
 	}
 	
+	public static void closeReader(Reader r) throws IOException
+	{
+		if (r != null)
+		{
+			r.close();
+		}
+	}	
+	
+	public static void closeWriter(Writer w) throws IOException
+	{
+		if (w != null)
+		{
+			w.flush();
+			w.close();
+		}
+	}	
+	
 	public static final void debugPrint(Object obj)
 	{
 		if (debugMode)

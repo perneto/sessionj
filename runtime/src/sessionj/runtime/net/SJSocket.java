@@ -37,14 +37,19 @@ public interface SJSocket extends SJChannel
 	String inlabel() throws SJIOException;
 	boolean outsync(boolean condition) throws SJIOException;
 	boolean insync() throws SJIOException;
-    boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException;
-    boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException;
-    boolean interruptibleOutsync(boolean condition) throws SJIOException;
-    boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException;
+	
+	boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException;
+	boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException;
+	boolean interruptibleOutsync(boolean condition) throws SJIOException;
+	boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException;
 
-    // Higher-order.
+	boolean recursionEnter() throws SJIOException;
+	boolean recursionExit() throws SJIOException;
+	boolean recurse(String lab) throws SJIOException;	
+	
+	// Higher-order.
 	//public void sendChannel(SJService c) throws SJIOException;
-    void sendChannel(SJService c, String encoded) throws SJIOException;
+	void sendChannel(SJService c, String encoded) throws SJIOException;
 	SJService receiveChannel(String encoded) throws SJIOException;
 	
 	void delegateSession(SJAbstractSocket s, String encoded) throws SJIOException;

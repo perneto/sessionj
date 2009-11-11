@@ -70,7 +70,7 @@ while true; do
             ;;
         -E)
             eclipse=1
-            break
+            shift
             ;;            
         *)
             args="$args '$1'"

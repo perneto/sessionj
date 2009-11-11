@@ -41,7 +41,7 @@ public interface SJSerializer {
 
     boolean zeroCopySupported();
 
-    SJMessage nextMessage() throws SJIOException, ClassNotFoundException;//, SJControlSignal;
+    SJMessage nextMessage() throws SJIOException, ClassNotFoundException;//, SJControlSignal; // Get the next messsage regardless of type (wrapped as an SJMessage). Could implement other receive operations in terms of this one, but could be slower.
 
     SJConnection getConnection();
 }
