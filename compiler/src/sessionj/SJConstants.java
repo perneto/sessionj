@@ -147,7 +147,7 @@ public class SJConstants
 	
 	public static final String SJ_PROTOCOL_CLASS = "sessionj.runtime.SJProtocol";
 	public static final String SJ_CHANNEL_CLASS = "sessionj.runtime.net.SJService";
-    public static final String SJ_ABSTRACT_CHANNEL_CLASS = "sessionj.runtime.net.SJChannel";
+	public static final String SJ_ABSTRACT_CHANNEL_CLASS = "sessionj.runtime.net.SJChannel";
 	public static final String SJ_SOCKET_INTERFACE = "sessionj.runtime.net.SJSocket";
 	public static final String SJ_ABSTRACT_SOCKET_CLASS = "sessionj.runtime.net.SJAbstractSocket"; 
 	public static final String SJ_SERVER_INTERFACE = "sessionj.runtime.net.SJServerSocket";	
@@ -170,6 +170,8 @@ public class SJConstants
 	public static final String JAVA_STRING_CLASS = "java.lang.String";
 
 	public static final String POLYGLOT_TYPEDECODER_NAME_ARG = ""; // Don't know what this argument is for. Think it's just for error reporting (setting the message for a nested exception).
+	
+	public static final String CHARSET_UTF8 = "UTF8";
 	
 	private SJConstants() { }
 }

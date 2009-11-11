@@ -42,7 +42,7 @@ public class SJTransportManager_c extends SJTransportManager
 	
 	private void defaultSetups() throws IOException {
         String chosen = System.getProperty(DEFAULT_SETUPS_PROPERTY, "d");
-        List<SJTransport> ss = TransportUtils.parseTransportFlags(chosen);
+        List<SJTransport> ss = SJTransportUtils.parseTransportFlags(chosen);
         System.out.println("Negotiation transports: " + chosen + ": "+ ss);
         //ss.add(new SJFifoPair());
         // FIXME: need to prevent conflicting use of (shared memory) ports by multiple Runtimes on the same host.
@@ -57,7 +57,7 @@ public class SJTransportManager_c extends SJTransportManager
 	
 	private void defaultTransports() throws IOException {
         String chosen = System.getProperty(DEFAULT_TRANSPORTS_PROPERTY, "d");
-        List<SJTransport> ts = TransportUtils.parseTransportFlags(chosen);
+        List<SJTransport> ts = SJTransportUtils.parseTransportFlags(chosen);
         System.out.println("Session transports: " + chosen + ": " + ts);
 
 		configureSessionTransports(ts);

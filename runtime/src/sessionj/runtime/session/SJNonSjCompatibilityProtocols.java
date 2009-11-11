@@ -1,0 +1,292 @@
+/**
+ * 
+ */
+package sessionj.runtime.session;
+
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJProtocol;
+import sessionj.runtime.SJRuntimeException;
+import sessionj.runtime.net.*;
+import static sessionj.runtime.session.SJMessage.*;
+import sessionj.runtime.transport.SJAcceptorThreadGroup;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJTransportManager;
+import sessionj.types.sesstypes.SJSessionType;
+import sessionj.util.SJLabel;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.LinkedList;
+import java.util.List;
+
+/**
+ * @author Raymond
+ *
+ * This class encapsulates the protocols for "backwards-compatibility" with non-SJ peers. 
+ * 
+ * FIXME: should generally make such options more modular and convenient for the user, e.g. wrt. to disabling session initiation and delegation.
+ *  
+ */
+public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
+{ 
+	private static final boolean RUNTIME_MONITORING = false; 
+	//private static final boolean RUNTIME_MONITORING = true; // Basically a necessity for this session mode.
+	
+	protected SJSocket s;
+	protected SJSerializer ser;
+    
+	protected SJStateManager sm; 
+    
+  public SJNonSjCompatibilityProtocols(SJSocket s, SJSerializer ser)
+	{
+		this.s = s;
+		this.ser = ser;
+		
+		if (RUNTIME_MONITORING)
+		{
+			try
+			{
+				this.sm = new SJStateManager_c(SJRuntime.getTypeSystem(), s.getProtocol().type());
+				
+				s.setStateManager(sm);
+			}
+			catch (SJIOException ioe)
+			{
+				throw new SJRuntimeException("[SJProtocolsImpl] Shouldn't get in here: ", ioe);
+			}
+	  }
+	}
+
+	public void accept() throws SJIOException, SJIncompatibleSessionException
+	{
+		if (RUNTIME_MONITORING)
+		{
+			sm.accept();
+		}			
+	}
+	
+	public void request() throws SJIOException, SJIncompatibleSessionException
+	{
+		if (RUNTIME_MONITORING)
+		{
+			sm.request();
+		}		
+	}
+	
+	public void close()
+	{		
+		if (RUNTIME_MONITORING)
+		{
+			sm.close();
+		}			
+		
+		if (!ser.isClosed()) 
+		{
+			ser.close(); // Doesn't close the underlying connection.					
+		}
+		
+		SJRuntime.closeSocket(s); // Maybe need to guard by an isClosed? Forwarding protocol closes sockets early.  	
+	}
+
+	public void send(Object o) throws SJIOException
+	{
+		ser.writeObject(o); // SJUtf8Serializer will write it as a String (via toString), and similarly for other custom serializers.  
+		
+		if (RUNTIME_MONITORING) // FIXME: provide a common structure for handling the monitor after each typeable action (so that new actions don't forget to update the monitor). Can specify via an interface.
+		{
+			sm.send(o);
+		}			
+	}
+
+	public void sendByte(byte b) throws SJIOException
+	{
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Unsupported operation: " + b);
+	}
+	
+	public void sendInt(int i) throws SJIOException
+	{
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Unsupported operation: " + i);
+	}
+
+	public void sendBoolean(boolean b) throws SJIOException
+	{
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Unsupported operation: " + b);
+	}
+	
+	public void sendDouble(double d) throws SJIOException
+	{
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Unsupported operation: " + d);
+	}
+	
+	public void pass(Object o) throws SJIOException
+	{
+    if (ser.zeroCopySupported()) // FIXME: currently fixed to false by SJUtf8Serializer. 
+    {
+    	ser.writeReference(o);
+    }
+    else 
+    {
+    	ser.writeObject(o);
+    }
+        
+		if (RUNTIME_MONITORING)
+		{
+			sm.send(o);
+		}	        
+	}
+	
+	public void copy(Object o) throws SJIOException
+	{
+		send(o); // Already taken care of type monitoring.		
+	}
+	
+	public Object receive() throws SJIOException, ClassNotFoundException
+	{			
+		if (RUNTIME_MONITORING)
+		{
+			sm.receive(null);
+		}	
+		
+		return null; 
+	}
+	
+	public byte receiveByte() throws SJIOException
+	{
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Unsupported operation.");
+	}	
+	
+	public int receiveInt() throws SJIOException
+	{
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Unsupported operation.");
+	}
+	
+	public boolean receiveBoolean() throws SJIOException
+	{
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Unsupported operation.");
+	}
+	
+	public double receiveDouble() throws SJIOException
+	{
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Unsupported operation.");
+	}
+
+	public void outlabel(String lab) throws SJIOException 
+	{
+    /*if (ser.zeroCopySupported()) 
+    {
+      ser.writeReference(lab);
+    } 
+    else 
+    {
+      ser.writeObject(lab);
+    }*/
+        
+		if (RUNTIME_MONITORING)
+		{
+			sm.outbranch(new SJLabel(lab));
+		}		        
+	}
+	
+	public String inlabel() throws SJIOException 
+	{
+		/*Object o = ser.readObject();
+		
+		if (!(o instanceof String))
+		{
+			
+		}*/	
+		
+		if (RUNTIME_MONITORING)
+		{
+			sm.inbranch(new SJLabel(null));
+		}	          
+	            
+		return null;
+	}
+	
+	public void outsync(boolean b) throws SJIOException // FIXME: make support for zerocopy? (And other primitives?)
+	{
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Iteration not supported: " + b);			
+	}
+	
+	public boolean insync() throws SJIOException
+	{        	
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Iteration not supported.");
+	}
+
+	public boolean interruptibleOutsync(boolean condition) throws SJIOException // FIXME: need to add SJStateManager monitor calls to these routines. 
+	{ 
+		throw new SJRuntimeException("[SJNonSjCompatibilityProtocols] TODO.");
+	}
+	
+	public boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException 
+	{
+		throw new SJRuntimeException("[SJNonSjCompatibilityProtocols] TODO.");
+	}
+	
+	public boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException
+	{
+		throw new SJRuntimeException("[SJNonSjCompatibilityProtocols] TODO.");
+	} 
+	
+	public boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException 
+	{        
+		throw new SJRuntimeException("[SJNonSjCompatibilityProtocols] TODO.");
+	}
+
+	public boolean recurse(String lab) throws SJIOException
+	{
+		if (RUNTIME_MONITORING)
+		{
+			sm.recurse(new SJLabel(lab));
+		}	  		
+		
+		return true;
+	}
+
+	public boolean recursionEnter() throws SJIOException
+	{
+		if (RUNTIME_MONITORING)
+		{
+			//sm.recursion(new SJLabel(lab));
+			sm.recursion(new SJLabel(null));
+		}		
+		
+		return false;
+	}
+
+	public boolean recursionExit() throws SJIOException
+	{
+		return false;
+	} 	
+	
+  public void sendChannel(SJService c, SJSessionType st) throws SJIOException // Can get encoded from c.
+	{
+  	throw new SJIOException("[SJNonSjCompatibilityProtocols] SJService passing not supported: " + c);   
+	}
+	
+	public SJService receiveChannel(SJSessionType st) throws SJIOException
+	{
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] SJService passing not supported: " + st);
+	}
+	
+	public void delegateSession(SJAbstractSocket s, SJSessionType st) throws SJIOException
+	{				
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Delegation not supported: " + s);
+	}
+
+	public SJAbstractSocket receiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException
+	{		
+		throw new SJIOException("[SJNonSjCompatibilityProtocols] Delegation not supported: " + st);
+	}
+
+  public SJSerializer getSerializer()
+  {
+  	return ser;
+  }
+
+  public void setSerializer(SJSerializer ser)
+  {
+		this.ser = ser;
+  }
+}

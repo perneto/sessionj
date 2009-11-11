@@ -1,7 +1,14 @@
 package sessionj.runtime.transport;
 
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+
 import sessionj.runtime.net.SJRuntime;
 import sessionj.runtime.net.SJSessionParameters;
+import sessionj.runtime.net.SJSessionParametersException;
+import sessionj.runtime.session.SJCompatibilityMode;
+import sessionj.runtime.session.SJCustomMessageFormatter;
 import sessionj.runtime.transport.httpservlet.SJHTTPServlet;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 import sessionj.runtime.transport.sharedmem.SJFifoPair;
@@ -9,16 +16,25 @@ import sessionj.runtime.transport.tcp.SJManualTCP;
 import sessionj.runtime.transport.tcp.SJStreamTCP;
 import sessionj.runtime.transport.tcp.SJAsyncManualTCP;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.io.IOException;
-
-public class TransportUtils
+public class SJTransportUtils
 {
-    private TransportUtils() {
-    }
+  private SJTransportUtils() 
+  {
+  
+  }
 
-    public static SJSessionParameters createSJSessionParameters(String setups, String transports, int boundedBufferSize) throws IOException {
+  public static SJSessionParameters createSJSessionParameters(SJCompatibilityMode mode) throws SJSessionParametersException 
+  {
+  	return new SJSessionParameters(mode);
+  }
+
+  public static SJSessionParameters createSJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter parser) throws SJSessionParametersException 
+  {
+  	return new SJSessionParameters(mode, parser);
+  }
+  
+  public static SJSessionParameters createSJSessionParameters(String setups, String transports, int boundedBufferSize) throws SJSessionParametersException, IOException 
+  {
 		SJSessionParameters params;
 
 		if (setups.contains("d") && transports.contains("d"))
@@ -36,7 +52,7 @@ public class TransportUtils
 		return params;
 	}
 
-	public static SJSessionParameters createSJSessionParameters(String setups, String transports) throws IOException {
+	public static SJSessionParameters createSJSessionParameters(String setups, String transports) throws SJSessionParametersException, IOException {
 		SJSessionParameters params;
 
 		if (setups.contains("d") && transports.contains("d"))

@@ -7,10 +7,11 @@ import sessionj.runtime.transport.SJConnection;
  * protocols can be used if necessary
  * 
  * @see SJDefaultSerializer
- * @author Raymond, Fred van den Driessche
+ * @author Raymond
  *
  */
-abstract public class SJAbstractSerializer implements SJSerializer {	
+abstract public class SJAbstractSerializer implements SJSerializer 
+{	
 	protected static final byte SJ_CONTROL = 1;
 	//private static final byte SJ_DELEGATION = 2;
 	
@@ -23,7 +24,7 @@ abstract public class SJAbstractSerializer implements SJSerializer {
 	
 	protected SJConnection conn; // Could be moved into an abstract super class (with constructor), but would be tying it to Java serialization.
 	
-	protected boolean isClosed = false;
+	protected boolean isClosed = false; // FIXME: this is currently assigned to by subclasses (on close).
 	
 	public SJAbstractSerializer(SJConnection conn)
 	{
