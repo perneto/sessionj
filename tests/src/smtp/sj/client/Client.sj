@@ -14,7 +14,7 @@ import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 import sessionj.runtime.session.*;
 
-import smtp.sj.SJUtf8Formatter;
+import smtp.sj.SJSmtpFormatter;
 import smtp.sj.server.Server;
 
 public class Client
@@ -27,7 +27,7 @@ public class Client
 	
 	public void run(boolean debug, String server, int port) throws Exception
 	{
-		SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SJUtf8Formatter());
+		SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SJSmtpFormatter());
 		
 		final noalias SJSocket s;	
 			
