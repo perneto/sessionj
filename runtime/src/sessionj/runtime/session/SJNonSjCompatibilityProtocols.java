@@ -25,6 +25,8 @@ import java.util.List;
  * This class encapsulates the protocols for "backwards-compatibility" with non-SJ peers. 
  * 
  * FIXME: should generally make such options more modular and convenient for the user, e.g. wrt. to disabling session initiation and delegation.
+ *
+ * FIXME: need to consider situations such as a default-SJ peer connecting to a non-SJ-compatibility peer, etc. 
  *  
  */
 public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
