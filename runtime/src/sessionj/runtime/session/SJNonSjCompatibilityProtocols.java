@@ -142,12 +142,23 @@ public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
 	
 	public Object receive() throws SJIOException, ClassNotFoundException
 	{			
+		Object o;
+		
+		try
+		{
+			o = ser.readObject();	
+		}
+		catch (SJControlSignal cs)
+		{
+			throw new SJRuntimeException("[SJNonSjCompatibilityProtocols] Shouldn't get in here.", cs);
+		}
+		
 		if (RUNTIME_MONITORING)
 		{
 			sm.receive(null);
 		}	
 		
-		return null; 
+		return o; 
 	}
 	
 	public byte receiveByte() throws SJIOException
@@ -189,19 +200,34 @@ public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
 	
 	public String inlabel() throws SJIOException 
 	{
-		/*Object o = ser.readObject();
+		Object o;
+		
+		try
+		{
+			o = ser.readObject();	
+		}
+		catch (ClassNotFoundException cs)
+		{
+			throw new SJRuntimeException("[SJNonSjCompatibilityProtocols] Shouldn't get in here.", cs);
+		}
+		catch (SJControlSignal cs)
+		{
+			throw new SJRuntimeException("[SJNonSjCompatibilityProtocols] Shouldn't get in here.", cs);
+		}
 		
 		if (!(o instanceof String))
 		{
-			
-		}*/	
+			throw new SJRuntimeException("[SJNonSjCompatibilityProtocols] Shouldn't get in here: " + o);
+		}	
+		
+		String lab = (String) o;
 		
 		if (RUNTIME_MONITORING)
 		{
-			sm.inbranch(new SJLabel(null));
+			sm.inbranch(new SJLabel(lab));
 		}	          
 	            
-		return null;
+		return lab;
 	}
 	
 	public void outsync(boolean b) throws SJIOException // FIXME: make support for zerocopy? (And other primitives?)

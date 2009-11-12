@@ -274,45 +274,59 @@ public class SJRuntime
 	}
 	
 	public static void accept(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException
-	{
-		/*try
+	{					
+		if (s.getParameters().getCompatibilityMode() == SJCompatibilityMode.SJ) // FIXME: maybe move into SJSessionParametersImpl? Since we don't do it for custom compatibility modes.
 		{
-			s.setHostName((String) s.receive()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
-			s.setPort(s.receiveInt());
-		}
-		catch (ClassNotFoundException cnfe)
-		{
-			throw new SJRuntimeException(cnfe);
-		}*/				
-		
-		try // Cannot use send/receive because it will interfere with the type monitoring.
-		{
-			SJSerializer ser = s.getSerializer();
+			/*try
+			{
+				s.setHostName((String) s.receive()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
+				s.setPort(s.receiveInt());
+			}
+			catch (ClassNotFoundException cnfe)
+			{
+				throw new SJRuntimeException(cnfe);
+			}*/			
 			
-			s.setHostName((String) ser.readObject()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
-			s.setPort(ser.readInt());
+			try // Cannot use send/receive because it will interfere with the type monitoring.
+			{
+				SJSerializer ser = s.getSerializer();
+				
+				s.setHostName((String) ser.readObject()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
+				s.setPort(ser.readInt());
+			}
+			catch (ClassNotFoundException cnfe)
+			{
+				throw new SJRuntimeException(cnfe);
+			}
+			catch (SJControlSignal cs)
+			{
+				throw new SJRuntimeException("[SJRuntime] Shouldn't get in here: ", cs);
+			}
 		}
-		catch (ClassNotFoundException cnfe)
+		else //if (s.getParameters().getCompatibilityMode() == SJCompatibilityMode.CUSTOM)
 		{
-			throw new SJRuntimeException(cnfe);
-		}
-		catch (SJControlSignal cs)
-		{
-			throw new SJRuntimeException("[SJRuntime] Shouldn't get in here: ", cs);
+			// FIXME: what should we set the remote host name and port values to be? Maybe we can get it from the underlying concrete transport connection, e.g. TCP, but some transports won't support it.
 		}
 		
 		s.accept();
 	}
 	
 	protected static void request(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException
-	{		
-		/*s.send(s.getLocalHostName());		
-		s.sendInt(s.getLocalPort());*/
-		
-		SJSerializer ser = s.getSerializer(); // Cannot use send/receive because it will interfere with the type monitoring.
-		
-		ser.writeObject(s.getLocalHostName()); 		
-		ser.writeInt(s.getLocalPort());
+	{	
+		if (s.getParameters().getCompatibilityMode() == SJCompatibilityMode.SJ) // FIXME: as for accept, maybe move into SJSessionParametersImpl? Since we don't do it for custom compatibility modes.
+		{
+			/*s.send(s.getLocalHostName());		
+			s.sendInt(s.getLocalPort());*/
+			
+			SJSerializer ser = s.getSerializer(); // Cannot use send/receive because it will interfere with the type monitoring.
+			
+			ser.writeObject(s.getLocalHostName()); 		
+			ser.writeInt(s.getLocalPort());
+		}
+		else //if (s.getParameters().getCompatibilityMode() == SJCompatibilityMode.CUSTOM)
+		{
+			// FIXME: what should we set the remote host name and port values to be? Maybe we can get it from the underlying concrete transport connection, e.g. TCP, but some transports won't support it.
+		}
 		
 		s.request();
 	}
