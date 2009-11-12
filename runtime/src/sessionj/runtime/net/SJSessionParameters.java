@@ -64,6 +64,11 @@ public class SJSessionParameters
 		
 		useDefault = true;
 	}
+
+	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
+	{
+		this(SJCompatibilityMode.SJ, negotiationTransports, sessionTransports); // SJ is the default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise.
+	}
 	
 	public SJSessionParameters(SJCompatibilityMode mode) throws SJSessionParametersException
 	{
@@ -71,41 +76,42 @@ public class SJSessionParameters
 	}
 	
 	// FIXME: should be generalised to support custom "deserializers" for other wire formats. Well, in principle, the programmer should add a custom SJSerializer. But this interface may be easier to use than a full serializer implemetation.
-	public SJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter parser) throws SJSessionParametersException
+	public SJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException
 	{
-		this(mode, defaultTransports(), defaultTransports()); 
+		this(mode, defaultTransports(), defaultTransports(), cmf); 
+	}	
+	
+	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
+	{
+		this(mode, negotiationTransports, sessionTransports, null);
+	}
+	
+	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, SJCustomMessageFormatter cmf) throws SJSessionParametersException
+	{
+		this.mode = mode;
+		this.negotiationTransports = new LinkedList<SJTransport>(negotiationTransports); // Relying on implicit iterator ordering.
+		this.sessionTransports = new LinkedList<SJTransport>(sessionTransports);
+		this.cmf = cmf;
 		
-		this.cmf = parser;
+		if (!SJRuntime.checkSessionParameters(this)) // Maybe should check more "lazily" at session initiation. Might be a bit convenient from an exception handling point of view. 
+		{
+			//throw new... // SJRuntime.checkSessionParameters is already raising appropriate exceptions.
+		}
 	}
 	
 	public SJSessionParameters(int boundedBufferSize) throws SJSessionParametersException
 	{
 		this();
+		
 		this.boundedBufferSize = boundedBufferSize;
-	}
-
-	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
-	{
-		this(SJCompatibilityMode.SJ, negotiationTransports, sessionTransports); // SJ is the default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise.
-	}
+	}	
 	
 	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, int boundedBufferSize) throws SJSessionParametersException
 	{
-		this(negotiationTransports, sessionTransports); // FIXME: "bounded-buffers" should be a mode (shouldn't be SJ default).		
-		this.boundedBufferSize = boundedBufferSize;
-	}
-	
-	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
-	{
-		this.mode = mode;
-		this.negotiationTransports = new LinkedList<SJTransport>(negotiationTransports); // Relying on implicit iterator ordering.
-		this.sessionTransports = new LinkedList<SJTransport>(sessionTransports);
+		this(negotiationTransports, sessionTransports); // FIXME: "bounded-buffers" should be a mode (shouldn't be SJ default).
 		
-		if (!SJRuntime.checkSessionParameters(this)) // Maybe should check more "lazily" at session initiation. Might be a bit convenient from an exception handling point of view. 
-		{
-			//throw new... 
-		}
-	}
+		this.boundedBufferSize = boundedBufferSize;
+	}	
 	
 	public List<SJTransport> getNegotiationTransports()
 	{

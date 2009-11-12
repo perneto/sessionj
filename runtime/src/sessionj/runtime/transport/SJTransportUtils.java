@@ -28,9 +28,9 @@ public class SJTransportUtils
   	return new SJSessionParameters(mode);
   }
 
-  public static SJSessionParameters createSJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter parser) throws SJSessionParametersException 
+  public static SJSessionParameters createSJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException 
   {
-  	return new SJSessionParameters(mode, parser);
+  	return new SJSessionParameters(mode, cmf);
   }
   
   public static SJSessionParameters createSJSessionParameters(String setups, String transports, int boundedBufferSize) throws SJSessionParametersException, IOException 

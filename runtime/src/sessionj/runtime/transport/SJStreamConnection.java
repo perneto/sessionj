@@ -46,7 +46,7 @@ abstract public class SJStreamConnection implements SJConnection
 		try
 		{
 			dos.writeByte(b);
-			//dos.flush(); // Needed? Should instead expose the flush method?
+			//dos.flush(); // Let upper layers sort out flushing.
 		}
 		catch (IOException ioe)
 		{

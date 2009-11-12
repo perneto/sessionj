@@ -171,7 +171,7 @@ public class SJConstants
 
 	public static final String POLYGLOT_TYPEDECODER_NAME_ARG = ""; // Don't know what this argument is for. Think it's just for error reporting (setting the message for a nested exception).
 	
-	public static final String CHARSET_UTF8 = "UTF8";
+	public static final String CHARSET_UTF8 = "UTF-8";
 	
 	private SJConstants() { }
 }

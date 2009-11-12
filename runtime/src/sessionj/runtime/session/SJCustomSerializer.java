@@ -25,7 +25,7 @@ public class SJCustomSerializer extends SJAbstractSerializer
 	{
 		super(conn);
 		
-		cmf.bindConnection(conn);
+		cmf.bindConnection(conn); 
 		
 		this.cmf = cmf;
 		
@@ -117,7 +117,7 @@ public class SJCustomSerializer extends SJAbstractSerializer
 		throw new SJIOException("[SJCustomSerializer] Unsupported operation: " + d);
 	}
 	
-	public Object readObject() throws SJIOException, ClassNotFoundException, SJControlSignal
+	public Object readObject() throws SJIOException, ClassNotFoundException
 	{
 		return cmf.readNextMessage();
 	}
