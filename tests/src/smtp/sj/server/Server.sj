@@ -22,10 +22,9 @@ public class Server
 	public protocol p_server
 	{
 		sbegin
-		.!<String>
-		.!<String>
-		.!<MyMessage>
-		//.?(String)
+		.!{
+			LAB: !<String>
+		}
 	}
 	
 	public void run(boolean debug, int port) throws Exception
@@ -44,9 +43,11 @@ public class Server
 			{
 				s = ss.accept();
 				
-				s.send("A");
-				s.send("B");
-				s.send(new MyMessage("C"));
+				s.outbranch(LAB)
+				//s.outbranch("LAB")
+				{
+					s.send("A");
+				}
 				
 				//System.out.println("Received: " + (String) s.receive());
 			}

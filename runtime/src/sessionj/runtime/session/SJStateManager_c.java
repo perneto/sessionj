@@ -343,7 +343,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		debugPrintln("Pushed outbranch: " + lab);
 	}
 
-	public final void inbranch(SJLabel lab) // Expected message was a String, already implicitly checked (casting) by socket implementation. Move check into here?
+	public final void inbranch(SJLabel lab) throws SJIOException // Expected message was a String, already implicitly checked (casting) by socket implementation. Move check into here?
 	{
 		SJSessionType active = activeType();//.nodeClone();
 
@@ -352,7 +352,14 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			throw new SJIOException("Expected inbranch, but implemented: " + active);
 		}*/
 
-		pushInbranch(lab, ((SJInbranchType) active).branchCase(lab));
+		SJInbranchType ibt = (SJInbranchType) active;
+		
+		if (!ibt.labelSet().contains(lab))
+		{
+			throw new SJIOException("Unexpected branch label: " + lab);
+		}
+		
+		pushInbranch(lab, ibt.branchCase(lab));
 		
 		debugPrintln("Pushed inbranch: " + lab);
 	}
