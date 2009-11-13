@@ -15,14 +15,22 @@ public class SJOutbranch_c extends Block_c implements SJOutbranch
 	
 	private SJLabel lab;
 
+	private boolean isDependentlyTyped;
+	
 	public SJOutbranch_c(Position pos, List statements, SJLabel lab, List<Receiver> targets)
+	{
+		this(pos, statements, lab, targets, false);
+	}
+
+	public SJOutbranch_c(Position pos, List statements, SJLabel lab, List<Receiver> targets, boolean isDependentlyTyped)
 	{
 		super(pos, statements);
 
 		this.lab = lab;
 		this.targets = targets;
+		this.isDependentlyTyped = isDependentlyTyped;
 	}
-
+	
 	public SJLabel label()
 	{
 		return lab;
@@ -52,4 +60,9 @@ public class SJOutbranch_c extends Block_c implements SJOutbranch
         return null;
     }
     // Should set entry point to the socket operation for flow graph building. This is common for all structural operations.
+    
+  public boolean isDependentlyTyped()
+  {
+  	return isDependentlyTyped;
+  }    
 }

@@ -66,6 +66,9 @@ public interface SJNodeFactory extends NodeFactory
 	SJProtocolRefNode SJProtocolRefNode(Position pos, Receiver target);
 	SJProtocolDualNode SJProtocolDualNode(Position pos, Receiver target);
 	
+	/*SJOutbranchNode SJOutbranchNode(Position pos, List<SJBranchCaseNode> branchCases, boolean isDependentlyTyped);
+	SJInbranchNode SJInbranchNode(Position pos, List<SJBranchCaseNode> branchCases, boolean isDependentlyTyped);*/
+	
 	SJChannelCreate SJChannelCreate(Position pos, List arguments);
 	SJSocketCreate SJSocketCreate(Position pos, List arguments);
 	SJServerCreate SJServerCreate(Position pos, List arguments);
@@ -98,8 +101,8 @@ public interface SJNodeFactory extends NodeFactory
 	SJRecursionEnter SJRecursionEnter(Position pos, List targets);
 	SJRecursionExit SJRecursionExit(Position pos, List targets);
 	
-	SJOutbranch SJOutbranch(Position pos, List<Stmt> stmts, SJLabel lab, List<Receiver> targets);
-	SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets);
+	SJOutbranch SJOutbranch(Position pos, List<Stmt> stmts, SJLabel lab, List<Receiver> targets);	
+	SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets);	
 	SJInbranchCase SJInbranchCase(Position pos, List stmts, SJLabel lab);
 	SJOutwhile SJOutwhile(Position pos, Expr condition, Stmt body, List targets);
     SJOutwhile SJNewOutwhile(Position pos, Expr condition, Stmt body, List targets);
@@ -108,6 +111,9 @@ public interface SJNodeFactory extends NodeFactory
 	//SJRecursion SJRecursion(SJTypeSystem ts, Position pos, List stmts, SJLabel lab, List targets);
 	SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets);
 
+	/*SJOutbranch SJOutbranch(Position pos, List<Stmt> stmts, SJLabel lab, List<Receiver> targets, boolean isDependentlyTyped);
+	SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets, boolean isDependentlyTyped);*/
+	
     SJTypecase SJTypecase(Position pos, Name socket, List<SJWhen> cases);
     SJWhen SJWhen(Position pos, SJTypeNode type, Stmt body);
 	

@@ -124,6 +124,9 @@ import sessionj.SJConstants;
         keywords.put(SJConstants.SJ_KEYWORD_INWHILE, new Integer(sym.SJ_INWHILE));
         keywords.put(SJConstants.SJ_KEYWORD_RECURSION, new Integer(sym.SJ_RECURSION));
         
+        //keywords.put(SJConstants.SJ_KEYWORD_DOUTBRANCH, new Integer(sym.SJ_DOUTBRANCH));
+        //keywords.put(SJConstants.SJ_KEYWORD_DINBRANCH, new Integer(sym.SJ_DINBRANCH));
+        
         keywords.put(SJConstants.SJ_KEYWORD_SPAWN, new Integer(sym.SJ_SPAWN));
 
         keywords.put(SJConstants.SJ_KEYWORD_TYPECASE, new Integer(sym.SJ_TYPECASE));
