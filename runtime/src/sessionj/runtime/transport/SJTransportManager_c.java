@@ -404,7 +404,7 @@ public class SJTransportManager_c extends SJTransportManager
 		{
 			return true; // Bypass negotiation protocol and use the existing connection for the session.
 		}
-		else if (mode != SJCompatibilityMode.CUSTOM)
+		else if (mode != SJCompatibilityMode.SJ)
 		{
 			throw new SJRuntimeException("[SJTransportManager_c] Unknown compatibility mode: " + mode);
 		}
