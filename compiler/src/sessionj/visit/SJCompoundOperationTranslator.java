@@ -220,6 +220,8 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 			}
 		}
 		
+		//FIXME: need a final else case to better handle, if runtime monitoring is disabled, non-sj-compatibility mode and in case of malicious peers.
+		
 		translation.append('}');
 
         return qq.parseStmt(translation.toString(), mapping.toArray());

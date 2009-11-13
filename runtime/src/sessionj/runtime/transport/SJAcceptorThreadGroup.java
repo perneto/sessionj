@@ -6,6 +6,7 @@ package sessionj.runtime.transport;
 import java.util.*;
 
 import sessionj.runtime.*;
+import sessionj.runtime.net.SJSessionParameters;
 
 /**
  * @author Raymond
@@ -23,12 +24,16 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 	
 	private boolean isClosed = false;
 	
-	public SJAcceptorThreadGroup(SJTransportManager sjtm, int port, String name)
+	private SJSessionParameters params; // Better to link to the parent SJServerSocket? But do we sometimes need acceptor groups that aren't attached to a server socket? // Should correspond with the transports that are eventually registered. 
+	
+	public SJAcceptorThreadGroup(SJTransportManager sjtm, int port, String name, SJSessionParameters params)
 	{
 		super(name);
 		
 		this.sjtm = sjtm;
 		this.port = port;
+		
+		this.params = params;
 	}
 	
 	/*public void start()
@@ -141,5 +146,10 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 	public boolean isClosed()
 	{
 		return isClosed;
+	}
+	
+	public SJSessionParameters getParameters()
+	{
+		return params;
 	}
 }

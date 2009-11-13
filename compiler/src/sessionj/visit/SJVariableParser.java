@@ -11,8 +11,10 @@ import static sessionj.SJConstants.*;
 import sessionj.ast.SJNodeFactory;
 import sessionj.ast.SJSpawn;
 import sessionj.ast.sessops.SJSessionOperation;
+import sessionj.ast.sessops.compoundops.SJOutbranch;
 import sessionj.ast.sesstry.SJTry;
 import sessionj.ast.sessvars.*;
+import sessionj.util.SJLabel;
 import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
 
 import java.util.LinkedList;
@@ -51,6 +53,16 @@ public class SJVariableParser extends ContextVisitor
 		else if (n instanceof SJSessionOperation)
 		{
 			n = parseSJSessionOperation((SJSessionOperation) n);
+			
+			/*if (n instanceof SJOutbranch)
+			{
+				SJOutbranch ob = (SJOutbranch) n;
+				
+				if (ob.isDependentlyTyped())
+				{
+					n = fixDependentlyTypedBranch(ob);
+				}
+			}*/
 		}
 		else if (n instanceof SJSpawn)
 		{
@@ -60,6 +72,15 @@ public class SJVariableParser extends ContextVisitor
 		return n;
 	}
 	
+	/*private Node fixDependentlyTypedBranch(SJOutbranch ob)
+	{
+		SJLabel lab = ob.label();
+		
+		System.out.println("a: " + lab.getId());
+		
+		return ob;
+	}*/
+
 	private Field parseSJField(Field f) throws SemanticException // Doesn't attach extension objects (SJVariables are not SJTypeable).
 	{
 		Type t = f.type();

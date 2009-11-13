@@ -25,7 +25,7 @@ public class Client
 		//^(Server.p_server)
 		cbegin
 		.?{
-			LAB: ?(String)
+			$3: ?(String)
 		}
 	}
 	
@@ -41,7 +41,7 @@ public class Client
 			
 			s.inbranch()
 			{
-				case LAB:
+				case $3:
 				{
 					System.out.println("Received: " + (String) s.receive());
 				}

@@ -19,11 +19,13 @@ import smtp.sj.messages.*;
 
 public class Server
 {			
+	public static final MyMessage LAB = new MyMessage("LAB");
+	
 	public protocol p_server
 	{
 		sbegin
 		.!{
-			LAB: !<String>
+			$3: !<String>
 		}
 	}
 	
@@ -43,7 +45,7 @@ public class Server
 			{
 				s = ss.accept();
 				
-				s.outbranch(LAB)
+				s.outbranch($3)
 				//s.outbranch("LAB")
 				{
 					s.send("A");

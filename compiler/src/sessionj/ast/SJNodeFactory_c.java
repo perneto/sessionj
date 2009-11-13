@@ -135,10 +135,20 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJOutbranchNode_c(pos, branchCases);
 	}
 	
+	/*public SJOutbranchNode SJOutbranchNode(Position pos, List<SJBranchCaseNode> branchCases, boolean isDependentlyTyped)
+	{
+		return new SJOutbranchNode_c(pos, branchCases, isDependentlyTyped);
+	}*/
+	
 	public SJInbranchNode SJInbranchNode(Position pos, List<SJBranchCaseNode> branchCases)
 	{
 		return new SJInbranchNode_c(pos, branchCases);
 	}
+	
+	/*public SJInbranchNode SJInbranchNode(Position pos, List<SJBranchCaseNode> branchCases, boolean isDependentlyTyped)
+	{
+		return new SJInbranchNode_c(pos, branchCases, isDependentlyTyped);
+	}*/
 	
 	public SJBranchCaseNode SJBranchCaseNode(Position pos, SJLabel lab, SJTypeNode body)
 	{
@@ -362,12 +372,31 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJOutbranch_c(pos, stmtList, lab, targets);
 	}
 	
+	/*public SJOutbranch SJOutbranch(final Position pos, final List<Stmt> stmts, SJLabel lab, List<Receiver> targets, boolean isDependentlyTyped)
+	{
+		//final SJOutlabel os = SJOutlabel(pos, lab, targets); // SJOutlabel is implicitly based on Strings as labels. For the dependently-typed branches, we need to do extra work in type-building, checking and translation.
+		
+		List<Stmt> stmtList = new LinkedList<Stmt>() {{
+            //add(Eval(pos, os));
+            addAll(stmts);                    
+        }};
+		
+		return new SJOutbranch_c(pos, stmtList, lab, targets, isDependentlyTyped);
+	}*/
+	
 	public SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets)
 	{
 		SJInlabel il = SJInlabel(pos, arguments, targets);
 
         return new SJInbranch_c(pos, branchCases, il);
 	}
+	
+	/*public SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets, boolean isDependentlyTyped)
+	{
+		SJInlabel il = SJInlabel(pos, arguments, targets);
+
+        return new SJInbranch_c(pos, branchCases, il, isDependentlyTyped);
+	}*/
 	
 	public SJInbranchCase SJInbranchCase(Position pos, List stmts, SJLabel lab)
 	{

@@ -47,7 +47,7 @@ public class SJSetupThread extends Thread // Should have a common base class wit
 					
 					conn = ca.accept();
 					
-					reuse = SJRuntime.getTransportManager().serverNegotiation(atg, conn);
+					reuse = SJRuntime.getTransportManager().serverNegotiation(atg.getParameters(), atg, conn); // Can also get the transport manager from atg.
 					
 					if (reuse)
 					{

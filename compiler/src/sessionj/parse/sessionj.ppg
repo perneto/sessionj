@@ -94,6 +94,9 @@ terminal Token SJ_RECURSION;
 terminal Token SJ_TYPECASE;
 terminal Token SJ_WHEN;
 
+/*terminal Token SJ_DOUTBRANCH; // "Dependently-typed" versions of the originals. FIXME: these should eventually subsume and replace the originals.
+terminal Token SJ_DINBRANCH;*/
+
 /*terminal Token SJ_REGISTERACCEPT; // Not needed: selector operations currently treated like e.g. server operations.
 terminal Token SJ_REGISTEROUTPUT;
 terminal Token SJ_REGISTERINPUT;
@@ -149,6 +152,11 @@ non terminal SJOutInwhile sj_outinwhile_statement;
 non terminal SJInwhile sj_inwhile_statement;
 non terminal SJRecursion sj_recursion_statement;
 non terminal SJTypecase sj_typecase_statement;
+
+/*//non terminal SJOutbranch sj_doutbranch_statement;
+//non terminal SJInbranch sj_dinbranch_statement;
+non terminal List sj_dinbranch_cases;
+non terminal SJInbranchCase sj_dinbranch_case;*/
 
 non terminal List sj_typecase_caselist;
 non terminal SJWhen sj_typecase_when;
@@ -598,6 +606,8 @@ sj_structural_operation ::=
 |	sj_inwhile_statement:a     {: RESULT = a; :}
 |   sj_recursion_statement:a   {: RESULT = a; :}
 |   sj_typecase_statement:a    {: RESULT = a; :}
+//|	sj_doutbranch_statement:a   {: RESULT = a; :}
+//|	sj_dinbranch_statement:a    {: RESULT = a; :}
 ;
 
 sj_outbranch_statement ::=
@@ -610,6 +620,16 @@ sj_outbranch_statement ::=
 		RESULT = parser.nf.SJOutbranch(parser.pos(a, c), c.statements(),
 		            new SJLabel(b.getIdentifier()), parser.asRecvList(a));
 	:}
+/* Duplicated the above for "dependently-typed" extension.
+|	LT:a sj_socket_list:b GT DOT SJ_DOUTBRANCH LPAREN IDENTIFIER:c RPAREN block:d 
+{: 
+	RESULT = parser.nf.SJOutbranch(parser.pos(a, d), d.statements(), new SJLabel(c.getIdentifier()), b, true); 
+:} 	
+|	name:a DOT SJ_DOUTBRANCH LPAREN IDENTIFIER:b RPAREN block:c //FIXME: should also support literals (like we did previously).
+{: 
+	RESULT = parser.nf.SJOutbranch(parser.pos(a, c), c.statements(),
+	            new SJLabel(parser.nf.Id(parser.pos(b), b.getIdentifier())), parser.asRecvList(a), true);
+:}*/ 
 ;
 
 sj_inbranch_statement ::=

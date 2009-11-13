@@ -14,7 +14,12 @@ public class SJOutbranchNode_c extends SJBranchNode_c implements SJOutbranchNode
 {
 	public SJOutbranchNode_c(Position pos, List<SJBranchCaseNode> branchCases)
 	{
-		super(pos, branchCases);
+		this(pos, branchCases, false);
+	}
+
+	public SJOutbranchNode_c(Position pos, List<SJBranchCaseNode> branchCases, boolean isDependentlyTyped)
+	{
+		super(pos, branchCases, isDependentlyTyped);
 	}
 	
 	public SJOutbranchNode branchCases(List<SJBranchCaseNode> branchCases)
