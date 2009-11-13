@@ -183,16 +183,17 @@ public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
 		throw new SJIOException("[SJNonSjCompatibilityProtocols] Unsupported operation.");
 	}
 
+	//FIXME: branch labels shouldn't need to be Strings. In general, we can use any object (can specify/infer a base label type as part of the branch type) and just use equals for comparison as we do already for String. For e.g. UTF-8 mode, we use the message formatter to convert the arbitrary object to a String.  
 	public void outlabel(String lab) throws SJIOException 
 	{
-    /*if (ser.zeroCopySupported()) 
+    if (ser.zeroCopySupported()) //FIXME: as noted in pass, currently fixed to false by SJUtf8Serializer.
     {
       ser.writeReference(lab);
     } 
     else 
     {
       ser.writeObject(lab);
-    }*/
+    }
         
 		if (RUNTIME_MONITORING)
 		{

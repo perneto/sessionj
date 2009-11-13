@@ -24,10 +24,9 @@ public class Client
 	{
 		//^(Server.p_server)
 		cbegin
-		.?(String)
-		.?(String)
-		.?(MyMessage)
-		//.!<String>
+		.?{
+			LAB: ?(String)
+		}
 	}
 	
 	public void run(boolean debug, String server, int port) throws Exception
@@ -40,9 +39,16 @@ public class Client
 		{
 			s = SJService.create(p_client, server, port).request(sparams);
 			
-			System.out.println("Received: " + (String) s.receive());
-			System.out.println("Received: " + (String) s.receive());
-			System.out.println("Received: " + (MyMessage) s.receive());
+			s.inbranch()
+			{
+				case LAB:
+				{
+					System.out.println("Received: " + (String) s.receive());
+				}
+			}
+			
+			//System.out.println("Received: " + (String) s.receive());
+			//System.out.println("Received: " + (MyMessage) s.receive());
 			
 			//s.send("D");
 		}

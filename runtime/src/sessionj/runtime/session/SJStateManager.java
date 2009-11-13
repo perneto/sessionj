@@ -50,7 +50,7 @@ public interface SJStateManager // Analogous to SJContext. But only tracks the s
 	public SJSessionType receiveChannel(SJSessionType sjtype) throws SJIOException;
 		
 	public void outbranch(SJLabel lab) throws SJIOException;
-	public void inbranch(SJLabel lab);
+	public void inbranch(SJLabel lab) throws SJIOException;
 	
 	public void outwhile(boolean bool) throws SJIOException; // Could return performed type on false.
 	public void inwhile(boolean bool) throws SJIOException;

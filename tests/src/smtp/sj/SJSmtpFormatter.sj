@@ -27,9 +27,9 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 		{
 			String m = decodeFromUtf8(bb);
 			
-			if (m.equals("C"))
+			if (m.equals("L") || m.equals("LA"))
 			{
-				return new MyMessage(m);
+				return null;
 			}
 			
 			return m;
