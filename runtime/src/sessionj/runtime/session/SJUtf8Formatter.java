@@ -16,7 +16,7 @@ abstract public class SJUtf8Formatter extends SJCustomMessageFormatter
 	
 	public final byte[] encodeAsUtf8(String m) throws CharacterCodingException
 	{
-		return ce.encode(CharBuffer.wrap(m)).array();
+		return ce.encode(CharBuffer.wrap(m)).array(); // Rather than centralising the encoding and decoding routines in the formatter, we could use a "SJCustomMessage" and do it on a per-message basis.
 	}
 	
 	/*public final String decodeFromUtf8(byte[] bs) throws CharacterCodingException

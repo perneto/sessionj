@@ -15,14 +15,19 @@ import sessionj.runtime.transport.httpservlet.*;
 import sessionj.runtime.session.*;
 
 import smtp.sj.SJSmtpFormatter;
+import smtp.sj.messages.*;
 import smtp.sj.server.Server;
 
 public class Client
 {			
 	private protocol p_client
 	{
-		//cbegin
-		^(Server.p_server)
+		//^(Server.p_server)
+		cbegin
+		.?(String)
+		.?(String)
+		.?(MyMessage)
+		//.!<String>
 	}
 	
 	public void run(boolean debug, String server, int port) throws Exception
@@ -37,7 +42,9 @@ public class Client
 			
 			System.out.println("Received: " + (String) s.receive());
 			System.out.println("Received: " + (String) s.receive());
-			System.out.println("Received: " + (String) s.receive());
+			System.out.println("Received: " + (MyMessage) s.receive());
+			
+			//s.send("D");
 		}
 		finally
 		{

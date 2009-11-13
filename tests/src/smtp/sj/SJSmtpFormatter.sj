@@ -16,13 +16,23 @@ import sessionj.runtime.transport.tcp.*;
 import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 
+import smtp.sj.messages.*;
+
+// Message formatters are like a localised version of the protocol: the messages received by writeMessage should follow the dual protocol to the messages returned by readNextMessage. But the formatter is an object: need object-based session types to control this.
 public class SJSmtpFormatter extends SJUtf8Formatter
 {			
 	public Object parseMessage(ByteBuffer bb) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
 	{
 		try
 		{
-			return decodeFromUtf8(bb);
+			String m = decodeFromUtf8(bb);
+			
+			if (m.equals("C"))
+			{
+				return new MyMessage(m);
+			}
+			
+			return m;
 		}
 		catch (CharacterCodingException cce)
 		{

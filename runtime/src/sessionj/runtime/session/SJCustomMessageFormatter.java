@@ -34,7 +34,7 @@ abstract public class SJCustomMessageFormatter
 		conn.writeBytes(formatMessage(o));
 		conn.flush();
 		
-		System.out.println("a: " + o + ", " + Arrays.toString(formatMessage(o)));
+		//System.out.println("a: " + o + ", " + Arrays.toString(formatMessage(o)));
 	}
 	
 	//public final SJMessage readNextMessage() throws SJIOException

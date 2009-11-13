@@ -31,8 +31,8 @@ import java.util.List;
  */
 public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
 { 
-	private static final boolean RUNTIME_MONITORING = false; 
-	//private static final boolean RUNTIME_MONITORING = true; // Basically a necessity for this session mode.
+	//private static final boolean RUNTIME_MONITORING = false; 
+	private static final boolean RUNTIME_MONITORING = true; // Basically a necessity for this session mode.
 	
 	protected SJSocket s;
 	protected SJSerializer ser;
@@ -157,7 +157,7 @@ public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
 		
 		if (RUNTIME_MONITORING)
 		{
-			sm.receive(null);
+			sm.receive(o);
 		}	
 		
 		return o; 

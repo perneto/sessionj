@@ -15,6 +15,7 @@ import sessionj.runtime.transport.httpservlet.*;
 import sessionj.runtime.session.*;
 
 import smtp.sj.SJSmtpFormatter;
+import smtp.sj.messages.*;
 
 public class Server
 {			
@@ -23,7 +24,8 @@ public class Server
 		sbegin
 		.!<String>
 		.!<String>
-		.!<String>
+		.!<MyMessage>
+		//.?(String)
 	}
 	
 	public void run(boolean debug, int port) throws Exception
@@ -44,7 +46,9 @@ public class Server
 				
 				s.send("A");
 				s.send("B");
-				s.send("C");
+				s.send(new MyMessage("C"));
+				
+				//System.out.println("Received: " + (String) s.receive());
 			}
 			finally
 			{
