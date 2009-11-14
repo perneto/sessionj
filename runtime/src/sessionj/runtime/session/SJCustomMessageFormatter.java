@@ -3,9 +3,11 @@
  */
 package sessionj.runtime.session;
 
+import java.io.EOFException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import sessionj.SJConstants;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.transport.SJConnection;
 
@@ -20,10 +22,11 @@ abstract public class SJCustomMessageFormatter
 {		
 	private SJConnection conn;
 	
-	private ByteBuffer bb = ByteBuffer.allocate(1024); // FIXME: factor out constant; should be at least greater than 0. // Called by SJCustomSerializer in a "sequentialised" way, i.e. no race conditions. 
+	private ByteBuffer bb = ByteBuffer.allocate(SJConstants.CUSTOM_MESSAGE_FORMATTER_INIT_BUFFER_SIZE); // Size should be at least greater than 0. // Called by SJCustomSerializer in a "sequentialised" way, i.e. no race conditions. 
 	
+	// Maybe a bit weird for formatMessage to use a byte[] but parseMessage to use a ByteBuffer.
 	abstract public byte[] formatMessage(Object o) throws SJIOException; // Maybe we should use e.g. SJCustomMessage (subclasses) rather than Object. SJCustomMessage could also offer message-specific formatting operations.
-	abstract public Object parseMessage(ByteBuffer bb) throws SJIOException; // Pre: bb should already be flipped, i.e. ready for (relative) "getting". Also has to be non-blocking (for readNextMessage to work as intended). // FIXME: this is maybe not a good interface for the user.
+	abstract public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException; // Instead of the eof flag, we could append a -1 to the bb. // Pre: bb should already be flipped, i.e. ready for (relative) "getting". Also has to be non-blocking (for readNextMessage to work as intended). // FIXME: this is maybe not a good interface for the user.
 		
 	protected final void bindConnection(SJConnection conn) // Called by SJCustomSerializer.
 	{
@@ -34,32 +37,43 @@ abstract public class SJCustomMessageFormatter
 	{
 		conn.writeBytes(formatMessage(o));
 		conn.flush();
-		
-		//System.out.println("a: " + o + ", " + Arrays.toString(formatMessage(o)));
 	}
 	
 	//public final SJMessage readNextMessage() throws SJIOException
 	protected final Object readNextMessage() throws SJIOException // FIXME: would be better if could implement using arrived.
-	{
-		bb.put(conn.readByte()); // Need at least one byte for a message. This gives the guarantee that parseMessage will not be called with empty arrays.
-						
-		//byte[] bs = copyByteBufferContents(bb);		
-		
-		//System.out.println("b1: " + Arrays.toString(bs));
-		
+	{		
 		Object o = null;
 		
-		//for (o = parseMessage(bs); o == null; o = parseMessage(bs)) // Assuming parseMessage returns null if parsing unsuccessful. (But what if we want to communicate a null?)
-		for (o = parseMessage(getFlippedReadOnlyByteBuffer(bb)); o == null; o = parseMessage(getFlippedReadOnlyByteBuffer(bb))) // Assuming parseMessage returns null if parsing unsuccessful. (But what if we want to communicate a null?)
+		try
 		{
-			bb.put(conn.readByte()); // FIXME: reallocate bb if it gets full.
+			bb.put(conn.readByte()); // Need at least one byte for a message. This gives the guarantee that parseMessage will not be called with empty arrays.
+							
+			//byte[] bs = copyByteBufferContents(bb);		
 			
-			//bs = copyByteBufferContents(bb);
-			
-			//System.out.println("b2: " + o + ", " + Arrays.toString(bs));
+			//for (o = parseMessage(bs); o == null; o = parseMessage(bs)) // Assuming parseMessage returns null if parsing unsuccessful. (But what if we want to communicate a null?)
+			for (o = parseMessage(getFlippedReadOnlyByteBuffer(bb), false); o == null; o = parseMessage(getFlippedReadOnlyByteBuffer(bb), false)) // Assuming parseMessage returns null if parsing unsuccessful. (But what if we want to communicate a null?)
+			{			
+				bb.put(conn.readByte()); // FIXME: reallocate bb if it gets full? Or is this already done for us? 
+				
+				//bs = copyByteBufferContents(bb);
+			}
 		}
-		
-		bb.clear();
+		catch(SJIOException ioe)
+		{
+			if (ioe.getCause() instanceof EOFException)
+			{	
+				o = parseMessage(getFlippedReadOnlyByteBuffer(bb), true); // "Last chance" to parse the message, but .
+				
+				if (o == null)
+				{
+					throw ioe;
+				}
+			}
+		}
+		finally
+		{			
+			bb.clear();			
+		}
 		
 		return o;
 	}

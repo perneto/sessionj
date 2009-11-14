@@ -1,6 +1,6 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/smtp/sj/SJSmtpFormatter.sj -d tests/classes/ 
+//$ bin/sessionjc -cp tests/classes/ tests/src/http/sj/SJHttpFormatter.sj -d tests/classes/ 
 
-package smtp.sj;
+package http.sj;
 
 import java.io.IOException;
 import java.nio.*;
@@ -16,23 +16,23 @@ import sessionj.runtime.transport.tcp.*;
 import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 
-import smtp.sj.messages.*;
+import http.sj.messages.*;
 
 // Message formatters are like a localised version of the protocol: the messages received by writeMessage should follow the dual protocol to the messages returned by readNextMessage. But the formatter is an object: need object-based session types to control this.
-public class SJSmtpFormatter extends SJUtf8Formatter
+public class SJHttpFormatter extends SJUtf8Formatter
 {			
-	public Object parseMessage(ByteBuffer bb) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
-	{
+	public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
+	{		
 		try
 		{
-			String m = decodeFromUtf8(bb);
-			
-			if (m.equals("L") || m.equals("LA"))
+			if (eof)
+			{
+				return new SJHttpReply(decodeFromUtf8(bb));
+			}
+			else
 			{
 				return null;
-			}
-			
-			return m;
+			}						
 		}
 		catch (CharacterCodingException cce)
 		{
