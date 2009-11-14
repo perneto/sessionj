@@ -178,5 +178,7 @@ public class SJConstants
 	
 	public static final String NUMERIC_LABEL_PREFIX_HACK = "$"; // Hack for branch labels that start with a number. This would less hacky if it was built into the grammar. But eventually, "dependently-typed" branches will subsume this.
 	
+	public static final int CUSTOM_MESSAGE_FORMATTER_INIT_BUFFER_SIZE = 1024;
+	
 	private SJConstants() { }
 }
