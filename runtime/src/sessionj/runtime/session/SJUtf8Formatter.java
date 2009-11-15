@@ -16,6 +16,9 @@ abstract public class SJUtf8Formatter extends SJCustomMessageFormatter
 	
 	public final byte[] encodeAsUtf8(String m) throws CharacterCodingException
 	{
+		//ce.reset(); // Not needed when using the convenience encode method below.		
+		//ce = cs.newEncoder();
+		
 		return ce.encode(CharBuffer.wrap(m)).array(); // Rather than centralising the encoding and decoding routines in the formatter, we could use a "SJCustomMessage" and do it on a per-message basis.
 	}
 	

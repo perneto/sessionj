@@ -319,7 +319,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		if (!sjrt.nodeSubtype(active)) // Opposite direction to send.
 		{
-			throw new SJIOException("Expected '" + active + "' but received: " + sjrt);
+			throw new SJIOException("Expected '" + active.nodeClone() + "' but received: " + sjrt);
 		}
 
 		advanceContext(sjrt);

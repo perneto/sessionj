@@ -27,6 +27,7 @@ public class Client
 	{
 		//^(Server.p_server)
 		cbegin
+		.?(ServerGreeting)
 		.!<Helo>
 		.?(HeloAck)
 		.!<Mail>
@@ -57,25 +58,46 @@ public class Client
 			
 			s = SJService.create(p_client, server, port).request(sparams);	
 			
-			s.send(new Helo("Helo " + fqdn + "\n"));
-			System.out.println((HeloAck) s.receive());
-			s.send(new Mail("MAIL FROM:<rhu@doc.ic.ac.uk>\n"));
-			System.out.println((MailAck) s.receive());
-			s.send(new Rcpt("RCPT TO:<ray.zh.hu@gmail.com>\n"));
-			System.out.println((RcptAck) s.receive());
-			s.send(new Data("DATA:<ray.zh.hu@gmail.com>\n"));
+			System.out.println((ServerGreeting) s.receive());
+			
+			String msg;
+			
+			msg = "HELO " + fqdn + "\n";
+			System.out.print("Sending: " + msg);			
+			s.send(new Helo(msg));			
+			System.out.println("Received: " + (HeloAck) s.receive());
+			
+			msg = "MAIL FROM:<rhu@doc.ic.ac.uk>\n";
+			System.out.print("Sending: " + msg);
+			s.send(new Mail(msg));
+			System.out.println("Received: " + (MailAck) s.receive());
+			
+			msg = "RCPT TO:<ray.zh.hu@gmail.com>\n";
+			System.out.print("Sending: " + msg);
+			s.send(new Rcpt(msg));
+			System.out.println("Received: " + (RcptAck) s.receive());
+			
+			msg = "DATA:<ray.zh.hu@gmail.com>\n";
+			System.out.print("Sending: " + msg);
+			s.send(new Data(msg));
 			System.out.println((DataAck) s.receive());
-			s.send(new Data("test\n.\n"));
-			System.out.println((DataAck) s.receive());
-			s.send(new Quit("QUIT\n"));
-			System.out.println((QuitAck) s.receive());
+			
+			msg = "test\n.\n";
+			System.out.print("Sending: " + msg);
+			s.send(new Data(msg));
+			System.out.println("Received: " + (DataAck) s.receive());
+			
+			msg = "QUIT\n";
+			System.out.print("Sending: " + msg);
+			s.send(new Quit(msg));
+			System.out.println("Received: " + (QuitAck) s.receive());
 		}
 		finally
 		{
 			
 		}
 	}
-
+	
 	public static void main(String[] args) throws Exception
 	{
 		boolean debug = Boolean.parseBoolean(args[0]);

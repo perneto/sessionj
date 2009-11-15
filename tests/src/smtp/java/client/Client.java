@@ -18,12 +18,13 @@ class Client
 
 		String host = args[0];
 		int port = Integer.parseInt(args[1]);
-		String name = args[2];
+		
+		//String name = args[2];
 
 		Socket s = null;
 
 		BufferedWriter bw = null;
-		BufferedReader br = null;
+		final BufferedReader br;
 
 		//Scanner sc = new Scanner(System.in);
 
@@ -34,26 +35,83 @@ class Client
 			bw = new BufferedWriter(new OutputStreamWriter(s.getOutputStream(), cs));
 			br = new BufferedReader(new InputStreamReader(s.getInputStream(), cs));
 
-			//String msg = "GET " + name + "\n\n";
-
-			//System.out.println("Sending: " + msg);
-
-			//bw.write(msg);
-			//bw.flush();
-
-			for (int x = br.read(); x != -1; x = br.read())
+			/*new Thread()
 			{
-				System.out.print((char) x);
-			}
+				public void run()
+				{
+					try
+					{
+						for (int x = br.read(); x != -1; x = br.read())
+						{
+							System.out.print((char) x);
+						}
+					}
+					catch (IOException ioe)
+					{
+						ioe.printStackTrace();
+					}
+				}
+			}.start();*/
+						
+			final String fqdn = InetAddress.getLocalHost().getHostName().toString(); //getCanonicalHostName().toString();
+			
+			readMessageUntilChar(br, (int) '\n');
+			
+			writeMessage(bw, "HELO " + fqdn + "\n");
+			readMessageUntilChar(br, (int) '\n');
+			
+			writeMessage(bw, "MAIL FROM:<rhu@doc.ic.ac.uk>\n");
+			readMessageUntilChar(br, (int) '\n');
+			
+			writeMessage(bw, "RCPT TO:<ray.zh.hu@gmail.com>\n");
+			readMessageUntilChar(br, (int) '\n');
+			
+			writeMessage(bw, "DATA:<ray.zh.hu@gmail.com>\n");
+			readMessageUntilChar(br, (int) '\n');
+			
+			writeMessage(bw, "test\n.\n");
+			readMessageUntilChar(br, (int) '\n');
+			
+			writeMessage(bw, "QUIT\n");
+			readMessageUntilChar(br, -1);
 		}
 		finally
 		{
 			bw.flush();
 			bw.close();
 
-			br.close();
+			//br.close();
 
 			s.close();
 		}
 	}
+	
+	private static void writeMessage(BufferedWriter bw, String msg) throws IOException
+	{
+		System.out.print("Sending: " + msg);
+		
+		bw.write(msg);
+		bw.flush();
+	}	
+	
+	private static void readMessageUntilChar(BufferedReader br, int j) throws IOException
+	{
+		for (int i = br.read(); i != j; i = br.read())
+		{
+			System.out.print((char) i);
+		}
+		
+		if (j != -1)
+		{
+			System.out.print((char) j);
+		}
+	}
+	
+	/*private static void readMessageUntilEOF(BufferedReader br) throws IOException
+	{
+		for (int i = br.read(); i != -1; i = br.read())
+		{
+			System.out.print((char) i);
+		}
+	}*/	
 }
