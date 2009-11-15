@@ -2,17 +2,24 @@
 
 package smtp.sj.messages;
 
-public class Rcpt
+public class Rcpt extends SmtpCommand
 {
-	private String msg;
+	public static final String RCPT_COMMAND = "RCPT TO:";
 	
-	public Rcpt(String msg)
+	private String recipient;
+	
+	public Rcpt(String recipient)
 	{
-		this.msg = msg;
+		this.recipient = recipient;
 	}
 	
-	public String toString()
+	public String command()
 	{
-		return msg;
+		return RCPT_COMMAND;
+	}
+	
+	public String body()
+	{
+		return "<" + recipient + ">";
 	}
 }

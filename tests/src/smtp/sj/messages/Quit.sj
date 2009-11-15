@@ -2,17 +2,17 @@
 
 package smtp.sj.messages;
 
-public class Quit
+public class Quit extends SmtpCommand
 {
-	private String msg;
+	public static final String QUIT_COMMAND = "QUIT";
 	
-	public Quit(String msg)
+	public String command()
 	{
-		this.msg = msg;
+		return QUIT_COMMAND;
 	}
 	
-	public String toString()
+	public String body()
 	{
-		return msg;
+		return "";
 	}
 }

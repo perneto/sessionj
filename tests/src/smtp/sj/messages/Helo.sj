@@ -2,17 +2,24 @@
 
 package smtp.sj.messages;
 
-public class Helo
+public class Helo extends SmtpCommand 
 {
-	private String msg;
+	public static final String HELO_COMMAND = "HELO ";
 	
-	public Helo(String msg)
+	private String fqdn;
+	
+	public Helo(String fqdn)
 	{
-		this.msg = msg;
+		this.fqdn = fqdn;
 	}
 	
-	public String toString()
+	public String command()
 	{
-		return msg;
+		return HELO_COMMAND;
+	}
+	
+	public String body()
+	{
+		return fqdn;
 	}
 }

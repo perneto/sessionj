@@ -2,7 +2,7 @@
 
 package smtp.sj.messages;
 
-public class ServerGreeting
+public class ServerGreeting 
 {
 	private String greeting;
 	

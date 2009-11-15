@@ -2,17 +2,17 @@
 
 package smtp.sj.messages;
 
-public class Data
-{
-	private String msg;
+public class Data extends SmtpCommand
+{	
+	public static final String DATA_COMMAND = "DATA";
 	
-	public Data(String msg)
+	public String command()
 	{
-		this.msg = msg;
+		return DATA_COMMAND;
 	}
 	
-	public String toString()
+	public String body()
 	{
-		return msg;
+		return "";
 	}
 }
