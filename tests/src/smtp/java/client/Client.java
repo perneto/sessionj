@@ -66,7 +66,7 @@ class Client
 			writeMessage(bw, "RCPT TO:<ray.zh.hu@gmail.com>\n");
 			readMessageUntilChar(br, (int) '\n');
 			
-			writeMessage(bw, "DATA");
+			writeMessage(bw, "DATA\n");
 			readMessageUntilChar(br, (int) '\n');
 			
 			writeMessage(bw, "test\n.\n");
