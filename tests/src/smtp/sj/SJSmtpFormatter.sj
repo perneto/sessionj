@@ -23,6 +23,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 {			
 	private static final String LINE_FEED = "\n";
 	
+	// Rather than "manual" state management (enum, switch, update), would be nice to use a selector with typecase; then we'd get static typing. Afterall, objects (actors?) are essentially event-driven entities. 
 	private static final int GREETING = 1;
 	private static final int HELO_ACK = 2;
 	private static final int MAIL_ACK = 3;
@@ -34,19 +35,25 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 	
 	public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
 	{
-		if (eof) // Check state.
-		{
-			throw new SJIOException();
-		}
+		int foo = 0;
 		
 		try
 		{
+			if (eof && state != QUIT_ACK) 
+			{
+				String m = decodeFromUtf8(bb);
+				
+				throw new SJIOException("[SJSmtpFormatter] Unexpected EOF: " + m);
+			}				
+			
 			if (state == GREETING)
 			{
 				String greeting = decodeFromUtf8(bb);
 								
 				if (greeting.endsWith(LINE_FEED))
 				{
+					state = HELO_ACK;
+					
 					return new ServerGreeting(greeting.substring(0, greeting.length() - LINE_FEED.length()));
 				}
 				else
@@ -60,7 +67,9 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				
 				if (ack.endsWith(LINE_FEED))
 				{
-					return new ServerGreeting(ack.substring(0, ack.length() - LINE_FEED.length()));
+					state = MAIL_ACK;
+					
+					return new HeloAck(ack.substring(0, ack.length() - LINE_FEED.length()));
 				}
 				else
 				{
@@ -73,7 +82,9 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				
 				if (ack.endsWith(LINE_FEED))
 				{
-					return new ServerGreeting(ack.substring(0, ack.length() - LINE_FEED.length()));
+					state = RCPT_ACK;
+					
+					return new MailAck(ack.substring(0, ack.length() - LINE_FEED.length()));
 				}
 				else
 				{
@@ -86,7 +97,9 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				
 				if (ack.endsWith(LINE_FEED))
 				{
-					return new ServerGreeting(ack.substring(0, ack.length() - LINE_FEED.length()));
+					state = DATA_ACK;
+					
+					return new RcptAck(ack.substring(0, ack.length() - LINE_FEED.length()));
 				}
 				else
 				{
@@ -99,7 +112,16 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				
 				if (ack.endsWith(LINE_FEED))
 				{
-					return new ServerGreeting(ack.substring(0, ack.length() - LINE_FEED.length()));
+					if (foo == 0)
+					{
+						foo++;
+					}
+					else
+					{
+						state = QUIT_ACK;
+					}
+					
+					return new DataAck(ack.substring(0, ack.length() - LINE_FEED.length()));
 				}
 				else
 				{
@@ -110,9 +132,9 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			{
 				String ack = decodeFromUtf8(bb);
 				
-				if (ack.endsWith(LINE_FEED))
+				if (ack.endsWith(LINE_FEED)) // Or is it just EOF directly?
 				{
-					return new ServerGreeting(ack.substring(0, ack.length() - LINE_FEED.length()));
+					return new QuitAck(ack.substring(0, ack.length() - LINE_FEED.length()));
 				}
 				else
 				{
