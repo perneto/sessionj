@@ -1,6 +1,6 @@
 package sessionj.runtime.session;
 
-import java.nio.*;
+//import java.nio.*;
 import java.nio.charset.*;
 
 import sessionj.runtime.*;
@@ -11,7 +11,23 @@ import sessionj.runtime.*;
 abstract public class SJUtf8Formatter extends SJCustomMessageFormatter
 {			
 	private static final Charset cs = Charset.forName("UTF8");
-	private static final CharsetEncoder ce = cs.newEncoder();
+	
+	public final byte[] encodeAsUtf8(String m) //throws CharacterCodingException
+	{
+		return m.getBytes(cs); // Rather than centralising the encoding and decoding routines in the formatter, we could use a "SJCustomMessage" and do it on a per-message basis.
+	}
+	
+	public final String decodeFromUtf8(byte[] bs) //throws CharacterCodingException
+	{
+		return new String(bs, cs);
+	}
+	
+	public final byte[] formatMessage(Object o) throws SJIOException
+	{
+		return encodeAsUtf8(o.toString());
+	}
+	
+	/*private static final CharsetEncoder ce = cs.newEncoder(); // There's a weird bug when using ce explicitly where one or more null characters (ascii 0) get appended to the end of the resulting encoded byte array.
 	private static final CharsetDecoder cd = cs.newDecoder();
 	
 	public final byte[] encodeAsUtf8(String m) throws CharacterCodingException
@@ -25,7 +41,7 @@ abstract public class SJUtf8Formatter extends SJCustomMessageFormatter
 	/*public final String decodeFromUtf8(byte[] bs) throws CharacterCodingException
 	{
 		return cd.decode(ByteBuffer.wrap(bs)).toString();
-	}*/
+	}*
 	
 	// Pre: bb should already be flipped, i.e. ready for (relative) "getting".
 	public final String decodeFromUtf8(ByteBuffer bb) throws CharacterCodingException 
@@ -43,5 +59,5 @@ abstract public class SJUtf8Formatter extends SJCustomMessageFormatter
 		{
 			throw new SJIOException(cce);
 		}			
-	}	
+	}*/	
 }

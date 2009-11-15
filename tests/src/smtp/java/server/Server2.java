@@ -9,7 +9,8 @@ import java.nio.charset.*;
 import java.net.*;
 import java.util.*;
 
-class Server2
+// Uses CharEncoder/Decoder.
+public class Server2
 {
 	public static void main(String[] args) throws Exception
 	{
