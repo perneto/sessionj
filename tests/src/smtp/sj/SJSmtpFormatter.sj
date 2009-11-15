@@ -9,7 +9,6 @@ import java.util.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
-import sessionj.runtime.net.SJSessionParameters.*;
 import sessionj.runtime.session.*;
 import sessionj.runtime.transport.*;
 import sessionj.runtime.transport.tcp.*;
