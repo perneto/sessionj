@@ -4,6 +4,7 @@
 package sessionj.runtime.session;
 
 import java.io.EOFException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -53,8 +54,17 @@ abstract public class SJCustomMessageFormatter
 			//for (o = parseMessage(bs); o == null; o = parseMessage(bs)) // Assuming parseMessage returns null if parsing unsuccessful. (But what if we want to communicate a null?)
 			for (o = parseMessage(getFlippedReadOnlyByteBuffer(bb), false); o == null; o = parseMessage(getFlippedReadOnlyByteBuffer(bb), false)) // Assuming parseMessage returns null if parsing unsuccessful. (But what if we want to communicate a null?)
 			{			
-				bb.put(conn.readByte()); // FIXME: reallocate bb if it gets full? Or is this already done for us? 
+				if (bb.position() == bb.limit())
+				{
+					ByteBuffer bbb = ByteBuffer.allocate(bb.capacity() * 2); // Crude reallocation scheme. Buffer never shrinks back.
+					
+					bbb.put(bb);
+					
+					bb = bbb;
+				}
 				
+				bb.put(conn.readByte()); // FIXME: reallocate bb if it gets full? Or is this already done for us?
+							
 				//bs = copyByteBufferContents(bb);
 			}
 		}

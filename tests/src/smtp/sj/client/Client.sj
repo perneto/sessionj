@@ -1,8 +1,9 @@
 //$ bin/sessionjc -cp tests/classes/ tests/src/smtp/sj/client/Client.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ smtp.sj.client.Client false localhost 8888 
+//$ bin/sessionj -cp tests/classes/ smtp.sj.client.Client false smtp.cc.ic.ac.uk 25 
 
 package smtp.sj.client;
 
+import java.net.InetAddress;
 import java.util.*;
 
 import sessionj.runtime.*;
@@ -24,33 +25,48 @@ public class Client
 	{
 		//^(Server.p_server)
 		cbegin
-		.?{
-			$3: ?(String)
-		}
+		.!<Helo>
+		.?(HeloAck)
+		.!<Mail>
+		.?(MailAck)
+		.!<Rcpt>
+		.?(RcptAck)
+		.!<Data>
+		.?(DataAck)
+		.!<Data>
+		.?(DataAck)
+		.!<Quit>
+		.?(QuitAck)
 	}
 	
 	public void run(boolean debug, String server, int port) throws Exception
 	{
+		final String fqdn = InetAddress.getLocalHost().getHostName().toString(); //getCanonicalHostName().toString();
+		
+		System.out.println("fqdn: " + fqdn);
+		
 		SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SJSmtpFormatter());
 		
 		final noalias SJSocket s;	
 			
 		try (s)
 		{
-			s = SJService.create(p_client, server, port).request(sparams);
+			System.out.println("Requesting SMTP session with: " + server + ":" + port);
 			
-			s.inbranch()
-			{
-				case $3:
-				{
-					System.out.println("Received: " + (String) s.receive());
-				}
-			}
+			s = SJService.create(p_client, server, port).request(sparams);	
 			
-			//System.out.println("Received: " + (String) s.receive());
-			//System.out.println("Received: " + (MyMessage) s.receive());
-			
-			//s.send("D");
+			s.send(new Helo("Helo " + fqdn + "\n"));
+			System.out.println((HeloAck) s.receive());
+			s.send(new Mail("MAIL FROM:<rhu@doc.ic.ac.uk>\n"));
+			System.out.println((MailAck) s.receive());
+			s.send(new Rcpt("RCPT TO:<ray.zh.hu@gmail.com>\n"));
+			System.out.println((RcptAck) s.receive());
+			s.send(new Data("DATA:<ray.zh.hu@gmail.com>\n"));
+			System.out.println((DataAck) s.receive());
+			s.send(new Data("test\n.\n"));
+			System.out.println((DataAck) s.receive());
+			s.send(new Quit("QUIT\n"));
+			System.out.println((QuitAck) s.receive());
 		}
 		finally
 		{
