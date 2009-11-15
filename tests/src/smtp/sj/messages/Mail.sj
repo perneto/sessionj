@@ -2,17 +2,24 @@
 
 package smtp.sj.messages;
 
-public class Mail
+public class Mail extends SmtpCommand
 {
-	private String msg;
+	public static final String MAIL_COMMAND = "MAIL FROM:";
 	
-	public Mail(String msg)
+	private String sender;
+	
+	public Mail(String sender)
 	{
-		this.msg = msg;
+		this.sender = sender;
 	}
 	
-	public String toString()
+	public String command()
 	{
-		return msg;
+		return MAIL_COMMAND;
+	}
+	
+	public String body()
+	{
+		return "<" + sender + ">";
 	}
 }

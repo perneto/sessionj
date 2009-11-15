@@ -36,8 +36,8 @@ public class Client
 		.?(RcptAck)
 		.!<Data>
 		.?(DataAck)
-		.!<Data>
-		.?(DataAck)
+		.!<MessageBody>
+		.?(MessageBodyAck)
 		.!<Quit>
 		.?(QuitAck)
 	}
@@ -60,36 +60,34 @@ public class Client
 			
 			System.out.println((ServerGreeting) s.receive());
 			
-			String msg;
-			
-			msg = "HELO " + fqdn + "\n";
-			System.out.print("Sending: " + msg);			
-			s.send(new Helo(msg));			
+			Helo helo = new Helo(fqdn);
+			System.out.print("Sending: " + helo);			
+			s.send(helo);			
 			System.out.println("Received: " + (HeloAck) s.receive());
 			
-			msg = "MAIL FROM:<rhu@doc.ic.ac.uk>\n";
-			System.out.print("Sending: " + msg);
-			s.send(new Mail(msg));
+			Mail mail = new Mail("rhu@doc.ic.ac.uk");
+			System.out.print("Sending: " + mail);
+			s.send(mail);
 			System.out.println("Received: " + (MailAck) s.receive());
 			
-			msg = "RCPT TO:<ray.zh.hu@gmail.com>\n";
-			System.out.print("Sending: " + msg);
-			s.send(new Rcpt(msg));
+			Rcpt rcpt = new Rcpt("ray.zh.hu@gmail.com");
+			System.out.print("Sending: " + rcpt);
+			s.send(rcpt);
 			System.out.println("Received: " + (RcptAck) s.receive());
 			
-			msg = "DATA";
-			System.out.print("Sending: " + msg);
-			s.send(new Data(msg));
+			Data data = new Data();
+			System.out.print("Sending: " + data);
+			s.send(data);
 			System.out.println((DataAck) s.receive());
 			
-			msg = "test\n.\n";
-			System.out.print("Sending: " + msg);
-			s.send(new Data(msg));
-			System.out.println("Received: " + (DataAck) s.receive());
+			MessageBody body = new MessageBody("test");
+			System.out.print("Sending: " + body);
+			s.send(body);
+			System.out.println("Received: " + (MessageBodyAck) s.receive());
 			
-			msg = "QUIT\n";
-			System.out.print("Sending: " + msg);
-			s.send(new Quit(msg));
+			Quit quit = new Quit();
+			System.out.print("Sending: " + quit);
+			s.send(quit);
 			System.out.println("Received: " + (QuitAck) s.receive());
 		}
 		finally
