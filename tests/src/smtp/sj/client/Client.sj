@@ -1,3 +1,4 @@
+//$ bin/sessionjc -sourcepath tests/src/smtp/sj/';'tests/src/smtp/sj/messages/';'tests/src/smtp/sj/client/ tests/src/smtp/sj/client/Client.sj -d tests/classes/
 //$ bin/sessionjc -cp tests/classes/ tests/src/smtp/sj/client/Client.sj -d tests/classes/
 //$ bin/sessionj -cp tests/classes/ smtp.sj.client.Client false smtp.cc.ic.ac.uk 25 
 
@@ -15,9 +16,10 @@ import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 import sessionj.runtime.session.*;
 
-import smtp.sj.SJSmtpFormatter;
+//import smtp.sj.SJSmtpFormatter; // Doesn't work when specifying -sourcepath (without -cp).
+import smtp.sj.*;
 import smtp.sj.messages.*;
-import smtp.sj.server.Server;
+//import smtp.sj.server.Server;
 
 public class Client
 {			
