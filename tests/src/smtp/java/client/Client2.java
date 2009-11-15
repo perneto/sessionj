@@ -1,5 +1,5 @@
 //$ javac -cp tests/classes/ tests/src/smtp/java/client/Client2.java -d tests/classes/
-//$ java -cp tests/classes/ smtp.java.client.Client2 localhost 8888 /
+//$ java -cp tests/classes/ smtp.java.client.Client2 smtp.cc.ic.ac.uk 25
 
 package smtp.java.client;
 
@@ -9,7 +9,8 @@ import java.nio.charset.*;
 import java.net.*;
 import java.util.*;
 
-class Client2
+// Uses CharEncoder/Decoder (although could use read/writeUTF for convenience).
+public class Client2
 {
 	public static void main(String[] args) throws Exception
 	{
@@ -22,7 +23,6 @@ class Client2
 
 		String host = args[0];
 		int port = Integer.parseInt(args[1]);
-		String name = args[2];
 
 		Socket s = null;
 
@@ -36,17 +36,29 @@ class Client2
 			dos = new DataOutputStream(s.getOutputStream());
 			dis = new DataInputStream(s.getInputStream());
 
-			//String msg = "GET " + name + "\n\n";
-
-			//System.out.println("Sending: " + msg);
-
-			//ce.reset();
-
-			//CharBuffer cb = CharBuffer.wrap(msg);
-			//ByteBuffer bb = ce.encode(cb);
-
-			//dos.write(bb.array());
-			//dos.flush();
+			//final String fqdn = InetAddress.getLocalHost().getHostName().toString(); //getCanonicalHostName().toString();
+			final String fqdn = "HZHL2";
+			
+			readMessageUntil(dis, cd, "\n");
+			
+			writeMessage(dos, ce, "HELO " + fqdn + "\n");
+			readMessageUntil(dis, cd, "\n");
+			
+			//writeMessage(dos, ce, "MAIL FROM:<rhu@doc.ic.ac.uk>\n");
+			writeMessage(dos, ce, "HELO " + fqdn + "\n");
+			readMessageUntil(dis, cd, "\n");
+			
+			writeMessage(dos, ce, "RCPT TO:<ray.zh.hu@gmail.com>\n");
+			readMessageUntil(dis, cd, "\n");
+			
+			writeMessage(dos, ce, "DATA\n");
+			readMessageUntil(dis, cd, "\n");
+			
+			writeMessage(dos, ce, "test\n.\n");
+			readMessageUntil(dis, cd, "\n");
+			
+			writeMessage(dos, ce, "QUIT\n");
+			readMessageUntil(dis, cd, "\n");			
 
 			for (int x = dis.read(); x != -1; x = dis.read())
 			{
@@ -63,4 +75,50 @@ class Client2
 			s.close();
 		}
 	}
+	
+	private static void writeMessage(DataOutputStream dos, CharsetEncoder ce, String msg) throws IOException
+	{
+		Charset cs = Charset.forName("UTF8");
+		CharsetEncoder ce1 = cs.newEncoder();
+		
+		System.out.print("Sending: " + msg + ", " + msg.length());
+		
+		//System.out.print("Sending: " + msg);
+		
+		//ce.reset();
+		
+		byte[] bs = ce1.encode(CharBuffer.wrap(msg)).array();
+		
+		System.out.println("\n1: " + Arrays.toString(bs) + ", " + bs.length);
+		
+		//dos.write(bs, 0, bs.length - 1);		
+		dos.write(bs);
+		
+		dos.flush();
+	}	
+	
+	private static void readMessageUntil(DataInputStream dis, CharsetDecoder cd, String s) throws IOException
+	{
+		System.out.print("Received: ");
+		
+		ByteBuffer bb = ByteBuffer.allocate(1024);
+		
+		String m = null;
+		
+		for (m = cd.decode(getFlippedReadOnlyByteBuffer(bb)).toString(); !m.endsWith(s); m = cd.decode(getFlippedReadOnlyByteBuffer(bb)).toString())
+		{
+			bb.put(dis.readByte());
+		}
+		
+		System.out.print(m);
+	}
+	
+	private static final ByteBuffer getFlippedReadOnlyByteBuffer(ByteBuffer bb)
+	{
+		ByteBuffer fbb = bb.asReadOnlyBuffer();
+		
+		fbb.flip();
+		
+		return fbb;
+	}	
 }

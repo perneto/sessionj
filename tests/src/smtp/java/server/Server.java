@@ -8,7 +8,8 @@ import java.nio.charset.*;
 import java.net.*;
 import java.util.*;
 
-class Server
+// Uses BufferedReader/Writer.
+public class Server
 {
 	public static void main(String[] args) throws Exception
 	{

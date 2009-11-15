@@ -33,22 +33,35 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 	
 	private int state = GREETING;
 	
+	private static final byte[] copyByteBufferContents(ByteBuffer bb)
+	{
+		byte[] bs = new byte[bb.limit()];
+
+		bb.get(bs);
+		
+		return bs;
+	}
+	
 	public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
 	{
+		byte[] bs = copyByteBufferContents(bb);
+		
 		int foo = 0;
 		
-		try
+		//try
 		{
 			if (eof && state != QUIT_ACK) 
 			{
-				String m = decodeFromUtf8(bb);
+				//String m = decodeFromUtf8(bb);
+				String m = decodeFromUtf8(bs);
 				
 				throw new SJIOException("[SJSmtpFormatter] Unexpected EOF: " + m);
 			}				
 			
 			if (state == GREETING)
 			{
-				String greeting = decodeFromUtf8(bb);
+				//String greeting = decodeFromUtf8(bb);
+				String greeting = decodeFromUtf8(bs);
 								
 				if (greeting.endsWith(LINE_FEED))
 				{
@@ -63,7 +76,8 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			}
 			else if (state == HELO_ACK)
 			{
-				String ack = decodeFromUtf8(bb);
+				//String ack = decodeFromUtf8(bb);
+				String ack = decodeFromUtf8(bs);
 				
 				if (ack.endsWith(LINE_FEED))
 				{
@@ -78,7 +92,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			}
 			else if (state == MAIL_ACK)
 			{
-				String ack = decodeFromUtf8(bb);
+				String ack = decodeFromUtf8(bs);
 				
 				if (ack.endsWith(LINE_FEED))
 				{
@@ -93,7 +107,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			}
 			else if (state == RCPT_ACK)
 			{
-				String ack = decodeFromUtf8(bb);
+				String ack = decodeFromUtf8(bs);
 				
 				if (ack.endsWith(LINE_FEED))
 				{
@@ -108,7 +122,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			}
 			else if (state == DATA_ACK)
 			{
-				String ack = decodeFromUtf8(bb);
+				String ack = decodeFromUtf8(bs);
 				
 				if (ack.endsWith(LINE_FEED))
 				{
@@ -130,7 +144,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			}
 			else if (state == QUIT_ACK)
 			{
-				String ack = decodeFromUtf8(bb);
+				String ack = decodeFromUtf8(bs);
 				
 				if (ack.endsWith(LINE_FEED)) // Or is it just EOF directly?
 				{
@@ -146,9 +160,9 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				throw new SJIOException("[SJSmtpParser] Shouldn't get in here.");
 			}
 		}
-		catch (CharacterCodingException cce)
+		/*catch (CharacterCodingException cce)
 		{
 			throw new SJIOException(cce);
-		}
+		}*/
 	}
 }

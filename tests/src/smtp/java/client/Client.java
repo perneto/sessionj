@@ -8,7 +8,8 @@ import java.nio.charset.*;
 import java.net.*;
 import java.util.*;
 
-class Client
+// Uses BufferedReader/Writer.
+public class Client
 {
 	public static void main(String[] args) throws Exception
 	{
@@ -35,7 +36,7 @@ class Client
 			bw = new BufferedWriter(new OutputStreamWriter(s.getOutputStream(), cs));
 			br = new BufferedReader(new InputStreamReader(s.getInputStream(), cs));
 
-			/*new Thread()
+			/*new Thread() // Doesn't seem to work: maybe the SMTP server doesn't like receiving messages asynchronously. 
 			{
 				public void run()
 				{
@@ -73,7 +74,7 @@ class Client
 			readMessageUntilChar(br, (int) '\n');
 			
 			writeMessage(bw, "QUIT\n");
-			readMessageUntilChar(br, -1);
+			readMessageUntilChar(br, -1); // No need to read until EOF; can be '\n' as above.
 		}
 		finally
 		{
@@ -96,6 +97,8 @@ class Client
 	
 	private static void readMessageUntilChar(BufferedReader br, int j) throws IOException
 	{
+		System.out.print("Received: ");
+		
 		for (int i = br.read(); i != j; i = br.read())
 		{
 			System.out.print((char) i);
