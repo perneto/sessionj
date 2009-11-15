@@ -1,5 +1,5 @@
 //$ javac -cp tests/classes/ tests/src/smtp/java/client/Client.java -d tests/classes/
-//$ java -cp tests/classes/ smtp.java.client.Client localhost 8888 /
+//$ java -cp tests/classes/ smtp.java.client.Client smtp.cc.ic.ac.uk 25 
 
 package smtp.java.client;
 
@@ -66,7 +66,7 @@ class Client
 			writeMessage(bw, "RCPT TO:<ray.zh.hu@gmail.com>\n");
 			readMessageUntilChar(br, (int) '\n');
 			
-			writeMessage(bw, "DATA:<ray.zh.hu@gmail.com>\n");
+			writeMessage(bw, "DATA");
 			readMessageUntilChar(br, (int) '\n');
 			
 			writeMessage(bw, "test\n.\n");

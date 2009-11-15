@@ -77,7 +77,7 @@ public class Client
 			s.send(new Rcpt(msg));
 			System.out.println("Received: " + (RcptAck) s.receive());
 			
-			msg = "DATA:<ray.zh.hu@gmail.com>\n";
+			msg = "DATA";
 			System.out.print("Sending: " + msg);
 			s.send(new Data(msg));
 			System.out.println((DataAck) s.receive());
