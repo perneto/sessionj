@@ -2,18 +2,25 @@
 
 package sessionj.runtime.transport.httpservlet.servlet;
 
-import java.io.*;
-import java.util.*;
-import javax.servlet.*;
-import javax.servlet.http.*;
-
 import sessionj.SJConstants;
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
-import sessionj.runtime.transport.*;
-import sessionj.runtime.transport.tcp.*;
-
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
+import sessionj.runtime.net.SJRuntime;
+import sessionj.runtime.net.SJSessionParameters;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJTransportManager;
 import static sessionj.runtime.transport.httpservlet.SJHTTPServletConnection.*;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 
@@ -41,15 +48,13 @@ public class SJHTTPProxyServlet extends HttpServlet
 	public void init(ServletConfig config) throws ServletException 
 	{
 		super.init(config);
-		
-		List<SJTransport> ss = new LinkedList<SJTransport>(); // FIXME: hacky?
-		List<SJTransport> ts = new LinkedList<SJTransport>();
-		
-		ss.add(new SJManualTCP());			
-		ts.add(new SJManualTCP());
 
-		sjtm.configureNegociationTransports(ss);
-		sjtm.configureSessionTransports(ts);
+        try {
+            sjtm.loadNegotiationTransports("m");
+            sjtm.loadSessionTransports("m");
+        } catch (SJIOException e) {
+            throw new ServletException(e);
+        }
 	}
 	
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException

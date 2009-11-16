@@ -8,8 +8,8 @@ import java.io.IOException;
 
 class AsyncConnection implements SJConnection
 {
-    private SelectingThread thread;
-    private SocketChannel sc;
+    private final SelectingThread thread;
+    private final SocketChannel sc;
 
     AsyncConnection(SelectingThread thread, SocketChannel sc) {
         this.thread = thread;

@@ -56,4 +56,9 @@ public class SJOutwhileType_c extends SJLoopType_c implements SJOutwhileType
     protected SJLoopType dualSkeleton() {
         return typeSystem().SJInwhileType();
     }
+
+    @Override
+    public boolean startsWithOutput() {
+        return true;
+    }
 }

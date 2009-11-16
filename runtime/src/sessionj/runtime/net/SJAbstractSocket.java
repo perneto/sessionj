@@ -2,6 +2,7 @@ package sessionj.runtime.net;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import sessionj.runtime.*;
 import sessionj.runtime.session.*;
@@ -46,11 +47,10 @@ abstract public class SJAbstractSocket implements SJSocket
 		{
 			localHostName = InetAddress.getLocalHost().getHostName();
 		}
-		catch (IOException ioe)
-		{
-			throw new SJIOException(ioe);
-		}
-		
+        catch (UnknownHostException e) {
+            throw new SJIOException(e);
+        }
+
 		//this.sm = new SJStateManager_c(SJRuntime.getTypeSystem(), protocol.type()); // Replaced by a setter (called by SJProtocolsImp).
   }
 	

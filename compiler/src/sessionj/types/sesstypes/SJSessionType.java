@@ -60,4 +60,7 @@ public interface SJSessionType extends SJType
     boolean canImplement(SJSessionType st); // Separate to subtyping because our subtyping is not based on subsumption (it is based on I/O safety). But this routine should be generally implemented in terms of subtyping.
     boolean treeCanImplement(SJSessionType st);
     boolean nodeCanImplement(SJSessionType st);
+
+    /* Output type nodes correspond to non-blocking actions */
+    boolean startsWithOutput();
 }
