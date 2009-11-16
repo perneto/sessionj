@@ -218,12 +218,12 @@ public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
 			throw new SJRuntimeException("[SJNonSjCompatibilityProtocols] Shouldn't get in here.", cs);
 		}
 		
-		if (!(o instanceof String))
+		if (!(o instanceof String)) // Should generalise for custom message formatters to use arbitrary objects as labels.
 		{
 			throw new SJRuntimeException("[SJNonSjCompatibilityProtocols] Shouldn't get in here: " + o);
-		}	
+		}
 		
-		String lab = (String) o;
+		String lab = o.toString();
 		
 		if (RUNTIME_MONITORING)
 		{

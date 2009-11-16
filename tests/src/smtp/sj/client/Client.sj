@@ -33,19 +33,20 @@ public class Client
 		.!<Mail>
 		.?(MailAck)
 		.!<Rcpt>
-		.?(RcptAck)
-		.!<Rcpt>
-		.?(RcptAck)
-		.!<Rcpt>
-		.?(RcptAck)
-		.!<Rcpt>
-		.?(RcptAck)
-		.!<Data>
-		.?(DataAck)
-		.!<MessageBody>
-		.?(MessageBodyAck)
-		.!<Quit>
-		.?(QuitAck)
+		.?{
+			$2: 
+				?(Rcpt2Ack)
+				.!<Data>
+				.?(DataAck)
+				.!<MessageBody>
+				.?(MessageBodyAck)
+				.!<Quit>
+				.?(QuitAck),
+			$5:	
+				?(Rcpt5Ack)	
+				.!<Quit>
+				.?(QuitAck)		
+		}
 	}
 	
 	public void run(boolean debug, String server, int port) throws Exception
@@ -78,44 +79,39 @@ public class Client
 			
 			Rcpt rcpt = new Rcpt("ray.zh.hu@gmail.com");
 			System.out.print("Sending: " + rcpt);
-			s.send(rcpt);
-			System.out.println("Received: " + (RcptAck) s.receive());
-						
-			rcpt = new Rcpt("tenko.yoshida@gmail.com");
-			System.out.print("Sending: " + rcpt);
-			s.send(rcpt);
-			System.out.println("Received: " + (RcptAck) s.receive());
+			s.send(rcpt);			
 			
-			rcpt = new Rcpt("kohei.honda.kh@googlemail.com");
-			System.out.print("Sending: " + rcpt);
-			s.send(rcpt);
-			System.out.println("Received: " + (RcptAck) s.receive());
-			
-			rcpt = new Rcpt("o.pernet@gmail.com");
-			System.out.print("Sending: " + rcpt);
-			s.send(rcpt);
-			System.out.println("Received: " + (RcptAck) s.receive());			
-			
-			Data data = new Data();
-			System.out.print("Sending: " + data);
-			s.send(data);
-			System.out.println((DataAck) s.receive());
-			
-			MessageBody body = new MessageBody(
-				"SUBJECT: from Ray via an SJ client\n\n"
-			+	"This email was sent via smtp.cc.ic.ac.uk using a SMTP client implemented fully in SJ.\n\n"
-			+	"The session type I am using right now is very simple; just so I can get the basic client working as a first step. I omit the details, but I can say it features only a minimal sequence of sends and receives: it represents a \"good trace\" of one instance of the SMTP protocol rather than the protocol itself. However, the SJ client is indeed type checked against this \"trace protocol\".\n\n"
-			+ "The next step is to represent more of the actual SMTP protocol as a session type and expand the SJ client implementation.\n\n"
-			+ "Ray\n\n"			
-			+ "P.S. I believe the sender field may be blank (observed when using gmail) because I have the SJ client does not authenticate with the SMTP server. (At the moment, I am connecting via the IC VPN to bypass authentication.) However, the sender field seems fine using other email readers, e.g. hotmail --- strange.");
-			System.out.print("Sending: " + body);
-			s.send(body);
-			System.out.println("Received: " + (MessageBodyAck) s.receive());
-			
-			Quit quit = new Quit();
-			System.out.print("Sending: " + quit);
-			s.send(quit);
-			System.out.println("Received: " + (QuitAck) s.receive());
+			s.inbranch()
+			{
+				case $2:
+				{
+					System.out.println("Received: " + (Rcpt2Ack) s.receive());
+					
+					Data data = new Data();
+					System.out.print("Sending: " + data);
+					s.send(data);
+					System.out.println("Received: " + (DataAck) s.receive());
+					
+					MessageBody body = new MessageBody("SUBJECT:subject\n\nbody");				
+					System.out.print("Sending: " + body);
+					s.send(body);
+					System.out.println("Received: " + (MessageBodyAck) s.receive());
+					
+					Quit quit = new Quit();
+					System.out.print("Sending: " + quit);
+					s.send(quit);
+					System.out.println("Received: " + (QuitAck) s.receive());
+				}
+				case $5:
+				{
+					System.out.println("Received: " + (Rcpt5Ack) s.receive());
+					
+					Quit quit = new Quit();
+					System.out.print("Sending: " + quit);
+					s.send(quit);
+					System.out.println("Received: " + (QuitAck) s.receive());					
+				}
+			}	
 		}
 		finally
 		{
