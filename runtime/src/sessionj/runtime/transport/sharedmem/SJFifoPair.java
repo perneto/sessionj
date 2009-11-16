@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.FileLock;
+import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -522,7 +523,9 @@ public class SJFifoPair implements SJTransport
 		throw new SJIOException('[' + TRANSPORT_NAME + "] No free port available.");
 	}
 	
-	protected static void bindPort(int port) throws SJIOException {
+    // Needs to be synchronized to prevent several threads to try and lock the
+    // lock file: Java file locks are at process level, not thread level.
+	protected synchronized static void bindPort(int port) throws SJIOException {
         File portFile = portFile(port);
         boolean created;
         FileLock lock = null;
@@ -539,6 +542,7 @@ public class SJFifoPair implements SJTransport
 
     private static void close(FileLock lock) {
         if (lock != null) try {
+            lock.release();
             lock.channel().close();
         } catch (IOException ignored) {
             // or rethrow?
@@ -548,7 +552,7 @@ public class SJFifoPair implements SJTransport
     private static FileLock lock() throws IOException {
         // Channel is closed in caller.
         //noinspection ChannelOpenedButNotSafelyClosed
-        return new FileOutputStream(dirLock).getChannel().lock();
+        return new RandomAccessFile(dirLock, "rw").getChannel().lock();
     }
 
     private static File portFile(int port) {
