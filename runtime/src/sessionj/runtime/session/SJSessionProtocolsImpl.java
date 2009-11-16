@@ -629,12 +629,13 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	    return isPeerInt;
 	}
 
-	public boolean recurse(String lab) throws SJIOException
+	public boolean recurse(String lab) throws SJIOException // FIXME: recursion operations need to update type monitor; see SJNonSjCompatibilityProtocols.
 	{
 		return true;
 	}
 	
-	public boolean recursionEnter() throws SJIOException
+	//public boolean recursionEnter() throws SJIOException // FIXME: recursion operations need to update type monitor; see SJNonSjCompatibilityProtocols.
+	public boolean recursionEnter(String lab) throws SJIOException 
 	{
 		return false;
 	}

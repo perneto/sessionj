@@ -43,7 +43,7 @@ public interface SJSocket extends SJChannel
 	boolean interruptibleOutsync(boolean condition) throws SJIOException;
 	boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException;
 
-	boolean recursionEnter() throws SJIOException;
+	boolean recursionEnter(String lab) throws SJIOException;
 	boolean recursionExit() throws SJIOException;
 	boolean recurse(String lab) throws SJIOException;	
 	

@@ -187,9 +187,9 @@ abstract public class SJAbstractSocket implements SJSocket
 		return sp.interruptingInsync(condition, peerInterruptible);
 	}
 
-	public boolean recursionEnter() throws SJIOException
+	public boolean recursionEnter(String lab) throws SJIOException
 	{
-		return sp.recursionEnter();
+		return sp.recursionEnter(lab);
 	}
 	
 	public boolean recursionExit() throws SJIOException

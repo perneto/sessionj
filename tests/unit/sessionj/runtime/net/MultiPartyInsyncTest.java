@@ -183,7 +183,7 @@ public class MultiPartyInsyncTest {
 				}
 
 				@Override
-				public boolean recursionEnter() throws SJIOException
+				public boolean recursionEnter(String lab) throws SJIOException
 				{
 					// TODO Auto-generated method stub
 					return false;

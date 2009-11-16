@@ -351,9 +351,14 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJOutsync_c(this, pos, condition, targets);
 	}
 
-    public SJRecursionEnter SJRecursionEnter(Position pos, List targets)
+  /*public SJRecursionEnter SJRecursionEnter(Position pos, List targets)
 	{	
 		return new SJRecursionEnter_c(pos, this, SJ_SOCKET_RECURSIONENTER, targets);
+	}*/
+	
+	public SJRecursionEnter SJRecursionEnter(Position pos, List args, List targets)
+	{	
+		return new SJRecursionEnter_c(pos, this, SJ_SOCKET_RECURSIONENTER, args, targets);
 	}
 	
 	public SJRecursionExit SJRecursionExit(Position pos, List targets)
@@ -423,7 +428,7 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
         return new SJInwhile_c(pos, body, targets);
 	}
 
-	public SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets) // Inconvenient to ...
+	public SJRecursion SJRecursion(final Position pos, Block body, final SJLabel lab, final List targets) // Inconvenient to ...
 	{
 		QQ qq = new QQ(extInfo, pos);
 
@@ -435,7 +440,13 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		
 		For f = (For) qq.parseStmt(translation, mapping.toArray());
 		
-		SJRecursionEnter re = SJRecursionEnter(pos, targets); 
+		List args = new LinkedList()
+		{{
+			add(StringLit(pos, lab.labelValue()));
+		}};
+		
+		//SJRecursionEnter re = SJRecursionEnter(pos, targets);
+		SJRecursionEnter re = SJRecursionEnter(pos, args, targets); // Extended recursion-enter to take the recursion label as an argument. We could have done this in the translation phase, but unlike recursion-exit, recursion-enter seems to be handled here.
 		
 		translation = "%E;";
 		mapping.add(re);
