@@ -335,7 +335,8 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJSpawn_c(pos, w, name, arguments, targets);
 	}
 
-    public SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets)
+	// Can generalise this operation to support arbitrary objects as labels.
+  public SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets)
 	{	
 		return new SJOutlabel_c(pos, this, SJCompilerUtils.asLinkedList(StringLit(pos, lab.labelValue())), targets);
 	}

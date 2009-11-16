@@ -26,14 +26,17 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 	private static final int GREETING = 1;
 	private static final int HELO_ACK = 2;
 	private static final int MAIL_ACK = 3;
-	private static final int RCPT_ACK = 4;
-	private static final int DATA_ACK = 5;
-	private static final int MESSAGEBODY_ACK = 6;
-	private static final int QUIT_ACK = 7;
+	private static final int RCPT_BRANCH = 4;
+	//private static final int RCPT_ACK = 5;
+	private static final int RCPT2_ACK = 5;
+	private static final int RCPT5_ACK = 6;
+	private static final int DATA_ACK = 7;
+	private static final int MESSAGEBODY_ACK = 8;
+	private static final int QUIT_ACK = 9;
 	
 	private int state = GREETING;
 
-	private int recipients = 0;	
+	//private int recipients = 0;	
 	
 	public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
 	{
@@ -88,7 +91,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				
 				if (ack.endsWith(LINE_FEED))
 				{
-					state = RCPT_ACK;
+					state = RCPT_BRANCH;
 					
 					return new MailAck(ack.substring(0, ack.length() - LINE_FEED.length()));
 				}
@@ -97,20 +100,71 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 					return null;
 				}
 			}
-			else if (state == RCPT_ACK)
+			else if (state == RCPT_BRANCH)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.equals("2"))
+				{
+					state = RCPT2_ACK;								
+					
+					return ack;
+				}
+				else if (ack.equals("5"))
+				{
+					state = RCPT5_ACK;
+					
+					return ack;
+				}
+				else
+				{
+					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + ack);
+				}
+			}
+			/*else if (state == RCPT_ACK)
 			{
 				String ack = decodeFromUtf8(bb);
 				
 				if (ack.endsWith(LINE_FEED))
 				{
-					recipients++;
+					/*recipients++;
 				
-					if (recipients == 4)
+					if (recipients == 4)*
 					{
 						state = DATA_ACK;
 					}
 					
 					return new RcptAck(ack.substring(0, ack.length() - LINE_FEED.length()));
+				}
+				else
+				{
+					return null;
+				}
+			}*/
+			else if (state == RCPT2_ACK)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.endsWith(LINE_FEED))
+				{
+					state = DATA_ACK;
+
+					return new Rcpt2Ack(ack.substring(0, ack.length() - LINE_FEED.length()));
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else if (state == RCPT5_ACK)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.endsWith(LINE_FEED))
+				{
+					state = QUIT_ACK;
+					
+					return new Rcpt5Ack(ack.substring(0, ack.length() - LINE_FEED.length()));
 				}
 				else
 				{
