@@ -63,7 +63,7 @@ public class Client
 			  DATA: 
 					!<DataLineFeed>
 			  	.?(DataAck)
-					.!<MessageBody>.?(MessageBodyAck)			
+					.!<MessageBody>.?(MessageBodyAck)	// Subject would have a "SUBJECT: " prefix, but how about no subject?		
 			}
 		]
 		.!<Quit>.?(QuitAck)		
@@ -71,6 +71,8 @@ public class Client
 	
 	public void run(boolean debug, String server, int port) throws Exception
 	{
+		Scanner sc = new Scanner(System.in);
+		
 		final String fqdn = InetAddress.getLocalHost().getHostName().toString(); //getCanonicalHostName().toString();
 		
 		System.out.println("fqdn: " + fqdn);
@@ -92,20 +94,39 @@ public class Client
 			s.send(helo);			
 			System.out.println("Received: " + (HeloAck) s.receive());
 			
-			Mail mail = new Mail("rhu@doc.ic.ac.uk");
+			System.out.print("Sender's address? (e.g. sender@domain.com): ");			
+			Mail mail = new Mail(readUserInput(sc));
 			System.out.print("Sending: " + mail);
 			s.send(mail);
 			System.out.println("Received: " + (MailAck) s.receive());
 			
-			int i = 0;
+			boolean firstIteration = true;
+			boolean anotherRecipient = true;
+			
+			if (firstIteration)
+			{
+				firstIteration = false;
+			}
+			else
+			{				
+				System.out.print("Another recipient? [y/n]: ");
+				
+				String reply = readUserInput(sc);
+				
+				if (reply.equals("y"))
+				{
+					anotherRecipient = true;
+				}
+			}
 			
 			s.recursion(RCPT)
 			{
-				if (i++ < 2)
+				if (anotherRecipient)
 				{
 					s.outbranch(RCPT)
 					{
-						RcptTo rcptTo = new RcptTo((i == 1) ? "ray.zh.hu@gmail.com" : "ray.zh.hu@hotmail.com");
+						System.out.print("Recipient's address?: ");
+						RcptTo rcptTo = new RcptTo(readUserInput(sc));
 						System.out.print("Sending: RCPT" + rcptTo); // Need to re-add the "RCPT" that was sent by the outbranch.
 						s.send(rcptTo);									
 						
@@ -125,6 +146,8 @@ public class Client
 							}
 						}					
 					}
+					
+					anotherRecipient = false;
 				}
 				else
 				{
@@ -135,7 +158,13 @@ public class Client
 						s.send(dataLF);												
 						System.out.println("Received: " + (DataAck) s.receive());
 						
-						MessageBody body = new MessageBody("SUBJECT:subject\n\nbody");				
+						System.out.print("Message subject?: ");
+						String subject = readUserInput(sc);
+						
+						System.out.print("Message body? (Write newlines as \"\n\".): ");
+						String text = readUserInput(sc);
+						
+						MessageBody body = new MessageBody("SUBJECT:" + subject + "\n\n" + text);				
 						System.out.print("Sending: " + body);
 						s.send(body);
 						System.out.println("Received: " + (MessageBodyAck) s.receive());
@@ -151,6 +180,16 @@ public class Client
 		{
 			
 		}
+	}
+	
+	private static String readUserInput(Scanner sc)
+	{
+		String m = sc.nextLine();
+		
+		//return m.substring(0, m.length() - "\n".length()); // FIXME: "\n" not supported as a call target.
+		//return m.substring(0, m.length() - 1);
+		
+		return m;
 	}
 	
 	private static void doQuit(final noalias !<Quit>.?(QuitAck) s) throws SJIOException, ClassNotFoundException
