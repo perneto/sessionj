@@ -120,7 +120,7 @@ public class Client
 							{
 								System.out.println("Received: " + "5" + (Rcpt5Ack) s.receive());
 								
-								//doQuit(s); // Currently, delegation within loops completely forbidden.					
+								//doQuit(s); // Currently, delegation within loop contexts completely forbidden, even though this branch does not loop.					
 							}
 						}					
 					}
