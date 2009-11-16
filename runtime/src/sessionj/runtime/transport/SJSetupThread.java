@@ -3,32 +3,18 @@
  */
 package sessionj.runtime.transport;
 
-import java.io.IOException;
-import java.net.*;
-import java.util.*;
-
-import sessionj.runtime.*;
+import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.SJRuntime;
-
-import static sessionj.runtime.util.SJRuntimeUtils.*;
 
 /**
  * @author Raymond
  *
  */
-public class SJSetupThread extends Thread // Should have a common base class with SJAcceptorThread.
+public class SJSetupThread extends SJAcceptorThread
 {	
-	private SJAcceptorThreadGroup atg;
-	private SJConnectionAcceptor ca;
-	
-	private boolean run = true;
-	
 	public SJSetupThread(SJAcceptorThreadGroup atg, SJConnectionAcceptor ca)
 	{
-		super(atg, ca.getTransportName() + ":" + atg.getPort());
-	
-		this.atg = atg;
-		this.ca = ca;
+		super(atg, ca.getTransportName() + ":" + atg.getPort(), ca);
 	}
 	
 	public void run()
@@ -89,21 +75,8 @@ public class SJSetupThread extends Thread // Should have a common base class wit
 			}
 		}			
 	}
-	
-	public void close()
-	{		
-		run = false;
-		
-		ca.close();
-	
-		if (ca.interruptToClose())
-		{
-			this.interrupt();
-			//throw new RuntimeException("..."); // Maybe this would be better, with an appropriate exception catcher?
-		}
-	}
-	
-	public String toString()
+
+    public String toString()
 	{
 		return "SJSetup" + super.toString();
 	}	
