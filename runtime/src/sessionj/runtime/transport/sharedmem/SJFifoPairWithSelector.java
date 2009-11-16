@@ -3,7 +3,6 @@ package sessionj.runtime.transport.sharedmem;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.SJConnectionAcceptor;
-import sessionj.runtime.transport.SJLocalConnection;
 import sessionj.runtime.transport.SJTransport;
 
 import java.net.InetAddress;
@@ -90,10 +89,6 @@ public class SJFifoPairWithSelector implements SJTransport
 
     public SJSelectorInternal transportSelector() {
         return null; // TODO
-    }
-
-    public boolean blockingModeSupported() {
-        return true;
     }
 
     private boolean notLocalHost(String hostName) throws UnknownHostException {

@@ -239,10 +239,6 @@ public class SJManualTCP implements SJTransport
         return null;
     }
 
-    public boolean blockingModeSupported() {
-        return true;
-    }
-
     public boolean portInUse(int port)
 	{
         return SJStreamTCP.isTCPPortInUse(port);

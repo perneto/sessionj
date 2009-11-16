@@ -135,10 +135,6 @@ public class SJUDP implements SJTransport{
         return null;
     }
 
-    public boolean blockingModeSupported() {
-        return true;
-    }
-
     public boolean portInUse (int port) {
        DatagramSocket ss = null; 
        try {

@@ -59,7 +59,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 		enumerate(ts); // A bit dodgy (see API docs). Maybe should use the recursive option?
 		
 		for (Thread t : ts) // Maybe some synchronization is needed.
-		{		
+		{
 			if (t instanceof SJSetupThread)
 			{
 				((SJSetupThread) t).close();
@@ -83,7 +83,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 		}
 	}
 	
-	protected void queueConnection(SJConnection c)
+	void queueConnection(SJConnection c)
 	{
 		synchronized (pending)
 		{
@@ -128,7 +128,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 		return port;
 	}
 	
-	protected void addTransport(String name, int port)
+	void addTransport(String name, int port)
 	{
 		transports.put(name, port);
 	}
@@ -142,4 +142,18 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 	{
 		return isClosed;
 	}
+
+    public SJConnectionAcceptor getAcceptorFor(String transportName) {
+        Thread[] ts = new Thread[activeCount()];
+        enumerate(ts);
+        
+        for (Thread t : ts) {
+            if (t instanceof SJAcceptorThread){
+                SJConnectionAcceptor acceptor = ((SJAcceptorThread) t).getAcceptorFor(transportName);
+                if (acceptor != null) return acceptor;
+            }
+        }
+        return null;
+    }
+
 }

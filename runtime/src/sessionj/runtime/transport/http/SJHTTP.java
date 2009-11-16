@@ -10,8 +10,6 @@ import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJTransport;
 
-import static sessionj.runtime.util.SJRuntimeUtils.*;
-
 public class SJHTTP implements SJTransport{
 	
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.http.SJHTTP";
@@ -45,10 +43,6 @@ public class SJHTTP implements SJTransport{
 
     public SJSelectorInternal transportSelector() {
         return null;
-    }
-
-    public boolean blockingModeSupported() {
-        return true;
     }
 
     public boolean portInUse(int port){

@@ -31,7 +31,7 @@ public class Selector extends AbstractValidTest3Peers {
                 int i = 0; boolean b; int j;
                 while (i < 2) {
                     try (s) {
-                        s = sel.select(SJSelector.ACCEPT | SJSelector.INPUT);
+                        s = sel.select();
                         typecase (s) {
                             when (@(from2)) j = s.receiveInt();
                             when (@(from3)) b = s.receiveBoolean();

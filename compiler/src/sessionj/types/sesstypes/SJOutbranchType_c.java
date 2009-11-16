@@ -117,4 +117,9 @@ public class SJOutbranchType_c extends SJBranchType_c implements SJOutbranchType
     protected SJSessionType dualSkeleton() {
         return typeSystem().SJInbranchType();
     }
+
+    @Override
+    public boolean startsWithOutput() {
+        return true;
+    }
 }

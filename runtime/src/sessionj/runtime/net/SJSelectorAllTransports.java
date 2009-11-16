@@ -23,6 +23,7 @@ class SJSelectorAllTransports implements SJSelector {
         }
     }
 
+    @SuppressWarnings({"MethodParameterOfConcreteClass"})
     public void registerAccept(SJServerSocket ss) throws SJIOException {
         Collection<Boolean> results = new HashSet<Boolean>();
         for (SJSelectorInternal sel : transportSelectors)
@@ -34,18 +35,6 @@ class SJSelectorAllTransports implements SJSelector {
         checkResults(results);
     }
 
-    public void registerOutput(SJSocket s) throws SJIOException {
-        Collection<Boolean> results = new HashSet<Boolean>();
-        for (SJSelectorInternal sel : transportSelectors)
-            try {
-            	//RAY
-                // results.add(sel.registerOutput(s)); // Temporarily commented out to be build-able. Seemed less trouble than addind a dummy method to the target interface.
-              //YAR
-            } catch (Exception e) {
-                throw new SJIOException(e);
-            }
-        checkResults(results);
-    }
     public void registerInput(SJSocket s) throws SJIOException {
         Collection<Boolean> results = new HashSet<Boolean>();
         for (SJSelectorInternal sel : transportSelectors)
@@ -61,23 +50,15 @@ class SJSelectorAllTransports implements SJSelector {
         if (!results.contains(true)) throw new SJIOException(UNSUPPORTED);
     }
 
-    public SJSocket select(final int mask) throws SJIOException {
+    public SJSocket select() throws SJIOException {
         ExecutorService executor = Executors.newFixedThreadPool(transportSelectors.size());
         final ValueLatch<SJSocket> latch = new ValueLatch<SJSocket>();
         
         for (final SJSelectorInternal sel : transportSelectors) {
             executor.submit(new Callable<Object>() {
-                public Object call() throws SJIOException {
-                	try 
-                	{
-                    latch.submitValue(sel.select(mask));
-                	}
-                	catch (SJIncompatibleSessionException ise) // Ray: temporary fix to get around build error.
-                	{
-                		throw new SJIOException(ise);
-                	}
-                   
-                	return null;                    
+                public Object call() throws SJIOException, SJIncompatibleSessionException {
+                    latch.submitValue(sel.select());
+                	return null;
                 }
             });
         }

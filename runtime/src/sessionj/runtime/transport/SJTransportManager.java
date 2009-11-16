@@ -25,27 +25,30 @@ abstract public class SJTransportManager
 	protected static final byte REUSE_SETUP_CONNECTION = 51;
 	protected static final byte CLOSE_SETUP_CONNECTION = 52;	
 	
-	//abstract public SJAcceptorThreadGroup openAcceptorGroup(int port) throws SJIOException;
 	abstract public SJAcceptorThreadGroup openAcceptorGroup(int port, SJSessionParameters params) throws SJIOException;
 	abstract public void closeAcceptorGroup(int port);
 	
-	//abstract public SJConnection openConnection(SJServerIdentifier si) throws SJIOException; // Currently unused because service identifier host names may be unsuitable.
-	//abstract public SJConnection openConnection(String hostName, int port) throws SJIOException; 
 	abstract public SJConnection openConnection(String hostName, int port, SJSessionParameters params) throws SJIOException;
 	abstract public void closeConnection(SJConnection conn);
 	
-	/*abstract public List<SJConnectionSetup> registeredNegociationTransports();
-	abstract public void setRegisteredSetups(List<SJConnectionSetup> setups);*/	
-	abstract public List<SJTransport> registeredNegociationTransports();
-	abstract public void configureNegociationTransports(List<SJTransport> transports);
+	abstract public Collection<SJTransport> activeNegotiationTransports();
+
+    /**
+     * Ensures the transports designated by the letter codes given as parameter
+     * are loaded, and returns a list with references to these transports.
+     * The transport will be instantiated if required.
+     * @param transportLetterCodes The letter codes for the required transports.
+     * @return The list of transports that were just loaded.
+     */
+    abstract public List<SJTransport> loadNegotiationTransports(String transportLetterCodes) throws SJIOException;
 	
-	abstract public List<SJTransport> registeredSessionTransports();
-	abstract public void configureSessionTransports(List<SJTransport> transports);
+	abstract public Collection<SJTransport> activeSessionTransports();
+	abstract public List<SJTransport> loadSessionTransports(String transportLetterCodes) throws SJIOException;
 	
 	abstract protected void registerConnection(SJConnection conn);
 	
 	abstract protected boolean serverNegotiation(SJAcceptorThreadGroup atg, SJConnection conn) throws SJIOException;
-	//abstract protected SJConnection clientNegotiation(String hostName, int port, SJSessionParameters params) throws SJIOException;
-	//abstract protected SJConnection clientNegotiation(String hostName, int port, List<SJTransport> ss, List<SJTransport> ts, List<String> tn) throws SJIOException;
 	abstract protected SJConnection clientNegotiation(String hostName, int port, List<SJTransport> ss, List<SJTransport> ts, List<String> tn, int boundedBufferSize) throws SJIOException;
+
+    public abstract List<SJTransport> defaultSessionTransports();
 }
