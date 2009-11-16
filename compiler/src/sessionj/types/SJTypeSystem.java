@@ -16,7 +16,9 @@ public interface SJTypeSystem extends TypeSystem
 	SJSendType SJSendType(Type messageType) throws SemanticException;
 	SJReceiveType SJReceiveType(Type messageType) throws SemanticException;
 	SJOutbranchType SJOutbranchType();
+	SJOutbranchType SJOutbranchType(boolean isDependentlyTyped);
 	SJInbranchType SJInbranchType();
+	SJInbranchType SJInbranchType(boolean isDependentlyTyped);
 	SJOutwhileType SJOutwhileType();
     SJSessionType SJOutwhileType(SJSessionType body);
 	SJInwhileType SJInwhileType();

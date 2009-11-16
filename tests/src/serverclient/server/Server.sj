@@ -15,7 +15,7 @@ import sessionj.runtime.transport.httpservlet.*;
 public class Server
 {	
 	//public final noalias protocol p_server { sbegin.?(String).!<String> }
-	public final noalias protocol p_server { sbegin.?[?{L1:?(String).!<String>}]*.!<int> }
+	public final noalias protocol p_server { sbegin.?[?{$1:?(String).!<String>}]*.!<int> }
 	
 	public void run(boolean debug, String setups, String transports, int port) throws Exception
 	{
@@ -40,7 +40,7 @@ public class Server
 					{
 						s.inbranch()
 						{
-							case L1:
+							case $1:
 							{
 								//System.out.println("Received: " + (String) s.receive(1000));
 								System.out.println("Received: " + (String) s.receive());

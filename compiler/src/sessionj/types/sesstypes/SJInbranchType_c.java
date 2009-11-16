@@ -14,9 +14,14 @@ public class SJInbranchType_c extends SJBranchType_c implements SJInbranchType
 
 	public SJInbranchType_c(TypeSystem ts)
 	{
-		super(ts);
+		this(ts, false);
 	}
 
+	public SJInbranchType_c(TypeSystem ts, boolean isDependentlyTyped)
+	{
+		super(ts, isDependentlyTyped);
+	}
+	
 	public SJInbranchType branchCase(SJLabel lab, SJSessionType st)
 	{
 		return (SJInbranchType) super.branchCase(lab, st);

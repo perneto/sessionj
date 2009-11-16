@@ -47,8 +47,8 @@ abstract public class SJTransportManager
 	
 	abstract protected void registerConnection(SJConnection conn);
 	
-	abstract protected boolean serverNegotiation(SJAcceptorThreadGroup atg, SJConnection conn) throws SJIOException;
-	abstract protected SJConnection clientNegotiation(String hostName, int port, List<SJTransport> ss, List<SJTransport> ts, List<String> tn, int boundedBufferSize) throws SJIOException;
+	abstract protected SJConnection clientNegotiation(SJSessionParameters params, String hostName, int port, List<SJTransport> ss, List<SJTransport> ts, List<String> tn, int boundedBufferSize) throws SJIOException;
+	abstract protected boolean serverNegotiation(SJSessionParameters params, SJAcceptorThreadGroup atg, SJConnection conn) throws SJIOException;
 
     public abstract List<SJTransport> defaultSessionTransports();
 }

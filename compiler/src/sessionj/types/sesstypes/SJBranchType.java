@@ -11,4 +11,6 @@ public interface SJBranchType extends SJSessionType
 	public SJSessionType branchCase(SJLabel lab);
 	public SJBranchType branchCase(SJLabel lab, SJSessionType st);
 	public SJSessionType removeCase(SJLabel lab);
+	
+	public boolean isDependentlyTyped(); // Extended to support this in a backwards-compatible way.
 }

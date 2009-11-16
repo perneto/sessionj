@@ -135,10 +135,20 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJOutbranchNode_c(pos, branchCases);
 	}
 	
+	/*public SJOutbranchNode SJOutbranchNode(Position pos, List<SJBranchCaseNode> branchCases, boolean isDependentlyTyped)
+	{
+		return new SJOutbranchNode_c(pos, branchCases, isDependentlyTyped);
+	}*/
+	
 	public SJInbranchNode SJInbranchNode(Position pos, List<SJBranchCaseNode> branchCases)
 	{
 		return new SJInbranchNode_c(pos, branchCases);
 	}
+	
+	/*public SJInbranchNode SJInbranchNode(Position pos, List<SJBranchCaseNode> branchCases, boolean isDependentlyTyped)
+	{
+		return new SJInbranchNode_c(pos, branchCases, isDependentlyTyped);
+	}*/
 	
 	public SJBranchCaseNode SJBranchCaseNode(Position pos, SJLabel lab, SJTypeNode body)
 	{
@@ -325,7 +335,8 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJSpawn_c(pos, w, name, arguments, targets);
 	}
 
-    public SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets)
+	// Can generalise this operation to support arbitrary objects as labels.
+  public SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets)
 	{	
 		return new SJOutlabel_c(pos, this, SJCompilerUtils.asLinkedList(StringLit(pos, lab.labelValue())), targets);
 	}
@@ -340,9 +351,14 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJOutsync_c(this, pos, condition, targets);
 	}
 
-    public SJRecursionEnter SJRecursionEnter(Position pos, List targets)
+  /*public SJRecursionEnter SJRecursionEnter(Position pos, List targets)
 	{	
 		return new SJRecursionEnter_c(pos, this, SJ_SOCKET_RECURSIONENTER, targets);
+	}*/
+	
+	public SJRecursionEnter SJRecursionEnter(Position pos, List args, List targets)
+	{	
+		return new SJRecursionEnter_c(pos, this, SJ_SOCKET_RECURSIONENTER, args, targets);
 	}
 	
 	public SJRecursionExit SJRecursionExit(Position pos, List targets)
@@ -362,12 +378,31 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		return new SJOutbranch_c(pos, stmtList, lab, targets);
 	}
 	
+	/*public SJOutbranch SJOutbranch(final Position pos, final List<Stmt> stmts, SJLabel lab, List<Receiver> targets, boolean isDependentlyTyped)
+	{
+		//final SJOutlabel os = SJOutlabel(pos, lab, targets); // SJOutlabel is implicitly based on Strings as labels. For the dependently-typed branches, we need to do extra work in type-building, checking and translation.
+		
+		List<Stmt> stmtList = new LinkedList<Stmt>() {{
+            //add(Eval(pos, os));
+            addAll(stmts);                    
+        }};
+		
+		return new SJOutbranch_c(pos, stmtList, lab, targets, isDependentlyTyped);
+	}*/
+	
 	public SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets)
 	{
 		SJInlabel il = SJInlabel(pos, arguments, targets);
 
         return new SJInbranch_c(pos, branchCases, il);
 	}
+	
+	/*public SJInbranch SJInbranch(Position pos, List arguments, List<SJInbranchCase> branchCases, List targets, boolean isDependentlyTyped)
+	{
+		SJInlabel il = SJInlabel(pos, arguments, targets);
+
+        return new SJInbranch_c(pos, branchCases, il, isDependentlyTyped);
+	}*/
 	
 	public SJInbranchCase SJInbranchCase(Position pos, List stmts, SJLabel lab)
 	{
@@ -393,7 +428,7 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
         return new SJInwhile_c(pos, body, targets);
 	}
 
-	public SJRecursion SJRecursion(Position pos, Block body, SJLabel lab, List targets) // Inconvenient to ...
+	public SJRecursion SJRecursion(final Position pos, Block body, final SJLabel lab, final List targets) // Inconvenient to ...
 	{
 		QQ qq = new QQ(extInfo, pos);
 
@@ -405,7 +440,13 @@ public class SJNodeFactory_c extends NodeFactory_c implements SJNodeFactory
 		
 		For f = (For) qq.parseStmt(translation, mapping.toArray());
 		
-		SJRecursionEnter re = SJRecursionEnter(pos, targets); 
+		List args = new LinkedList()
+		{{
+			add(StringLit(pos, lab.labelValue()));
+		}};
+		
+		//SJRecursionEnter re = SJRecursionEnter(pos, targets);
+		SJRecursionEnter re = SJRecursionEnter(pos, args, targets); // Extended recursion-enter to take the recursion label as an argument. We could have done this in the translation phase, but unlike recursion-exit, recursion-enter seems to be handled here.
 		
 		translation = "%E;";
 		mapping.add(re);

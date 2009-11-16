@@ -52,4 +52,5 @@
 - branch operations need default cases
 - check if noalias passing is enabled for select and session layer protocols like initiation
 - session-receiver party in a delegation can be deadlocked if the passive party fails to reconnect. maybe do something about this (via the session-sender)
- 
+- add a final else case to inbranch translation
+- delegation within a recursion is fine if we're on a branch that has no possibility to recurse

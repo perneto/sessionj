@@ -12,10 +12,15 @@ import sessionj.types.SJTypeSystem;
 
 public class SJInbranchNode_c extends SJBranchNode_c implements SJInbranchNode
 {
-    public SJInbranchNode_c(Position pos, List<SJBranchCaseNode> branchCases)
+  public SJInbranchNode_c(Position pos, List<SJBranchCaseNode> branchCases)
 	{
-		super(pos, branchCases);
+		this(pos, branchCases, false);
 	}
+   
+  public SJInbranchNode_c(Position pos, List<SJBranchCaseNode> branchCases, boolean isDependentlyTyped)
+	{
+		super(pos, branchCases, isDependentlyTyped);
+	}    
 
 	public SJInbranchNode branchCases(List<SJBranchCaseNode> branchCases)
 	{

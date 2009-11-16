@@ -14,9 +14,14 @@ public class SJOutbranchType_c extends SJBranchType_c implements SJOutbranchType
 
 	public SJOutbranchType_c(TypeSystem ts)
 	{
-		super(ts);
+		this(ts, false);
 	}
 
+	public SJOutbranchType_c(TypeSystem ts, boolean isDependentlyTyped)
+	{
+		super(ts, isDependentlyTyped);
+	}
+	
 	public SJOutbranchType branchCase(SJLabel lab, SJSessionType st)
 	{
 		return (SJOutbranchType) super.branchCase(lab, st);

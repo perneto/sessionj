@@ -157,10 +157,10 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		if (!(protocol instanceof SJBeginType))
 		{
-			throw new SJIOException("Protool should start with `" + sjbt + "', not : " + protocol);
+			throw new SJIOException("Protool should start with '" + sjbt + "', not : " + protocol);
 		}
 
-		pushTopLevel(protocol);//.treeClone()); // `child' returns a cloned subtree.		
+		pushTopLevel(protocol);//.treeClone()); // 'child' returns a cloned subtree.		
 		advanceContext(sjbt);
 		
 		return sjbt;//.nodeClone()); // (Node)clone is essentially equivalent to instantiation.
@@ -218,7 +218,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		
 		if (!(sjtype instanceof SJBeginType)) // sendAux checks subtype direction.
 		{
-			throw new SJIOException("Expected `" + active + "' but implemented: " + sjst);
+			throw new SJIOException("Expected '" + active + "' but implemented: " + sjst);
 		}*/
 		
 		return sendAux(sjtype);
@@ -237,11 +237,11 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			throw new SJIOException(se);
 		}
 
-		/*SJSessionType active = activeType().nodeClone();
+		/*SJSessionType active = activeType().nodeClone(); // We trust ourselves to send correctly.
 
 		if (!active.isSubtype(sjst))
 		{
-			throw new SJIOException("Expected `" + active + "' but implemented: " + sjst);
+			throw new SJIOException("Expected '" + active + "' but implemented: " + sjst);
 		}*/
 
 		advanceContext(sjst);
@@ -294,12 +294,10 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final SJSessionType receiveChannel(SJSessionType sjtype) throws SJIOException
 	{
-		/*SJSessionType active = activeType();//.nodeClone();
-
-		if (!(sjtype instanceof SJBeginType)) // receiveAux checks subtyping direciton.
+		if (!(sjtype instanceof SJCBeginType)) // receiveAux checks subtyping direction. // Unlike for send where we trust ourselves, we don't necessary trust our peer on receives.
 		{
-			throw new SJIOException("Expected `" + active + "' but received: " + sjrt);
-		}*/
+			throw new SJIOException("Received channel type must start with cbegin, not: " + sjtype);
+		}
 		
 		return receiveAux(sjtype);
 	}
@@ -317,12 +315,12 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			throw new SJIOException(se);
 		}
 
-		/*SJSessionType active = activeType();//.nodeClone();
+		SJSessionType active = activeType();//.nodeClone(); // Unlike for send where we trust ourselves, we don't necessary trust our peer on receives.
 
 		if (!sjrt.nodeSubtype(active)) // Opposite direction to send.
 		{
-			throw new SJIOException("Expected `" + active + "' but received: " + sjrt);
-		}*/
+			throw new SJIOException("Expected '" + active.nodeClone() + "' but received: " + sjrt);
+		}
 
 		advanceContext(sjrt);
 
@@ -345,7 +343,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		debugPrintln("Pushed outbranch: " + lab);
 	}
 
-	public final void inbranch(SJLabel lab) // Expected message was a String, already implicitly checked (casting) by socket implementation. Move check into here?
+	public final void inbranch(SJLabel lab) throws SJIOException // Expected message was a String, already implicitly checked (casting) by socket implementation. Move check into here?
 	{
 		SJSessionType active = activeType();//.nodeClone();
 
@@ -354,7 +352,14 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			throw new SJIOException("Expected inbranch, but implemented: " + active);
 		}*/
 
-		pushInbranch(lab, ((SJInbranchType) active).branchCase(lab));
+		SJInbranchType ibt = (SJInbranchType) active;
+		
+		if (!ibt.labelSet().contains(lab))
+		{
+			throw new SJIOException("Unexpected branch label: " + lab);
+		}
+		
+		pushInbranch(lab, ibt.branchCase(lab));
 		
 		debugPrintln("Pushed inbranch: " + lab);
 	}

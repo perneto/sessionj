@@ -38,11 +38,21 @@ public class SJTypeSystem_c extends TypeSystem_c implements SJTypeSystem
 		return new SJOutbranchType_c(this);
 	}
 
+	public SJOutbranchType SJOutbranchType(boolean isDependentlyTyped)
+	{
+		return new SJOutbranchType_c(this, isDependentlyTyped);
+	}
+	
 	public SJInbranchType SJInbranchType()
 	{
 		return new SJInbranchType_c(this);
 	}
 
+	public SJInbranchType SJInbranchType(boolean isDependentlyTyped)
+	{
+		return new SJInbranchType_c(this, isDependentlyTyped);
+	}
+	
 	public SJOutwhileType SJOutwhileType()
 	{
 		return new SJOutwhileType_c(this);

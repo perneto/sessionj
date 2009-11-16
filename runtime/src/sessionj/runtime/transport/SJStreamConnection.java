@@ -46,7 +46,7 @@ abstract public class SJStreamConnection implements SJConnection
 		try
 		{
 			dos.writeByte(b);
-			//dos.flush(); // Needed? Should instead expose the flush method?
+			//dos.flush(); // Let upper layers sort out flushing.
 		}
 		catch (IOException ioe)
 		{
@@ -70,7 +70,7 @@ abstract public class SJStreamConnection implements SJConnection
 	{
 		try
 		{
-			return dis.readByte();
+			return dis.readByte(); // Can raise EOFException. Only the read operation that returns number of bytes read can signal via a -1 in such a case.
 		}
 		catch (IOException ioe)
 		{

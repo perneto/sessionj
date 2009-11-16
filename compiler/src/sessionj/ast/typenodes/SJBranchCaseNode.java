@@ -10,4 +10,6 @@ public interface SJBranchCaseNode extends SJTypeNode
 	SJLabel label();
 
 	SJTypeNode body();
+	
+	boolean isDependentlyTyped();
 }

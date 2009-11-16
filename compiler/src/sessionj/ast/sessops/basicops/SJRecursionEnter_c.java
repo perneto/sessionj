@@ -9,8 +9,13 @@ import java.util.LinkedList;
 
 public class SJRecursionEnter_c extends SJBasicOperation_c implements SJRecursionEnter  
 {	
-	public SJRecursionEnter_c(Position pos, SJNodeFactory nf, String name, List targets)
+	public SJRecursionEnter_c(Position pos, SJNodeFactory nf, String name, List args, List targets)
+	{
+		super(pos, nf, name, args, targets);
+	}
+	
+	/*public SJRecursionEnter_c(Position pos, SJNodeFactory nf, String name, List targets)
 	{
 		super(pos, nf, name, new LinkedList<Expr>(), targets);
-	}
+	}*/
 }

@@ -22,6 +22,8 @@ public class SJMessage implements Serializable
 	public static final byte SJ_BOOLEAN = 6;	
 	public static final byte SJ_DOUBLE = 7;
 	
+	//FIXME: should factor our explicit label and "synchronization" types.
+	
 	private final byte type;
 	private final Object content;
 	
