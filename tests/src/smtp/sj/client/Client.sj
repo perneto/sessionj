@@ -61,8 +61,7 @@ public class Client
 							?(Rcpt5Ack)	
 					},
 			  DATA: 
-					!<DataLineFeed>
-			  	.?(DataAck)
+					!<DataLineFeed>.?(DataAck)
 					.!<MessageBody>.?(MessageBodyAck)	// Subject would have a "SUBJECT: " prefix, but how about no subject?		
 			}
 		]
