@@ -493,7 +493,7 @@ public class SJFifoPair implements SJTransport
 		return TRANSPORT_NAME;
 	}
 	
-	public static boolean portFree(int port)
+	private static synchronized boolean portFree(int port)
 	{
         FileLock lock = null;
         try {
