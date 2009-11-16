@@ -273,12 +273,11 @@ public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
 		return true;
 	}
 
-	public boolean recursionEnter() throws SJIOException
+	public boolean recursionEnter(String lab) throws SJIOException
 	{
 		if (RUNTIME_MONITORING)
 		{
-			//sm.recursion(new SJLabel(lab));
-			sm.recursion(new SJLabel(null));
+			sm.recursion(new SJLabel(lab));
 		}		
 		
 		return false;

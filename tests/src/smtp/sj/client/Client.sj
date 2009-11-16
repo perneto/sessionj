@@ -28,24 +28,17 @@ public class Client
 		//^(Server.p_server)
 		cbegin
 		.?(ServerGreeting)
-		.!<Helo>
-		.?(HeloAck)
-		.!<Mail>
-		.?(MailAck)
-		.!<Rcpt>
-		.?{
+		.!<Helo>.?(HeloAck)
+		.!<Mail>.?(MailAck)
+		.!<Rcpt>.?{
 			$2: 
 				?(Rcpt2Ack)
-				.!<Data>
-				.?(DataAck)
-				.!<MessageBody>
-				.?(MessageBodyAck)
-				.!<Quit>
-				.?(QuitAck),
+				.!<Data>.?(DataAck)
+				.!<MessageBody>.?(MessageBodyAck)
+				.!<Quit>.?(QuitAck),
 			$5:	
 				?(Rcpt5Ack)	
-				.!<Quit>
-				.?(QuitAck)		
+				.!<Quit>.?(QuitAck)		
 		}
 	}
 	

@@ -87,7 +87,7 @@ public class SJSessionOperationParser extends ContextVisitor
 
 	private Call parseSJBasicOperation(SJBasicOperation bo) throws SemanticException
 	{
-		bo = fixSJBasicOperationArguments(bo);
+		bo = fixSJBasicOperationArguments(this, bo);
 		
 		return bo;
 	} 
@@ -138,8 +138,9 @@ public class SJSessionOperationParser extends ContextVisitor
 		return c;
 	}
 	
+	// RAY: was an instance method, but now refactored to make static because later passes, specifically translations that create basic operations, may need this (e.g. SJCompoundOperationTranslator for recursion-exit operations). 
 	// Replaces (or updates) the "dummy array" argument created by original parsing with the actual session socket targets. 
-	private SJBasicOperation fixSJBasicOperationArguments(final SJBasicOperation bo) throws SemanticException
+	protected static final SJBasicOperation fixSJBasicOperationArguments(ContextVisitor cv, final SJBasicOperation bo) throws SemanticException
 	{
 		List targets = bo.targets(); // Already type built and checked by SJVariableParser.
 		
@@ -148,7 +149,7 @@ public class SJSessionOperationParser extends ContextVisitor
         for (Object target : targets) {
             Receiver r = (Receiver) target;
 
-            if (!(r instanceof SJSocketVariable)) {
+            if (!(r instanceof SJSocketVariable)) { // Parsed by SJVariableParser.
                 throw new SemanticException("[SJSessionOperationParser] Expected session socket target, not: " + r);
             }
 
@@ -160,8 +161,10 @@ public class SJSessionOperationParser extends ContextVisitor
 
             seen.add(li);
         }
-        ArrayInit ai = sjnf.ArrayInit(bo.position(), targets);
-        ai = (ArrayInit) buildAndCheckTypes(this, ai);
+        //ArrayInit ai = sjnf.ArrayInit(bo.position(), targets);
+        ArrayInit ai = ((SJNodeFactory) cv.nodeFactory()).ArrayInit(bo.position(), targets);
+        //ai = (ArrayInit) buildAndCheckTypes(this, ai);
+        ai = (ArrayInit) buildAndCheckTypes(cv, ai);
         final NewArray na = bo.dummyArray()
                 .init(ai)
                 .dims(Collections.emptyList())

@@ -764,16 +764,18 @@ public class SJRuntime
         // TODO multi-socket
 	}
 
-	public static boolean recursionEnter(SJSocket s) throws SJIOException
+	//public static boolean recursionEnter(SJSocket s) throws SJIOException
+	public static boolean recursionEnter(String lab, SJSocket s) throws SJIOException
 	{
-		return s.recursionEnter();
+		return s.recursionEnter(lab);
 	}
 
-	public static boolean recursionEnter(SJSocket... sockets) throws SJIOException
+	//public static boolean recursionEnter(SJSocket... sockets) throws SJIOException
+	public static boolean recursionEnter(String lab, SJSocket... sockets) throws SJIOException
 	{
 		for (SJSocket s : sockets)
 		{
-			s.recursionEnter(); // Should return false.
+			s.recursionEnter(lab); // Should return false.
 		}
 		
 		return false;
@@ -788,7 +790,7 @@ public class SJRuntime
 	{
 		for (SJSocket s : sockets)
 		{
-			s.recursionEnter(); // Should return false.
+			s.recursionExit(); // Should return false.
 		}
 		
 		return false;		

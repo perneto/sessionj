@@ -216,7 +216,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			}
 			else 
 			{
-				throw new SJIOException("[SJSmtpParser] Shouldn't get in here.");
+				throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here.");
 			}
 		}
 		catch (CharacterCodingException cce)

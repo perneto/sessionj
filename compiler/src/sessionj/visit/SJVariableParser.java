@@ -39,7 +39,7 @@ public class SJVariableParser extends ContextVisitor
 			}
 			else if (n instanceof Local)
 			{
-				n = parseSJLocal((Local) n);
+				n = parseSJLocal(this, (Local) n);
 			}
 			else //if (n instanceof ArrayAccess)
 			{
@@ -52,7 +52,7 @@ public class SJVariableParser extends ContextVisitor
 		}
 		else if (n instanceof SJSessionOperation)
 		{
-			n = parseSJSessionOperation((SJSessionOperation) n);
+			n = parseSJSessionOperation(this, (SJSessionOperation) n);
 			
 			/*if (n instanceof SJOutbranch)
 			{
@@ -93,8 +93,10 @@ public class SJVariableParser extends ContextVisitor
 		return f;
 	}		
 	
-	private Local parseSJLocal(Local l) throws SemanticException // Doesn't attach extension objects (SJVariables are not SJTypeable).
+	private static final Local parseSJLocal(ContextVisitor cv, Local l) throws SemanticException // Doesn't attach extension objects (SJVariables are not SJTypeable).
 	{
+		SJNodeFactory sjnf = (SJNodeFactory) cv.nodeFactory();
+		
 		SJVariable v = null;
 		
 		if (l.type().isSubtype(SJ_CHANNEL_TYPE))
@@ -116,7 +118,8 @@ public class SJVariableParser extends ContextVisitor
 		 
 		if (v != null)
 		{
-			l = (Local) buildAndCheckTypes(this, v); // Instead could just reassign the existing type objects of `l' to `v'?
+			//l = (Local) buildAndCheckTypes(this, v); // Instead could just reassign the existing type objects of `l' to `v'?
+			l = (Local) buildAndCheckTypes(cv, v);
 		}
 		
 		return l;
@@ -137,39 +140,45 @@ public class SJVariableParser extends ContextVisitor
 	// Session operation targets currently not visited by base passes.
 	private SJTry parseSJTry(SJTry st) throws SemanticException
 	{										
-		return st.targets(parseSJVariableList(st.targets(), false));
+		return st.targets(parseSJVariableList(this, st.targets(), false));
 	}
 		
 	// Currently duplicated with SJTry (could make SJTry a SJNamed).
-	private SJSessionOperation parseSJSessionOperation(SJSessionOperation so) throws SemanticException
+	//RAY: was an instance method, but now refactored to make static because later passes, specifically translations that create basic operations, may need this (e.g. SJCompoundOperationTranslator for recursion-exit operations).
+	//private SJSessionOperation parseSJSessionOperation(SJSessionOperation so) throws SemanticException
+	protected static final SJSessionOperation parseSJSessionOperation(ContextVisitor cv, SJSessionOperation so) throws SemanticException
 	{
-		return so.targets(parseSJVariableList(so.targets(), false));
+		//return so.targets(parseSJVariableList(this, so.targets(), false));
+		return so.targets(parseSJVariableList(cv, so.targets(), false));
 	}	
 	
 	private SJSpawn parseSJSpawn(SJSpawn s) throws SemanticException // Based on parseSJSessionOperation.
 	{
-		return s.targets(parseSJVariableList(s.targets(), true));		
+		return s.targets(parseSJVariableList(this, s.targets(), true));		
 	}	
 	
 	// Should check no repeated sockets for session-try and session operations. // Now also optionally does channels (for SJSpawn).
-	private List<SJVariable> parseSJVariableList(List l, boolean channelsAllowed) throws SemanticException
+	//public static final List<SJVariable> parseSJVariableList(List l, boolean channelsAllowed) throws SemanticException
+	private static final List<SJVariable> parseSJVariableList(ContextVisitor cv, List l, boolean channelsAllowed) throws SemanticException
 	{
 		List<SJVariable> targets = new LinkedList<SJVariable>();
 
         for (Object aL : l) {
-            Receiver r = (Receiver) buildAndCheckTypes(this, (Node) aL); // Runs AmbiguityRemover.
+            //Receiver r = (Receiver) buildAndCheckTypes(this, (Node) aL); // Runs AmbiguityRemover.
+        	Receiver r = (Receiver) buildAndCheckTypes(cv, (Node) aL); // Runs AmbiguityRemover.
 
             Type t = r.type();
 
             if (r instanceof Local) {
                 if (t.isSubtype(SJ_SOCKET_INTERFACE_TYPE) || t.isSubtype(SJ_SERVER_INTERFACE_TYPE)) {
-                    targets.add((SJVariable) parseSJLocal((Local) r));
+                    //targets.add((SJVariable) parseSJLocal((Local) r));
+                    targets.add((SJVariable) parseSJLocal(cv, (Local) r));
                 } else if (channelsAllowed && t.isSubtype(SJ_CHANNEL_TYPE)) {
-                    targets.add((SJChannelVariable) parseSJLocal((Local) r));                    
+                    targets.add((SJChannelVariable) parseSJLocal(cv, (Local) r));                    
                 } 
                 else if (t.isSubtype(SJ_SELECTOR_INTERFACE_TYPE))
                 {
-                	targets.add((SJSelectorVariable) parseSJLocal((Local) r));
+                	targets.add((SJSelectorVariable) parseSJLocal(cv, (Local) r));
                 }
                 else {
                     throw new SemanticException("[SJVariableParser] Expected session socket or server variable, not: " + r);

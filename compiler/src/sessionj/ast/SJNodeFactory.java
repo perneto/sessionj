@@ -98,7 +98,8 @@ public interface SJNodeFactory extends NodeFactory
 	
 	SJOutlabel SJOutlabel(Position pos, SJLabel lab, List targets);
 	SJInlabel SJInlabel(Position pos, List arguments, List targets);
-	SJRecursionEnter SJRecursionEnter(Position pos, List targets);
+	//SJRecursionEnter SJRecursionEnter(Position pos, List targets);
+	SJRecursionEnter SJRecursionEnter(Position pos, List args, List targets);
 	SJRecursionExit SJRecursionExit(Position pos, List targets);
 	
 	SJOutbranch SJOutbranch(Position pos, List<Stmt> stmts, SJLabel lab, List<Receiver> targets);	
