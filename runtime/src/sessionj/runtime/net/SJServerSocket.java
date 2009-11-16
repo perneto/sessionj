@@ -6,6 +6,8 @@ package sessionj.runtime.net;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
 import sessionj.runtime.transport.SJAcceptorThreadGroup;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJConnectionAcceptor;
 
 /**
  * @author Raymond
@@ -90,4 +92,16 @@ abstract public class SJServerSocket implements SJChannel
 	{
 		return params;
 	}
+
+    public boolean typeStartsWithOutput() throws SJIOException {
+        return getProtocol().type().child().startsWithOutput();
+    }
+
+    public SJConnection nextConnection() throws SJIOException {
+        return getAcceptorGroup().nextConnection();
+    }
+
+    public SJConnectionAcceptor getAcceptorFor(String transportName) {
+        return getAcceptorGroup().getAcceptorFor(transportName);
+    }
 }

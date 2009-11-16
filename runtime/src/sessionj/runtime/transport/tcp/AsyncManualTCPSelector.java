@@ -2,15 +2,15 @@ package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.*;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJTransport;
+import sessionj.util.Pair;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  */
@@ -19,6 +19,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     private final String transportName;
     private final Map<SocketChannel, SJSocket> registeredInputs;
     private final Map<ServerSocketChannel, SJServerSocket> registeredAccepts;
+    private static final Logger logger = Logger.getLogger(AsyncManualTCPSelector.class.getName());
 
     AsyncManualTCPSelector(SelectingThread thread, String transportName) {
         this.thread = thread;
@@ -27,13 +28,10 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         registeredAccepts = new HashMap<ServerSocketChannel, SJServerSocket>();
     }
 
+    @SuppressWarnings({"MethodParameterOfConcreteClass"})
     public boolean registerAccept(SJServerSocket ss) throws IOException {
-        if (supportsUs(ss)) {
-            // Async transports don't support early listening for server sockets (as managed by
-            // SJTransportManager_c), so we start listening here, later than other transports.
-            ServerSocketChannel ssc = ServerSocketChannel.open();
-            ssc.socket().bind(new InetSocketAddress(ss.getLocalPort()));
-            ssc.configureBlocking(false);
+        ServerSocketChannel ssc = retrieveServerSocketChannel(ss);
+        if (ssc != null) {
             thread.registerAccept(ssc);
             registeredAccepts.put(ssc, ss);
             return true;
@@ -51,50 +49,52 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         return false;
     }
 
-    public SJSocket select(int mask) throws SJIOException, SJIncompatibleSessionException {
+    public SJSocket select() throws SJIOException, SJIncompatibleSessionException {
         SJSocket s = null;
-        if ((mask & INPUT) != 0) {
-            SocketChannel sc = thread.selectForInput();
-            assert registeredInputs.containsKey(sc);
-            s = registeredInputs.get(sc);
-        }
-
-        if ((mask & ACCEPT) != 0 && s == null) {
-            ServerSocketChannel sc = thread.selectForAccept();
-            assert sc != null;
+        while (s == null) {
+            Object chan;
             try {
-                s = finishAccept(sc);
-            } catch (IOException e) {
+                chan = thread.dequeueChannelForSelect(); // blocking dequeue
+            } catch (InterruptedException e) {
                 throw new SJIOException(e);
             }
+            if (chan instanceof SocketChannel) {
+                SocketChannel sc = (SocketChannel) chan;
+                assert registeredInputs.containsKey(sc);
+                s = registeredInputs.get(sc);
+            }  else  {
+                Pair<ServerSocketChannel, SocketChannel> p = (Pair<ServerSocketChannel, SocketChannel>) chan;
+                ServerSocketChannel ssc = p.first;
+                assert registeredAccepts.containsKey(ssc);
+
+                // OK even if we only do outputs: enqueing write requests will change the interest
+                // set for the channel. Input is the default interest that we go back to after everything
+                // is written.
+                thread.registerInput(p.second);
+
+                SJServerSocket sjss = registeredAccepts.get(ssc);
+                if (sjss.typeStartsWithOutput())
+                    s = sjss.accept();
+                else
+                    return select();
+                // The new SocketChannel is registered for reading just before,
+                // so no need to do anything else.
+            }
         }
-
-        assert s != null;
-        return s;
-    }
-
-    private SJSocket finishAccept(ServerSocketChannel ssc) throws IOException, SJIOException, SJIncompatibleSessionException {
-        SocketChannel socketChannel = ssc.accept();
-        socketChannel.configureBlocking(false);
-        socketChannel.socket().setTcpNoDelay(SJStreamTCP.TCP_NO_DELAY);
-        SJServerSocket ss = registeredAccepts.get(ssc);
-
-        SJAbstractSocket s = new SJAcceptingSocket(ss.getProtocol(), ss.getParameters());
-        SJConnection conn = new AsyncConnection(thread, socketChannel);
-        SJRuntime.bindSocket(s, conn);
-        SJRuntime.accept(s);
         return s;
     }
 
     public void close() throws SJIOException {
-
-    }
-
-    private boolean supportsUs(SJServerSocket ss) {
-        for (SJTransport t : ss.getParameters().getSessionTransports()) {
-            if (isUs(t)) return true;
+        Collection<SelectableChannel> channels = new LinkedList<SelectableChannel>();
+        channels.addAll(registeredAccepts.keySet());
+        channels.addAll(registeredInputs.keySet());
+        for (SelectableChannel chan : channels) {
+            try {
+                chan.close();
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Could not close channel", e);
+            }
         }
-        return false;
     }
 
     private SocketChannel retrieveSocketChannel(SJSocket s) {
@@ -105,9 +105,14 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         }
         return sc;
     }
-
-    private boolean isUs(SJTransport t) {
-        return isOurName(t.getTransportName());
+    
+    private ServerSocketChannel retrieveServerSocketChannel(SJServerSocket ss) {
+        AsyncTCPAcceptor acceptor = (AsyncTCPAcceptor) ss.getAcceptorFor(transportName);
+        if (acceptor == null) {
+            return null;
+        } else {
+            return acceptor.ssc;
+        }
     }
 
     private boolean isOurSocket(SJSocket s) {

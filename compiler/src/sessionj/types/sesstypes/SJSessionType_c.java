@@ -195,8 +195,12 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	abstract protected boolean eligibleForDualtype(SJSessionType st);
 	
 	abstract protected boolean compareNode(NodeComparison o, SJSessionType st);
-	
-	public SJSessionType treeClone()
+
+    public boolean startsWithOutput() {
+        return false;
+    }
+
+    public SJSessionType treeClone()
 	{
 		SJSessionType st = getChild();
 		

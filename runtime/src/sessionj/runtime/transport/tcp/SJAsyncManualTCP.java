@@ -9,6 +9,8 @@ import sessionj.runtime.transport.SJTransport;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -22,9 +24,11 @@ public final class SJAsyncManualTCP implements SJTransport
 	static final boolean TCP_NO_DELAY = true;
 	
     private final AsyncManualTCPSelector selector;
+    private final SelectingThread thread;
+    private static final Logger logger = Logger.getLogger(SJAsyncManualTCP.class.getName());
 
     public SJAsyncManualTCP() throws IOException {
-        SelectingThread thread = new SelectingThread(new SJManualDeserializer());
+        thread = new SelectingThread(new SJManualDeserializer());
         selector = new AsyncManualTCPSelector(thread, TRANSPORT_NAME);
         Thread t = new Thread(thread);
         t.setDaemon(true);
@@ -32,29 +36,33 @@ public final class SJAsyncManualTCP implements SJTransport
     }
 
     public SJConnectionAcceptor openAcceptor(int port) {
-        throw new UnsupportedOperationException("Blocking mode unsupported");
+        return new AsyncTCPAcceptor(thread);
     }
 	
 	public SJConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
 	{
+        Socket s = null;
         try {
-            Socket s = new Socket(hostName, port);
+            //noinspection SocketOpenedButNotSafelyClosed
+            s = new Socket(hostName, port);
             s.setTcpNoDelay(TCP_NO_DELAY);
 
-            return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream()); // Have to get I/O streams here for exception handling.
+            // TODO: Allow async operation on the client too.
+            return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream());
         }
         catch (IOException ioe)
         {
+            try {
+                if (s != null) s.close();
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Could not close socket after initial exception:" + ioe, e);
+            }
             throw new SJIOException(ioe);
         }
 	}
 
     public SJSelectorInternal transportSelector() {
         return selector;
-    }
-
-    public boolean blockingModeSupported() {
-        return false;
     }
 
     public boolean portInUse(int port)
