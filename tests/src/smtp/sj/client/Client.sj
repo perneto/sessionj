@@ -102,25 +102,25 @@ public class Client
 			
 			boolean firstIteration = true;
 			boolean anotherRecipient = true;
-			
-			if (firstIteration)
-			{
-				firstIteration = false;
-			}
-			else
-			{				
-				System.out.print("Another recipient? [y/n]: ");
-				
-				String reply = readUserInput(sc);
-				
-				if (reply.equals("y"))
-				{
-					anotherRecipient = true;
-				}
-			}
-			
+						
 			s.recursion(RCPT)
 			{
+				if (firstIteration)
+				{
+					firstIteration = false;
+				}
+				else
+				{				
+					System.out.print("Another recipient? [y/n]: ");
+					
+					String reply = readUserInput(sc);
+					
+					if (reply.equals("y"))
+					{
+						anotherRecipient = true;
+					}
+				}
+							
 				if (anotherRecipient)
 				{
 					s.outbranch(RCPT)
@@ -161,7 +161,7 @@ public class Client
 						System.out.print("Message subject?: ");
 						String subject = readUserInput(sc);
 						
-						System.out.print("Message body? (Write newlines as \"\n\".): ");
+						System.out.print("Message body? (Enter ends the message.): ");
 						String text = readUserInput(sc);
 						
 						MessageBody body = new MessageBody("SUBJECT:" + subject + "\n\n" + text);				
