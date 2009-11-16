@@ -6,6 +6,7 @@ package sessionj.runtime.transport;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.net.SJSessionParameters;
+import sessionj.runtime.session.SJCompatibilityMode;
 import sessionj.runtime.transport.httpservlet.SJHTTPServlet;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 import sessionj.runtime.transport.sharedmem.SJFifoPair;
@@ -56,7 +57,7 @@ public class SJTransportManager_c extends SJTransportManager
         debug("Default negotiation transports: " + defaultNegotiationTransports 
             + ": "+ activeNegotiationTransports);
 	}
-
+	
     private void initDefaultSessionTransports() throws SJIOException {
         loadSessionTransports(defaultSessionTransports);
         debug("Default session transports: " + defaultSessionTransports 
@@ -126,7 +127,7 @@ public class SJTransportManager_c extends SJTransportManager
         List<SJTransport> ts = params.getSessionTransports();
         Collection<String> sn = transportNames(ss);
 
-        return openAcceptorGroup(port, ss, ts, sn, params.getBoundedBufferSize());
+        return openAcceptorGroup(port, ss, ts, sn, params);
 	}
 
     private List<String> transportNames(Iterable<SJTransport> ss) {
@@ -135,8 +136,8 @@ public class SJTransportManager_c extends SJTransportManager
         for (SJTransport t : ss) sn.add(t.getTransportName());
         return sn;
     }
-
-    private SJAcceptorThreadGroup openAcceptorGroup(int port, Iterable<SJTransport> ss, Iterable<SJTransport> ts, Collection<String> sn, int boundedBufferSize) throws SJIOException // Synchronized where necessary from calling scope.
+    
+	private SJAcceptorThreadGroup openAcceptorGroup(int port, Iterable<SJTransport> ss, Iterable<SJTransport> ts, Collection<String> sn, SJSessionParameters params) throws SJIOException // Synchronized where necessary from calling scope.
 	{
         debug("[SJTransportManager_c] Openening acceptor group: " + port);
 
@@ -152,12 +153,12 @@ public class SJTransportManager_c extends SJTransportManager
 			
 			String name = ((Integer) port).toString(); // FIXME: Factor out threadgroup name scheme.
 			
-			SJAcceptorThreadGroup atg = new SJAcceptorThreadGroup(this, port, name); 
+			SJAcceptorThreadGroup atg = new SJAcceptorThreadGroup(this, port, name, params); 
 			
 			Collection<SJSetupThread> sts = new LinkedList<SJSetupThread>();			
 			
 			for (SJTransport t : ss) 
-                sts.add(openAcceptorForNegotiation(port, boundedBufferSize, atg, sts, t));
+                sts.add(openAcceptorForNegotiation(port, params.getBoundedBufferSize(), atg, sts, t));
 			
 			if (sts.isEmpty())
                 throw new SJIOException("[SJTransportManager_c] No valid negociationTrans: " + port);
@@ -172,7 +173,7 @@ public class SJTransportManager_c extends SJTransportManager
 				}
 				else 
 				{
-                    SJAcceptorThread thread = openAcceptorForSession(boundedBufferSize, atg, t);
+                    SJAcceptorThread thread = openAcceptorForSession(params.getBoundedBufferSize(), atg, t);
                     if (thread != null) ats.add(thread);
                 }
 			}
@@ -266,7 +267,7 @@ public class SJTransportManager_c extends SJTransportManager
         List<SJTransport> ts = params.getSessionTransports();
         List<String> tn = transportNames(ts);
 
-        SJConnection conn = clientNegotiation(hostName, port, ss, ts, tn, params.getBoundedBufferSize());
+        SJConnection conn = clientNegotiation(params, hostName, port, ss, ts, tn, params.getBoundedBufferSize());
 
         if (conn == null)
             throw new SJIOException("[SJTransportManager_c] Connection failed: " + hostName + ":" + port);
@@ -323,8 +324,19 @@ public class SJTransportManager_c extends SJTransportManager
 		}*/
 	}
 	
-	protected boolean serverNegotiation(SJAcceptorThreadGroup atg, SJConnection conn) throws SJIOException
+	protected boolean serverNegotiation(SJSessionParameters params, SJAcceptorThreadGroup atg, SJConnection conn) throws SJIOException
 	{
+		SJCompatibilityMode mode = params.getCompatibilityMode();
+		
+		if (mode == SJCompatibilityMode.CUSTOM)
+		{
+			return true; // Bypass negotiation protocol and use the existing connection for the session.
+		}
+		else if (mode != SJCompatibilityMode.SJ)
+		{
+			throw new SJRuntimeException("[SJTransportManager_c] Unknown compatibility mode: " + mode);
+		}
+			
 		Map<String, Integer> tn = atg.getTransports();
 		
 		boolean transportAgreed;  
@@ -404,7 +416,7 @@ public class SJTransportManager_c extends SJTransportManager
 		return reuse; 		
 	}
 	
-	protected SJConnection clientNegotiation(String hostName, int port, List<SJTransport> ss, List<SJTransport> ts, List<String> tn, int boundedBufferSize) throws SJIOException // Synchronized where necessary from calling scope.
+	protected SJConnection clientNegotiation(SJSessionParameters params, String hostName, int port, List<SJTransport> ss, List<SJTransport> ts, List<String> tn, int boundedBufferSize) throws SJIOException // Synchronized where necessary from calling scope.
 	{
 		SJConnection conn = null;
 		
@@ -436,6 +448,17 @@ public class SJTransportManager_c extends SJTransportManager
 			throw new SJIOException("[SJTransportManager_c] Setup failed: " + hostName + ':' + port);
 		}			
 				
+		SJCompatibilityMode mode = params.getCompatibilityMode();
+		
+		if (mode == SJCompatibilityMode.CUSTOM) // Bypass negotiation protocol: go straight to session-layer accept/request protocol.
+		{
+			return conn;
+		}
+		else if (mode != SJCompatibilityMode.SJ)
+		{
+			throw new SJRuntimeException("[SJTransportManager_c] Unknown compatibility mode: " + mode);
+		}
+		
 		boolean transportAgreed;
 		
 		String sname = conn.getTransportName();

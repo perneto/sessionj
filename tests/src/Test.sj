@@ -12,7 +12,7 @@ public class Test
 {		
 	public static void main(String[] args) throws Exception
 	{
-		final noalias protocol p1 { cbegin.?{L1:!<int>} }
+		final noalias protocol p1 { cbegin.?{$1:!<int>} }
 		final noalias protocol p2 { cbegin.?[!<int>]* }
 		
 		final noalias SJService c1 = SJService.create(p1, "", 1234);
@@ -34,7 +34,7 @@ public class Test
 			
 			s1.inbranch()
 			{
-				case L1: 
+				case $1: 
 				{
 					s1.send(123);
 					//s1.send("ABC");

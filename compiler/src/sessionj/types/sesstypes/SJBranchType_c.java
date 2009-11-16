@@ -4,6 +4,7 @@ import java.util.*;
 
 import polyglot.types.*;
 
+import sessionj.SJConstants;
 import sessionj.util.SJLabel;
 import sessionj.util.SJCompilerUtils;
 
@@ -11,13 +12,24 @@ import static sessionj.SJConstants.*;
 
 abstract public class SJBranchType_c extends SJSessionType_c implements SJBranchType
 {
+	private static final long serialVersionUID = SJConstants.SJ_VERSION;
+	
 	private HashMap<SJLabel, SJSessionType> cases = new HashMap<SJLabel, SJSessionType>();
 
-	public SJBranchType_c(TypeSystem ts)
+	private boolean isDependentlyTyped;
+	
+	public SJBranchType_c(TypeSystem ts) // Probably redundant now.
 	{
-		super(ts);
+		this(ts, false);
 	}
 
+	public SJBranchType_c(TypeSystem ts, boolean isDependentlyTyped)
+	{
+		super(ts);
+		
+		this.isDependentlyTyped = isDependentlyTyped;
+	}
+	
 	public Set<SJLabel> labelSet()
 	{
 		return cases.keySet();
@@ -162,4 +174,9 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
         }
         return dual;
     }
+    
+  public final boolean isDependentlyTyped()
+  {
+  	return isDependentlyTyped;
+  }
 }

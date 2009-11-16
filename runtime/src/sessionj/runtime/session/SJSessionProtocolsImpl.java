@@ -586,50 +586,66 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
 	}
 
-    public boolean interruptibleOutsync(boolean condition) throws SJIOException { // FIXME: need to add SJStateManager monitor calls to these routines.
-        ser.writeBoolean(condition);
-        return condition && readBooleanWrapCS();
-    }
+	public boolean interruptibleOutsync(boolean condition) throws SJIOException { // FIXME: need to add SJStateManager monitor calls to these routines.
+	    ser.writeBoolean(condition);
+	    return condition && readBooleanWrapCS();
+	}
+	
+	public boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException {
+	    boolean peerContinues = readBooleanWrapCS();
+	    if (peerContinues && peerInterruptible) ser.writeBoolean(condition);
+	    if (!condition && !peerInterruptible && peerContinues) 
+	        throw new SJOutsyncInterruptedException
+	                ("Insync attempted to interrupt, but outsync peer does not support interruption");
+	    return peerContinues && condition;
+	}
+	
+	public boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException {
+	    ser.writeBoolean(selfInterrupting);
+	    return readBooleanHandleCS();
+	}
+	
+	private boolean readBooleanWrapCS() throws SJIOException {
+	    try {
+	        return ser.readBoolean();
+	    } catch (SJControlSignal signal) {
+	        throw wrapControlSignal(signal);
+	    }
+	}
+	
+	private boolean readBooleanHandleCS() throws SJIOException {
+	    while (true) {
+	        try {
+	            return ser.readBoolean();
+	        } catch (SJControlSignal controlSignal) {
+	            handleControlSignal(controlSignal);
+	        }
+	    }
+	}
+	
+	public boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException {
+	    boolean isPeerInt = readBooleanHandleCS();
+	    ser.writeBoolean(selfInterruptible);
+	    return isPeerInt;
+	}
 
-    public boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException {
-        boolean peerContinues = readBooleanWrapCS();
-        if (peerContinues && peerInterruptible) ser.writeBoolean(condition);
-        if (!condition && !peerInterruptible && peerContinues) 
-            throw new SJOutsyncInterruptedException
-                    ("Insync attempted to interrupt, but outsync peer does not support interruption");
-        return peerContinues && condition;
-    }
-
-    public boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException {
-        ser.writeBoolean(selfInterrupting);
-        return readBooleanHandleCS();
-    }
-
-    private boolean readBooleanWrapCS() throws SJIOException {
-        try {
-            return ser.readBoolean();
-        } catch (SJControlSignal signal) {
-            throw wrapControlSignal(signal);
-        }
-    }
-
-    private boolean readBooleanHandleCS() throws SJIOException {
-        while (true) {
-            try {
-                return ser.readBoolean();
-            } catch (SJControlSignal controlSignal) {
-                handleControlSignal(controlSignal);
-            }
-        }
-    }
-
-    public boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException {
-        boolean isPeerInt = readBooleanHandleCS();
-        ser.writeBoolean(selfInterruptible);
-        return isPeerInt;
-    }
-
-    public void sendChannel(SJService c, SJSessionType st) throws SJIOException // Can get encoded from c.
+	public boolean recurse(String lab) throws SJIOException // FIXME: recursion operations need to update type monitor; see SJNonSjCompatibilityProtocols.
+	{
+		return true;
+	}
+	
+	//public boolean recursionEnter() throws SJIOException // FIXME: recursion operations need to update type monitor; see SJNonSjCompatibilityProtocols.
+	public boolean recursionEnter(String lab) throws SJIOException 
+	{
+		return false;
+	}
+	
+	public boolean recursionExit() throws SJIOException
+	{
+		return false;
+	}    
+    
+	public void sendChannel(SJService c, SJSessionType st) throws SJIOException // Can get encoded from c.
 	{
 		// Maybe faster to use a custom protocol, such as !<host>.!<port>.!<encoded>.
 		
@@ -974,6 +990,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		}
     }
 	
+  //FIXME: need to check compatibility of session-layer protocol components. Also should have some way to work out if we're connected to a non-SJ or a non-SJ-compatibility peer.
 	private void dualityCheck(SJProtocol proto) throws SJIOException, SJIncompatibleSessionException
 	{
         String encoded = proto.encoded();
@@ -1188,5 +1205,5 @@ throw new SJRuntimeException("[SJSessionProtocolsImpl] Simultaneous delegation n
   public void setSerializer(SJSerializer ser)
   {
       this.ser = ser;
-  }  
+  } 
 }

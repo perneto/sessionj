@@ -1,25 +1,23 @@
 package sessionj.runtime.net;
 
-import polyglot.types.SemanticException;
-import sessionj.ExtensionInfo;
-import sessionj.runtime.SJIOException;
-import sessionj.runtime.SJRuntimeException;
-import sessionj.runtime.SJProtocol;
-import sessionj.runtime.session.SJControlSignal;
-import sessionj.runtime.session.SJManualSerializer;
-import sessionj.runtime.session.SJSerializer;
-import sessionj.runtime.session.SJStreamSerializer;
-import sessionj.runtime.transport.*;
-import sessionj.runtime.util.SJClassResolver;
-import sessionj.runtime.util.SJRuntimeTypeEncoder;
-import sessionj.types.SJTypeSystem;
-import sessionj.types.sesstypes.SJSessionType;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.io.IOException;
+
+import polyglot.types.SemanticException;
+
+import sessionj.ExtensionInfo;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
+import sessionj.runtime.SJProtocol;
+import sessionj.runtime.session.*;
+import sessionj.runtime.transport.*;
+import sessionj.runtime.util.SJClassResolver;
+import sessionj.runtime.util.SJRuntimeTypeEncoder;
+import sessionj.types.SJTypeSystem;
+import sessionj.types.sesstypes.SJSessionType;
 
 @SuppressWarnings({"StaticMethodOnlyUsedInOneClass"})
 public class SJRuntime
@@ -276,45 +274,59 @@ public class SJRuntime
 	}
 	
 	public static void accept(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException
-	{
-		/*try
+	{					
+		if (s.getParameters().getCompatibilityMode() == SJCompatibilityMode.SJ) // FIXME: maybe move into SJSessionParametersImpl? Since we don't do it for custom compatibility modes.
 		{
-			s.setHostName((String) s.receive()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
-			s.setPort(s.receiveInt());
-		}
-		catch (ClassNotFoundException cnfe)
-		{
-			throw new SJRuntimeException(cnfe);
-		}*/				
-		
-		try // Cannot use send/receive because it will interfere with the type monitoring.
-		{
-			SJSerializer ser = s.getSerializer();
+			/*try
+			{
+				s.setHostName((String) s.receive()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
+				s.setPort(s.receiveInt());
+			}
+			catch (ClassNotFoundException cnfe)
+			{
+				throw new SJRuntimeException(cnfe);
+			}*/			
 			
-			s.setHostName((String) ser.readObject()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
-			s.setPort(ser.readInt());
+			try // Cannot use send/receive because it will interfere with the type monitoring.
+			{
+				SJSerializer ser = s.getSerializer();
+				
+				s.setHostName((String) ser.readObject()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
+				s.setPort(ser.readInt());
+			}
+			catch (ClassNotFoundException cnfe)
+			{
+				throw new SJRuntimeException(cnfe);
+			}
+			catch (SJControlSignal cs)
+			{
+				throw new SJRuntimeException("[SJRuntime] Shouldn't get in here: ", cs);
+			}
 		}
-		catch (ClassNotFoundException cnfe)
+		else //if (s.getParameters().getCompatibilityMode() == SJCompatibilityMode.CUSTOM)
 		{
-			throw new SJRuntimeException(cnfe);
-		}
-		catch (SJControlSignal cs)
-		{
-			throw new SJRuntimeException("[SJRuntime] Shouldn't get in here: ", cs);
+			// FIXME: what should we set the remote host name and port values to be? Maybe we can get it from the underlying concrete transport connection, e.g. TCP, but some transports won't support it.
 		}
 		
 		s.accept();
 	}
 	
 	protected static void request(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException
-	{		
-		/*s.send(s.getLocalHostName());		
-		s.sendInt(s.getLocalPort());*/
-		
-		SJSerializer ser = s.getSerializer(); // Cannot use send/receive because it will interfere with the type monitoring.
-		
-		ser.writeObject(s.getLocalHostName()); 		
-		ser.writeInt(s.getLocalPort());
+	{	
+		if (s.getParameters().getCompatibilityMode() == SJCompatibilityMode.SJ) // FIXME: as for accept, maybe move into SJSessionParametersImpl? Since we don't do it for custom compatibility modes.
+		{
+			/*s.send(s.getLocalHostName());		
+			s.sendInt(s.getLocalPort());*/
+			
+			SJSerializer ser = s.getSerializer(); // Cannot use send/receive because it will interfere with the type monitoring.
+			
+			ser.writeObject(s.getLocalHostName()); 		
+			ser.writeInt(s.getLocalPort());
+		}
+		else //if (s.getParameters().getCompatibilityMode() == SJCompatibilityMode.CUSTOM)
+		{
+			// FIXME: what should we set the remote host name and port values to be? Maybe we can get it from the underlying concrete transport connection, e.g. TCP, but some transports won't support it.
+		}
 		
 		s.request();
 	}
@@ -591,13 +603,19 @@ public class SJRuntime
 	
 	public static boolean recurse(String lab, SJSocket s) throws SJIOException
 	{
-        // Session-level recurse to a label is translated to a boolean value.
-		return true;
+    // Session-level recurse to a label is translated to a boolean value.
+		
+		return s.recurse(lab);
 	}
    
 	public static boolean recurse(String lab, SJSocket... sockets) throws SJIOException
 	{
-		return true;
+		for (SJSocket s : sockets)
+		{
+			s.recurse(lab); // Should return true.
+		}				
+		
+		return true; // A bit hacky.
 	}
 
 	/*public static void spawn(SJSocket[] sockets, SJThread t) throws SJIOException
@@ -746,22 +764,36 @@ public class SJRuntime
         // TODO multi-socket
 	}
 
-	public static boolean recursionEnter(SJSocket s)
+	//public static boolean recursionEnter(SJSocket s) throws SJIOException
+	public static boolean recursionEnter(String lab, SJSocket s) throws SJIOException
 	{
+		return s.recursionEnter(lab);
+	}
+
+	//public static boolean recursionEnter(SJSocket... sockets) throws SJIOException
+	public static boolean recursionEnter(String lab, SJSocket... sockets) throws SJIOException
+	{
+		for (SJSocket s : sockets)
+		{
+			s.recursionEnter(lab); // Should return false.
+		}
+		
 		return false;
 	}
 
-	public static boolean recursionEnter(SJSocket... sockets)
+	public static boolean recursionExit(SJSocket s) throws SJIOException
 	{
-		return false;
+		return s.recursionExit(); 
 	}
-
-	public static void recursionExit(SJSocket s)
+ 
+	public static boolean recursionExit(SJSocket... sockets) throws SJIOException
 	{
-	}
-
-	public static void recursionExit(SJSocket... sockets)
-	{
+		for (SJSocket s : sockets)
+		{
+			s.recursionExit(); // Should return false.
+		}
+		
+		return false;		
 	}
 	
 	/*public static void sendChannel(SJSocket[] sockets, SJService c) throws SJIOException // Channel objects should be immutable, so can be passed. // Remove array in a compiler pass
@@ -891,17 +923,33 @@ public class SJRuntime
 		return sjtm;
 	}	
 	
-	public static SJSerializer getSerializer(SJConnection conn) throws SJIOException
+	public static SJSerializer getSerializer(SJSessionParameters params, SJConnection conn) throws SJIOException
 	{
-		if (conn instanceof SJStreamConnection)
+		switch (params.getCompatibilityMode())
 		{
-			return new SJStreamSerializer(conn);
+			case SJ:
+			{
+				if (conn instanceof SJStreamConnection)			
+				{
+					return new SJStreamSerializer(conn);
+				}
+				else //if (conn != null) // FIXME: Delegation case 2? 
+				{
+					return new SJManualSerializer(conn);
+				}
+			}
+			case CUSTOM:
+			{
+				// We could bind conn to the message formatter here, but currently the serializer must do it manually.
+				
+				return new SJCustomSerializer(params.getCustomMessageFormatter(), conn); // Works for both (or rather handles both cases of) "ordinary" and "stream" connections.  
+			}
+			default:
+			{
+				throw new SJRuntimeException("[SJRuntime] Unsupported compatability mode: " + params.getCompatibilityMode());
+			}
 		}
-		else //if (conn != null) // FIXME: Delegation case 2? 
-		{
-			return new SJManualSerializer(conn);
-		}
-		
+			
 		//return null; // Delegation case 2: no connection created between passive party and session acceptor. 
 	}
 
@@ -1071,5 +1119,58 @@ public class SJRuntime
   public static String encode(SJSessionType st) throws SJIOException {
       return sjte.encode(st);
   }
+  
+  public static void initSocket(SJAbstractSocket s) throws SJIOException
+  {
+  	SJConnection conn = s.getConnection();
+  	SJSessionParameters params = s.getParameters(); 
+
+    SJSerializer ser = SJRuntime.getSerializer(params, conn); // Switches on the compatibility mode to get the appropriate serializer.   	
+  	
+    s.ser = ser; // FIXME: should have options for more user configurability.
+    
+    switch (params.getCompatibilityMode()) // Now need to get the appropriate session-layer protocol component(s).
+    {
+    	case SJ: 
+    	{    		   
+        s.sp = new SJSessionProtocolsImpl(s, ser); // FIXME: should have options for more user configurability. 	
+    		
+    		break;
+    	}
+    	case CUSTOM: 
+    	{
+    		s.sp = new SJNonSjCompatibilityProtocols(s, ser); // Doesn't support e.g. session initiation validation and session delegation. // FIXME: but there should also be better user control over these options. 
+    		
+    		break;    		
+    	}
+    	default:
+    	{
+    		throw new SJRuntimeException("[SJRuntime] Unsupported session compatibility mode: " + params.getCompatibilityMode());
+    	}
+    }
+    
+    assert s.ser != null;
+    assert s.sp != null;
+  }
+  
+  // This is currently called by SJSessionParameters (at creation time). Anywhere else where it would be better to call it from? E.g. if the user can still configure the SJ Runtime directly (not using a SJSessionParameters), we should check it there as well. Maybe we should check these conditions at session initiation.    
+	public static boolean checkSessionParameters(SJSessionParameters params) throws SJSessionParametersException
+	{
+		SJCompatibilityMode mode = params.getCompatibilityMode();
+		//List<SJTransport> negotiationTransports = params.getNegotiationTransports();
+		//List<SJTransport> sessionTransports = params.getSessionTransports();		
+		
+		//FIXME: check that the transports are compatible with the mode. Should probably implement this in terms of some methods in the transport interface.
+		
+		if (mode == SJCompatibilityMode.CUSTOM)
+		{
+			if (params.getCustomMessageFormatter() == null)
+			{
+				throw new SJSessionParametersException("[SJRuntime] Custom compatibility mode requires a SJCustomMessageFormatter.");
+			}
+		}
+		
+		return true;
+	} 
 }
 

@@ -44,20 +44,24 @@ public interface SJSessionProtocols
 	String inlabel() throws SJIOException;
 	void outsync(boolean condition) throws SJIOException; // Differs from SJSocket.
 	boolean insync() throws SJIOException;
-    boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException;
-    boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException;
-    boolean interruptibleOutsync(boolean condition) throws SJIOException;
-    boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException;
+  boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException;
+  boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException;
+  boolean interruptibleOutsync(boolean condition) throws SJIOException;
+  boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException;
 
+	boolean recursionEnter(String lab) throws SJIOException;
+	boolean recursionExit() throws SJIOException;
+	boolean recurse(String lab) throws SJIOException;	   
+    
 	// Higher-order.
-    void sendChannel(SJService c, SJSessionType st) throws SJIOException;
+  void sendChannel(SJService c, SJSessionType st) throws SJIOException;
 	SJService receiveChannel(SJSessionType st) throws SJIOException;
 	
 	void delegateSession(SJAbstractSocket s, SJSessionType st) throws SJIOException;
 	//abstract public SJAbstractSocket receiveSession(SJSessionType st) throws SJIOException;
-    SJAbstractSocket receiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException;
+  SJAbstractSocket receiveSession(SJSessionType st, SJSessionParameters params) throws SJIOException;
 
-    SJSerializer getSerializer();
+  SJSerializer getSerializer();
 	void setSerializer(SJSerializer ser);
 
 	/*protected boolean zeroCopySupported()

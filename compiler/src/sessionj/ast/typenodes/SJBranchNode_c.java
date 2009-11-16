@@ -15,11 +15,19 @@ abstract public class SJBranchNode_c extends SJTypeNode_c implements SJBranchNod
 {
 	private List<SJBranchCaseNode> branchCases;
 
-	public SJBranchNode_c(Position pos, List<SJBranchCaseNode> branchCases)
+	private boolean isDependentlyTyped;
+
+	public SJBranchNode_c(Position pos, List<SJBranchCaseNode> branchCases) // Probably redundant now.
+	{
+		this(pos, branchCases, false);
+	}
+	
+	public SJBranchNode_c(Position pos, List<SJBranchCaseNode> branchCases, boolean isDependentlyTyped)
 	{
 		super(pos);
 
 		this.branchCases = branchCases;
+		this.isDependentlyTyped = isDependentlyTyped;
 	}
 
 	protected List<SJBranchCaseNode> branchCases()
@@ -34,13 +42,14 @@ abstract public class SJBranchNode_c extends SJTypeNode_c implements SJBranchNod
 		return this;
 	}
 
-    public SJTypeNode disambiguateSJTypeNode(ContextVisitor cv, SJTypeSystem sjts) throws SemanticException {
-
+    public SJTypeNode disambiguateSJTypeNode(ContextVisitor cv, SJTypeSystem sjts) throws SemanticException 
+    {
         SJBranchType bt = createType(sjts);
 
         List<SJBranchCaseNode> branchCases = new LinkedList<SJBranchCaseNode>();
 
-        for (SJBranchCaseNode bcn : branchCases()) {
+        for (SJBranchCaseNode bcn : branchCases()) 
+        {
             bcn = (SJBranchCaseNode) SJCompilerUtils.disambiguateSJTypeNode(cv, bcn);
 
             branchCases.add(bcn);
@@ -53,4 +62,8 @@ abstract public class SJBranchNode_c extends SJTypeNode_c implements SJBranchNod
 
     protected abstract SJBranchType createType(SJTypeSystem sjts);
 
+  public boolean isDependentlyTyped()
+  {
+  	return isDependentlyTyped;
+  }
 }

@@ -26,8 +26,8 @@ abstract public class SJAbstractSocket implements SJSocket
 	
 	private SJConnection conn;
 	
-	private SJSessionProtocols sp;
-	private SJSerializer ser;
+	protected SJSessionProtocols sp; // Hacked access for SJRuntime.
+	protected SJSerializer ser;
 	
 	private boolean isActive = false;
 
@@ -54,28 +54,30 @@ abstract public class SJAbstractSocket implements SJSocket
 		//this.sm = new SJStateManager_c(SJRuntime.getTypeSystem(), protocol.type()); // Replaced by a setter (called by SJProtocolsImp).
   }
 	
+  // FIXME: refactor the initialisation/binding of SJR session and transport components to session sockets. Move decision making more explicitly into the SJR and make more modular. 
 	protected void init(SJConnection conn) throws SJIOException // conn can be null (delegation case 2?).
 	{
-		this.conn = conn;		
-        ser = SJRuntime.getSerializer(conn); // FIXME: should be...
-        sp = new SJSessionProtocolsImpl(this, ser); // ... user configurable.
+		this.conn = conn;
+		
+		SJRuntime.initSocket(this);
 	}
 
-    public SJSessionType getRuntimeType() { // FIXME: these are subsumed by the more general SJStateManager.
-        return runtimeType;
-    }
+  public SJSessionType getRuntimeType() { // FIXME: these are subsumed by the more general SJStateManager.
+      return runtimeType;
+  }
 
-    public void setRuntimeType(SJSessionType runtimeType) {
-        this.runtimeType = runtimeType;
-    }
+  public void setRuntimeType(SJSessionType runtimeType) {
+      this.runtimeType = runtimeType;
+  }
 
-    public void reconnect(SJConnection conn) throws SJIOException
-	{
-        ser.close();
+  public void reconnect(SJConnection conn) throws SJIOException
+  {
+		ser.close();
 		
 		this.conn = conn;
-		ser = SJRuntime.getSerializer(conn);
-        sp.setSerializer(ser);
+		
+		ser = SJRuntime.getSerializer(params, conn); // FIXME: refactor to make cleaner and more modular with socket initialisation routines (now in SJRuntime).
+		sp.setSerializer(ser);
 	}
 	
 	protected void accept() throws SJIOException, SJIncompatibleSessionException
@@ -165,23 +167,42 @@ abstract public class SJAbstractSocket implements SJSocket
 		return sp.insync();
 	}
 
-    public boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException {
-        return sp.isPeerInterruptibleOut(selfInterrupting);
-    }
+	public boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException 
+	{
+		return sp.isPeerInterruptibleOut(selfInterrupting);
+	}
+	
+	public boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException 
+	{
+		return sp.isPeerInterruptingIn(selfInterruptible);
+	}
+	
+	public boolean interruptibleOutsync(boolean condition) throws SJIOException 
+	{
+		return sp.interruptibleOutsync(condition);
+	}
+	
+	public boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException 
+	{
+		return sp.interruptingInsync(condition, peerInterruptible);
+	}
 
-    public boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException {
-        return sp.isPeerInterruptingIn(selfInterruptible);
-    }
-
-    public boolean interruptibleOutsync(boolean condition) throws SJIOException {
-        return sp.interruptibleOutsync(condition);
-    }
-
-    public boolean interruptingInsync(boolean condition, boolean peerInterruptible) throws SJIOException {
-        return sp.interruptingInsync(condition, peerInterruptible);
-    }
-
-    public void sendChannel(SJService c, String encoded) throws SJIOException
+	public boolean recursionEnter(String lab) throws SJIOException
+	{
+		return sp.recursionEnter(lab);
+	}
+	
+	public boolean recursionExit() throws SJIOException
+	{
+		return sp.recursionExit();
+	}
+	
+	public boolean recurse(String lab) throws SJIOException
+	{
+		return sp.recurse(lab);
+	}
+  
+  public void sendChannel(SJService c, String encoded) throws SJIOException
 	{
 		//sp.sendChannel(c, SJRuntime.getTypeEncoder().decode(c.getProtocol().encoded()));
 		sp.sendChannel(c, SJRuntime.decodeType(encoded));

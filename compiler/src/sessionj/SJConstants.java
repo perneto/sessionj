@@ -47,6 +47,9 @@ public class SJConstants
 	public static final String SJ_KEYWORD_INWHILE = "inwhile";
 	public static final String SJ_KEYWORD_RECURSION = "recursion";
 	
+	//public static final String SJ_KEYWORD_DOUTBRANCH = "doutbranch"; // "Dependently-typed" versions of the originals. FIXME: these should eventually subsume and replace the originals.
+	//public static final String SJ_KEYWORD_DINBRANCH = "dinbranch";
+	
 	public static final String SJ_KEYWORD_ACCEPT = "accept"; // Currently, this is not treated as a keyword (parsing done only by SJServerOperationParser, not by the actual parser as with session operations).
 	
 	public static final String SJ_KEYWORD_REGISTERACCEPT = "registerAccept";
@@ -147,7 +150,7 @@ public class SJConstants
 	
 	public static final String SJ_PROTOCOL_CLASS = "sessionj.runtime.SJProtocol";
 	public static final String SJ_CHANNEL_CLASS = "sessionj.runtime.net.SJService";
-    public static final String SJ_ABSTRACT_CHANNEL_CLASS = "sessionj.runtime.net.SJChannel";
+	public static final String SJ_ABSTRACT_CHANNEL_CLASS = "sessionj.runtime.net.SJChannel";
 	public static final String SJ_SOCKET_INTERFACE = "sessionj.runtime.net.SJSocket";
 	public static final String SJ_ABSTRACT_SOCKET_CLASS = "sessionj.runtime.net.SJAbstractSocket"; 
 	public static final String SJ_SERVER_INTERFACE = "sessionj.runtime.net.SJServerSocket";	
@@ -170,6 +173,12 @@ public class SJConstants
 	public static final String JAVA_STRING_CLASS = "java.lang.String";
 
 	public static final String POLYGLOT_TYPEDECODER_NAME_ARG = ""; // Don't know what this argument is for. Think it's just for error reporting (setting the message for a nested exception).
+	
+	public static final String CHARSET_UTF8 = "UTF-8";
+	
+	public static final String NUMERIC_LABEL_PREFIX_HACK = "$"; // Hack for branch labels that start with a number. This would less hacky if it was built into the grammar. But eventually, "dependently-typed" branches will subsume this.
+	
+	public static final int CUSTOM_MESSAGE_FORMATTER_INIT_BUFFER_SIZE = 1024;
 	
 	private SJConstants() { }
 }

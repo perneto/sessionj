@@ -14,3 +14,4 @@ COMPILING SJ PROGRAMS AND RUNNING THEM
 > sessionjc Foo.sj [-cp a classpath if needed] [-d destination for generated .java and .class files]
 4. Run with:
 > sessionj Foo
+

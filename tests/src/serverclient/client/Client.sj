@@ -41,7 +41,7 @@ public class Client
 			
 			s.outwhile(i++ < 3)
 			{
-				s.outbranch(L1)
+				s.outbranch($1)
 				{								
 					//Thread.sleep(10000);					
 

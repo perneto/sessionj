@@ -25,15 +25,24 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
 	
 	protected List<SJInbranchCase> branchCases;
 
+	private boolean isDependentlyTyped;
+	
 	public SJInbranch_c(Position pos, List<SJInbranchCase> branchCases, SJInlabel il)
+	{
+		this(pos, branchCases, il, false);
+	}
+
+	public SJInbranch_c(Position pos, List<SJInbranchCase> branchCases, SJInlabel il, boolean isDependentlyTyped)
 	{
 		super(pos);
 
 		this.branchCases = TypedList.copyAndCheck(branchCases, SJInbranchCase.class, true); // Is this check necessary?
         targets = il.targets();
 		this.il = il;
+		
+		this.isDependentlyTyped = isDependentlyTyped;
 	}
-
+	
 	public List<SJInbranchCase> branchCases()
 	{
 		return Collections.unmodifiableList(branchCases); // Why unmodifiable?
@@ -189,4 +198,9 @@ public class SJInbranch_c extends Stmt_c implements SJInbranch
     public SJSessionOperation resolvedTargets(List<SJVariable> resolved) {
         return null;
     }
+    
+  public boolean isDependentlyTyped()
+  {
+  	return isDependentlyTyped;
+  }
 }

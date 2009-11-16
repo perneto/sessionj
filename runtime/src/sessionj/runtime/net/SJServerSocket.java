@@ -29,7 +29,7 @@ abstract public class SJServerSocket implements SJChannel
 		this.port = port;
 		this.params = params;
 	}	
-	
+		
 	public static SJServerSocket create(SJProtocol protocol, int port) throws SJIOException
 	{	
 		return create(protocol, port, SJSessionParameters.DEFAULT_PARAMETERS);
