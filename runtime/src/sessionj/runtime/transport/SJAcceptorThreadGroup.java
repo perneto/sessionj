@@ -69,9 +69,9 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 			{
 				((SJSetupThread) t).close();
 			}
-			else if (t instanceof SJAcceptorThread)
+			else if (t instanceof SJSessionAcceptorThread)
 			{
-				((SJAcceptorThread) t).close();
+				((SJSessionAcceptorThread) t).close();
 			}
 			else // Other threads the transport implementations may have spawned themselves...
 			{
@@ -158,10 +158,12 @@ public class SJAcceptorThreadGroup extends ThreadGroup
         enumerate(ts);
         
         for (Thread t : ts) {
-            if (t instanceof SJAcceptorThread){
-                SJConnectionAcceptor acceptor = ((SJAcceptorThread) t).getAcceptorFor(transportName);
-                if (acceptor != null) return acceptor;
-            }
+            // Can be either an SJAcceptorThread or a SJSetupThread.
+            // Negotiation acceptors are reused for session accept if the transport
+            // is used both for negotiation and session. Hence there will always be
+            // one and only one thread per active transport.
+            SJConnectionAcceptor acceptor = ((SJAcceptorThread) t).getAcceptorFor(transportName);
+            if (acceptor != null) return acceptor;
         }
         return null;
     }

@@ -137,7 +137,7 @@ public class SJTransportManager_c extends SJTransportManager
         return sn;
     }
     
-	private SJAcceptorThreadGroup openAcceptorGroup(int port, Iterable<SJTransport> ss, Iterable<SJTransport> ts, Collection<String> sn, SJSessionParameters params) throws SJIOException // Synchronized where necessary from calling scope.
+	private SJAcceptorThreadGroup openAcceptorGroup(int port, Iterable<SJTransport> negotiationTrans, Iterable<SJTransport> sessionTrans, Collection<String> negotiationNames, SJSessionParameters params) throws SJIOException // Synchronized where necessary from calling scope.
 	{
         debug("[SJTransportManager_c] Openening acceptor group: " + port);
 
@@ -157,23 +157,26 @@ public class SJTransportManager_c extends SJTransportManager
 			
 			Collection<SJSetupThread> sts = new LinkedList<SJSetupThread>();			
 			
-			for (SJTransport t : ss) 
+			for (SJTransport t : negotiationTrans) 
                 sts.add(openAcceptorForNegotiation(port, params.getBoundedBufferSize(), atg, sts, t));
 			
 			if (sts.isEmpty())
                 throw new SJIOException("[SJTransportManager_c] No valid negociationTrans: " + port);
 			
-			Collection<SJAcceptorThread> ats = new LinkedList<SJAcceptorThread>(); 
+			Collection<SJSessionAcceptorThread> ats = new LinkedList<SJSessionAcceptorThread>(); 
 			
-			for (SJTransport t : ts)
+			for (SJTransport t : sessionTrans)
 			{
-				if (sn.contains(t.getTransportName()))
+                // If the transport is already a negotiation transport, reuse the negotiation acceptor.
+				if (negotiationNames.contains(t.getTransportName()))
 				{
-					atg.addTransport(t.getTransportName(), -1 * t.sessionPortToSetupPort(port)); // Marked as minus to show it's a setup port (transport connection needs to send NEGOTIATION_DONE). // Reuse the setup port for accepting (negotiated) transport connections.
+					atg.addTransport(t.getTransportName(), -1 * t.sessionPortToSetupPort(port)); 
+                    // Marked as minus to show it's a setup port (transport connection needs to send NEGOTIATION_DONE). 
+                    // Reuse the setup port for accepting (negotiated) transport connections.
 				}
 				else 
 				{
-                    SJAcceptorThread thread = openAcceptorForSession(params.getBoundedBufferSize(), atg, t);
+                    SJSessionAcceptorThread thread = openAcceptorForSession(params.getBoundedBufferSize(), atg, t);
                     if (thread != null) ats.add(thread);
                 }
 			}
@@ -192,7 +195,7 @@ public class SJTransportManager_c extends SJTransportManager
         if (DEBUG) System.out.println(msg);
     }
 
-    private SJAcceptorThread openAcceptorForSession(int boundedBufferSize, SJAcceptorThreadGroup atg, SJTransport t) {
+    private SJSessionAcceptorThread openAcceptorForSession(int boundedBufferSize, SJAcceptorThreadGroup atg, SJTransport t) {
         try {
             int freePort = t.getFreePort(); 
             // FIXME: need to lock the transport until after we have properly claimed the port. 
@@ -200,14 +203,14 @@ public class SJTransportManager_c extends SJTransportManager
             // which ports are free for each transport. But even this is not enough, another process
             // (e.g. any program opening TCP ports) may steal the port, so we may need to retry.
 
-            SJAcceptorThread at;
+            SJSessionAcceptorThread at;
 
             if (t instanceof SJBoundedFifoPair) 
             // FIXME: currently hacked. Should there be a SJBoundedBufferTransport?
             {
-                at = new SJAcceptorThread(atg, ((SJBoundedFifoPair) t).openAcceptor(freePort, boundedBufferSize));
+                at = new SJSessionAcceptorThread(atg, ((SJBoundedFifoPair) t).openAcceptor(freePort, boundedBufferSize));
             } else {
-                at = new SJAcceptorThread(atg, t.openAcceptor(freePort));
+                at = new SJSessionAcceptorThread(atg, t.openAcceptor(freePort));
             }
 
             at.start();
