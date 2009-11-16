@@ -1,21 +1,13 @@
 package sessionj.runtime.net;
 
-import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJRuntimeException;
-import sessionj.runtime.transport.SJTransport;
-import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
-import sessionj.runtime.transport.sharedmem.SJFifoPair;
-import sessionj.runtime.transport.tcp.SJAsyncManualTCP;
-import sessionj.runtime.transport.tcp.SJStreamTCP;
-
 import sessionj.runtime.session.SJCompatibilityMode;
 import sessionj.runtime.session.SJCustomMessageFormatter;
+import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 
-import java.io.IOException;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -44,8 +36,6 @@ public class SJSessionParameters
 	private List<SJTransport> negotiationTransports;
 	private List<SJTransport> sessionTransports;
 
-	private boolean useDefault = false;	
-	
 	private int boundedBufferSize = SJBoundedFifoPair.UNBOUNDED_BUFFER_SIZE;
   
 	private static final Logger logger = Logger.getLogger(SJSessionParameters.class.getName());
@@ -61,11 +51,13 @@ public class SJSessionParameters
 	public SJSessionParameters() throws SJSessionParametersException
 	{
 		this(defaultTransports(), defaultTransports()); 
-		
-		useDefault = true;
 	}
 
-	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
+    private static List<SJTransport> defaultTransports() {
+        return SJRuntime.getTransportManager().defaultSessionTransports();
+    }
+
+    public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
 	{
 		this(SJCompatibilityMode.SJ, negotiationTransports, sessionTransports); // SJ is the default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise.
 	}
@@ -89,8 +81,8 @@ public class SJSessionParameters
 	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, SJCustomMessageFormatter cmf) throws SJSessionParametersException
 	{
 		this.mode = mode;
-		this.negotiationTransports = new LinkedList<SJTransport>(negotiationTransports); // Relying on implicit iterator ordering.
-		this.sessionTransports = new LinkedList<SJTransport>(sessionTransports);
+        this.negotiationTransports = Collections.unmodifiableList(negotiationTransports); // Relying on implicit iterator ordering.
+        this.sessionTransports = Collections.unmodifiableList(sessionTransports);
 		this.cmf = cmf;
 		
 		if (!SJRuntime.checkSessionParameters(this)) // Maybe should check more "lazily" at session initiation. Might be a bit convenient from an exception handling point of view. 
@@ -115,31 +107,23 @@ public class SJSessionParameters
 	
 	public List<SJTransport> getNegotiationTransports()
 	{
-		return new LinkedList<SJTransport>(negotiationTransports);
+        // already unmodifiableList.
+        //noinspection ReturnOfCollectionOrArrayField
+        return negotiationTransports;
 	}
 	
 	public List<SJTransport> getSessionTransports()
 	{
-		return Collections.unmodifiableList(sessionTransports);
-	}
-	
-	public boolean useDefault()
-	{
-		return useDefault;
+        // already unmodifiableList.
+        //noinspection ReturnOfCollectionOrArrayField
+        return sessionTransports;
 	}
 	
 	public String toString()
 	{
 		String m = "SJSessionParameters(";
 		
-		if (useDefault())
-		{
-			m += "DEFAULT";
-		}
-		else
-		{
-			m += getNegotiationTransports().toString() + ", " + getSessionTransports().toString();
-		}
+        m += getNegotiationTransports().toString() + ", " + getSessionTransports().toString();
 		
 		m += ", " + getBoundedBufferSize();
 		
@@ -151,19 +135,6 @@ public class SJSessionParameters
 		return boundedBufferSize;
 	}
 
-    public static List<SJTransport> defaultTransports() {
-        List<SJTransport> ts = new LinkedList<SJTransport>();
-        ts.add(new SJFifoPair());
-        ts.add(new SJStreamTCP());
-        try {
-            ts.add(new SJAsyncManualTCP());
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "Async TCP transport will be unavailable", e);
-        }
-
-        return ts;
-    }
-    
    public SJCompatibilityMode getCompatibilityMode()
    {
   	 return mode;

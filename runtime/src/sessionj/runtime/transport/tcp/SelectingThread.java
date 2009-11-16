@@ -2,6 +2,7 @@ package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.session.OngoingRead;
 import sessionj.runtime.session.SJDeserializer;
+import sessionj.util.Pair;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -30,6 +31,7 @@ final class SelectingThread implements Runnable {
     private final BlockingQueue<ServerSocketChannel> readyForAccept;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
     private static final Logger logger = Logger.getLogger(SelectingThread.class.getName());
+    private final BlockingQueue<Pair<ServerSocketChannel, SocketChannel>> accepted;
 
     SelectingThread(SJDeserializer deserializer) throws IOException {
         this.deserializer = deserializer;
@@ -40,6 +42,7 @@ final class SelectingThread implements Runnable {
         readyForInput = new LinkedBlockingQueue<SocketChannel>();
         readyForAccept = new LinkedBlockingQueue<ServerSocketChannel>();
         readBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
+        accepted = new LinkedBlockingQueue<Pair<ServerSocketChannel, SocketChannel>>();
     }
 
     void registerAccept(ServerSocketChannel ssc) {
@@ -80,12 +83,8 @@ final class SelectingThread implements Runnable {
         sc.close();
     }
 
-    public SocketChannel selectForInput() {
-        return readyForInput.poll();
-    }
-
-    public ServerSocketChannel selectForAccept() {
-        return readyForAccept.poll();
+    public ServerSocketChannel dequeueReadyAccept() throws InterruptedException {
+        return readyForAccept.take();
     }
 
     public void run() {
@@ -102,16 +101,8 @@ final class SelectingThread implements Runnable {
 
     private void updateRegistrations() throws ClosedChannelException {
         while (!pendingChangeRequests.isEmpty()) {
-            ChangeRequest reg = pendingChangeRequests.remove();
-            switch (reg.changeAction) {
-                case CHANGEOPS:
-                    reg.chan.keyFor(selector).interestOps(reg.interestOps);
-                    break;
-                case REGISTER:
-                    reg.chan.register(selector, reg.interestOps);
-                    break;
-            }
-
+            ChangeRequest req = pendingChangeRequests.remove();
+            req.execute(selector);
         }
     }
 
@@ -129,8 +120,8 @@ final class SelectingThread implements Runnable {
                     read(key);
                 } else if (key.isWritable()) {
                     write(key);
-                } else {
-                    assert false : "Should not get here";
+                } else { // isConnectable
+                    assert false : "Should not get here: readyOps = " + key.readyOps();
                 }
             }
         }
@@ -205,23 +196,59 @@ final class SelectingThread implements Runnable {
     private void accept(SelectionKey key) {
         try {
             readyForAccept.put((ServerSocketChannel) key.channel());
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
             assert false : "Cannot happen, LinkedBlockingQueue is unbounded";
         }
     }
 
+    @SuppressWarnings({"TypeMayBeWeakened"})
+    public void cancelAccept(ServerSocketChannel ssc) {
+        assert ssc != null;
+        SelectionKey key = ssc.keyFor(selector);
+        if (key != null) key.cancel();
+    }
+
+    public void notifyAccepted(ServerSocketChannel ssc, SocketChannel socketChannel) {
+        accepted.add(new Pair<ServerSocketChannel, SocketChannel>(ssc, socketChannel));
+    }
+
+    public Object dequeueChannelForSelect() throws InterruptedException {
+        Pair<ServerSocketChannel, SocketChannel> acceptPair = accepted.poll();
+        if (acceptPair == null) return readyForInput.take();
+        return acceptPair;
+    }
+
     private static class ChangeRequest {
-        final SelectableChannel chan;
-        final ChangeAction changeAction;
-        final int interestOps;
+        private final SelectableChannel chan;
+        private final ChangeAction changeAction;
+        private final int interestOps;
 
         ChangeRequest(SelectableChannel chan, ChangeAction changeAction, int interestOps) {
             this.chan = chan;
             this.changeAction = changeAction;
             this.interestOps = interestOps;
         }
+
+        void execute(Selector selector) throws ClosedChannelException {
+            changeAction.execute(selector, this);
+        }
     }
 
-    private enum ChangeAction { REGISTER, CHANGEOPS }
+    private enum ChangeAction {
+        REGISTER {
+            void execute(Selector selector, ChangeRequest req) throws ClosedChannelException {
+                req.chan.register(selector, req.interestOps);
+            }
+        }, CHANGEOPS {
+            void execute(Selector selector, ChangeRequest req) {
+                req.chan.keyFor(selector).interestOps(req.interestOps);
+            }
+        }, CANCEL {
+            void execute(Selector selector, ChangeRequest req) {
+                req.chan.keyFor(selector).cancel();
+            }
+        };
+        abstract void execute(Selector selector, ChangeRequest changeRequest) throws ClosedChannelException;
+    }
 
 }

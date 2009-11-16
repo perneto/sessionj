@@ -17,9 +17,8 @@ public interface SJTransport
     // such as the session type (e.g. for bounded-size buffers).
 
     SJSelectorInternal transportSelector();
-    boolean blockingModeSupported();
 
-	boolean portInUse(int port);
+    boolean portInUse(int port);
 	int getFreePort() throws SJIOException;
 	
 	String getTransportName();

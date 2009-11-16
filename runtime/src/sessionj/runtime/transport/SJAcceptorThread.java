@@ -11,8 +11,8 @@ import sessionj.runtime.SJIOException;
  */
 public class SJAcceptorThread extends Thread
 {
-	private SJAcceptorThreadGroup atg; //=(SJAcceptorThreadGroup) getThreadGroup()
-	private SJConnectionAcceptor ca;
+	private final SJAcceptorThreadGroup atg; //=(SJAcceptorThreadGroup) getThreadGroup()
+	private final SJConnectionAcceptor ca;
 	
 	private boolean isAccepting = false;
 	
@@ -28,7 +28,7 @@ public class SJAcceptorThread extends Thread
 	
 	public void run()
 	{
-		this.isAccepting = true;
+        isAccepting = true;
 		
 		try
 		{
@@ -61,7 +61,7 @@ public class SJAcceptorThread extends Thread
 		
 		if (ca.interruptToClose())
 		{
-			this.interrupt();
+            interrupt();
 		}
 	}
 	
@@ -77,6 +77,16 @@ public class SJAcceptorThread extends Thread
 	
 	public String toString()
 	{
-		return "SJAcceptor" + super.toString();
+		return "SJAcceptor " + super.toString();
 	}
+
+    private boolean hasTransportName(String transportName) {
+        return ca.getTransportName().equals(transportName);
+    }
+
+    public SJConnectionAcceptor getAcceptorFor(String transportName) {
+        if (hasTransportName(transportName))
+            return ca;
+        else return null;
+    }
 }

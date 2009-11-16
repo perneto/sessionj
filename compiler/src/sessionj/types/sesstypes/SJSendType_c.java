@@ -80,4 +80,9 @@ public class SJSendType_c extends SJMessageCommunicationType_c implements SJSend
     {
         return SJCompilerUtils.subsumeMessageTypes(t1, t2, true);
     }
+
+    @Override
+    public boolean startsWithOutput() {
+        return true;
+    }
 }

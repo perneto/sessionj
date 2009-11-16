@@ -3,7 +3,6 @@ package sessionj.runtime.transport.sharedmem;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.nio.channels.SelectableChannel;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
@@ -346,10 +345,6 @@ public class SJBoundedFifoPair implements SJTransport
 
     public SJSelectorInternal transportSelector() {
         return null;
-    }
-
-    public boolean blockingModeSupported() {
-        return true;
     }
 
     public SJBoundedFifoPairConnection connect(String hostName, int port, int boundedBufferSize) throws SJIOException

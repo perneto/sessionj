@@ -10,7 +10,6 @@ import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Random;
 
 class SJManualTCPAcceptor implements SJConnectionAcceptor
 {
@@ -205,9 +204,6 @@ public class SJManualTCP implements SJTransport
 
 	protected static final boolean TCP_NO_DELAY = true;
 	
-	private static final int LOWER_PORT_LIMIT = 1024; 
-	private static final int PORT_RANGE = 65535 - 1024;
-
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
 		return new SJManualTCPAcceptor(port);
@@ -243,43 +239,14 @@ public class SJManualTCP implements SJTransport
         return null;
     }
 
-    public boolean blockingModeSupported() {
-        return true;
-    }
-
     public boolean portInUse(int port)
 	{
-		ServerSocket ss = null;
-		
-		try {
-			ss = new ServerSocket(port);
-		} catch (IOException ioe) {
-			return true;
-		} finally {
-			if (ss != null) try {
-                ss.close();
-            } catch (IOException ioe) {
-                // ignore
-            }
-		}
-		
-		return false;
+        return SJStreamTCP.isTCPPortInUse(port);
 	}
 	
 	public int getFreePort() throws SJIOException
 	{
-		int start = new Random().nextInt(PORT_RANGE);
-		int seed = start + 1;
-		
-		for (int port = seed % PORT_RANGE; port != start; port = seed++ % PORT_RANGE)  
-		{
-			if (!portInUse(port + LOWER_PORT_LIMIT))
-			{
-				return port + LOWER_PORT_LIMIT;
-			}
-		}
-		
-		throw new SJIOException('[' + getTransportName() + "] No free port available.");
+        return SJStreamTCP.getFreeTCPPort(getTransportName());
 	}
 	
 	public String getTransportName()

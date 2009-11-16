@@ -14,17 +14,17 @@ import sessionj.runtime.net.SJSessionParameters;
  */
 public class SJAcceptorThreadGroup extends ThreadGroup
 {
-	private SJTransportManager sjtm;
+	private final SJTransportManager sjtm;
 	
-	private int port; // The session port.
+	private final int port; // The session port.
 	
-	private Map<String, Integer> transports = new HashMap<String, Integer>();
+	private final Map<String, Integer> transports = new HashMap<String, Integer>();
 	
-	private List<SJConnection> pending = new LinkedList<SJConnection>();
+	private final List<SJConnection> pending = new LinkedList<SJConnection>();
 	
 	private boolean isClosed = false;
 	
-	private SJSessionParameters params; // Better to link to the parent SJServerSocket? But do we sometimes need acceptor groups that aren't attached to a server socket? // Should correspond with the transports that are eventually registered. 
+	private final SJSessionParameters params; // Better to link to the parent SJServerSocket? But do we sometimes need acceptor groups that aren't attached to a server socket? // Should correspond with the transports that are eventually registered. 
 	
 	public SJAcceptorThreadGroup(SJTransportManager sjtm, int port, String name, SJSessionParameters params)
 	{
@@ -64,7 +64,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 		enumerate(ts); // A bit dodgy (see API docs). Maybe should use the recursive option?
 		
 		for (Thread t : ts) // Maybe some synchronization is needed.
-		{		
+		{
 			if (t instanceof SJSetupThread)
 			{
 				((SJSetupThread) t).close();
@@ -88,7 +88,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 		}
 	}
 	
-	protected void queueConnection(SJConnection c)
+	void queueConnection(SJConnection c)
 	{
 		synchronized (pending)
 		{
@@ -99,7 +99,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 	
 	public SJConnection nextConnection() throws SJIOException
 	{
-		SJConnection next = null;
+		SJConnection next;
 		
 		synchronized (pending)
 		{		
@@ -133,7 +133,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 		return port;
 	}
 	
-	protected void addTransport(String name, int port)
+	void addTransport(String name, int port)
 	{
 		transports.put(name, port);
 	}
@@ -152,4 +152,18 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 	{
 		return params;
 	}
+
+    public SJConnectionAcceptor getAcceptorFor(String transportName) {
+        Thread[] ts = new Thread[activeCount()];
+        enumerate(ts);
+        
+        for (Thread t : ts) {
+            if (t instanceof SJAcceptorThread){
+                SJConnectionAcceptor acceptor = ((SJAcceptorThread) t).getAcceptorFor(transportName);
+                if (acceptor != null) return acceptor;
+            }
+        }
+        return null;
+    }
+
 }

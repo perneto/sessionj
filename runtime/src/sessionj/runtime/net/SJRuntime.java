@@ -68,7 +68,7 @@ public class SJRuntime
 	static { // Should be merged with the above static initialiser.
     try {
         sjtm = new SJTransportManager_c();
-    } catch (IOException e) {
+    } catch (SJIOException e) {
         e.printStackTrace();
         System.exit(-1);
     }
@@ -954,7 +954,7 @@ public class SJRuntime
 	}
 
     public static SJSelector selectorFor(SJProtocol proto) {
-        return new SJSelectorAllTransports(getTransportManager().registeredSessionTransports());
+        return new SJSelectorAllTransports(getTransportManager().activeSessionTransports());
     }
 	
 	public static int findFreePort() throws SJIOException

@@ -1,7 +1,6 @@
 package sessionj.runtime.transport.http;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelector;
 import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
@@ -76,10 +75,6 @@ public class SJHTTPS implements SJTransport{
 
     public SJSelectorInternal transportSelector() {
         return null;
-    }
-
-    public boolean blockingModeSupported() {
-        return true;
     }
 
     public boolean portInUse(int port) {
