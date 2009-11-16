@@ -60,8 +60,9 @@ public class Client
 						$5:	
 							?(Rcpt5Ack)	
 					},
-			  DATA:
-			  	?(DataAck)
+			  DATA: 
+					!<DataLineFeed>
+			  	.?(DataAck)
 					.!<MessageBody>.?(MessageBodyAck)			
 			}
 		]
@@ -105,7 +106,7 @@ public class Client
 					s.outbranch(RCPT)
 					{
 						RcptTo rcptTo = new RcptTo((i == 1) ? "ray.zh.hu@gmail.com" : "ray.zh.hu@hotmail.com");
-						System.out.print("Sending: " + rcptTo);
+						System.out.print("Sending: RCPT" + rcptTo); // Need to re-add the "RCPT" that was sent by the outbranch.
 						s.send(rcptTo);									
 						
 						s.inbranch()
@@ -129,6 +130,9 @@ public class Client
 				{
 					s.outbranch(DATA)
 					{
+						DataLineFeed dataLF = new DataLineFeed();
+						System.out.print("Sending: DATA" + dataLF); 
+						s.send(dataLF);												
 						System.out.println("Received: " + (DataAck) s.receive());
 						
 						MessageBody body = new MessageBody("SUBJECT:subject\n\nbody");				
