@@ -23,7 +23,7 @@ import smtp.sj.messages.*;
 
 public class Client
 {			
-	private protocol p_client
+	/*private protocol p_client
 	{
 		//^(Server.p_server)
 		cbegin
@@ -40,6 +40,32 @@ public class Client
 				?(Rcpt5Ack)	
 				.!<Quit>.?(QuitAck)		
 		}
+	}*/
+	
+	private protocol p_client
+	{
+		//^(Server.p_server)
+		cbegin
+		.?(ServerGreeting)
+		.!<Helo>.?(HeloAck)
+		.!<Mail>.?(MailAck)
+		.rec RCPT [
+			!{
+				RCPT:
+					!<RcptTo>
+					.?{
+						$2: 
+							?(Rcpt2Ack)
+							.#RCPT,
+						$5:	
+							?(Rcpt5Ack)	
+					},
+			  DATA:
+			  	?(DataAck)
+					.!<MessageBody>.?(MessageBodyAck)			
+			}
+		]
+		.!<Quit>.?(QuitAck)		
 	}
 	
 	public void run(boolean debug, String server, int port) throws Exception
@@ -70,46 +96,65 @@ public class Client
 			s.send(mail);
 			System.out.println("Received: " + (MailAck) s.receive());
 			
-			Rcpt rcpt = new Rcpt("ray.zh.hu@gmail.com");
-			System.out.print("Sending: " + rcpt);
-			s.send(rcpt);			
+			int i = 0;
 			
-			s.inbranch()
+			s.recursion(RCPT)
 			{
-				case $2:
+				if (i++ < 2)
 				{
-					System.out.println("Received: " + (Rcpt2Ack) s.receive());
-					
-					Data data = new Data();
-					System.out.print("Sending: " + data);
-					s.send(data);
-					System.out.println("Received: " + (DataAck) s.receive());
-					
-					MessageBody body = new MessageBody("SUBJECT:subject\n\nbody");				
-					System.out.print("Sending: " + body);
-					s.send(body);
-					System.out.println("Received: " + (MessageBodyAck) s.receive());
-					
-					Quit quit = new Quit();
-					System.out.print("Sending: " + quit);
-					s.send(quit);
-					System.out.println("Received: " + (QuitAck) s.receive());
+					s.outbranch(RCPT)
+					{
+						RcptTo rcptTo = new RcptTo((i == 1) ? "ray.zh.hu@gmail.com" : "ray.zh.hu@hotmail.com");
+						System.out.print("Sending: " + rcptTo);
+						s.send(rcptTo);									
+						
+						s.inbranch()
+						{
+							case $2:
+							{
+								System.out.println("Received: " + "2" + (Rcpt2Ack) s.receive()); // Need to re-add the "2" that was already consumed by the inbranch.
+								
+								s.recurse(RCPT);								
+							}
+							case $5:
+							{
+								System.out.println("Received: " + "5" + (Rcpt5Ack) s.receive());
+								
+								//doQuit(s); // Currently, delegation within loops completely forbidden.					
+							}
+						}					
+					}
 				}
-				case $5:
+				else
 				{
-					System.out.println("Received: " + (Rcpt5Ack) s.receive());
-					
-					Quit quit = new Quit();
-					System.out.print("Sending: " + quit);
-					s.send(quit);
-					System.out.println("Received: " + (QuitAck) s.receive());					
+					s.outbranch(DATA)
+					{
+						System.out.println("Received: " + (DataAck) s.receive());
+						
+						MessageBody body = new MessageBody("SUBJECT:subject\n\nbody");				
+						System.out.print("Sending: " + body);
+						s.send(body);
+						System.out.println("Received: " + (MessageBodyAck) s.receive());
+						
+						//doQuit(s);					
+					}
 				}
-			}	
+			}
+			
+			doQuit(s);
 		}
 		finally
 		{
 			
 		}
+	}
+	
+	private static void doQuit(final noalias !<Quit>.?(QuitAck) s) throws SJIOException, ClassNotFoundException
+	{
+		Quit quit = new Quit();
+		System.out.print("Sending: " + quit);
+		s.send(quit);
+		System.out.println("Received: " + (QuitAck) s.receive());		
 	}
 	
 	public static void main(String[] args) throws Exception
