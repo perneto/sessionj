@@ -32,7 +32,9 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 	private static final int QUIT_ACK = 7;
 	
 	private int state = GREETING;
-		
+
+	private int recipients = 0;	
+	
 	public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
 	{
 		try
@@ -101,7 +103,12 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				
 				if (ack.endsWith(LINE_FEED))
 				{
-					state = DATA_ACK;
+					recipients++;
+				
+					if (recipients == 4)
+					{
+						state = DATA_ACK;
+					}
 					
 					return new RcptAck(ack.substring(0, ack.length() - LINE_FEED.length()));
 				}
