@@ -22,11 +22,11 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 {			
 	private static final String LINE_FEED = "\n";
 	
-	// Rather than "manual" state management (enum, switch, update), would be nice to use a selector with typecase; then we'd get static typing. Afterall, objects (actors?) are essentially event-driven entities. 
+	// Rather than "manual" state management (enum, switch, update), would be nice to use a selector with typecase; then we'd get static typing (it's about controlling how states should progress, not just the overall set of states). Afterall, objects (actors?) are essentially event-driven entities. 
 	private static final int GREETING = 1;
 	private static final int HELO_ACK = 2;
 	private static final int MAIL_ACK = 3;
-	private static final int RCPT_BRANCH = 4;
+	private static final int RCPT_OR_DATA_ACK = 4;
 	//private static final int RCPT_ACK = 5;
 	private static final int RCPT2_ACK = 5;
 	private static final int RCPT5_ACK = 6;
@@ -39,6 +39,171 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 	//private int recipients = 0;	
 	
 	public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
+	{
+		try
+		{
+			if (eof && state != QUIT_ACK) 
+			{
+				String m = decodeFromUtf8(bb);
+				
+				throw new SJIOException("[SJSmtpFormatter] Unexpected EOF: " + m);
+			}				
+	
+			if (state == GREETING)
+			{
+				String greeting = decodeFromUtf8(bb);
+								
+				if (greeting.endsWith(LINE_FEED))
+				{
+					state = HELO_ACK;
+					
+					return new ServerGreeting(greeting.substring(0, greeting.length() - LINE_FEED.length()));
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else if (state == HELO_ACK)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.endsWith(LINE_FEED))
+				{
+					state = MAIL_ACK;
+					
+					return new HeloAck(ack.substring(0, ack.length() - LINE_FEED.length()));
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else if (state == MAIL_ACK)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.endsWith(LINE_FEED))
+				{
+					state = RCPT_OR_DATA_ACK;
+					
+					return new MailAck(ack.substring(0, ack.length() - LINE_FEED.length()));
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else if (state == RCPT_OR_DATA_ACK)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.equals("2"))
+				{
+					state = RCPT2_ACK;								
+					
+					return ack;
+				}
+				else if (ack.equals("5"))
+				{
+					state = RCPT5_ACK;
+					
+					return ack;
+				}
+				else
+				{
+					//throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + ack);
+
+					state = DATA_ACK;
+					
+					return null; // Keep reading for DataAck. This assumes ack is not "\n" already.
+				}
+			}
+			else if (state == RCPT2_ACK)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.endsWith(LINE_FEED))
+				{
+					state = RCPT_OR_DATA_ACK;
+
+					return new Rcpt2Ack(ack.substring(0, ack.length() - LINE_FEED.length()));
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else if (state == RCPT5_ACK)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.endsWith(LINE_FEED))
+				{
+					state = QUIT_ACK;
+					
+					return new Rcpt5Ack(ack.substring(0, ack.length() - LINE_FEED.length()));
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else if (state == DATA_ACK)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.endsWith(LINE_FEED))
+				{
+					state = MESSAGEBODY_ACK;
+					
+					return new DataAck(ack.substring(0, ack.length() - LINE_FEED.length()));
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else if (state == MESSAGEBODY_ACK)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.endsWith(LINE_FEED))
+				{
+					state = QUIT_ACK;
+					
+					return new MessageBodyAck(ack.substring(0, ack.length() - LINE_FEED.length()));
+				}
+				else
+				{
+					return null;
+				}
+			}	
+			else if (state == QUIT_ACK)
+			{
+				String ack = decodeFromUtf8(bb);
+				
+				if (ack.endsWith(LINE_FEED)) // Or is it just EOF directly?
+				{
+					return new QuitAck(ack.substring(0, ack.length() - LINE_FEED.length()));
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else 
+			{
+				throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here.");
+			}
+		}
+		catch (CharacterCodingException cce)
+		{
+			throw new SJIOException(cce);
+		}
+	}
+	
+	/*public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
 	{
 		try
 		{
@@ -140,7 +305,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				{
 					return null;
 				}
-			}*/
+			}*
 			else if (state == RCPT2_ACK)
 			{
 				String ack = decodeFromUtf8(bb);
@@ -223,5 +388,5 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 		{
 			throw new SJIOException(cce);
 		}
-	}	
+	}*/		
 }

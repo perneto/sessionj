@@ -28,7 +28,8 @@ abstract public class SJCustomMessageFormatter
 	// Maybe a bit weird for formatMessage to use a byte[] but parseMessage to use a ByteBuffer.
 	abstract public byte[] formatMessage(Object o) throws SJIOException; // Maybe we should use e.g. SJCustomMessage (subclasses) rather than Object. SJCustomMessage could also offer message-specific formatting operations.
 	abstract public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException; // Instead of the eof flag, we could append a -1 to the bb. // Pre: bb should already be flipped, i.e. ready for (relative) "getting". Also has to be non-blocking (for readNextMessage to work as intended). // FIXME: this is maybe not a good interface for the user.
-		
+	// FIXME: at the moment, branch labels are still implicitly coupled to Strings in the upper layers (i.e. in the compiler), so parseMessage has to return labels as Strings (for label comparison to work). But later, should generalise to support arbitrary objects as labels.	
+	
 	protected final void bindConnection(SJConnection conn) // Called by SJCustomSerializer.
 	{
 		this.conn = conn;
