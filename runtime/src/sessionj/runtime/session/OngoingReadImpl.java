@@ -6,6 +6,7 @@ import static sessionj.runtime.session.SJAbstractSerializer.*;
 import sessionj.runtime.SJRuntimeException;
 
 import java.nio.ByteBuffer;
+import static java.lang.Math.min;
 
 /**
  * TODO Reduce duplication between this and {@link SJManualSerializer}
@@ -26,9 +27,15 @@ public class OngoingReadImpl implements OngoingRead {
                 data = new byte[dataExpected];
 
             if (data != null && bytes.remaining() > 0) {
-                int offset = dataRead - SJ_SERIALIZED_INT_LENGTH;
-                dataRead += bytes.remaining();
-                bytes.get(data, offset, bytes.remaining());
+                int offset = dataRead;
+               /* System.out.println(offset);
+                System.out.println(dataRead);
+                System.out.println(data.length);
+                System.out.println(bytes.remaining());
+                */
+                int length = min(data.length - offset, bytes.remaining());
+                bytes.get(data, offset, length);
+                dataRead += length;
             }
         }
     }
@@ -70,8 +77,8 @@ public class OngoingReadImpl implements OngoingRead {
         byte[] completed = new byte[1 + dataExpected + lengthRead];
         completed[0] = flag; 
         // no-op for primitives: lengthRead will be 0
-        System.arraycopy(lengthBytes, 0, completed, 0, lengthRead);
-        System.arraycopy(data, 0, completed, lengthRead, data.length);
+        System.arraycopy(lengthBytes, 0, completed, 1, lengthRead);
+        System.arraycopy(data, 0, completed, lengthRead+1, data.length);
         return completed;
     }
 }
