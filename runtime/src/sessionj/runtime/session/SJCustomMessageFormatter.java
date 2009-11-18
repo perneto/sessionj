@@ -18,6 +18,9 @@ import sessionj.runtime.transport.SJConnection;
  * Intended to be an easier to use and more convenient interface than the full SJSerializer. The serializer should wrap this formatter around the underlying I/O streams.
  *
  * For "simple" protocols, this component may not need to be stateful; but for many protocols, we probably need to implement a state machine here. For that purpose, message formatters are like a localised version of the protocol: the messages received by writeMessage should follow the dual protocol to the messages returned by readNextMessage. But the formatter is an object: need object-based session types to control this.
+ * 
+ * A less centralised option is to move formatting/parsing operations into each message type. The SJ Runtime can use session type monitoring to work out which message to expect and use the appropriate deserialization/parsing routine. Need to be a bit careful for inbranches, and with subtyping (if supported, need to be able to decode a subtype message using the supertype routine).   
+ * 
  */
 abstract public class SJCustomMessageFormatter 
 {		
