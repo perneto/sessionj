@@ -27,78 +27,51 @@ public class SJTransportManager_c extends SJTransportManager
 {
     private static final Logger logger = Logger.getLogger(SJTransportManager_c.class.getName());
 
-	private static final String DEFAULT_SETUPS_PROPERTY = "sessionj.transports.negociation";
+	private static final String DEFAULT_SETUPS_PROPERTY = "sessionj.transports.negotiation";
     private static final String DEFAULT_TRANSPORTS_PROPERTY = "sessionj.transports.session";
 	private static final boolean DEBUG = true;
 	
 	private final Map<Integer, SJAcceptorThreadGroup> acceptorGroups = new HashMap<Integer, SJAcceptorThreadGroup>();
-    
-    // LinkedHashMap to retain the insertion order, used to define transport preference.
-    private final Map<Character, SJTransport> activeSessionTransports = new LinkedHashMap<Character, SJTransport>();
-    private final Map<Character, SJTransport> activeNegotiationTransports = new LinkedHashMap<Character, SJTransport>();
-    private final String defaultSessionTransports;
-    private final String defaultNegotiationTransports;
-    
-	public SJTransportManager_c() throws SJIOException {
-        defaultNegotiationTransports = getDefault(DEFAULT_SETUPS_PROPERTY);
-        defaultSessionTransports = getDefault(DEFAULT_TRANSPORTS_PROPERTY);
-        initDefaultNegotiationTransports();
-		initDefaultSessionTransports();
+
+    private final TransportPreferenceList negotiationTransports;
+    private final TransportPreferenceList sessionTransports;
+
+    public SJTransportManager_c() throws SJIOException {
+        String defNegotiationTr = getDefault(DEFAULT_SETUPS_PROPERTY, "fs");
+        String defSessionTr = getDefault(DEFAULT_TRANSPORTS_PROPERTY, "fs");
+        // Important: the TransportPreferenceList instances need to share that map.
+        Map<Character, SJTransport> activeTransports = new HashMap<Character, SJTransport>();
+        negotiationTransports = new TransportPreferenceList(activeTransports, defNegotiationTr);
+        sessionTransports = new TransportPreferenceList(activeTransports, defSessionTr);
+        debug("Default negotiation transports: " + defNegotiationTr
+            + ": "+ negotiationTransports.getActive());
+        debug("Default session transports: " + defSessionTr
+            + ": " + sessionTransports.getActive());
 	}
 
-    private String getDefault(String key) {
+    private String getDefault(String key, String fallback) {
         String s = System.getProperty(key, "d");
-        if (s.equals("d")) s = "fsa";
+        if (s.equals("d")) s = fallback;
         return s;
     }
 
-    private void initDefaultNegotiationTransports() throws SJIOException {
-        loadNegotiationTransports(defaultNegotiationTransports);
-        debug("Default negotiation transports: " + defaultNegotiationTransports 
-            + ": "+ activeNegotiationTransports);
-	}
-	
-    private void initDefaultSessionTransports() throws SJIOException {
-        loadSessionTransports(defaultSessionTransports);
-        debug("Default session transports: " + defaultSessionTransports 
-            + ": " + activeSessionTransports);
+    public List<SJTransport> defaultSessionTransports() {
+        return sessionTransports.defaultTransports();
     }
 
-    public List<SJTransport> defaultSessionTransports() {
-        List<SJTransport> defaults = new LinkedList<SJTransport>();
-        for (char c : defaultSessionTransports.toCharArray()) {
-            defaults.add(activeSessionTransports.get(c));
-        }
-        return defaults;
+    public List<SJTransport> defaultNegotiationTransports() {
+        return negotiationTransports.defaultTransports();
+    }
+
+    public List<SJTransport> loadSessionTransports(String transportLetterCodes) throws SJIOException {
+        return sessionTransports.loadTransports(transportLetterCodes);
     }
 
     public List<SJTransport> loadNegotiationTransports(String transportLetterCodes) throws SJIOException {
-        List<SJTransport> ts = new LinkedList<SJTransport>();
-        for (char c : transportLetterCodes.toCharArray()) {
-            SJTransport t = activeNegotiationTransports.get(c);
-            if (t == null) {
-                t = createTransport(c);
-                activeNegotiationTransports.put(c, t);
-            }
-            ts.add(t);
-        }
-        return ts;
-    }
-    
-    public List<SJTransport> loadSessionTransports(String transportLetterCodes) throws SJIOException {
-        List<SJTransport> ts = new LinkedList<SJTransport>();
-        for (char c : transportLetterCodes.toCharArray()) {
-            SJTransport t = activeSessionTransports.get(c);
-            if (t == null) {
-                t = createTransport(c);
-                activeSessionTransports.put(c, t);
-            }
-            ts.add(t);
-        }
-        return ts;
+        return negotiationTransports.loadTransports(transportLetterCodes);
     }
 
-    private SJTransport createTransport(char code) throws SJIOException {
+    static SJTransport createTransport(char code) throws SJIOException {
         switch (code) {
             case 'f':
                 return new SJFifoPair();
@@ -300,19 +273,13 @@ public class SJTransportManager_c extends SJTransportManager
 		}*/
 	}
 
-    public Collection<SJTransport> activeNegotiationTransports() {
-        synchronized (activeNegotiationTransports)
-        {
-            return Collections.unmodifiableCollection(activeNegotiationTransports.values());
-        }
+    public List<SJTransport> activeNegotiationTransports() {
+        return negotiationTransports.getActive();
     }
 
-    public Collection<SJTransport> activeSessionTransports()
+    public List<SJTransport> activeSessionTransports()
 	{
-		synchronized (activeSessionTransports)
-		{
-			return Collections.unmodifiableCollection(activeSessionTransports.values());
-		}
+		return sessionTransports.getActive();
 	}
 	protected void registerConnection(SJConnection conn)
 	{

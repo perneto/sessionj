@@ -2,9 +2,7 @@ package sessionj.runtime.transport.http;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.SJSelectorInternal;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJConnectionAcceptor;
-import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.*;
 
 import javax.net.ssl.*;
 import java.io.FileInputStream;
@@ -14,7 +12,7 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
-public class SJHTTPS implements SJTransport{
+public class SJHTTPS extends AbstractSJTransport {
 
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.https.SJHTTPS";
 
@@ -72,10 +70,6 @@ public class SJHTTPS implements SJTransport{
 		}
 
 	}
-
-    public SJSelectorInternal transportSelector() {
-        return null;
-    }
 
     public boolean portInUse(int port) {
 		ServerSocket ss = null;

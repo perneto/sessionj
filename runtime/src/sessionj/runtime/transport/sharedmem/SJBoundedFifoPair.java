@@ -298,7 +298,7 @@ class SJBoundedFifoPairConnection implements SJBoundedBufferConnection
  * @author Raymond
  *
  */
-public class SJBoundedFifoPair implements SJTransport 
+public class SJBoundedFifoPair extends AbstractSJTransport
 {
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.sharedmem.SJBoundedFifoPair";
 	
@@ -342,10 +342,6 @@ public class SJBoundedFifoPair implements SJTransport
 	{
 		return connect(hostName, port, UNBOUNDED_BUFFER_SIZE);	
 	}
-
-    public SJSelectorInternal transportSelector() {
-        return null;
-    }
 
     public SJBoundedFifoPairConnection connect(String hostName, int port, int boundedBufferSize) throws SJIOException
 	{
