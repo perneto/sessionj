@@ -35,4 +35,11 @@ public interface SJTransport
 	 * 		writeObject(noalias Object) - method to send an object by reference.
 	 * 		isConnected could be useful?
 	 */
+
+    /**
+     * Needs to be implemented to compare on transport name or class - the transport
+     * manager relies on this to keep transport instances unique.
+     */
+    boolean equals(Object o);
+    int hashCode();
 }
