@@ -35,7 +35,7 @@ public class SJServerSocketImpl extends SJServerSocket
 		SJAcceptingSocket s = new SJAcceptingSocket(getProtocol(), getParameters());
 
         // nextConnection() blocks if there is no pending connection request.
-		SJRuntime.bindSocket(s, getAcceptorGroup().nextConnection());			
+		SJRuntime.bindSocket(s, nextConnection());			
 
         SJRuntime.accept(s);
 		
@@ -64,7 +64,7 @@ public class SJServerSocketImpl extends SJServerSocket
 		isOpen = true;
 	}
 	
-	protected SJAcceptorThreadGroup getAcceptorGroup()
+	public SJAcceptorThreadGroup getAcceptorGroup()
 	{
 		return acceptors;
 	}
