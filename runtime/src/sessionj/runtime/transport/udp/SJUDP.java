@@ -2,9 +2,7 @@ package sessionj.runtime.transport.udp;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.SJSelectorInternal;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJConnectionAcceptor;
-import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.*;
 
 import java.io.IOException;
 import java.net.*;
@@ -12,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.Random;
 
-public class SJUDP implements SJTransport{
+public class SJUDP extends AbstractSJTransport {
        
     public static final String 
        TRANSPORT_NAME = 
@@ -129,10 +127,6 @@ public class SJUDP implements SJTransport{
 	    	
 	    	throw new SJIOException(ioe);
 	    }
-    }
-
-    public SJSelectorInternal transportSelector() {
-        return null;
     }
 
     public boolean portInUse (int port) {

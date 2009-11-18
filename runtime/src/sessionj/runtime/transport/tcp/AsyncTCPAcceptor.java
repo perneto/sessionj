@@ -7,19 +7,26 @@ import sessionj.runtime.transport.SJConnectionAcceptor;
 import java.io.IOException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.net.InetSocketAddress;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 class AsyncTCPAcceptor implements SJConnectionAcceptor {
     private final SelectingThread thread;
     // package-private so the selector can access it
-    ServerSocketChannel ssc = null;
+    final ServerSocketChannel ssc;
+    private static final Logger logger = Logger.getLogger(AsyncTCPAcceptor.class.getName());
 
-    AsyncTCPAcceptor(SelectingThread thread) {
+    AsyncTCPAcceptor(SelectingThread thread, int port) throws IOException {
         this.thread = thread;
+        ssc = ServerSocketChannel.open();
+        ssc.configureBlocking(false);
+        ssc.socket().bind(new InetSocketAddress(port));
     }
 
     public SJConnection accept() throws SJIOException {
         try {
-            ssc = thread.dequeueReadyAccept();
+            thread.waitReadyAccept(ssc);
             return finishAccept(ssc);
         } catch (IOException e) {
             throw new SJIOException(e);
@@ -29,8 +36,14 @@ class AsyncTCPAcceptor implements SJConnectionAcceptor {
     }
 
     public void close() {
-        if (ssc != null)
-            thread.cancelAccept(ssc);
+        thread.cancelAccept(ssc);
+        try {
+            ssc.close();
+        } catch (IOException e) {
+            logger.log(Level.WARNING, 
+                "Could not close server socket channel listening on port: " 
+                    + ssc.socket().getLocalPort(), e);
+        }
 
     }
 

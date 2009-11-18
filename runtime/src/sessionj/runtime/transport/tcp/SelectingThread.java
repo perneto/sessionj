@@ -25,13 +25,10 @@ final class SelectingThread implements Runnable {
     private final Queue<ChangeRequest> pendingChangeRequests;
 
     private final ConcurrentHashMap<SocketChannel, Queue<byte[]>> readyInputs;
-    /** Invariant: readyInputs.keySet() contains the same elements as readyForInput.
-     *  The latter is there for implementation convenience */
-    private final BlockingQueue<SocketChannel> readyForInput;
-    private final BlockingQueue<ServerSocketChannel> readyForAccept;
+    private final BlockingQueue<Object> readyForSelect;
+    private final ConcurrentHashMap<ServerSocketChannel, Semaphore> readyForAccept;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
     private static final Logger logger = Logger.getLogger(SelectingThread.class.getName());
-    private final BlockingQueue<Pair<ServerSocketChannel, SocketChannel>> accepted;
 
     SelectingThread(SJDeserializer deserializer) throws IOException {
         this.deserializer = deserializer;
@@ -39,16 +36,18 @@ final class SelectingThread implements Runnable {
         pendingChangeRequests = new ConcurrentLinkedQueue<ChangeRequest>();
         readyInputs = new ConcurrentHashMap<SocketChannel, Queue<byte[]>>();
         requestedOutputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
-        readyForInput = new LinkedBlockingQueue<SocketChannel>();
-        readyForAccept = new LinkedBlockingQueue<ServerSocketChannel>();
+        readyForSelect = new LinkedBlockingQueue<Object>();
+        readyForAccept = new ConcurrentHashMap<ServerSocketChannel, Semaphore>();
         readBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
-        accepted = new LinkedBlockingQueue<Pair<ServerSocketChannel, SocketChannel>>();
     }
 
     void registerAccept(ServerSocketChannel ssc) {
         pendingChangeRequests.add(new ChangeRequest(ssc, ChangeAction.REGISTER, SelectionKey.OP_ACCEPT));
         // Don't touch selector registrations here, do all
         // selector handling in the selecting thread (as selector keys are not thread-safe)
+        selector.wakeup(); // Essential for the first selector registration:
+        // before that, the thread is blocked on select with no channel registered,
+        // hence sleeping forever.
     }
 
     void registerInput(SocketChannel sc) {
@@ -61,6 +60,12 @@ final class SelectingThread implements Runnable {
         // selector handling in the selecting thread (as selector keys are not thread-safe)
     }
 
+    /**
+     * Non-blocking, as it should be used right after a select
+     * call.
+     * @param sc The channel for which to get an input message.
+     * @return A complete message (according to the OngoingRead instance obtained from the serializer)
+     */
     public byte[] dequeueInput(SocketChannel sc) {
         return readyInputs.get(sc).remove();
     }
@@ -68,9 +73,10 @@ final class SelectingThread implements Runnable {
     public void enqueueOutput(SocketChannel sc, byte[] bs) {
         Queue<ByteBuffer> outputsForChan = requestedOutputs.get(sc);
         if (outputsForChan == null) {
-            requestedOutputs.put(sc, new ConcurrentLinkedQueue<ByteBuffer>());
+            outputsForChan = new ConcurrentLinkedQueue<ByteBuffer>();
+            requestedOutputs.put(sc, outputsForChan);
         }
-        requestedOutputs.get(sc).add(ByteBuffer.wrap(bs));
+        outputsForChan.add(ByteBuffer.wrap(bs));
         pendingChangeRequests.add(new ChangeRequest(sc, ChangeAction.CHANGEOPS, SelectionKey.OP_WRITE));
     }
 
@@ -79,12 +85,14 @@ final class SelectingThread implements Runnable {
     }
 
     public void close(SelectableChannel sc) throws IOException {
-        sc.keyFor(selector).cancel();
+        SelectionKey key = sc.keyFor(selector);
+        if (key != null) key.cancel();
         sc.close();
     }
 
-    public ServerSocketChannel dequeueReadyAccept() throws InterruptedException {
-        return readyForAccept.take();
+    public void waitReadyAccept(ServerSocketChannel ssc) throws InterruptedException {
+        checkInitSemaphore(ssc);
+        readyForAccept.get(ssc).acquire();
     }
 
     public void run() {
@@ -188,16 +196,19 @@ final class SelectingThread implements Runnable {
         read.updatePendingInput(bytes);
         if (read.finished()) {
             readyInputs.get(sc).add(read.getCompleteInput());
-            // order is important here: adding to readyForInput makes the read visible to select
-            readyForInput.add(sc);
+            // order is important here: adding to readyForSelect makes the read visible to select
+            readyForSelect.add(sc);
         }
     }
 
     private void accept(SelectionKey key) {
-        try {
-            readyForAccept.put((ServerSocketChannel) key.channel());
-        } catch (InterruptedException ignored) {
-            assert false : "Cannot happen, LinkedBlockingQueue is unbounded";
+        checkInitSemaphore(key.channel());
+        readyForAccept.get(key.channel()).release();
+    }
+
+    private synchronized void checkInitSemaphore(SelectableChannel channel) {
+        if (!readyForAccept.containsKey(channel)) {
+            readyForAccept.put((ServerSocketChannel) channel, new Semaphore(0));
         }
     }
 
@@ -209,13 +220,11 @@ final class SelectingThread implements Runnable {
     }
 
     public void notifyAccepted(ServerSocketChannel ssc, SocketChannel socketChannel) {
-        accepted.add(new Pair<ServerSocketChannel, SocketChannel>(ssc, socketChannel));
+        readyForSelect.add(new Pair<ServerSocketChannel, SocketChannel>(ssc, socketChannel));
     }
 
     public Object dequeueChannelForSelect() throws InterruptedException {
-        Pair<ServerSocketChannel, SocketChannel> acceptPair = accepted.poll();
-        if (acceptPair == null) return readyForInput.take();
-        return acceptPair;
+        return readyForSelect.take();
     }
 
     private static class ChangeRequest {

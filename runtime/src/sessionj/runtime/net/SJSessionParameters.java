@@ -50,13 +50,17 @@ public class SJSessionParameters
   // But that could be slow. // Factor out constant more generally?
 	public SJSessionParameters() throws SJSessionParametersException
 	{
-		this(defaultTransports(), defaultTransports()); 
+		this(defaultNeg(), defaultSession()); 
 	}
 
-    private static List<SJTransport> defaultTransports() {
+    private static List<SJTransport> defaultSession() {
         return SJRuntime.getTransportManager().defaultSessionTransports();
     }
 
+    private static List<SJTransport> defaultNeg() {
+        return SJRuntime.getTransportManager().defaultNegotiationTransports();
+    }
+    
     public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
 	{
 		this(SJCompatibilityMode.SJ, negotiationTransports, sessionTransports); // SJ is the default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise.
@@ -64,13 +68,13 @@ public class SJSessionParameters
 	
 	public SJSessionParameters(SJCompatibilityMode mode) throws SJSessionParametersException
 	{
-		this(mode, defaultTransports(), defaultTransports()); 
+		this(mode, defaultNeg(), defaultSession()); 
 	}
 	
 	// FIXME: should be generalised to support custom "deserializers" for other wire formats. Well, in principle, the programmer should add a custom SJSerializer. But this interface may be easier to use than a full serializer implemetation.
 	public SJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException
 	{
-		this(mode, defaultTransports(), defaultTransports(), cmf); 
+		this(mode, defaultNeg(), defaultSession(), cmf); 
 	}	
 	
 	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
