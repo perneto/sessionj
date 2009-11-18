@@ -6,11 +6,9 @@ import java.util.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJConnectionAcceptor;
-import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.*;
 
-public class SJHTTP implements SJTransport{
+public class SJHTTP extends AbstractSJTransport {
 	
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.http.SJHTTP";
 
@@ -40,10 +38,6 @@ public class SJHTTP implements SJTransport{
 			throw new SJIOException(ioe);
 		}
 	}
-
-    public SJSelectorInternal transportSelector() {
-        return null;
-    }
 
     public boolean portInUse(int port){
 		
