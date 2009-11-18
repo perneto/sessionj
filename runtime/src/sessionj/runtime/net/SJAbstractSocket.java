@@ -369,4 +369,9 @@ abstract public class SJAbstractSocket implements SJSocket
   {
   	return getStateManager().expectedType(); // FIXME: state manager needs to use proper unrolling of loop types.
   }
+
+    public boolean typeStartsWithOutput() throws SJIOException {
+        return protocol.type().child().startsWithOutput(); 
+    }
+    
 }

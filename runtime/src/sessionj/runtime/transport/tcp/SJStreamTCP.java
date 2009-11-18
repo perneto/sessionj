@@ -24,7 +24,7 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 		}
 		catch (IOException ioe)
 		{
-			throw new SJIOException(ioe);
+			throw new SJIOException("Could not open StreamTCPAcceptor on port: " + port, ioe);
 		}
 	}
 	

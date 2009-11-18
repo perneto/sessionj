@@ -5,11 +5,10 @@ import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.net.InetSocketAddress;
 import java.util.logging.Logger;
-import java.util.logging.Level;
 
 class AsyncTCPAcceptor implements SJConnectionAcceptor {
     private final SelectingThread thread;
@@ -22,12 +21,13 @@ class AsyncTCPAcceptor implements SJConnectionAcceptor {
         ssc = ServerSocketChannel.open();
         ssc.configureBlocking(false);
         ssc.socket().bind(new InetSocketAddress(port));
+        thread.registerAccept(ssc);
     }
 
     public SJConnection accept() throws SJIOException {
         try {
-            thread.waitReadyAccept(ssc);
-            return finishAccept(ssc);
+            SocketChannel sc = thread.waitAndAccept(ssc);
+            return createSJConnection(sc);
         } catch (IOException e) {
             throw new SJIOException(e);
         } catch (InterruptedException e) {
@@ -36,15 +36,7 @@ class AsyncTCPAcceptor implements SJConnectionAcceptor {
     }
 
     public void close() {
-        thread.cancelAccept(ssc);
-        try {
-            ssc.close();
-        } catch (IOException e) {
-            logger.log(Level.WARNING, 
-                "Could not close server socket channel listening on port: " 
-                    + ssc.socket().getLocalPort(), e);
-        }
-
+        thread.close(ssc);
     }
 
     public boolean interruptToClose() {
@@ -52,7 +44,7 @@ class AsyncTCPAcceptor implements SJConnectionAcceptor {
     }
 
     public boolean isClosed() {
-        return false;
+        return !ssc.isOpen();
     }
 
     public String getTransportName() {
@@ -60,9 +52,7 @@ class AsyncTCPAcceptor implements SJConnectionAcceptor {
     }
 
 
-    private SJConnection finishAccept(ServerSocketChannel ssc) throws IOException {
-        SocketChannel socketChannel = ssc.accept();
-        socketChannel.configureBlocking(false);
+    private SJConnection createSJConnection(SocketChannel socketChannel) throws IOException {
         socketChannel.socket().setTcpNoDelay(SJStreamTCP.TCP_NO_DELAY);
         thread.notifyAccepted(ssc, socketChannel);
         return new AsyncConnection(thread, socketChannel);

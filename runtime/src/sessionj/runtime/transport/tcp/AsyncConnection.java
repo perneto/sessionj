@@ -1,10 +1,9 @@
 package sessionj.runtime.transport.tcp;
 
-import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.transport.SJConnection;
 
 import java.nio.channels.SocketChannel;
-import java.io.IOException;
 
 class AsyncConnection implements SJConnection
 {
@@ -18,9 +17,7 @@ class AsyncConnection implements SJConnection
 
     public void disconnect()
     {
-        try {
-            thread.close(sc);
-        } catch (IOException ignored) { }
+        thread.close(sc);
     }
 
     public void writeByte(byte b) throws SJIOException {

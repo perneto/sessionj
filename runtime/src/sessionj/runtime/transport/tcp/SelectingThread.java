@@ -2,11 +2,13 @@ package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.session.OngoingRead;
 import sessionj.runtime.session.SJDeserializer;
+import static sessionj.runtime.transport.tcp.SelectingThread.ChangeAction.*;
 import sessionj.util.Pair;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
+import static java.nio.channels.SelectionKey.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.Queue;
@@ -26,7 +28,7 @@ final class SelectingThread implements Runnable {
 
     private final ConcurrentHashMap<SocketChannel, Queue<byte[]>> readyInputs;
     private final BlockingQueue<Object> readyForSelect;
-    private final ConcurrentHashMap<ServerSocketChannel, Semaphore> readyForAccept;
+    private final ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>> accepted;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
     private static final Logger logger = Logger.getLogger(SelectingThread.class.getName());
 
@@ -37,12 +39,13 @@ final class SelectingThread implements Runnable {
         readyInputs = new ConcurrentHashMap<SocketChannel, Queue<byte[]>>();
         requestedOutputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
         readyForSelect = new LinkedBlockingQueue<Object>();
-        readyForAccept = new ConcurrentHashMap<ServerSocketChannel, Semaphore>();
+        accepted = new ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>>();
         readBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
     }
 
     void registerAccept(ServerSocketChannel ssc) {
-        pendingChangeRequests.add(new ChangeRequest(ssc, ChangeAction.REGISTER, SelectionKey.OP_ACCEPT));
+        accepted.put(ssc, new LinkedBlockingQueue<SocketChannel>());
+        pendingChangeRequests.add(new ChangeRequest(ssc, REGISTER, OP_ACCEPT));
         // Don't touch selector registrations here, do all
         // selector handling in the selecting thread (as selector keys are not thread-safe)
         selector.wakeup(); // Essential for the first selector registration:
@@ -55,9 +58,10 @@ final class SelectingThread implements Runnable {
         // Don't change the order of these 2 statements: it's safe if we're interrupted after the first
         // one, as the channel is not registered with the selector yet. But if the registration requst is
         // added first, could have a NullPointerException
-        pendingChangeRequests.add(new ChangeRequest(sc, ChangeAction.REGISTER, SelectionKey.OP_READ));
+        pendingChangeRequests.add(new ChangeRequest(sc, REGISTER, OP_READ));
         // Don't touch selector registrations here, do all
         // selector handling in the selecting thread (as selector keys are not thread-safe)
+        selector.wakeup();
     }
 
     /**
@@ -77,22 +81,19 @@ final class SelectingThread implements Runnable {
             requestedOutputs.put(sc, outputsForChan);
         }
         outputsForChan.add(ByteBuffer.wrap(bs));
-        pendingChangeRequests.add(new ChangeRequest(sc, ChangeAction.CHANGEOPS, SelectionKey.OP_WRITE));
+        pendingChangeRequests.add(new ChangeRequest(sc, CHANGEOPS, OP_WRITE));
     }
 
     public void enqueueOutput(SocketChannel sc, byte b) {
         enqueueOutput(sc, new byte[]{b});
     }
 
-    public void close(SelectableChannel sc) throws IOException {
-        SelectionKey key = sc.keyFor(selector);
-        if (key != null) key.cancel();
-        sc.close();
+    public void close(SelectableChannel sc) {
+        pendingChangeRequests.add(new ChangeRequest(sc, CLOSE, -1));
     }
 
-    public void waitReadyAccept(ServerSocketChannel ssc) throws InterruptedException {
-        checkInitSemaphore(ssc);
-        readyForAccept.get(ssc).acquire();
+    public SocketChannel waitAndAccept(ServerSocketChannel ssc) throws InterruptedException {
+        return accepted.get(ssc).take();
     }
 
     public void run() {
@@ -102,12 +103,12 @@ final class SelectingThread implements Runnable {
                 updateRegistrations();
                 doSelect();
             } catch (IOException e) {
-                e.printStackTrace(); // TODO
+                logger.log(Level.SEVERE, "Error in selecting loop", e);
             }
         }
     }
 
-    private void updateRegistrations() throws ClosedChannelException {
+    private void updateRegistrations() throws IOException {
         while (!pendingChangeRequests.isEmpty()) {
             ChangeRequest req = pendingChangeRequests.remove();
             req.execute(selector);
@@ -152,7 +153,7 @@ final class SelectingThread implements Runnable {
         if (writtenInFull) {
             // We wrote away all data, so we're no longer interested
             // in writing on this socket. Switch back to waiting for data.
-            key.interestOps(SelectionKey.OP_READ);
+            key.interestOps(OP_READ);
         }
     }
 
@@ -167,7 +168,8 @@ final class SelectingThread implements Runnable {
         try {
             numRead = socketChannel.read(readBuffer);
         } catch (IOException e) {
-            logger.log(Level.INFO, "Remote peer forcibly closed connection, closing channel and cancelling key", e);
+            logger.log(Level.INFO, 
+                "Remote peer forcibly closed connection, closing channel and cancelling key", e);
             key.cancel();
             socketChannel.close();
             return;
@@ -189,34 +191,32 @@ final class SelectingThread implements Runnable {
 
     private void decideIfMoreToRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes) {
         OngoingRead read = (OngoingRead) key.attachment();
-        if (read == null) {
-            read = deserializer.newOngoingRead();
-            key.attach(read);
-        }
-        read.updatePendingInput(bytes);
-        if (read.finished()) {
-            readyInputs.get(sc).add(read.getCompleteInput());
-            // order is important here: adding to readyForSelect makes the read visible to select
-            readyForSelect.add(sc);
-        }
-    }
-
-    private void accept(SelectionKey key) {
-        checkInitSemaphore(key.channel());
-        readyForAccept.get(key.channel()).release();
-    }
-
-    private synchronized void checkInitSemaphore(SelectableChannel channel) {
-        if (!readyForAccept.containsKey(channel)) {
-            readyForAccept.put((ServerSocketChannel) channel, new Semaphore(0));
+        while (bytes.remaining() != 0) {
+            if (read == null) read = attachNewOngoingRead(key);
+            
+            read.updatePendingInput(bytes);
+            
+            if (read.finished()) {
+                readyInputs.get(sc).add(read.getCompleteInput());
+                // order is important here: adding to readyForSelect makes the read visible to select
+                readyForSelect.add(sc);
+                
+                read = attachNewOngoingRead(key);
+            }
         }
     }
 
-    @SuppressWarnings({"TypeMayBeWeakened"})
-    public void cancelAccept(ServerSocketChannel ssc) {
-        assert ssc != null;
-        SelectionKey key = ssc.keyFor(selector);
-        if (key != null) key.cancel();
+    private OngoingRead attachNewOngoingRead(SelectionKey key) {
+        OngoingRead read = deserializer.newOngoingRead();
+        key.attach(read);
+        return read;
+    }
+
+    private void accept(SelectionKey key) throws IOException {
+        ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
+        SocketChannel socketChannel = ssc.accept();
+        socketChannel.configureBlocking(false);
+        accepted.get(ssc).add(socketChannel);
     }
 
     public void notifyAccepted(ServerSocketChannel ssc, SocketChannel socketChannel) {
@@ -238,12 +238,12 @@ final class SelectingThread implements Runnable {
             this.interestOps = interestOps;
         }
 
-        void execute(Selector selector) throws ClosedChannelException {
+        void execute(Selector selector) throws IOException {
             changeAction.execute(selector, this);
         }
     }
 
-    private enum ChangeAction {
+    enum ChangeAction {
         REGISTER {
             void execute(Selector selector, ChangeRequest req) throws ClosedChannelException {
                 req.chan.register(selector, req.interestOps);
@@ -252,12 +252,13 @@ final class SelectingThread implements Runnable {
             void execute(Selector selector, ChangeRequest req) {
                 req.chan.keyFor(selector).interestOps(req.interestOps);
             }
-        }, CANCEL {
-            void execute(Selector selector, ChangeRequest req) {
-                req.chan.keyFor(selector).cancel();
+        }, CLOSE {
+            void execute(Selector selector, ChangeRequest req) throws IOException {
+                // Implicitly cancels all existing selection keys for that channel (see javadoc).
+                req.chan.close();
             }
         };
-        abstract void execute(Selector selector, ChangeRequest changeRequest) throws ClosedChannelException;
+        abstract void execute(Selector selector, ChangeRequest changeRequest) throws IOException;
     }
 
 }
