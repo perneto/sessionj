@@ -281,7 +281,7 @@ public class Client
 						DataLineFeed dataLF = new DataLineFeed();
 						System.out.print("Sending: DATA" + dataLF); 
 						s.send(dataLF);												
-						System.out.println("Received: " + (DataAck) s.receive());
+						System.out.print("Received: " + (DataAck) s.receive()); // SmtpAcks already include a terminal line feed.
 						
 						System.out.print("Message subject?: ");
 						String subject = readUserInput(sc);
@@ -292,7 +292,7 @@ public class Client
 						MessageBody body = new MessageBody("SUBJECT:" + subject + "\n\n" + text);				
 						System.out.print("Sending: " + body);
 						s.send(body);
-						System.out.println("Received: " + (MessageBodyAck) s.receive());
+						System.out.print("Received: " + (MessageBodyAck) s.receive());
 						
 						//doQuit(s);					
 					}
@@ -326,7 +326,7 @@ public class Client
 		Quit quit = new Quit();
 		System.out.print("Sending: " + quit);
 		s.send(quit);
-		System.out.println("Received: " + (QuitAck) s.receive());		
+		System.out.print("Received: " + (QuitAck) s.receive());		
 	}
 	
 	public static void main(String[] args) throws Exception

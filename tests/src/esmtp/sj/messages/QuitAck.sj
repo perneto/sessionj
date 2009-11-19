@@ -32,6 +32,6 @@ public class QuitAck extends SmtpAck
 	
 	public SmtpParseable parse(String m)
 	{
-		return new MailAckBody(SmtpAck.removeTrailingLineFeed(m).substring(QUIT_REPLY_CODE.length()));
+		return new QuitAck(SmtpAck.removeTrailingLineFeed(m).substring(QUIT_REPLY_CODE.length()));
 	}		
 }
