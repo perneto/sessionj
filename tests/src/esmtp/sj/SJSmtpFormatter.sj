@@ -299,7 +299,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				{
 					state = DATA_ACK;
 					
-					return m;
+					return null; // Go to next state, to keep reading this message (DataAck).
 				}	
 				else
 				{
@@ -346,8 +346,6 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			
 			else if (state == DATA_ACK)
 			{
-				m = "3" + m; // HACK. Too lazy to use do this bit properly. 
-				
 				if (DATA_ACK.isParseable(m))
 				{
 					state = MESSAGE_BODY_ACK;
