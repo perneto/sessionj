@@ -8,6 +8,6 @@ abstract public class SmtpCommand extends SmtpMessage
 	
 	public String prefix()
 	{
-		return command();
+		return command() + " "; // Unlike SmtpAcks, SmtpCommands include the " " in the prefix, since it will always be a " " (i.e. not a "-", as in multi-line acks.)
 	}
 }

@@ -2,9 +2,11 @@
 
 package esmtp.sj.messages;
 
+import esmtp.sj.*;
+
 abstract public class SmtpMessage
 {
-	public static final String SMTP_MESSAGE_SUFFIX = "\n";
+	public static final String SMTP_MESSAGE_SUFFIX = SJSmtpFormatter.LINE_FEED; //"\n";
 	
 	public SmtpMessage()
 	{

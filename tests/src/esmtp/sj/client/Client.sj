@@ -1,6 +1,6 @@
 //$ bin/sessionjc -sourcepath tests/src/esmtp/sj/';'tests/src/esmtp/sj/messages/';'tests/src/esmtp/sj/client/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
 //$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ esmtp.sj.client.Client false esmtp.cc.ic.ac.uk 25 
+//$ bin/sessionj -cp tests/classes/ esmtp.sj.client.Client false smtp.cc.ic.ac.uk 25 
 
 package esmtp.sj.client;
 
@@ -23,51 +23,83 @@ import esmtp.sj.messages.*;
 
 public class Client
 {			
-	private MailAckTwoDigits foo = null;
-	
 	private protocol p_client
 	{
 		//^(Server.p_server)
 		cbegin
 		.?(ServerGreeting)
-		.!<Helo>.?(HeloAck)
-		.rec MAIL [
+				
+		.!<Ehlo>
+		.rec EHLO_ACK 
+		[		
+			?{
+				$2: 
+				  ?(ReplyCodeSecondAndThirdDigits) // SMTP says once the first reply code has been received, the following will all be the same. How to express this conveniently here? Maybe need the bounded polymorphism with dependent typing.
+				  .?{
+					  _HYPHEN: // Need full "dependently-typed" labels (in order to use a higher-level type representation for "-" here).
+						  ?(EhloAckBody)
+	    			  .#EHLO_ACK,
+	    			_SPACE:
+	    				?(EhloAckBody) // Can differentiate the different message structures at a finer-grained level, e.g. Ehlo2AckBody, Ehlo5AckBody (if this is possible).
+				  }				
+			}		
+		]
+		
+		.rec MAIL 
+		[
 		  !<Mail>
-		  .rec MAIL_ACK [
+		  .rec MAIL_ACK 
+		  [
 		     ?{
 		    	  $2:
-		    	  	?(MailAckTwoDigits)
-		    	  	//?(MailAck)
+		    	  	?(ReplyCodeSecondAndThirdDigits)
 		    		  .?{
-		    	 			_HYPHEN: 
-		    	 				?(MailTwoAck)
-		    				  .#MAIL_ACK,
-		    				_SPACE: // Need full "dependently-typed" labels (in order to use SJSmtpFormatter.SPACE here).
-		    					?(MailTwoAck)
+		    	 			_HYPHEN: // Actually, is this needed for the "2 case"?
+		    	 				?(MailAckBody)
+		    				  .#MAIL_ACK,  
+		    				_SPACE: 
+		    					?(MailAckBody)
 		     			},
 		    	 $5:
-   	 				?(MailFiveAck)
-   	 				.#MAIL
+		    		 ?(ReplyCodeSecondAndThirdDigits)
+		    		.?{
+	    	 			 _HYPHEN: 
+	    	 				 ?(MailAckBody)
+	    				   .#MAIL_ACK,  
+	    				 _SPACE: 
+	    					 ?(MailAckBody)
+	    		   	 	 .#MAIL
+	     			}
 		     }
 		  ]		  
 		]
-		.rec RCPT [
+		
+		.rec RCPT 
+		[
 			!{
 				RCPT:
 					!<RcptTo>
 					.?{
 						$2: 
-							?(RcptTwoAck)
+							?(ReplyCodeSecondAndThirdDigits)
+							.?(RcptAckBody) // Unlike MailAck, the " " part of the prefix is contained in here (we don't bother to check for "-").
 							.#RCPT,
 						$5:	
-							?(RcptFiveAck)	
+							?(ReplyCodeSecondAndThirdDigits)
+							.?(RcptAckBody)
+							.#RCPT
 					},
-			  DATA: 
-					!<DataLineFeed>.?(DataAck)
-					.!<MessageBody>.?(MessageBodyAck)			
+					
+			  DATA: // We shouldn't be allowed to do this if no valid recipients were specified.
+					!<DataLineFeed>.?(DataAck) // Luckily, DataAck will start with a "3", which distinguishes it from the above RcptAcks.
+					.!<MessageBody>.?(MessageBodyAck)
+							
+				/*QUIT: // We should have this here in case none of the recipients were accepted. But we'd need to differentiate the QuitAck reply code from RcptAck reply codes (and can't be bothered to that right now). (And then we don't want the final Quit at the end either.) Instead, it would be easier to check for error code after DATA command (and maybe just quit after that).
+					!<Quit>.?(QuitAck)*/
 			}
 		]
-		.!<Quit>.?(QuitAck)		
+		
+		.!<Quit>.?(QuitAck)	// In principle, we should be able to QUIT at any time in the protocol, not just at the end.
 	}
 	
 	public void run(boolean debug, String server, int port) throws Exception
@@ -90,10 +122,34 @@ public class Client
 			
 			System.out.println((ServerGreeting) s.receive());
 			
-			Helo helo = new Helo(fqdn);
-			System.out.print("Sending: " + helo);			
-			s.send(helo);			
-			System.out.println("Received: " + (HeloAck) s.receive());
+			Ehlo ehlo = new Ehlo(fqdn);
+			System.out.print("Sending: " + ehlo);			
+			s.send(ehlo);			
+			
+			s.recursion(EHLO_ACK)
+			{
+				s.inbranch()
+				{						
+					case $2:
+					{
+						String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();							
+						
+						s.inbranch()
+						{
+							case _HYPHEN:
+							{
+								System.out.println("Received: " + "2" + code + "-" + (EhloAckBody) s.receive());									
+								
+								s.recurse(EHLO_ACK);
+							}
+							case _SPACE:
+							{
+								System.out.println("Received: " + "2" + code + " " + (EhloAckBody) s.receive());
+							}
+						}
+					}
+				}
+			}
 			
 			/*System.out.print("Sender's address? (e.g. sender@domain.com): ");			
 			Mail mail = new Mail(readUserInput(sc));
@@ -114,31 +170,41 @@ public class Client
 					{						
 						case $2:
 						{
-							String ack = ((MailAckTwoDigits) s.receive()).toString();							
+							String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();							
 							
 							s.inbranch()
 							{
 								case _HYPHEN:
 								{
-									System.out.println("Received: " + "2" + ack + "-" + (MailTwoAck) s.receive());									
+									System.out.println("Received: " + "2" + code + "-" + (MailAckBody) s.receive());									
 									
 									s.recurse(MAIL_ACK);
 								}
 								case _SPACE:
 								{
-									System.out.println("Received: " + "2" + ack + " " + (MailTwoAck) s.receive());
+									System.out.println("Received: " + "2" + code + " " + (MailAckBody) s.receive());
 								}
 							}
 						}
 						case $5:
 						{
-							/*String ack = ((MailAckTwoDigits) s.receive()).toString();							
+							String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();							
 							
-							System.out.println("Received: " + "5" + ack + (MailFiveAck) s.receive());*/
-							
-							System.out.println("Received: " + "5" + (MailFiveAck) s.receive());
-							
-							s.recurse(MAIL);
+							s.inbranch()
+							{
+								case _HYPHEN:
+								{
+									System.out.println("Received: " + "5" + code + "-" + (MailAckBody) s.receive());									
+									
+									s.recurse(MAIL_ACK);
+								}
+								case _SPACE:
+								{
+									System.out.println("Received: " + "5" + code + " " + (MailAckBody) s.receive());
+									
+									s.recurse(MAIL);
+								}
+							}
 						}
 					}
 				}
@@ -146,7 +212,9 @@ public class Client
 			
 			boolean firstIteration = true;
 			boolean anotherRecipient = true;
-						
+			
+			int recipients = 0;			
+			
 			s.recursion(RCPT)
 			{
 				if (firstIteration)
@@ -178,23 +246,36 @@ public class Client
 						{
 							case $2:
 							{
-								System.out.println("Received: " + "2" + (RcptTwoAck) s.receive()); // Need to re-add the "2" that was already consumed by the inbranch.
+								String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();
+								
+								System.out.println("Received: " + "2" + code + (RcptAckBody) s.receive()); // Need to re-add the "2" that was already consumed by the inbranch.
+								
+								recipients++;
 								
 								s.recurse(RCPT);								
 							}
 							case $5:
 							{
-								System.out.println("Received: " + "5" + (RcptFiveAck) s.receive());
+								String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();
 								
-								//doQuit(s); // Currently, delegation within loop contexts completely forbidden, even though this branch does not loop.					
+								System.out.println("Received: " + "5" + code + (RcptAckBody) s.receive());
+								
+								//doQuit(s); // Currently, delegation within loop contexts completely forbidden, even though this branch does not loop.
+								
+								s.recurse(RCPT);
 							}
 						}					
 					}
 					
 					anotherRecipient = false;
 				}
-				else
+				else //if (recipients > 0)
 				{
+					if (recipients == 0) // HACK: we should send a QUIT here (would need to modify session type and parser to differentiate QuitAck from RctAck).
+					{
+						throw new RuntimeException("No valid recipients given.");
+					}
+					
 					s.outbranch(DATA)
 					{
 						DataLineFeed dataLF = new DataLineFeed();
@@ -216,6 +297,10 @@ public class Client
 						//doQuit(s);					
 					}
 				}
+				/*else
+				{
+					throw new RuntimeException("foo");
+				}*/
 			}
 			
 			doQuit(s);
