@@ -1,10 +1,9 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelectorInternal;
+import sessionj.runtime.transport.AbstractSJTransport;
 import sessionj.runtime.transport.SJConnectionAcceptor;
 import sessionj.runtime.transport.SJStreamConnection;
-import sessionj.runtime.transport.SJTransport;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +24,7 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 		}
 		catch (IOException ioe)
 		{
-			throw new SJIOException(ioe);
+			throw new SJIOException("Could not open StreamTCPAcceptor on port: " + port, ioe);
 		}
 	}
 	
@@ -127,7 +126,7 @@ class SJStreamTCPConnection extends SJStreamConnection
  * @author Raymond
  *
  */
-public class SJStreamTCP implements SJTransport
+public class SJStreamTCP extends AbstractSJTransport
 {
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.tcp.SJStreamTCP";
 
@@ -158,10 +157,6 @@ public class SJStreamTCP implements SJTransport
 			throw new SJIOException(ioe);
 		}
 	}
-
-    public SJSelectorInternal transportSelector() {
-        return null;
-    }
 
     public boolean portInUse(int port)
 	{

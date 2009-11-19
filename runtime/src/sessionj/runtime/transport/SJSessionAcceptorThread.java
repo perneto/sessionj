@@ -15,7 +15,7 @@ public class SJSessionAcceptorThread extends SJAcceptorThread {
 	
 	public SJSessionAcceptorThread(SJAcceptorThreadGroup atg, SJConnectionAcceptor ca)
 	{
-		super(atg, ca.getTransportName() + ":" + atg.getPort(), ca);
+		super(atg, "SessionAcceptorThread: " + ca.getTransportName() + ":" + atg.getPort(), ca);
 
     }
 	

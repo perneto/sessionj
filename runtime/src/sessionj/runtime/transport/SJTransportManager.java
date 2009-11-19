@@ -31,7 +31,7 @@ abstract public class SJTransportManager
 	abstract public SJConnection openConnection(String hostName, int port, SJSessionParameters params) throws SJIOException;
 	abstract public void closeConnection(SJConnection conn);
 	
-	abstract public Collection<SJTransport> activeNegotiationTransports();
+	abstract public List<SJTransport> activeNegotiationTransports();
 
     /**
      * Ensures the transports designated by the letter codes given as parameter
@@ -42,7 +42,7 @@ abstract public class SJTransportManager
      */
     abstract public List<SJTransport> loadNegotiationTransports(String transportLetterCodes) throws SJIOException;
 	
-	abstract public Collection<SJTransport> activeSessionTransports();
+	abstract public List<SJTransport> activeSessionTransports();
 	abstract public List<SJTransport> loadSessionTransports(String transportLetterCodes) throws SJIOException;
 	
 	abstract protected void registerConnection(SJConnection conn);
@@ -51,4 +51,5 @@ abstract public class SJTransportManager
 	abstract protected boolean serverNegotiation(SJSessionParameters params, SJAcceptorThreadGroup atg, SJConnection conn) throws SJIOException;
 
     public abstract List<SJTransport> defaultSessionTransports();
+    public abstract List<SJTransport> defaultNegotiationTransports();
 }

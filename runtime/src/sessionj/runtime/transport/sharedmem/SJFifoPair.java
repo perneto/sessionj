@@ -2,9 +2,7 @@ package sessionj.runtime.transport.sharedmem;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.SJSelectorInternal;
-import sessionj.runtime.transport.SJConnectionAcceptor;
-import sessionj.runtime.transport.SJLocalConnection;
-import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.*;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -357,7 +355,7 @@ class SJFifoPairConnection implements SJLocalConnection
  * @author Raymond
  *
  */
-public class SJFifoPair implements SJTransport 
+public class SJFifoPair extends AbstractSJTransport
 {
     static final Logger logger = Logger.getLogger(SJFifoPair.class.getName());
     
