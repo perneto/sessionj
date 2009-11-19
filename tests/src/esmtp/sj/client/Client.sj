@@ -94,7 +94,7 @@ public class Client
 					!<DataLineFeed>.?(DataAck) // Luckily, DataAck will start with a "3", which distinguishes it from the above RcptAcks.
 					.!<MessageBody>.?(MessageBodyAck)
 							
-				/*QUIT: // We should have this here in case none of the recipients were accepted. But we'd need to differentiate the QuitAck reply code from RcptAck reply codes (and can't be bothered to that right now). (And then we don't want the final Quit at the end either.) Instead, it would be easier to check for error code after DATA command (and maybe just quit after that).
+				/*QUIT: // We should have this here in case none of the recipients were accepted. But we'd need to differentiate the QuitAck reply code from RcptAck reply codes (and can't be bothered to that right now). (And then we don't want the final Quit at the end either.) Instead, it would be easier to check for error code after DATA command (and maybe just quit after that). But the problem with this is that we need to distinguish the "5" prefixed error codes between RcptAck and DataAck.
 					!<Quit>.?(QuitAck)*/
 			}
 		]
