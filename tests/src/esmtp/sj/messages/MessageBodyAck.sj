@@ -4,7 +4,7 @@ package esmtp.sj.messages;
 
 import esmtp.sj.*;
 
-public class MessageBodyAck
+public class MessageBodyAck extends SmtpAck
 {
 	public static final String MESSAGE_BODY_REPLY_CODE = "250";
 	
@@ -32,6 +32,6 @@ public class MessageBodyAck
 	
 	public SmtpParseable parse(String m)
 	{
-		return new MailAckBody(SmtpAck.removeTrailingLineFeed(m).substring(MESSAGE_BODY_REPLY_CODE.length()));
+		return new MessageBodyAck(SmtpAck.removeTrailingLineFeed(m).substring(MESSAGE_BODY_REPLY_CODE.length()));
 	}		
 }
