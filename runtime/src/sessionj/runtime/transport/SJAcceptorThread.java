@@ -27,9 +27,8 @@ public abstract class SJAcceptorThread extends Thread {
         
         ca.close();
     
-        if (ca.interruptToClose())
-        {
-interrupt();
+        if (ca.interruptToClose()) {
+            interrupt();
             //throw new RuntimeException("..."); // Maybe this would be better, with an appropriate exception catcher?
         }
     }

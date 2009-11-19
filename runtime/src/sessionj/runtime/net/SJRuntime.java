@@ -1131,22 +1131,18 @@ public class SJRuntime
     
     switch (params.getCompatibilityMode()) // Now need to get the appropriate session-layer protocol component(s).
     {
-    	case SJ: 
-    	{    		   
-        s.sp = new SJSessionProtocolsImpl(s, ser); // FIXME: should have options for more user configurability. 	
-    		
-    		break;
-    	}
-    	case CUSTOM: 
-    	{
-    		s.sp = new SJNonSjCompatibilityProtocols(s, ser); // Doesn't support e.g. session initiation validation and session delegation. // FIXME: but there should also be better user control over these options. 
-    		
-    		break;    		
-    	}
-    	default:
-    	{
-    		throw new SJRuntimeException("[SJRuntime] Unsupported session compatibility mode: " + params.getCompatibilityMode());
-    	}
+    	case SJ:
+            s.sp = new SJSessionProtocolsImpl(s, ser); // FIXME: should have options for more user configurability. 	
+            break;
+        
+        case CUSTOM:
+            s.sp = new SJNonSjCompatibilityProtocols(s, ser);
+            // Doesn't support e.g. session initiation validation and session delegation. 
+            // // FIXME: but there should also be better user control over these options. 
+            break;
+        
+        default:
+            throw new SJRuntimeException("[SJRuntime] Unsupported session compatibility mode: " + params.getCompatibilityMode());
     }
     
     assert s.ser != null;

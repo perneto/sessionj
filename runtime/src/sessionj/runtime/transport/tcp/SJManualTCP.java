@@ -2,9 +2,7 @@ package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.SJSelectorInternal;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJConnectionAcceptor;
-import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.*;
 import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
 
 import java.io.*;
@@ -196,7 +194,7 @@ class SJManualTCPConnection implements SJConnection
  * @author Raymond
  *
  */
-public class SJManualTCP implements SJTransport 
+public class SJManualTCP extends AbstractSJTransport
 {
 	public static final String TRANSPORT_NAME = "sessionj.runtime.transport.tcp.SJManualTCP";
 
@@ -234,10 +232,6 @@ public class SJManualTCP implements SJTransport
             }
         }
 	}
-
-    public SJSelectorInternal transportSelector() {
-        return null;
-    }
 
     public boolean portInUse(int port)
 	{

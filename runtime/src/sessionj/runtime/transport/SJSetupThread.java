@@ -14,7 +14,7 @@ public class SJSetupThread extends SJAcceptorThread
 {	
 	public SJSetupThread(SJAcceptorThreadGroup atg, SJConnectionAcceptor ca)
 	{
-		super(atg, ca.getTransportName() + ":" + atg.getPort(), ca);
+		super(atg, "NegotiationAcceptorThread: " + ca.getTransportName() + ":" + atg.getPort(), ca);
 	}
 	
 	public void run()

@@ -147,54 +147,44 @@ public class MultiPartyInsyncTest {
             return 0;
         }
 
-				@Override
-				public SJStateManager getStateManager()
-				{
-					// TODO: Auto-generated method stub.
-					return null;
-				}
+        public SJStateManager getStateManager() {
+            // TODO: Auto-generated method stub.
+            return null;
+        }
 
-				@Override
-				public void setStateManager(SJStateManager sm)
-				{
-					// TODO: Auto-generated method stub.
-					
-				}
+        public void setStateManager(SJStateManager sm) {
+            // TODO: Auto-generated method stub.
 
-				@Override
-				public SJSessionType currentSessionType()
-				{
-					// TODO: Auto-generated method stub.
-					return null;
-				}
+        }
 
-				@Override
-				public SJSessionType remainingSessionType()
-				{
-					// TODO: Auto-generated method stub.
-					return null;
-				}
+        public SJSessionType currentSessionType() {
+            // TODO: Auto-generated method stub.
+            return null;
+        }
 
-				@Override
-				public boolean recurse(String lab) throws SJIOException
-				{
-					// TODO Auto-generated method stub
-					return false;
-				}
+        public SJSessionType remainingSessionType() {
+            // TODO: Auto-generated method stub.
+            return null;
+        }
 
-				@Override
-				public boolean recursionEnter(String lab) throws SJIOException
-				{
-					// TODO Auto-generated method stub
-					return false;
-				}
+        public boolean typeStartsWithOutput() {
+            return false;
+        }
 
-				@Override
-				public boolean recursionExit() throws SJIOException
-				{
-					// TODO Auto-generated method stub
-					return false;
-				}
+        public boolean recurse(String lab) throws SJIOException {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        public boolean recursionEnter(String lab) throws SJIOException {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        public boolean recursionExit() throws SJIOException {
+            // TODO Auto-generated method stub
+            return false;
+        }
     }
 
     @BeforeTest
@@ -205,19 +195,19 @@ public class MultiPartyInsyncTest {
 
     @Test
     public void allSocketsContinue() throws SJIOException {
-        sockets = new SJSocket[] {sockContinue, sockContinue, sockContinue};
+        sockets = new SJSocket[]{sockContinue, sockContinue, sockContinue};
         assert SJRuntime.insync(sockets);
     }
 
     @Test
     public void allSocketsStop() throws SJIOException {
-        sockets = new SJSocket[] {sockStop, sockStop, sockStop};
+        sockets = new SJSocket[]{sockStop, sockStop, sockStop};
         assert !SJRuntime.insync(sockets);
     }
 
     @Test(expectedExceptions = SJIOException.class)
     public void oneSocketStopOthersContinue() throws SJIOException {
-        sockets = new SJSocket[] {sockStop, sockContinue, sockStop};
+        sockets = new SJSocket[]{sockStop, sockContinue, sockStop};
         SJRuntime.insync(sockets);
     }
 

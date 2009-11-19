@@ -87,4 +87,6 @@ public interface SJSocket extends SJChannel
   
   public SJSessionType currentSessionType(); // Session actions performed so far (modulo loop types).
   public SJSessionType remainingSessionType();
+
+    boolean typeStartsWithOutput() throws SJIOException;
 }
