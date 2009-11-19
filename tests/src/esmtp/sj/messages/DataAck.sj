@@ -32,6 +32,6 @@ public class DataAck extends SmtpAck
 	
 	public SmtpParseable parse(String m)
 	{
-		return new MailAckBody(SmtpAck.removeTrailingLineFeed(m).substring(DATA_REPLY_CODE.length()));
+		return new DataAck(SmtpAck.removeTrailingLineFeed(m).substring(DATA_REPLY_CODE.length()));
 	}		
 }
