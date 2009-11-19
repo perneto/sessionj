@@ -54,3 +54,4 @@
 - session-receiver party in a delegation can be deadlocked if the passive party fails to reconnect. maybe do something about this (via the session-sender)
 - add a final else case to inbranch translation
 - delegation within a recursion is fine if we're on a branch that has no possibility to recurse
+- take exception throwing (i.e. how it affects control flow) into account when session type checking (e.g. a definite runtime exception means no need to complete session typing on that path) 
