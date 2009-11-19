@@ -21,6 +21,9 @@ import esmtp.sj.*;
 import esmtp.sj.messages.*;
 //import esmtp.sj.server.Server;
 
+/*
+ * FIXME: redo this Client with three-digit branch labels instead of one-digit (where appropriate), and use sent-message history in the parser to help parsing. 
+ */
 public class Client
 {			
 	private protocol p_client
@@ -50,27 +53,27 @@ public class Client
 		  !<Mail>
 		  .rec MAIL_ACK 
 		  [
-		     ?{
-		    	  $2:
-		    	  	?(ReplyCodeSecondAndThirdDigits)
-		    		  .?{
-		    	 			_HYPHEN: // Actually, is this needed for the "2 case"?
-		    	 				?(MailAckBody)
-		    				  .#MAIL_ACK,  
-		    				_SPACE: 
-		    					?(MailAckBody)
-		     			},
-		    	 $5:
-		    		 ?(ReplyCodeSecondAndThirdDigits)
+		    ?{
+		    	$2:
+		    		?(ReplyCodeSecondAndThirdDigits)
 		    		.?{
-	    	 			 _HYPHEN: 
-	    	 				 ?(MailAckBody)
-	    				   .#MAIL_ACK,  
-	    				 _SPACE: 
-	    					 ?(MailAckBody)
-	    		   	 	 .#MAIL
-	     			}
-		     }
+		    		_HYPHEN: // Actually, is this needed for the "2 case"?
+		    			?(MailAckBody)
+		    			.#MAIL_ACK,  
+		    		_SPACE: 
+		    			?(MailAckBody)
+		    		},
+		    	$5:
+		    		?(ReplyCodeSecondAndThirdDigits)
+		    		.?{
+		    			_HYPHEN: 
+		    				?(MailAckBody)
+		    				.#MAIL_ACK,  
+		    			_SPACE: 
+		    				?(MailAckBody)
+		    				.#MAIL
+		    		}
+		    }
 		  ]		  
 		]
 		
@@ -94,7 +97,7 @@ public class Client
 					!<DataLineFeed>.?(DataAck) // Luckily, DataAck will start with a "3", which distinguishes it from the above RcptAcks.
 					.!<MessageBody>.?(MessageBodyAck)
 							
-				/*QUIT: // We should have this here in case none of the recipients were accepted. But we'd need to differentiate the QuitAck reply code from RcptAck reply codes (and can't be bothered to that right now). (And then we don't want the final Quit at the end either.) Instead, it would be easier to check for error code after DATA command (and maybe just quit after that). But the problem with this is that we need to distinguish the "5" prefixed error codes between RcptAck and DataAck.
+				/*QUIT: // We should have this here in case none of the recipients were accepted. But we'd need to differentiate the QuitAck reply code from RcptAck reply codes (and can't be bothered to that right now). (And then we don't want the final Quit at the end either.) Instead, it may be easier to check for an error code after DATA command (and maybe just quit after that). But the problem with this is that we need to distinguish the "5" prefixed error codes between RcptAck and DataAck, i.e. "550" vs. "503".
 					!<Quit>.?(QuitAck)*/
 			}
 		]
