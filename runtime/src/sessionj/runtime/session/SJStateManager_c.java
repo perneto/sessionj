@@ -739,9 +739,5 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			}*/
 		}
 	}
-	
-	public Stack<SJRuntimeContextElement> getContexts()
-	{
-		return contexts;
-	}
+
 }
