@@ -45,13 +45,9 @@ public class Server2
 		.!<MessageBodyAck>
 	}
 	
-	static protocol smtp_server
+	static protocol smtp_server_loop
 	{
-		sbegin
-		.!<ServerGreeting>				
-		.?(Ehlo)
-		.!<EhloAck>		
-		.rec LOOP
+		rec LOOP
 		[
 			?{
 				MAIL_FROM:
@@ -66,7 +62,16 @@ public class Server2
 				QUIT:
 					!<QuitAck>
 			}
-		]
+		]		
+	}
+	
+	static protocol smtp_server
+	{
+		sbegin
+		.!<ServerGreeting>				
+		.?(Ehlo)
+		.!<EhloAck>		
+		.@(smtp_server_loop)
 	}
 		
 	public void run(boolean debug, int port) throws Exception
@@ -96,7 +101,9 @@ public class Server2
 					System.out.print("Sending: " + ehloAck);			
 					s.send(ehloAck);			
 					
-					s.recursion(LOOP)
+					doMainLoop(s);
+					
+					/*s.recursion(LOOP)
 					{
 						s.inbranch()
 						{
@@ -125,7 +132,7 @@ public class Server2
 								s.send(quitAck);	
 							}			
 						}
-					}
+					}*/
 				}
 				catch (SJIOException ioe)
 				{
@@ -139,6 +146,37 @@ public class Server2
 		}
 	}
 
+	private static final void doMainLoop(final noalias @(smtp_server_loop) s) throws SJIOException, ClassNotFoundException
+	{
+		s.recursion(LOOP)
+		{
+			s.inbranch()
+			{
+				case MAIL_FROM:
+				{
+					doMailFrom(s);								
+					doMainLoop(s);													
+				}
+				case RCPT_TO:
+				{
+					doRcptTo(s);
+					doMainLoop(s);
+				}
+				case DATA:
+				{
+					doData(s);	
+					doMainLoop(s);
+				}
+				case QUIT:
+				{
+					QuitAck quitAck = new QuitAck("quit ack");
+					System.out.print("Sending: " + quitAck);			
+					s.send(quitAck);	
+				}
+			}
+		}
+	}
+	
 	private static final void doMailFrom(final noalias @(smtp_server_mail) s) throws SJIOException, ClassNotFoundException
 	{
 		System.out.print("Received: " + (EmailAddress) s.receive());
