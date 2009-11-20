@@ -39,7 +39,7 @@ public class ValidTestFactory {
             this.sjFile = sjFile;
         }
         @Test
-        public void compile() throws Exception {
+        public void run() throws Exception {
             System.out.println("COMPILING: " + sjFile);
             assert TestUtils.runCompiler(sjFile, classesDir, System.out, System.err) == 0;
             wrapped = (BaseValidTest) loadCompiledClass(sjFile).newInstance();

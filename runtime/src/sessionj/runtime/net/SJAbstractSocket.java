@@ -335,7 +335,7 @@ abstract public class SJAbstractSocket implements SJSocket
 
   public int typeLabel() throws SJIOException {
       // TODO: Better support for runtime type (this currently only works right after a session-receive)
-      assert protocol.type() instanceof SJSetType;
+      assert protocol.type() instanceof SJSetType : this + ": Protocol not a set type: " + protocol;
       SJSetType set = (SJSetType) protocol.type();
       return set.memberRank(runtimeType);
   }
@@ -373,5 +373,20 @@ abstract public class SJAbstractSocket implements SJSocket
     public boolean typeStartsWithOutput() throws SJIOException {
         return protocol.type().child().startsWithOutput(); 
     }
-    
+
+    @Override
+    public String toString() {
+        return "SJAbstractSocket{" +
+            "sm=" + sm +
+            ", protocol=" + protocol +
+            ", runtimeType=" + runtimeType +
+            ", params=" + params +
+            ", hostName='" + hostName + '\'' +
+            ", port=" + port +
+            ", localHostName='" + localHostName + '\'' +
+            ", localPort=" + localPort +
+            ", conn=" + conn +
+            ", isActive=" + isActive +
+            '}';
+    }
 }

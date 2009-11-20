@@ -24,10 +24,10 @@ public class Selector extends AbstractValidTest3Peers {
         noalias SJSocket s;
         try (ss1, ss2) {
             ss1 = SJServerSocket.create(pServer2, port);
-            ss2 = SJServerSocket.create(pServer3, port+1);
+            //ss2 = SJServerSocket.create(pServer3, port+1);
             try (sel) {
                 sel.registerAccept(ss1);
-                sel.registerAccept(ss2);
+                //sel.registerAccept(ss2);
                 int i = 0; boolean b; int j;
                 while (i < 2) {
                     try (s) {
@@ -50,14 +50,18 @@ public class Selector extends AbstractValidTest3Peers {
             s = serv.request();
             s.send(42);
         } finally {}
+        System.out.println("peer2 finished");
     }
 
     public void peer3(int port) throws Exception {
+    /*
         final noalias SJService serv = SJService.create(pClient3, "", port+1);
         noalias SJSocket s;
         try (s) {
             s = serv.request();
             s.send(false);
         } finally {}
+        System.out.println("peer3 finished");
+    */
     }
 }

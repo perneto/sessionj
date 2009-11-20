@@ -12,6 +12,7 @@ import static java.nio.channels.SelectionKey.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 import java.util.Queue;
+import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,7 +27,7 @@ final class SelectingThread implements Runnable {
 
     private final Queue<ChangeRequest> pendingChangeRequests;
 
-    private final ConcurrentHashMap<SocketChannel, Queue<byte[]>> readyInputs;
+    private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> readyInputs;
     private final BlockingQueue<Object> readyForSelect;
     private final ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>> accepted;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
@@ -36,14 +37,14 @@ final class SelectingThread implements Runnable {
         this.deserializer = deserializer;
         selector = SelectorProvider.provider().openSelector();
         pendingChangeRequests = new ConcurrentLinkedQueue<ChangeRequest>();
-        readyInputs = new ConcurrentHashMap<SocketChannel, Queue<byte[]>>();
+        readyInputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
         requestedOutputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
         readyForSelect = new LinkedBlockingQueue<Object>();
         accepted = new ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>>();
         readBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
     }
 
-    void registerAccept(ServerSocketChannel ssc) {
+    synchronized void registerAccept(ServerSocketChannel ssc) {
         accepted.put(ssc, new LinkedBlockingQueue<SocketChannel>());
         pendingChangeRequests.add(new ChangeRequest(ssc, REGISTER, OP_ACCEPT));
         // Don't touch selector registrations here, do all
@@ -53,8 +54,8 @@ final class SelectingThread implements Runnable {
         // hence sleeping forever.
     }
 
-    void registerInput(SocketChannel sc) {
-        readyInputs.put(sc, new LinkedBlockingQueue<byte[]>());
+    synchronized void registerInput(SocketChannel sc) {
+        readyInputs.put(sc, new LinkedBlockingQueue<ByteBuffer>());
         // Don't change the order of these 2 statements: it's safe if we're interrupted after the first
         // one, as the channel is not registered with the selector yet. But if the registration requst is
         // added first, could have a NullPointerException
@@ -70,18 +71,24 @@ final class SelectingThread implements Runnable {
      * @param sc The channel for which to get an input message.
      * @return A complete message (according to the OngoingRead instance obtained from the serializer)
      */
-    public byte[] dequeueInput(SocketChannel sc) {
+    public ByteBuffer dequeueFromInputQueue(SocketChannel sc) {
         return readyInputs.get(sc).remove();
     }
+    
+    public ByteBuffer peekAtInputQueue(SocketChannel sc) {
+        return readyInputs.get(sc).peek();
+    }
 
-    public void enqueueOutput(SocketChannel sc, byte[] bs) {
+    public synchronized void enqueueOutput(SocketChannel sc, byte[] bs) {
         Queue<ByteBuffer> outputsForChan = requestedOutputs.get(sc);
         if (outputsForChan == null) {
             outputsForChan = new ConcurrentLinkedQueue<ByteBuffer>();
             requestedOutputs.put(sc, outputsForChan);
         }
         outputsForChan.add(ByteBuffer.wrap(bs));
+        System.out.println("Enqueued write on: " + sc + " of: " + Arrays.toString(bs));
         pendingChangeRequests.add(new ChangeRequest(sc, CHANGEOPS, OP_WRITE));
+        selector.wakeup();
     }
 
     public void enqueueOutput(SocketChannel sc, byte b) {
@@ -89,11 +96,22 @@ final class SelectingThread implements Runnable {
     }
 
     public void close(SelectableChannel sc) {
+        // ConcurrentLinkedQueue - no synchronization needed
         pendingChangeRequests.add(new ChangeRequest(sc, CLOSE, -1));
     }
 
-    public SocketChannel waitAndAccept(ServerSocketChannel ssc) throws InterruptedException {
+    public SocketChannel takeAccept(ServerSocketChannel ssc) throws InterruptedException {
+        // ConcurrentHashMap and LinkedBlockingQueue, both thread-safe,
+        // and no need for atomicity here
         return accepted.get(ssc).take();
+    }
+
+    public void notifyAccepted(ServerSocketChannel ssc, SocketChannel socketChannel) {
+        readyForSelect.add(new Pair<ServerSocketChannel, SocketChannel>(ssc, socketChannel));
+    }
+
+    public Object dequeueChannelForSelect() throws InterruptedException {
+        return readyForSelect.take();
     }
 
     public void run() {
@@ -141,7 +159,7 @@ final class SelectingThread implements Runnable {
         Queue<ByteBuffer> queue = requestedOutputs.get(socketChannel);
 
         boolean writtenInFull = true;
-
+        System.out.println("Writing data on: " + socketChannel);
         // Write until there's no more data, or the socket's buffer fills up
         while (!queue.isEmpty() && writtenInFull) {
             ByteBuffer buf = queue.peek();
@@ -183,7 +201,11 @@ final class SelectingThread implements Runnable {
             return;
         }
 
-        readBuffer.position(0); // read() advances the position, so need to set it back to 0.
+        // socketChannel.read() advances the position, so need to set it back to 0.
+        // also set the limit to the previous position, so that the next
+        // method will not try to read past what was read from the socket.
+        readBuffer.flip(); 
+        
         decideIfMoreToRead(key, (SocketChannel) key.channel(),
                 readBuffer.asReadOnlyBuffer() // just to be safe (shouldn't hurt speed)
         );
@@ -219,14 +241,6 @@ final class SelectingThread implements Runnable {
         accepted.get(ssc).add(socketChannel);
     }
 
-    public void notifyAccepted(ServerSocketChannel ssc, SocketChannel socketChannel) {
-        readyForSelect.add(new Pair<ServerSocketChannel, SocketChannel>(ssc, socketChannel));
-    }
-
-    public Object dequeueChannelForSelect() throws InterruptedException {
-        return readyForSelect.take();
-    }
-
     private static class ChangeRequest {
         private final SelectableChannel chan;
         private final ChangeAction changeAction;
@@ -250,6 +264,7 @@ final class SelectingThread implements Runnable {
             }
         }, CHANGEOPS {
             void execute(Selector selector, ChangeRequest req) {
+                System.out.println("Changing ops for: " + req.chan + " to: " + req.interestOps);
                 req.chan.keyFor(selector).interestOps(req.interestOps);
             }
         }, CLOSE {

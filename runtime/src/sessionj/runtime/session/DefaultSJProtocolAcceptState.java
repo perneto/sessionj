@@ -4,26 +4,29 @@ import sessionj.runtime.net.SJSocket;
 import sessionj.runtime.net.SJServerSocket;
 import sessionj.runtime.net.SJIncompatibleSessionException;
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.transport.tcp.InputState;
+import sessionj.runtime.transport.tcp.WaitInitialInputIfNeeded;
 
-class DefaultSJProtocolAcceptState implements AcceptState {
+/**
+ * Hardcodes the number of messages expected from clients in the accept protocol.
+ * 
+ */
+class DefaultSJProtocolAcceptState implements InputState {
     private int inputsReceived = 0;
     private final SJServerSocket serverSocket;
-    private final boolean noExtraInput;
 
-    DefaultSJProtocolAcceptState(SJServerSocket serverSocket) throws SJIOException {
+    DefaultSJProtocolAcceptState(SJServerSocket serverSocket) {
         this.serverSocket = serverSocket;
-        noExtraInput = serverSocket.typeStartsWithOutput();
     }
 
-    public boolean hasFinishedAccept() {
-        return inputsReceived == (noExtraInput ? 3 : 4);
-    }
-
-    public void receivedInput() {
+    public InputState receivedInput() throws SJIOException, SJIncompatibleSessionException {
         inputsReceived++;
+        if (inputsReceived == 3) 
+            return new WaitInitialInputIfNeeded(serverSocket.accept());
+        else return this;
     }
 
-    public SJSocket accept() throws SJIOException, SJIncompatibleSessionException {
-        return serverSocket.accept();
+    public SJSocket sjSocket() {
+        return null;
     }
 }

@@ -28,11 +28,6 @@ public class OngoingReadImpl implements OngoingRead {
 
             if (data != null && bytes.remaining() > 0) {
                 int offset = dataRead;
-               /* System.out.println(offset);
-                System.out.println(dataRead);
-                System.out.println(data.length);
-                System.out.println(bytes.remaining());
-                */
                 int length = min(data.length - offset, bytes.remaining());
                 bytes.get(data, offset, length);
                 dataRead += length;
@@ -45,15 +40,19 @@ public class OngoingReadImpl implements OngoingRead {
         switch (flag) {
             case SJ_BYTE:
             case SJ_BOOLEAN:
+                System.out.println("Reading byte or boolean");
                 dataExpected = 1;
                 break;
             case SJ_INT:
+                System.out.println("Reading int");
                 dataExpected = SJ_SERIALIZED_INT_LENGTH;
                 break;
             case SJ_OBJECT:
             case SJ_CONTROL:
+                System.out.println("Reading object or control signal");
                 break; // nothing to do in this case, will read count from socket
             default:
+                System.out.println(bytes);
                 throw new SJRuntimeException("[OngoingRead] Unsupported flag: " + flag);
         }
 
@@ -72,13 +71,16 @@ public class OngoingReadImpl implements OngoingRead {
         return dataRead == dataExpected;
     }
 
-    public byte[] getCompleteInput() {
+    public ByteBuffer getCompleteInput() {
         // +1 for the initial flag. lengthRead is 0 by default, so works fine if reading a primitive type
         byte[] completed = new byte[1 + dataExpected + lengthRead];
         completed[0] = flag; 
         // no-op for primitives: lengthRead will be 0
         System.arraycopy(lengthBytes, 0, completed, 1, lengthRead);
         System.arraycopy(data, 0, completed, lengthRead+1, data.length);
-        return completed;
+        
+        ByteBuffer wrapped = ByteBuffer.wrap(completed);
+        System.out.println("completed input: " + wrapped);
+        return wrapped;
     }
 }

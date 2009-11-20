@@ -4,6 +4,7 @@ import sessionj.runtime.SJIOException;
 import sessionj.runtime.transport.SJConnection;
 
 import java.nio.channels.SocketChannel;
+import java.nio.ByteBuffer;
 
 class AsyncConnection implements SJConnection
 {
@@ -28,16 +29,24 @@ class AsyncConnection implements SJConnection
         thread.enqueueOutput(sc, bs);
     }
 
+    /**
+     * Non-blocking read from the connection.
+     * @throws NullPointerException If called when no data is ready on this connection (ie. not after a select call).
+     */
     public byte readByte() throws SJIOException {
-        byte[] input = thread.dequeueInput(sc);
-        assert input.length == 1;
-        return input[0]; // TODO put back in queue if not consumed completely
+        ByteBuffer input = thread.peekAtInputQueue(sc);
+        if (input.remaining() == 1) thread.dequeueFromInputQueue(sc);
+        return input.get();
     }
 
+    /**
+     * Non-blocking read from the connection.
+     * @throws NullPointerException If called when no data is ready on this connection (ie. not after a select call).
+     */
     public void readBytes(byte[] bs) throws SJIOException {
-        byte[] input = thread.dequeueInput(sc);
-        assert input.length == bs.length; // TODO put back in queue if not consumed completely
-        System.arraycopy(input, 0, bs, 0, input.length); // FIXME: change signature to return byte[]
+        ByteBuffer input = thread.peekAtInputQueue(sc);
+        input.get(bs, 0, bs.length);
+        if (input.remaining() == 0) thread.dequeueFromInputQueue(sc);
     }
 
     public void flush() throws SJIOException {

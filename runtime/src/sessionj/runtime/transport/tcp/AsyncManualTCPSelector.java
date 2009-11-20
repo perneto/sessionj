@@ -2,7 +2,6 @@ package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.session.SJAcceptProtocol;
-import sessionj.runtime.session.AcceptState;
 import sessionj.runtime.net.*;
 import sessionj.util.Pair;
 
@@ -22,14 +21,14 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     private final SelectingThread thread;
     private final String transportName;
     private final SJAcceptProtocol sjprotocol;
-    private final Map<SocketChannel, Object> registeredInputs;
+    private final Map<SocketChannel, InputState> registeredInputs;
     private final Map<ServerSocketChannel, SJServerSocket> registeredAccepts;
 
     AsyncManualTCPSelector(SelectingThread thread, String transportName, SJAcceptProtocol sjprotocol) {
         this.thread = thread;
         this.transportName = transportName;
         this.sjprotocol = sjprotocol;
-        registeredInputs = new HashMap<SocketChannel, Object>();
+        registeredInputs = new HashMap<SocketChannel, InputState>();
         registeredAccepts = new HashMap<ServerSocketChannel, SJServerSocket>();
     }
 
@@ -51,7 +50,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         SocketChannel sc = retrieveSocketChannel(s);
         if (sc != null) {
             thread.registerInput(sc);
-            registeredInputs.put(sc, s);
+            registeredInputs.put(sc, new DirectlyToUser(s));
             return true;
         }
         return false;
@@ -67,15 +66,12 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         if (chan instanceof SocketChannel) {
             SocketChannel sc = (SocketChannel) chan;
             assert registeredInputs.containsKey(sc);
-            Object o = registeredInputs.get(sc);
-            if (o instanceof SJSocket) {
-                return (SJSocket) o;
-            } else {
-                AcceptState acceptState = (AcceptState) o;
-                acceptState.receivedInput();
-                if (acceptState.hasFinishedAccept()) return acceptState.accept();
-                else return select();
-            }
+            InputState state = registeredInputs.get(sc);
+            InputState newState = state.receivedInput();
+            registeredInputs.put(sc, newState);
+            SJSocket s = newState.sjSocket();
+            if (s == null) return select();
+            else return s;
         } else {
             Pair<ServerSocketChannel, SocketChannel> p = (Pair<ServerSocketChannel, SocketChannel>) chan;
             ServerSocketChannel ssc = p.first;

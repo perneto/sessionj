@@ -9,5 +9,5 @@ public interface OngoingRead {
 
     boolean finished();
 
-    byte[] getCompleteInput();
+    ByteBuffer getCompleteInput();
 }

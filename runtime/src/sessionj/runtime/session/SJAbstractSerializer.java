@@ -26,7 +26,7 @@ abstract public class SJAbstractSerializer implements SJSerializer
 	
 	protected boolean isClosed = false; // FIXME: this is currently assigned to by subclasses (on close).
 	
-	public SJAbstractSerializer(SJConnection conn)
+	protected SJAbstractSerializer(SJConnection conn)
 	{
 		this.conn = conn;
 	}

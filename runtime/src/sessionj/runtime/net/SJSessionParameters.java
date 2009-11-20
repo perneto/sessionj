@@ -125,13 +125,12 @@ public class SJSessionParameters
 	
 	public String toString()
 	{
-		String m = "SJSessionParameters(";
+		String m = "SJSessionParameters{";
 		
-        m += getNegotiationTransports().toString() + ", " + getSessionTransports().toString();
+        m += negotiationTransports + ", " + sessionTransports;
+		m += ", " + boundedBufferSize;
 		
-		m += ", " + getBoundedBufferSize();
-		
-		return m += ")";
+		return m + "}";
 	}
 	
 	public int getBoundedBufferSize()
