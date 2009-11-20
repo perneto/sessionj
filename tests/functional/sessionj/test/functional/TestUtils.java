@@ -47,7 +47,6 @@ public class TestUtils {
     }
 
     static int runCompiler(File sjFile, File outputDir, PrintStream out, PrintStream err) {
-        System.out.println(System.getProperty("java.class.path"));
         return Main.start(
                 new String[] {
                     sjFile.getAbsolutePath(),
