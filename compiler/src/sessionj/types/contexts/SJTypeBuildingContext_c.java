@@ -12,6 +12,7 @@ import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sesstry.*;
 import sessionj.ast.sessvars.*;
+import sessionj.runtime.session.contexts.SJRecursionContext;
 import sessionj.types.*;
 import sessionj.types.sesstypes.*;
 import sessionj.types.typeobjects.*;
@@ -49,7 +50,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		{
 			throw new RuntimeException("[SJContent_c] Shouldn't get in here: " + st);
 		}
-
+		
 		super.advanceSession(sjname, st);
 	}
 	
@@ -80,7 +81,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 			//bar = bar.child();
 		}
 		
-		// FIXME: if remaining is a recurse type, unfold it back to the recursion type.
+		// FIXME: if remaining is a recurse type, unfold it back to the recursion type. // Partly done in sessionRemaining.
 		
 		SJSessionType foo = sessionImplemented(sjname);		
 		SJSessionType bar = sjts.SJDelegatedType(remaining);
@@ -174,9 +175,11 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 	public SJSessionType sessionRemaining(String sjname) throws SemanticException  
 	{
 		SJSessionType remaining = null;
-		SJSessionType innermostRemaining = null;
+		SJSessionType innermostRemaining = null; // What's remaining in the current scope (excludes what's remaining outside, e.g. continuations).
 		
 		boolean enterWhenCase = false; // HACK: we "reset" the algorithm when we enter a typecase - typecases currently cannot have continuations for the target session. The result should end up the same as expectedSessionOperation. 
+		
+		Map<SJLabel, SJRecursionType> recursionScopes = new HashMap<SJLabel, SJRecursionType>();
 		
 		for (SJContextElement ce : contexts()) // Starts from bottom of the stack (outermost context). We take the maximum possible active type (remaining session to be implemented) from the outermost scope, and take away the bits we've found have implemented as we move through the inner scopes. Remember, nesting of active types should only come from the first elements at each level being an open branch scope - delegation within loops not allowed.
 		//for (int i = 0; i < contexts().size(); i++)
@@ -206,7 +209,26 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 			{ 
 				if (ce instanceof SJLoopContext)
 				{
-					throw new SemanticException("[SJTypeBuildingContext_c] Cannot delegate session within loop context: " + sjname);
+					//RAY
+					if (ce instanceof SJSessionRecursionContext) // FIXME: not sure this is correct at all.
+					{
+						//SJRecursionType rt = (SJRecursionType) sjts.SJRecursionType(src.lab()).body(src.getSession(sjname)); // Reconstruct the session type for the session on entering the recursion scope.  
+						SJRecursionType rt = (SJRecursionType) innermostRemaining; 
+						
+						recursionScopes.put(rt.label(), rt);
+						
+						SJSessionType child = remaining.child();
+						
+						remaining = ((SJRecursionType) remaining).body(); 
+						innermostRemaining = remaining;
+						
+						remaining = remaining.append(child);
+					}
+					else
+					//YAR
+					{
+						throw new SemanticException("[SJTypeBuildingContext_c] Cannot delegate session within loop context: " + sjname);
+					}						
 				}
 				else if (ce instanceof SJBranchCaseContext)
 				{
@@ -249,12 +271,56 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 					{
 						remaining = remaining.child();
 						innermostRemaining = innermostRemaining.child();
-					}
+					}					
 				}
 			}
 		}
+
+		//RAY
+		remaining = substituteTypeVariables(remaining, recursionScopes);
+		//YAR
 		
 		return remaining;
+	}
+	
+	private static final SJSessionType substituteTypeVariables(SJSessionType st, Map<SJLabel, SJRecursionType> map)
+	{
+		SJTypeSystem sjts = (SJTypeSystem) st.typeSystem();
+		
+		SJSessionType child = st.child();
+		
+		if (st instanceof SJBranchType)
+		{
+			SJBranchType bt = (SJBranchType) st;
+			SJBranchType nbt = (bt instanceof SJInbranchType) ? sjts.SJInbranchType() : sjts.SJOutbranchType(); 
+			
+			for (SJLabel lab : bt.labelSet())
+			{
+				nbt.branchCase(lab, substituteTypeVariables(bt.branchCase(lab), map));
+			}
+			
+			st = bt;
+		}
+		else if (st instanceof SJRecursionType) // FIXME: we only want to do this for unbound type variables, but is this a correct way to do it? Not actually sure this is needed: only labels for recursion scopes that have been entered to calculate the remaining session type have been recorded (by remainingSession).
+		{
+			map.remove(((SJRecursionType) st).label());
+		}
+		else if (st instanceof SJRecurseType) 
+		{
+			SJLabel lab = ((SJRecurseType) st).label();
+			
+			if (map.containsKey(lab)) // FIXME: won't work with label values reused by nested recursion scopes (but not sure if this is allowed anyway).  
+			{
+				st = map.get(lab).copy();
+			}
+		}
+		
+		if (child != null)
+		{
+			st = st.child(substituteTypeVariables(child, map));
+		}
+		
+		return st;
 	}
 	
 	/*public boolean serviceInScope(String sjname)

@@ -58,9 +58,11 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	private SJExtFactory sjef = sjnf.extFactory();
 	
 	private SJTypeBuildingContext sjcontext = new SJTypeBuildingContext_c(this, sjts);
-    private static final boolean DEBUG = false;
+  
+	//private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
-    public SJSessionTypeChecker(Job job, TypeSystem ts, NodeFactory nf)
+	public SJSessionTypeChecker(Job job, TypeSystem ts, NodeFactory nf)
 	{
 		super(job, ts, nf);
 	}
@@ -974,7 +976,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
         else checkMethodTakesSameSessionType(theirs, ours);
     }
 
-    private void checkMethodTakesSameSessionType(Type theirs, SJSessionType ours) throws SemanticException {
+    private void checkMethodTakesSameSessionType(Type theirs, SJSessionType ours) throws SemanticException {    	
         if (ours == null || !ours.isSubtype(theirs))
         {
             throw new SemanticException(getVisitorName() + " Expected " + theirs + ", not: " + ours);

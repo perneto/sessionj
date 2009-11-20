@@ -102,42 +102,19 @@ public class Server2
 						{
 							case MAIL_FROM:
 							{
-								//doMailFrom(s);								
-								
-								System.out.print("Received: " + (EmailAddress) s.receive());
-								
-								s.outbranch($250)
-								{
-									MailAckBody mailAckBody = new MailAckBody(SmtpMessage.SPACE_SEPARATOR + "mail ack body"); // "Ack bodies" need the space/hyphen separator. 
-									System.out.print("Sending: " + mailAckBody);			
-									s.send(mailAckBody);
-								}
+								doMailFrom(s);								
 																
 								s.recurse(LOOP);								
 							}
 							case RCPT_TO:
 							{
-								System.out.print("Received: " + (EmailAddress) s.receive());
-								
-								s.outbranch($250)
-								{
-									RcptAckBody rcptAckBody = new RcptAckBody(SmtpMessage.SPACE_SEPARATOR + "rcpt ack body");
-									System.out.print("Sending: " + rcptAckBody);			
-									s.send(rcptAckBody);
-								}
+								doRcptTo(s);
 								
 								s.recurse(LOOP);
 							}
 							case DATA:
 							{
-								DataAck dataAck = new DataAck("data ack"); // Unlike the "ack bodies", already prefixes the reply code.
-								System.out.print("Sending: " + dataAck);			
-								s.send(dataAck);	
-								
-								System.out.print("Received: " + (MessageBody) s.receive());
-								MessageBodyAck messageBodyAck = new MessageBodyAck("message body ack");
-								System.out.print("Sending: " + messageBodyAck);			
-								s.send(messageBodyAck);	
+								doData(s);	
 								
 								s.recurse(LOOP);
 							}
@@ -174,6 +151,30 @@ public class Server2
 		}
 	}
 	
+	private static final void doRcptTo(final noalias @(smtp_server_rcpt) s) throws SJIOException, ClassNotFoundException
+	{
+		System.out.print("Received: " + (EmailAddress) s.receive());
+		
+		s.outbranch($250)
+		{
+			RcptAckBody rcptAckBody = new RcptAckBody(SmtpMessage.SPACE_SEPARATOR + "rcpt ack body");
+			System.out.print("Sending: " + rcptAckBody);			
+			s.send(rcptAckBody);
+		}
+	}
+	
+	private static final void doData(final noalias @(smtp_server_data) s) throws SJIOException, ClassNotFoundException
+	{	
+		DataAck dataAck = new DataAck("data ack"); // Unlike the "ack bodies", already prefixes the reply code.
+		System.out.print("Sending: " + dataAck);			
+		s.send(dataAck);	
+		
+		System.out.print("Received: " + (MessageBody) s.receive());
+		MessageBodyAck messageBodyAck = new MessageBodyAck("message body ack");
+		System.out.print("Sending: " + messageBodyAck);			
+		s.send(messageBodyAck);
+	}
+		
 	public static void main(String[] args) throws Exception
 	{
 		boolean debug = Boolean.parseBoolean(args[0]);

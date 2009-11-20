@@ -27,7 +27,7 @@ public interface SJContextElement
 	
 	// FIXME: factor something out across "inactive" entities, e.g. servers and selectors, and their "active" (and linear) counterparts, e.g. services and selectorsInScope.
 	SJSessionType getService(String sjname); // Services are server sockets that are open (i.e. listening). Not to be confused with SJServices (shared channels). // Servers are the server variables, and services are initialised server variables. 
-	SJSessionType getSession(String sjname);
+	SJSessionType getSession(String sjname); // The "original" type on entering the session?
 	SJSessionType getActive(String sjname);
 	SJSessionType getImplemented(String sjname);
 	SJSessionType getSelectorType(String sjname); // Could be called getSelectorInScope. 
