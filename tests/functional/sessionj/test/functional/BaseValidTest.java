@@ -14,22 +14,35 @@ public abstract class BaseValidTest {
     protected static final int TEST_PORT = 1234;
 
     protected abstract List<Callable<?>> peers();
-    private final NamedThreadFactory fact = new NamedThreadFactory();
-    private final ExecutorService es = Executors.newCachedThreadPool(fact);
 
     @Test
     public void runTestcase() throws Exception {
-        Collection<Future<?>> futures = new LinkedList<Future<?>>();
         List<Callable<?>> peers = peers();
-        
+        Thread[] threads = new Thread[peers.size()];
+        Exception[] exceptions = new Exception[peers.size()];
+
         for (int i=0; i< peers.size(); ++i) {
-            fact.setName("Testcase Peer"+(i+1));
-            futures.add(es.submit(
+            Runnable r = wrapRunnable(
+                exceptions, i,
                 i == 0 ? peers.get(i) : wrapDelay(peers.get(i))
-            ));
+            );
+            threads[i] = new Thread(r, "Testcase Peer"+(i+1));
+            threads[i].start();
         }
-        for (Future<?> f : futures) f.get();
-        es.shutdown();
+        for (Thread t : threads) t.join();
+        for (Exception e : exceptions) if (e != null) throw e;
+    }
+
+    private Runnable wrapRunnable(final Exception[] exceptions, final int i, final Callable<?> callable) {
+        return new Runnable() {
+            public void run() {
+                try {
+                    callable.call();
+                } catch (Exception e) {
+                    exceptions[i] = e;
+                }
+            }
+        };
     }
 
     private Callable<?> wrapDelay(final Callable<?> peer) {
