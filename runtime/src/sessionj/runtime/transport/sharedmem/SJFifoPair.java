@@ -391,7 +391,7 @@ public class SJFifoPair extends AbstractSJTransport
     private static boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
-            for (String aChildren : children) {
+            for (String aChildren : children) { // Sometimes finding a null pointer exception here.
                 boolean success = deleteDir(new File(dir, aChildren));
                 if (!success) return false;
             }

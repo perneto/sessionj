@@ -1,12 +1,11 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/messages/SmtpMessage.sj -d tests/classes/ 
+//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/messages/SmtpMessage.sj -d tests/classes/ 
 
-package esmtp.sj.messages;
-
-import esmtp.sj.*;
+package esmtp.sj.client.messages;
 
 abstract public class SmtpMessage
 {
-	public static final String SMTP_MESSAGE_SUFFIX = SJSmtpFormatter.LINE_FEED; //"\n";
+	public static final String LINE_FEED = "\n";
+	public static final String SMTP_MESSAGE_SUFFIX = LINE_FEED;
 	
 	public SmtpMessage()
 	{

@@ -1,8 +1,6 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/messages/MessageBodyAck.sj -d tests/classes/ 
+//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/messages/MessageBodyAck.sj -d tests/classes/ 
 
-package esmtp.sj.messages;
-
-import esmtp.sj.*;
+package esmtp.sj.client.messages;
 
 public class MessageBodyAck extends SmtpAck
 {
@@ -27,7 +25,7 @@ public class MessageBodyAck extends SmtpAck
 	
 	public boolean isParseable(String m)
 	{
-		return m.startsWith(MESSAGE_BODY_REPLY_CODE) && m.endsWith(SJSmtpFormatter.LINE_FEED);
+		return m.startsWith(MESSAGE_BODY_REPLY_CODE) && m.endsWith(SmtpMessage.LINE_FEED);
 	}
 	
 	public SmtpParseable parse(String m)

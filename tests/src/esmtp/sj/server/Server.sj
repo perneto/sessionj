@@ -14,21 +14,108 @@ import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 import sessionj.runtime.session.*;
 
-import esmtp.sj.SJSmtpFormatter;
+//import esmtp.sj.SJSmtpFormatter;
 import esmtp.sj.messages.*;
 
 public class Server
 {			
-	public static final MyMessage LAB = new MyMessage("LAB");
-	
-	public protocol p_server
+	static protocol smtp_server_rcptOrData
 	{
-
-	}
+		rec RCPT_OR_DATA
+		[
+		 	?{
+		 		RCPT_TO:
+		 			?(EmailAddress)
+		 			.!{
+		 				$250:
+		 					!<RcptAckBody>
+		 					.#RCPT_OR_DATA,
+		 				$550:		 				
+		 					!<RcptAckBody>
+		 					.#RCPT_OR_DATA
+		 			},
+		 		DATA:
+		 			!<DataAck>
+		 			.?(MessageBody)
+		 			.!<MessageBodyAck>
+		 	}
+		]
+	}	
 	
+	static protocol smtp_server_rcpt
+	{
+		rec RCPT
+		[
+		 	?{
+		 		RCPT_TO:
+		 			?(EmailAddress)
+		 			.!{
+		 				$250:
+		 					!<RcptAckBody>
+		 					.@(smtp_server_rcptOrData),
+						 	/*.rec RCPT_OR_DATA
+							[
+							 	?{
+							 		RCPT_TO:
+							 			?(EmailAddress)
+							 			.!{
+							 				$250:
+							 					!<RcptAckBody>
+							 					.#RCPT_OR_DATA,
+							 				$550:		 				
+							 					!<RcptAckBody>
+							 					.#RCPT_OR_DATA
+							 			},
+							 		DATA:
+							 			!<DataAck>
+							 			.?(MessageBody)
+							 			.!<MessageBodyAck>
+							 	}
+							],*/
+		 				$550:		 				
+		 					!<RcptAckBody>
+		 					.#RCPT
+		 			}/*,
+		 		QUIT: // Still do not support "quitting at any time". Would need to change the whole protocol to do so (specifically starting with the outermost recursion).
+		 			!<QuitAck>*/
+		 	}
+		]
+	}	
+	
+	static protocol smtp_server_mail
+	{
+		rec MAIL
+		[
+		 	?{
+		 		MAIL_FROM:
+		 			?(EmailAddress)
+		 			.!{
+		 				$250:
+		 					!<MailAckBody>
+		 					.@(smtp_server_rcpt)
+		 					.#MAIL,
+		 				$550: // For unrouteable. Also 501 (for no domain).
+		 					!<MailAckBody>
+		 					.#MAIL
+		 			},
+		 		QUIT:
+		 			!<QuitAck>
+		 	}
+		]
+	}	
+	
+	static protocol smtp_server
+	{
+		sbegin
+		.!<ServerGreeting>				
+		.?(Ehlo)
+		.!<EhloAck>		
+		.@(smtp_server_mail)
+	}
+		
 	public void run(boolean debug, int port) throws Exception
 	{
-		
+		//final noalias SJServerSocket ss = 
 	}
 
 	public static void main(String[] args) throws Exception
