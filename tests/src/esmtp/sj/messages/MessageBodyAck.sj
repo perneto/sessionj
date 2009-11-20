@@ -2,36 +2,30 @@
 
 package esmtp.sj.messages;
 
-import esmtp.sj.*;
-
-public class MessageBodyAck extends SmtpAck
+public class MessageBodyAck extends SmtpMessage
 {
 	public static final String MESSAGE_BODY_REPLY_CODE = "250";
 	
-	private String msg;
+	private static final String prefix = MESSAGE_BODY_REPLY_CODE;
+	private static final String suffix = SmtpMessage.LINE_FEED; 
 	
 	public MessageBodyAck(String msg)
 	{
-		this.msg = msg;
+		super(msg);
 	}
 	
-	public String replyCode()
+	public boolean isParseableFrom(String m)
 	{
-		return MESSAGE_BODY_REPLY_CODE;
+		return m.startsWith(prefix) && m.endsWith(suffix);
 	}
 	
-	public String body()
+	public SmtpMessage parse(String m)
 	{
-		return msg;
-	}	
-	
-	public boolean isParseable(String m)
-	{
-		return m.startsWith(MESSAGE_BODY_REPLY_CODE) && m.endsWith(SJSmtpFormatter.LINE_FEED);
+		return new MessageBodyAck(m.substring(prefix.length(), m.length() - suffix.length()));
 	}
 	
-	public SmtpParseable parse(String m)
+	public String format()
 	{
-		return new MessageBodyAck(SmtpAck.removeTrailingLineFeed(m).substring(MESSAGE_BODY_REPLY_CODE.length()));
-	}		
+		return prefix + SmtpMessage.SPACE_SEPARATOR + content() + suffix;  
+	}
 }

@@ -4,27 +4,25 @@ package esmtp.sj.messages;
 
 public class MessageBody extends SmtpMessage
 {
-	public static final String MESSAGEBODY_SUFFIX = ".\n";
-	
-	private String body;
+	public static final String MESSAGE_BODY_SUFFIX = "." + SmtpMessage.LINE_FEED;
 	
 	public MessageBody(String body)
 	{
-		this.body = body;
+		super(body);
 	}
 	
-	public String prefix()
+	public boolean isParseableFrom(String m)
 	{
-		return "";
+		return m.endsWith(MESSAGE_BODY_SUFFIX);
 	}
 	
-	public String body()
+	public SmtpMessage parse(String m)
 	{
-		return body;
+		return new MessageBody(m.substring(0, m.length() - MESSAGE_BODY_SUFFIX.length()));
 	}
 	
-	public String suffix()
+	public String format()
 	{
-		return super.suffix() + MESSAGEBODY_SUFFIX; 
-	}
+		return content() + MESSAGE_BODY_SUFFIX;
+	}	
 }
