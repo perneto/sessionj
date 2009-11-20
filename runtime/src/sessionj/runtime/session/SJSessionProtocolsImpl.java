@@ -397,23 +397,26 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 				{				
 					b = ser.readBoolean();
 				}
-                SJMessage m = lostMessages.remove(0);
-
-                byte t = m.getType();
-
-                if (t == SJ_BOOLEAN)
-                {
-                    b = m.getBooleanValue();
-                }
-                else if (t == SJ_CONTROL)
-                {
-                    handleControlSignal((SJControlSignal) m.getContent());
-                }
                 else
                 {
-                    throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
-                }
+                    SJMessage m = lostMessages.remove(0);
 
+                    byte t = m.getType();
+
+                    if (t == SJ_BOOLEAN)
+                    {
+                        b = m.getBooleanValue();
+                    }
+                    else if (t == SJ_CONTROL)
+                    {
+                        handleControlSignal((SJControlSignal) m.getContent());
+                    }
+                    else
+                    {
+                        throw new SJIOException("[SJSessionProtocolsImpl] Unexpected lost message type: " + t);
+                    }
+                }
+                
 				if (RUNTIME_MONITORING)
 				{
 					sm.receiveBoolean(b);

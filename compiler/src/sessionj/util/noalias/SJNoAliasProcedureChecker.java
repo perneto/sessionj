@@ -3,17 +3,19 @@
  */
 package sessionj.util.noalias;
 
-import java.util.*;
-
 import polyglot.ast.*;
-import polyglot.frontend.Job;
 import polyglot.types.*;
-import polyglot.visit.*;
-import sessionj.types.noalias.*;
-import sessionj.types.typeobjects.*;
+import polyglot.visit.ErrorHandlingVisitor;
+import polyglot.visit.NodeVisitor;
+import sessionj.types.typeobjects.SJConstructorInstance;
+import sessionj.types.typeobjects.SJFieldInstance;
+import sessionj.types.typeobjects.SJParsedClassType;
+import static sessionj.util.SJCompilerUtils.findClassDecl;
+import static sessionj.util.SJCompilerUtils.getArgumentTypes;
 import sessionj.visit.noalias.SJNoAliasTypeBuilder;
 
-import static sessionj.util.SJCompilerUtils.*;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Raymond
@@ -21,14 +23,10 @@ import static sessionj.util.SJCompilerUtils.*;
  */
 public class SJNoAliasProcedureChecker extends ErrorHandlingVisitor
 {
+    private static final boolean DEBUG = false;
 	private SJNoAliasTypeBuilder natb;
 	private Boolean[] res; // HACK.
 	
-	/**
-	 * @param job
-	 * @param ts
-	 * @param nf
-	 */
 	public SJNoAliasProcedureChecker(SJNoAliasTypeBuilder natb, Boolean[] res)
 	{
 		super(natb.job(), natb.typeSystem(), natb.nodeFactory());
@@ -255,7 +253,7 @@ public class SJNoAliasProcedureChecker extends ErrorHandlingVisitor
 				
 				if (!(ci instanceof SJConstructorInstance)) // FIXME: shouldn't get in here?
 				{
-					System.out.println("[SJNoAliasProcedureChecker] Warning! Super constructor call (to " + pct + ") not checked [2]: " + cc);
+					debug("[SJNoAliasProcedureChecker] Warning! Super constructor call (to " + pct + ") not checked [2]: " + cc);
 				}
 				else
 				{
@@ -276,14 +274,18 @@ public class SJNoAliasProcedureChecker extends ErrorHandlingVisitor
 			}
 			else
 			{
-				System.out.println("[SJNoAliasProcedureChecker] Warning! Super constructor call (to " + pct + ") not checked [1]: " + cc);
+				debug("[SJNoAliasProcedureChecker] Warning! Super constructor call (to " + pct + ") not checked [1]: " + cc);
 			}									
 		}	
 		
 		return cc;
 	}
-	
-	private Return checkReturn(Return r) throws SemanticException
+
+    private static void debug(String s) {
+        if (DEBUG) System.out.println(s);
+    }
+
+    private Return checkReturn(Return r) throws SemanticException
 	{
 		/*Expr e = r.expr(); // The aim was to detect leaking of fields through method return. But very difficult - can be indirection via locals or other method returns. (Maybe possible if done in conjunction with assignment-from-fields check.)
 		

@@ -18,6 +18,8 @@ import sessionj.extension.sessops.SJSessionOperationExt;
 import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
 import static sessionj.util.SJCompilerUtils.getSJSessionOperationExt;
 import sessionj.util.SJLabel;
+import sessionj.util.SJTypeEncoder;
+import sessionj.types.SJTypeSystem;
 
 import java.util.*;
 
@@ -30,7 +32,7 @@ import java.util.*;
  */
 public class SJCompoundOperationTranslator extends ContextVisitor
 {
-	private final TypeSystem sjts = typeSystem();
+	private final SJTypeSystem sjts;
 	private final SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 
 	private final Stack<SJCompoundOperation> compounds = new Stack<SJCompoundOperation>();
@@ -39,6 +41,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 	public SJCompoundOperationTranslator(Job job, TypeSystem ts, NodeFactory nf)
 	{
 		super(job, ts, nf);
+        sjts = (SJTypeSystem) ts;
 	}
 
 	public NodeVisitor enterCall(Node parent, Node n) throws SemanticException
@@ -86,8 +89,9 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         newNode = translateSJOutinwhile((SJOutInwhile) so, createQQ(so));
       } 
 			else if (so instanceof SJTypecase) 
-			{            	
-        newNode = ((SJTypecase) so).translate(createQQ(so));
+			{
+                SJTypeEncoder sjte = new SJTypeEncoder(sjts);
+                newNode = ((SJTypecase) so).translate(createQQ(so), sjte);
       }
 		} 
 		else if (n instanceof SJRecurse) 

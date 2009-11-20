@@ -75,6 +75,5 @@ public interface SJStateManager // Analogous to SJContext. But only tracks the s
 	//private void pushContext(SJRuntimeContextElement sjsc);
 	//private void popContext();
 	//private String fullClassName(Object obj); // Move to SJRuntimeUtils?
-	
-	public Stack<SJRuntimeContextElement> getContexts(); // HACK: just for debugging.
+
 }

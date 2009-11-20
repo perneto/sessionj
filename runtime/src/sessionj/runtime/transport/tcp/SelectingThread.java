@@ -261,6 +261,8 @@ final class SelectingThread implements Runnable {
         private final int interestOps;
 
         ChangeRequest(SelectableChannel chan, ChangeAction changeAction, int interestOps) {
+            assert chan != null;
+            assert changeAction != null;
             this.chan = chan;
             this.changeAction = changeAction;
             this.interestOps = interestOps;
@@ -279,7 +281,8 @@ final class SelectingThread implements Runnable {
         }, CHANGEOPS {
             void execute(Selector selector, ChangeRequest req) {
                 debug("Changing ops for: " + req.chan + " to: " + req.interestOps);
-                req.chan.keyFor(selector).interestOps(req.interestOps);
+                SelectionKey key = req.chan.keyFor(selector);
+                if (key != null) key.interestOps(req.interestOps);
             }
         }, CLOSE {
             void execute(Selector selector, ChangeRequest req) throws IOException {

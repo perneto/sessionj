@@ -18,6 +18,7 @@ public class OngoingReadImpl implements OngoingRead {
     private int lengthRead = 0;
     private final byte[] lengthBytes = new byte[SJ_SERIALIZED_INT_LENGTH];
     private byte[] data = null;
+    private static final boolean DEBUG = false;
 
     public void updatePendingInput(ByteBuffer bytes) {
         if (bytes.remaining() > 0) {
@@ -40,19 +41,19 @@ public class OngoingReadImpl implements OngoingRead {
         switch (flag) {
             case SJ_BYTE:
             case SJ_BOOLEAN:
-                System.out.println("Reading byte or boolean");
+                debug("Reading byte or boolean");
                 dataExpected = 1;
                 break;
             case SJ_INT:
-                System.out.println("Reading int");
+                debug("Reading int");
                 dataExpected = SJ_SERIALIZED_INT_LENGTH;
                 break;
             case SJ_OBJECT:
             case SJ_CONTROL:
-                System.out.println("Reading object or control signal");
+                debug("Reading object or control signal");
                 break; // nothing to do in this case, will read count from socket
             default:
-                System.out.println(bytes);
+                debug("Unsupported flag in:" + bytes);
                 throw new SJRuntimeException("[OngoingRead] Unsupported flag: " + flag);
         }
 
@@ -65,6 +66,10 @@ public class OngoingReadImpl implements OngoingRead {
                 dataExpected = deserializeInt(lengthBytes);
             }
         }
+    }
+
+    private static void debug(String s) {
+        if (DEBUG) System.out.println(s);
     }
 
     public boolean finished() {
@@ -80,7 +85,7 @@ public class OngoingReadImpl implements OngoingRead {
         System.arraycopy(data, 0, completed, lengthRead+1, data.length);
         
         ByteBuffer wrapped = ByteBuffer.wrap(completed);
-        System.out.println("completed input: " + wrapped);
+        debug("completed input: " + wrapped);
         return wrapped;
     }
 }

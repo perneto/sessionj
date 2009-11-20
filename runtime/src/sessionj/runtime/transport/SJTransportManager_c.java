@@ -29,7 +29,7 @@ public class SJTransportManager_c extends SJTransportManager
 
 	private static final String DEFAULT_SETUPS_PROPERTY = "sessionj.transports.negotiation";
     private static final String DEFAULT_TRANSPORTS_PROPERTY = "sessionj.transports.session";
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	
 	private final Map<Integer, SJAcceptorThreadGroup> acceptorGroups = new HashMap<Integer, SJAcceptorThreadGroup>();
 

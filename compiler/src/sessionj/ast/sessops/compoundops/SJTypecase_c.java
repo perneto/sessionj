@@ -18,6 +18,7 @@ import sessionj.types.contexts.SJContextInterface;
 import sessionj.types.sesstypes.SJSessionType;
 import sessionj.types.sesstypes.SJSetType;
 import sessionj.util.SJCompilerUtils;
+import sessionj.util.SJTypeEncoder;
 import static sessionj.visit.SJSessionOperationTypeBuilder.getTargetNames;
 
 import java.util.*;
@@ -86,21 +87,28 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
         return this;
     }
 
-    public Node translate(QQ qq) {
-        StringBuilder cases = new StringBuilder();
+    public Node translate(QQ qq, SJTypeEncoder sjte) throws SemanticException {
+        StringBuilder statement = new StringBuilder();
         List<Object> parameters = new LinkedList<Object>();
-        SJSetType setType = (SJSetType) SJCompilerUtils.getSJSessionOperationExt(this).sessionType();
-
+        
+        String tmpVar = UniqueID.newID(SJConstants.SJ_TMP_LOCAL);
+        statement.append("{ " 
+            + "sessionj.types.sesstypes.SJSessionType " + tmpVar + " = %s.remainingSessionType();");
         parameters.add(socket.sjname());
 
         for (SJWhen when : whenStatements) {
-            cases.append("case %E: %LS; break;");
-            parameters.add(new IntLit_c(when.position(), IntLit.INT, setType.memberRank(when.type())));
+            statement.append("if (%s.typeEquals(SJRuntime.decodeType(%E))) { %LS; } else ");
+            parameters.add(tmpVar);
+            parameters.add(new StringLit_c(when.position(), sjte.encode(when.type())));
             parameters.add(copyOfStatements(when)); // QQ tries to modify the list in some cases
         }
-        String tmpVar = UniqueID.newID(SJConstants.SJ_TMP_LOCAL);
-        return qq.parseStmt("{int "+tmpVar+" = %s.typeLabel(); switch ("
-            +tmpVar+" ) { "+cases+" default: System.out.println(\"DEFAULT\");}}", parameters);
+        // There's always at least one when branch (guaranteed by typing).
+        
+        statement.append(" { assert false : \"Typecase with unexpected type:\"+ %s;}"
+            + "}");
+        parameters.add(tmpVar);
+
+        return qq.parseStmt(statement.toString() , parameters);
 
     }
 

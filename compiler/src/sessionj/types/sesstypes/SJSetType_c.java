@@ -7,8 +7,7 @@ import polyglot.types.TypeSystem;
 import java.util.*;
 
 public class SJSetType_c extends SJSessionType_c implements SJSetType {
-    //private final Collection<SJSessionType_c> members;
-	private final Collection<SJSessionType> members; // Converted this collection type to be more suitable for the interface methods like getMembers.
+	private final Collection<SJSessionType> members;
 
     //private boolean isSingleton() 
     public boolean isSingleton() // Any reason why this shouldn't be public? // FIXME: should be implemented using (the proposed) flatten method in order to avoid e.g. {{S1, S2}} being considered a singleton. 
@@ -147,7 +146,7 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     public SJSessionType nodeClone() {
         List<SJSessionType> copiedMembers = new LinkedList<SJSessionType>();
         for (SJSessionType m : members) 
-        	copiedMembers.add((SJSessionType) m.copy());
+        	copiedMembers.add(m.copy());
         return typeSystem().SJSetType(copiedMembers);
     }
 
@@ -221,19 +220,9 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
         return members.containsAll(types) && types.containsAll(members); // FIXME: should be modulo "flattening".
     }
 
-    public int memberRank(SJSessionType member) {
-        int i = 0;
-        for (SJSessionType m : members) {
-            if (m.equals(member)) return i;
-            ++i;
-        }
-        throw new IllegalArgumentException("Session type "
-            + member + " is not a member of set type " + this);
-    }
-    
     public SJSessionType nodeCanonicalForm() // Session set types currently do not have children. 
     {
-    	SJSetType flattened = this.getFlattenedForm();
+    	SJSetType flattened = getFlattenedForm();
     	
     	if (isSingleton()) // This currently recalculates the flattened form (a bit of redundancy with the above).
     	{

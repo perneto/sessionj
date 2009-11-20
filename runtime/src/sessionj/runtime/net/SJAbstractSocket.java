@@ -1,6 +1,5 @@
 package sessionj.runtime.net;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -15,8 +14,7 @@ abstract public class SJAbstractSocket implements SJSocket
 	private SJStateManager sm; // A runtime version of SJContext, specialised for a single session.
 	
 	private SJProtocol protocol;
-	private SJSessionType runtimeType;
-  private final SJSessionParameters params;
+    private final SJSessionParameters params;
 	
 	private String hostName;
 	private int port;
@@ -31,17 +29,11 @@ abstract public class SJAbstractSocket implements SJSocket
 	
 	private boolean isActive = false;
 
-  protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params) throws SJIOException
-	{
-		this(protocol, params, protocol.type());
-  }
-
-  protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType runtimeType)
+    protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params)
         throws SJIOException
     {
         this.protocol = protocol; // Remainder of initialisation for client sockets performed when init is called.
 		this.params = params;
-		this.runtimeType = runtimeType;
         
 		try
 		{
@@ -52,7 +44,7 @@ abstract public class SJAbstractSocket implements SJSocket
         }
 
 		//this.sm = new SJStateManager_c(SJRuntime.getTypeSystem(), protocol.type()); // Replaced by a setter (called by SJProtocolsImp).
-  }
+    }
 	
   // FIXME: refactor the initialisation/binding of SJR session and transport components to session sockets. Move decision making more explicitly into the SJR and make more modular. 
 	protected void init(SJConnection conn) throws SJIOException // conn can be null (delegation case 2?).
@@ -62,15 +54,7 @@ abstract public class SJAbstractSocket implements SJSocket
 		SJRuntime.initSocket(this);
 	}
 
-  public SJSessionType getRuntimeType() { // FIXME: these are subsumed by the more general SJStateManager.
-      return runtimeType;
-  }
-
-  public void setRuntimeType(SJSessionType runtimeType) {
-      this.runtimeType = runtimeType;
-  }
-
-  public void reconnect(SJConnection conn) throws SJIOException
+    public void reconnect(SJConnection conn) throws SJIOException
   {
 		ser.close();
 		
@@ -333,18 +317,10 @@ abstract public class SJAbstractSocket implements SJSocket
 		return sp.recurseBB(lab);
 	}*/
 
-  public int typeLabel() throws SJIOException {
-      // TODO: Better support for runtime type (this currently only works right after a session-receive)
-      assert protocol.type() instanceof SJSetType : this + ": Protocol not a set type: " + protocol;
-      SJSetType set = (SJSetType) protocol.type();
-      return set.memberRank(runtimeType);
-  }
-
   /**
    * For zero-copy delegation: receiver needs to keep its own static type
    */
   public void updateStaticAndRuntimeTypes(SJSessionType staticType, SJSessionType runtimeType) throws SJIOException {
-      this.runtimeType = runtimeType;
       protocol = new SJProtocol(SJRuntime.encode(staticType));
   }
 
@@ -379,7 +355,6 @@ abstract public class SJAbstractSocket implements SJSocket
         return "SJAbstractSocket{" +
             "sm=" + sm +
             ", protocol=" + protocol +
-            ", runtimeType=" + runtimeType +
             ", params=" + params +
             ", hostName='" + hostName + '\'' +
             ", port=" + port +
