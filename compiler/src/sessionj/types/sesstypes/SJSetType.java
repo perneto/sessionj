@@ -8,8 +8,6 @@ public interface SJSetType extends SJSessionType {
     boolean contains(SJSessionType sessionType);
     boolean containsAllAndOnly(Collection<SJSessionType> types);
 
-    int memberRank(SJSessionType member);    
-    
     Collection<SJSessionType> getMembers(); 
     SJSetType getFlattenedForm(); // Get a copy of the "flatten" form of this set type.
     
