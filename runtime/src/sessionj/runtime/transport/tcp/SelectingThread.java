@@ -31,6 +31,7 @@ final class SelectingThread implements Runnable {
     private final ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>> accepted;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
     private static final Logger logger = Logger.getLogger(SelectingThread.class.getName());
+    private static final boolean DEBUG = false;
 
     SelectingThread(SJDeserializer deserializer) throws IOException {
         this.deserializer = deserializer;
@@ -87,9 +88,15 @@ final class SelectingThread implements Runnable {
             requestedOutputs.put(sc, outputsForChan);
         }
         outputsForChan.add(ByteBuffer.wrap(bs));
-        System.out.println("Enqueued write on: " + sc + " of: " + bs.length + " bytes");
+        debug("Enqueued write on: " + sc + " of: " + bs.length + " bytes");
         pendingChangeRequests.add(new ChangeRequest(sc, CHANGEOPS, OP_WRITE));
         selector.wakeup();
+    }
+
+    private static void debug(String s) {
+        if (DEBUG) {
+            System.out.println(s);
+        }
     }
 
     public void enqueueOutput(SocketChannel sc, byte b) {
@@ -105,7 +112,7 @@ final class SelectingThread implements Runnable {
         // ConcurrentHashMap and LinkedBlockingQueue, both thread-safe,
         // and no need for atomicity here
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
-        System.out.println("Waiting for accept on server socket: " + ssc + " in queue: " + queue);
+        debug("Waiting for accept on server socket: " + ssc + " in queue: " + queue);
         return queue.take();
     }
 
@@ -164,7 +171,7 @@ final class SelectingThread implements Runnable {
         Queue<ByteBuffer> queue = requestedOutputs.get(socketChannel);
 
         boolean writtenInFull = true;
-        System.out.println("Writing data on: " + socketChannel);
+        debug("Writing data on: " + socketChannel);
         // Write until there's no more data, or the socket's buffer fills up
         while (!queue.isEmpty() && writtenInFull) {
             ByteBuffer buf = queue.peek();
@@ -244,7 +251,7 @@ final class SelectingThread implements Runnable {
         SocketChannel socketChannel = ssc.accept();
         socketChannel.configureBlocking(false);
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
-        System.out.println("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
+        debug("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
         queue.add(socketChannel);
     }
 
@@ -271,7 +278,7 @@ final class SelectingThread implements Runnable {
             }
         }, CHANGEOPS {
             void execute(Selector selector, ChangeRequest req) {
-                System.out.println("Changing ops for: " + req.chan + " to: " + req.interestOps);
+                debug("Changing ops for: " + req.chan + " to: " + req.interestOps);
                 req.chan.keyFor(selector).interestOps(req.interestOps);
             }
         }, CLOSE {
