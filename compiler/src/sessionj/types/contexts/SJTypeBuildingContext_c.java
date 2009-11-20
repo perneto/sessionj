@@ -12,7 +12,6 @@ import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sesstry.*;
 import sessionj.ast.sessvars.*;
-import sessionj.runtime.session.contexts.SJRecursionContext;
 import sessionj.types.*;
 import sessionj.types.sesstypes.*;
 import sessionj.types.typeobjects.*;
