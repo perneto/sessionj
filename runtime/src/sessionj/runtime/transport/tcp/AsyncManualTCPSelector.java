@@ -36,9 +36,9 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     public boolean registerAccept(SJServerSocket ss) throws IOException {
         ServerSocketChannel ssc = retrieveServerSocketChannel(ss);
         if (ssc != null) {
-            // FIXME: probably superfluous, since the ssc is already registered
-            // with the selector by the acceptor, ahead of time.
-            thread.registerAccept(ssc); 
+            // No need to do the real registration with the selecting thread,
+            // this is done by the acceptor, ahead of time.
+            // If done twice, a race condition (occasional deadlocks) happens.
             
             registeredAccepts.put(ssc, ss);
             return true;

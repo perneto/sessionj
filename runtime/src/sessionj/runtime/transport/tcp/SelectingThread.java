@@ -10,9 +10,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import static java.nio.channels.SelectionKey.*;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.Iterator;
 import java.util.Queue;
-import java.util.Arrays;
+import java.util.Iterator;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,6 +44,7 @@ final class SelectingThread implements Runnable {
     }
 
     synchronized void registerAccept(ServerSocketChannel ssc) {
+        assert !accepted.containsKey(ssc) : "The channel " + ssc + " has already been registered";
         accepted.put(ssc, new LinkedBlockingQueue<SocketChannel>());
         pendingChangeRequests.add(new ChangeRequest(ssc, REGISTER, OP_ACCEPT));
         // Don't touch selector registrations here, do all
@@ -70,6 +70,7 @@ final class SelectingThread implements Runnable {
      * call.
      * @param sc The channel for which to get an input message.
      * @return A complete message (according to the OngoingRead instance obtained from the serializer)
+     * @throws java.util.NoSuchElementException if no message is ready for reading.
      */
     public ByteBuffer dequeueFromInputQueue(SocketChannel sc) {
         return readyInputs.get(sc).remove();
@@ -103,7 +104,9 @@ final class SelectingThread implements Runnable {
     public SocketChannel takeAccept(ServerSocketChannel ssc) throws InterruptedException {
         // ConcurrentHashMap and LinkedBlockingQueue, both thread-safe,
         // and no need for atomicity here
-        return accepted.get(ssc).take();
+        BlockingQueue<SocketChannel> queue = accepted.get(ssc);
+        System.out.println("Waiting for accept on server socket: " + ssc + " in queue: " + queue);
+        return queue.take();
     }
 
     public void notifyAccepted(ServerSocketChannel ssc, SocketChannel socketChannel) {
@@ -138,6 +141,8 @@ final class SelectingThread implements Runnable {
         Iterator<SelectionKey> it = selector.selectedKeys().iterator();
         while (it.hasNext()) {
             SelectionKey key = it.next();
+            // This seems important: without it, we get notified several times
+            // for the same event, resulting in eg. NPEs on accept.
             it.remove();
 
             if (key.isValid()) {
@@ -238,7 +243,9 @@ final class SelectingThread implements Runnable {
         ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
         SocketChannel socketChannel = ssc.accept();
         socketChannel.configureBlocking(false);
-        accepted.get(ssc).add(socketChannel);
+        BlockingQueue<SocketChannel> queue = accepted.get(ssc);
+        System.out.println("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
+        queue.add(socketChannel);
     }
 
     private static class ChangeRequest {
