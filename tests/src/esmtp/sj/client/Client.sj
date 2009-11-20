@@ -1,4 +1,4 @@
-//$ bin/sessionjc -sourcepath tests/src/esmtp/sj/';'tests/src/esmtp/sj/messages/';'tests/src/esmtp/sj/client/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
+//$ bin/sessionjc -sourcepath tests/src/esmtp/sj/client/messages/';'tests/src/esmtp/sj/client/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
 //$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
 //$ bin/sessionj -cp tests/classes/ esmtp.sj.client.Client false smtp.cc.ic.ac.uk 25 
 
@@ -17,12 +17,12 @@ import sessionj.runtime.transport.httpservlet.*;
 import sessionj.runtime.session.*;
 
 //import esmtp.sj.SJSmtpFormatter; // Doesn't work when specifying -sourcepath (without -cp).
-import esmtp.sj.*;
-import esmtp.sj.messages.*;
+//import esmtp.sj.*;
+import esmtp.sj.client.messages.*;
 //import esmtp.sj.server.Server;
 
 /*
- * FIXME: redo this Client with three-digit branch labels instead of one-digit (where appropriate), and use sent-message history in the parser to help parsing. 
+ * FIXME: redo this Client with three-digit branch labels instead of one-digit (where appropriate - but for "wild carded" digits, we won't be able to see their values), and use sent-message history in the parser to help parsing. Also factor the main code chunk into sub-chunks (like doQuit). 
  */
 public class Client
 {			
@@ -48,7 +48,7 @@ public class Client
 			}		
 		]
 		
-		.rec MAIL 
+		.rec MAIL // We should be able to repeatedly send emails.
 		[
 		  !<Mail>
 		  .rec MAIL_ACK 
@@ -113,7 +113,7 @@ public class Client
 		
 		System.out.println("fqdn: " + fqdn);
 		
-		SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SJSmtpFormatter());
+		SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SmtpClientFormatter());
 		
 		final noalias SJSocket s;	
 			

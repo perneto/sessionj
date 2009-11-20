@@ -1,8 +1,6 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/messages/SmtpAck.sj -d tests/classes/ 
+//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/messages/SmtpAck.sj -d tests/classes/ 
 
-package esmtp.sj.messages;
-
-import esmtp.sj.*;
+package esmtp.sj.client.messages;
 
 abstract public class SmtpAck extends SmtpMessage implements SmtpParseable
 {
@@ -15,6 +13,6 @@ abstract public class SmtpAck extends SmtpMessage implements SmtpParseable
 	
 	public static final String removeTrailingLineFeed(String m)
 	{
-		return m.substring(0, m.length() - SJSmtpFormatter.LINE_FEED.length());
+		return m.substring(0, m.length() - SmtpMessage.LINE_FEED.length());
 	}
 }
