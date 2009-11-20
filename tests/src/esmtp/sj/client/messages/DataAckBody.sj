@@ -1,8 +1,6 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/messages/DataAckBody.sj -d tests/classes/ 
+//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/messages/DataAckBody.sj -d tests/classes/ 
 
-package esmtp.sj.messages;
-
-import esmtp.sj.*;
+package esmtp.sj.client.messages;
 
 // Not currently used. We didn't check whether the DATA ack is good or bad yet (e.g. if no valid RCPT TO has been given earlier).
 public class DataAckBody implements SmtpParseable
@@ -21,7 +19,7 @@ public class DataAckBody implements SmtpParseable
 	
 	public boolean isParseable(String m)
 	{
-		return m.endsWith(SJSmtpFormatter.LINE_FEED);
+		return m.endsWith(SmtpMessage.LINE_FEED);
 	}
 	
 	public SmtpParseable parse(String m)

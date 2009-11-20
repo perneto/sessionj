@@ -2,36 +2,30 @@
 
 package esmtp.sj.messages;
 
-import esmtp.sj.*;
-
-public class DataAck extends SmtpAck
+public class DataAck extends SmtpMessage
 {
 	public static final String DATA_REPLY_CODE = "354";
 	
-	private String msg;
+	private static final String prefix = DATA_REPLY_CODE + SmtpMessage.SPACE_SEPARATOR;
+	private static final String suffix = SmtpMessage.LINE_FEED;
 	
 	public DataAck(String msg)
 	{
-		this.msg = msg;
+		super(msg);
+	}
+		
+	public boolean isParseableFrom(String m)
+	{
+		return m.startsWith(prefix) && m.endsWith(suffix);
 	}
 	
-	public String replyCode()
+	public SmtpMessage parse(String m)
 	{
-		return DATA_REPLY_CODE;
+		return new DataAck(m.substring(prefix.length(), m.length() - suffix.length()));
 	}
 	
-	public String body()
+	public String format()
 	{
-		return msg;
-	}	
-	
-	public boolean isParseable(String m)
-	{
-		return m.startsWith(DATA_REPLY_CODE) && m.endsWith(SJSmtpFormatter.LINE_FEED);
-	}
-	
-	public SmtpParseable parse(String m)
-	{
-		return new DataAck(SmtpAck.removeTrailingLineFeed(m).substring(DATA_REPLY_CODE.length()));
+		return prefix + content() + suffix;
 	}		
 }

@@ -2,29 +2,30 @@
 
 package esmtp.sj.messages;
 
-import esmtp.sj.*;
-
-public class ServerGreeting implements SmtpParseable // Actually, the server greeting starts with a "220"; so this message can be made an SmtpAck.
+public class ServerGreeting extends SmtpMessage 
 {
-	private String greeting;
+	public static final String GREETING_REPLY_CODE = "220";
+	
+	private static final String prefix = GREETING_REPLY_CODE + SmtpMessage.SPACE_SEPARATOR;
+	private static final String suffix = SmtpMessage.LINE_FEED;	
 	
 	public ServerGreeting(String greeting)
 	{
-		this.greeting = greeting;
+		super(greeting);
 	}
 	
-	public String toString()
+	public boolean isParseableFrom(String m)
 	{
-		return greeting;
+		return m.startsWith(prefix) && m.endsWith(suffix);
 	}
 	
-	public boolean isParseable(String m)
+	public SmtpMessage parse(String m)
 	{
-		return m.endsWith(SJSmtpFormatter.LINE_FEED);
+		return new QuitAck(m.substring(prefix.length(), m.length() - suffix.length()));
 	}
 	
-	public SmtpParseable parse(String m)
+	public String format()
 	{
-		return new ServerGreeting(SmtpAck.removeTrailingLineFeed(m));
+		return prefix + content() + suffix;
 	}			
 }

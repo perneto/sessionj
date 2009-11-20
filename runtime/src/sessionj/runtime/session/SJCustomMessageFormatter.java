@@ -28,6 +28,8 @@ abstract public class SJCustomMessageFormatter
 	
 	private ByteBuffer bb = ByteBuffer.allocate(SJConstants.CUSTOM_MESSAGE_FORMATTER_INIT_BUFFER_SIZE); // Size should be at least greater than 0. // Called by SJCustomSerializer in a "sequentialised" way, i.e. no race conditions. 
 	
+	private LinkedList<Object> history = new LinkedList<Object>();
+	
 	// Maybe a bit weird for formatMessage to use a byte[] but parseMessage to use a ByteBuffer.
 	abstract public byte[] formatMessage(Object o) throws SJIOException; // Maybe we should use e.g. SJCustomMessage (subclasses) rather than Object. SJCustomMessage could also offer message-specific formatting operations.
 	abstract public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException; // Instead of the eof flag, we could append a -1 to the bb. // Pre: bb should already be flipped, i.e. ready for (relative) "getting". Also has to be non-blocking (for readNextMessage to work as intended). // FIXME: this is maybe not a good interface for the user.
@@ -38,10 +40,22 @@ abstract public class SJCustomMessageFormatter
 		this.conn = conn;
 	}
 	
+	public List<Object> getHistory()
+	{
+		return Collections.unmodifiableList(history); 
+	}
+	
+	public Object lastMessageSent()
+	{
+		return history.peek();
+	}
+	
 	protected final void writeMessage(Object o) throws SJIOException
 	{
 		conn.writeBytes(formatMessage(o));
 		conn.flush();
+		
+		history.push(o); // Not compatible with noalias reference passing.
 	}
 	
 	//public final SJMessage readNextMessage() throws SJIOException
