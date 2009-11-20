@@ -9,6 +9,7 @@ import polyglot.frontend.*;
 import polyglot.main.Options;
 import sessionj.ExtensionInfo;
 import sessionj.SJConstants;
+import sessionj.types.SJTypeSystem;
 import sessionj.ast.sessops.compoundops.*;
 import sessionj.ast.sessvars.SJVariable;
 import sessionj.ast.sessvars.SJLocalSocket_c;
@@ -183,7 +184,7 @@ public class SJWhileTranslationTest {
         extInfo = new TestExtensionInfo();
 
         Options.global = new Options(extInfo);
-        TypeSystem ts = extInfo.typeSystem();
+        SJTypeSystem ts = (SJTypeSystem) extInfo.typeSystem();
         SJConstants.SJ_SOCKET_INTERFACE_TYPE = ts
                 .typeForName(SJConstants.SJ_SOCKET_INTERFACE);
         Job job = new Job(extInfo, extInfo.jobExt(),

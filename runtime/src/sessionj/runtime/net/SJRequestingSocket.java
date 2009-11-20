@@ -22,7 +22,7 @@ public class SJRequestingSocket extends SJAbstractSocket
      */
 	public SJRequestingSocket(SJProtocol p, SJSessionParameters params, SJSessionType actualType) throws SJIOException
 	{
-		super(p, params, actualType); // FIXME: null service OK? Probably OK for received sessions.
+		super(p, params); // FIXME: null service OK? Probably OK for received sessions.
 	}
 
     @Override

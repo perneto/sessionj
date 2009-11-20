@@ -79,9 +79,6 @@ public interface SJSocket extends SJChannel
 
   void setPort(int port);
 
-  /** Used for the translation of the typecase construct */
-  int typeLabel() throws SJIOException;
-  
   public SJStateManager getStateManager();
   public void setStateManager(SJStateManager sm);
   
