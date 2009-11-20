@@ -54,12 +54,12 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return contexts.peek();
 	}
 
-	private final SJSessionType activeType()
+	private SJSessionType activeType()
 	{
 		return currentContext().activeType();
 	}
 
-	private final SJSessionType implementedType()
+	private SJSessionType implementedType()
 	{
 		return currentContext().implementedType();
 	}
@@ -82,7 +82,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return currentState(0); // 0th is the top-level.
 	}
 
-	private final SJSessionType currentState(int i)
+	private SJSessionType currentState(int i)
 	{
 		SJRuntimeContextElement sjsc = contexts.get(i);
 		SJSessionType current = sjsc.implementedType();
@@ -151,7 +151,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return sjbt;
 	}
 
-	private final SJBeginType begin(SJBeginType sjbt) throws SJIOException
+	private SJBeginType begin(SJBeginType sjbt) throws SJIOException
 	{
 		SJSessionType protocol = protocolType();
 
@@ -462,7 +462,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		contexts.removeAllElements();
 	}
 
-	private final void advanceContext(SJSessionType sjtype)
+	private void advanceContext(SJSessionType sjtype)
 	{
 		SJSessionType implemented = sjtype;
 
@@ -545,7 +545,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 	}
 
-	private final SJSessionType appendToImplemented(SJSessionType sjtype)
+	private SJSessionType appendToImplemented(SJSessionType sjtype)
 	{
 		SJSessionType implemented = implementedType();
 
@@ -624,21 +624,21 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 	}
 
-	private final void pushContext(SJRuntimeContextElement sjsc)
+	private void pushContext(SJRuntimeContextElement sjsc)
 	{
 		contexts.push(sjsc);
 
 		//SJRuntimeUtils.debugPrintln("Pushed " + sjsc + ": " + activeType() + ", " + implementedType());
 	}
 
-	private final void popContext()
+	private void popContext()
 	{
 		SJRuntimeContextElement sjsc = contexts.pop();
 
 		//SJRuntimeUtils.debugPrintln("Popped " + sjsc + " to: " + activeType() + ", " + implementedType());
 	}
 
-	private static final String fullClassName(Object obj) // Move to SJRuntimeUtils?
+	private static String fullClassName(Object obj) // Move to SJRuntimeUtils?
 	{
 		String m = obj.getClass().toString().substring("class ".length());
 
@@ -683,7 +683,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return m;
 	}
 	
-	private static final Type parseClassName(SJTypeSystem sjts, String m) throws SemanticException // Move to SJRuntimeUtils?
+	private static Type parseClassName(SJTypeSystem sjts, String m) throws SemanticException // Move to SJRuntimeUtils?
 	{
 		Type mt; 
 		
@@ -726,7 +726,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return mt;
 	}
 	
-	private /*static*/ final void debugPrintln(String m)
+	private /*static*/ void debugPrintln(String m)
 	{
 		if (DEBUG)
 		{
