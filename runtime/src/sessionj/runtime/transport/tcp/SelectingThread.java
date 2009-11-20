@@ -86,7 +86,7 @@ final class SelectingThread implements Runnable {
             requestedOutputs.put(sc, outputsForChan);
         }
         outputsForChan.add(ByteBuffer.wrap(bs));
-        System.out.println("Enqueued write on: " + sc + " of: " + Arrays.toString(bs));
+        System.out.println("Enqueued write on: " + sc + " of: " + bs.length + " bytes");
         pendingChangeRequests.add(new ChangeRequest(sc, CHANGEOPS, OP_WRITE));
         selector.wakeup();
     }

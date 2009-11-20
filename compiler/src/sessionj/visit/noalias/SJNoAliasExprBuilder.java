@@ -34,14 +34,18 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 	private SJTypeSystem sjts = (SJTypeSystem) typeSystem();
 	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 	private SJExtFactory sjef = sjnf.extFactory();
+    private static final boolean DEBUG = false;
 	
-	/**
-	 * 
-	 */
 	public SJNoAliasExprBuilder(Job job, TypeSystem ts, NodeFactory nf)
 	{
 		super(job, ts, nf);
 	}
+    
+    private static void debug(String msg) {
+        if (DEBUG) {
+            System.out.println(msg);
+        }
+    }
 
 	// This pass is for checks that require field and method declarations from all classes to be already checked.
 	protected Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
@@ -187,7 +191,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 			{								
 				// FIXME: could still set isFinal, even though it's not relevant unless isNoAlias is true.
 				
-				System.out.println("[SJNoAliasExprBuilder] Warning! noalias type building skipped (defaulted to non-noalias) for field: " + f);
+				debug("[SJNoAliasExprBuilder] Warning! noalias type building skipped (defaulted to non-noalias) for field: " + f);
 			}					
 		}
 		else if (t instanceof ArrayType) // Should be length property access, which is an int type, so leave as non-noalias like other primitives.
@@ -297,7 +301,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		}		
 		else
 		{
-			System.out.println("[SJNoAliasExprBuilder] Warning! noalias type building skipped (defaulted to noalias) for: " + n);			
+			debug("[SJNoAliasExprBuilder] Warning! noalias type building skipped (defaulted to noalias) for: " + n);			
 		}
 		
 		List<Field> fields = new LinkedList<Field>();
@@ -392,12 +396,12 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 				}
 				else // For anonymous classes, the class types will be SJParsedClassType, but calls to an inherited, regular Java method declaration (i.e. not visited by sessionjc) will have regular MethodInstance.
 				{
-					System.out.println("[SJNoAliasExprBulder] Warning! noalias type building skipped (defaulted to non-noalias return type) for method call: " + c);				
+					debug("[SJNoAliasExprBulder] Warning! noalias type building skipped (defaulted to non-noalias return type) for method call: " + c);				
 				}
 			}
 			else
 			{
-				System.out.println("[SJNoAliasExprBuilder] Warning! noalias type building skipped (defaulted to non-noalias return type) for method call: " + c);
+				debug("[SJNoAliasExprBuilder] Warning! noalias type building skipped (defaulted to non-noalias return type) for method call: " + c);
 			}		
 		}
 		
@@ -565,7 +569,7 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 		}
 		else
 		{
-			System.out.println("[SJNoAliasExprBuilder] Warning! noalias type building skipped for constructor call (" + pct + "): " + cc);
+			debug("[SJNoAliasExprBuilder] Warning! noalias type building skipped for constructor call (" + pct + "): " + cc);
 		}		
 		
 		List<Field> fields = new LinkedList<Field>();
