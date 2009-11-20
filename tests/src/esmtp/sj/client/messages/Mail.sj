@@ -1,6 +1,6 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/messages/Mail.sj -d tests/classes/ 
+//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/messages/Mail.sj -d tests/classes/ 
 
-package esmtp.sj.messages;
+package esmtp.sj.client.messages;
 
 public class Mail extends SmtpCommand
 {

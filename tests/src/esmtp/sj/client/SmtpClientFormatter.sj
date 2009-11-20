@@ -1,6 +1,6 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/SJSmtpFormatter.sj -d tests/classes/ 
+//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/SmtpClientFormatter.sj -d tests/classes/ 
 
-package esmtp.sj;
+package esmtp.sj.client;
 
 import java.io.IOException;
 import java.nio.*;
@@ -15,7 +15,7 @@ import sessionj.runtime.transport.tcp.*;
 import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 
-import esmtp.sj.messages.*;
+import esmtp.sj.client.messages.*;
 
 /*
  * Message formatters are like a localised version of the protocol: the messages received by writeMessage should follow the dual protocol to the messages returned by readNextMessage. But the formatter is an object: need object-based session types to control this.
@@ -23,12 +23,12 @@ import esmtp.sj.messages.*;
  * Might be convenient to extend the custom message formatter interface to maintain a sent message history (e.g. as a stack) - this contextual information can help (or may be needed) for parsing purposes.
  * 
  */
-public class SJSmtpFormatter extends SJUtf8Formatter
+public class SmtpClientFormatter extends SJUtf8Formatter
 {			
-	public static final String LINE_FEED = "\n";	
-	
 	public static final String _SPACE = "_SPACE"; // Hack to support ' ' as a branch label. We can parse the ' ' here, but need to return a String to represent it (branch labels must are currently coupled to String values). 
 	public static final String _HYPHEN = "_HYPHEN";
+
+	private static final String LINE_FEED = "\n";		
 	
 	/*// Rather than "manual" state management (enum, switch, update), would be nice to use a selector with typecase; then we'd get static typing (it's about controlling how states should progress, not just the overall set of states). Afterall, objects (actors?) are essentially event-driven entities. 
 	private static final int GREETING = 1;
@@ -96,7 +96,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			
 			if (eof)// && state != QUIT_ACK) 
 			{
-				throw new SJIOException("[SJSmtpFormatter] Unexpected EOF: " + m);
+				throw new SJIOException("[SmtpClientFormatter] Unexpected EOF: " + m);
 			}				
 	
 			if (state == GREETING)
@@ -119,7 +119,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}
 				else
 				{
-					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + m);
+					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + m);
 				}
 			}
 			else if (state == EHLO_ACK_SECOND_AND_THIRD_DIGITS)
@@ -147,7 +147,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}
 				else
 				{
-					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + m);
+					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + m);
 				}
 			}
 			else if (state == EHLO_ACK_HYPHEN_BODY)
@@ -185,7 +185,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}				
 				else
 				{
-					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + m);
+					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + m);
 				}
 			}
 			else if (state == MAIL_ACK_2_SECOND_AND_THIRD_DIGITS)
@@ -213,7 +213,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}
 				else
 				{
-					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + m);
+					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + m);
 				}
 			}
 			else if (state == MAIL_ACK_2_HYPHEN_BODY)
@@ -259,7 +259,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}
 				else
 				{
-					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + m);
+					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + m);
 				}
 			}
 			else if (state == MAIL_ACK_5_HYPHEN_BODY)
@@ -303,7 +303,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}	
 				else
 				{
-					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + m);
+					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + m);
 				}
 			}
 			
@@ -442,7 +442,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}
 				else
 				{
-					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + ack);
+					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + ack);
 				}
 			}
 			else if (state == MAIL_TWO_ACK_REST)
@@ -479,7 +479,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}
 				else
 				{
-					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + ack);
+					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + ack);
 				}
 			}		
 			else if (state == MAIL_TWO_ACK_MORE)
@@ -560,7 +560,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}
 				else
 				{
-					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + ack);
+					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + ack);
 				}
 			}		
 			else if (state == MAIL_FIVE_ACK_MORE)
@@ -611,7 +611,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}
 				else
 				{
-					//throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + ack);
+					//throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + ack);
 
 					state = DATA_ACK;
 					
@@ -693,7 +693,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			}
 			else 
 			{
-				throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here.");
+				throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here.");
 			}*/
 		}
 		catch (CharacterCodingException cce)
@@ -711,7 +711,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				String m = decodeFromUtf8(bb);
 				//String m = decodeFromUtf8(bs);
 				
-				throw new SJIOException("[SJSmtpFormatter] Unexpected EOF: " + m);
+				throw new SJIOException("[SmtpClientFormatter] Unexpected EOF: " + m);
 			}				
 	
 			//byte[] bs = copyByteBufferContents(bb);	
@@ -782,7 +782,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 				}
 				else
 				{
-					throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here: " + ack);
+					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + ack);
 				}
 			}
 			/*else if (state == RCPT_ACK)
@@ -880,7 +880,7 @@ public class SJSmtpFormatter extends SJUtf8Formatter
 			}
 			else 
 			{
-				throw new SJIOException("[SJSmtpFormatter] Shouldn't get in here.");
+				throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here.");
 			}
 		}
 		catch (CharacterCodingException cce)

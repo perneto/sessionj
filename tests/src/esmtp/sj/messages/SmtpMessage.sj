@@ -2,32 +2,37 @@
 
 package esmtp.sj.messages;
 
-import esmtp.sj.*;
-
 abstract public class SmtpMessage
 {
-	public static final String SMTP_MESSAGE_SUFFIX = SJSmtpFormatter.LINE_FEED; //"\n";
+	public static final String LINE_FEED = "\n";
 	
-	public SmtpMessage()
+	public static final String HYPHEN_SEPARATOR = "-";
+	public static final String SPACE_SEPARATOR = " ";
+	
+	private String content;
+	
+	public SmtpMessage(String content)
 	{
-
+		this.content = content;
 	}
 	
-	abstract public String prefix();	
-	abstract public String body();
-	
-	public String suffix()
+	public String content()
 	{
-		return SMTP_MESSAGE_SUFFIX;
+		return content;
 	}
 	
-	public String construct()
-	{
-		return prefix() + body() + suffix();
-	}
+	abstract public boolean isParseableFrom(String m);
+	abstract public SmtpMessage parse(String m);
+	
+	abstract public String format();
 	
 	public String toString()
 	{
-		return construct();
+		return format();
+	}
+	
+	public static final String removeLineFeedSuffix(String m)
+	{
+		return m.substring(0, m.length() - SmtpMessage.LINE_FEED.length());
 	}
 }

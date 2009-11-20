@@ -109,6 +109,8 @@ abstract public class SJProtocolNode_c extends SJTypeNode_c implements SJProtoco
 				}
 			}*/
 
+			st = st.getCanonicalForm();
+			
 			return target(target).type(st);
     }
 }

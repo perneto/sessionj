@@ -2,36 +2,30 @@
 
 package esmtp.sj.messages;
 
-import esmtp.sj.*;
-
-public class QuitAck extends SmtpAck
+public class QuitAck extends SmtpMessage
 {
 	public static final String QUIT_REPLY_CODE = "221";
 	
-	private String msg;
+	private static final String prefix = QUIT_REPLY_CODE + SmtpMessage.SPACE_SEPARATOR;
+	private static final String suffix = SmtpMessage.LINE_FEED;	
 	
 	public QuitAck(String msg)
 	{
-		this.msg = msg;
+		super(msg);
+	}
+		
+	public boolean isParseableFrom(String m)
+	{
+		return m.startsWith(prefix) && m.endsWith(suffix);
 	}
 	
-	public String replyCode()
+	public SmtpMessage parse(String m)
 	{
-		return QUIT_REPLY_CODE;
+		return new QuitAck(m.substring(prefix.length(), m.length() - suffix.length()));
 	}
 	
-	public String body()
+	public String format()
 	{
-		return msg;
-	}
-	
-	public boolean isParseable(String m)
-	{
-		return m.startsWith(QUIT_REPLY_CODE) && m.endsWith(SJSmtpFormatter.LINE_FEED);
-	}
-	
-	public SmtpParseable parse(String m)
-	{
-		return new QuitAck(SmtpAck.removeTrailingLineFeed(m).substring(QUIT_REPLY_CODE.length()));
+		return prefix + content() + suffix;
 	}		
 }
