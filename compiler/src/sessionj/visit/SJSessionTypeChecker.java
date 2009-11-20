@@ -58,8 +58,9 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 	private SJExtFactory sjef = sjnf.extFactory();
 	
 	private SJTypeBuildingContext sjcontext = new SJTypeBuildingContext_c(this, sjts);
-	
-	public SJSessionTypeChecker(Job job, TypeSystem ts, NodeFactory nf)
+    private static final boolean DEBUG = false;
+
+    public SJSessionTypeChecker(Job job, TypeSystem ts, NodeFactory nf)
 	{
 		super(job, ts, nf);
 	}
@@ -617,12 +618,18 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 		
 		sjcontext.advanceSession(sjname, st);
 		
-		System.out.println(getVisitorName() + " " + sjname + ": " + st);			
+		debug(getVisitorName() + " " + sjname + ": " + st);			
 		
 		return bo;
 	}
-	
-	private Expr checkSJRequest(SJRequest r, String sjname, SJSessionType st) throws SemanticException
+
+    private void debug(String s) {
+        if (DEBUG) {
+            System.out.println(s);
+        }
+    }
+
+    private Expr checkSJRequest(SJRequest r, String sjname, SJSessionType st) throws SemanticException
 	{
 		if (!sjcontext.sessionInScope(sjname))
 		{
