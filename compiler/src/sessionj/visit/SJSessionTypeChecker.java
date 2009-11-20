@@ -329,7 +329,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 				
 		so = (SJSelectorOperation) setSJTypeableExt(sjef, so, st);
 		
-		//System.out.println(getVisitorName() + " " + selectorName + ": " + st);
+		//debug(getVisitorName() + " " + selectorName + ": " + st);
 		
 		return so;
 	}
@@ -826,7 +826,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
         
         co = (SJCompoundOperation) updateSessionType(co, typeForNode, sjef);
 
-		System.out.println(getVisitorName() + " " + sjname + ": " + getSessionType(co));
+		debug(getVisitorName() + " " + sjname + ": " + getSessionType(co));
 		
 		return co;
 	}
