@@ -27,8 +27,9 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 	private SJTypeSystem sjts = (SJTypeSystem) typeSystem();
 	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 	private SJExtFactory sjef = sjnf.extFactory();
-	
-	/**
+    private static final boolean DEBUG = false;
+
+    /**
 	 * 
 	 */
 	public SJNoAliasTypeBuilder(Job job, TypeSystem ts, NodeFactory nf)
@@ -330,14 +331,18 @@ public class SJNoAliasTypeBuilder extends ContextVisitor
 			}
 			else
 			{
-				System.out.println("[SJNoAliasTypeBuilder] Warning! Superclass not checked: " + superType);
+				debug("[SJNoAliasTypeBuilder] Warning! Superclass not checked: " + superType);
 			}
 		}		
 		
 		return noAliasThroughThis;
-	}	
-	
-	private ProcedureDecl setNoAliasFormalTypes(ProcedureDecl pd)
+	}
+
+    private static void debug(String s) {
+        if (DEBUG) System.out.println(s);
+    }
+
+    private ProcedureDecl setNoAliasFormalTypes(ProcedureDecl pd)
 	{
 		List formals = pd.formals();
 		List<Type> naft = new LinkedList<Type>();
