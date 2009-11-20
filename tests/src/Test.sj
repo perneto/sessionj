@@ -10,8 +10,11 @@ import sessionj.runtime.net.*;
 
 public class Test  
 {		
+	static protocol foo { !<String> }
+	static protocol bar { !<String>.@(foo) }	
+	
 	public static void main(String[] args) throws Exception
-	{
+	{		
 		final noalias protocol p1 { cbegin.?{$1:!<int>} }
 		final noalias protocol p2 { cbegin.?[!<int>]* }
 		
