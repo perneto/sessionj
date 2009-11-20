@@ -99,7 +99,7 @@ class Customer
 		new Customer(setups, transports, host_a, port_a, maxPrice);
 	}
 	
-	private static SJSessionParameters createSJSessionParameters(String setups, String transports)
+	private static SJSessionParameters createSJSessionParameters(String setups, String transports) throws SJSessionParametersException
 	{
 		SJSessionParameters params;
 		

@@ -80,7 +80,7 @@ class Service
 		new Service(setups, transports, port_s);
 	}
 	
-	private static SJSessionParameters createSJSessionParameters(String setups, String transports)
+	private static SJSessionParameters createSJSessionParameters(String setups, String transports) throws SJSessionParametersException
 	{		
 		SJSessionParameters params;
 		
