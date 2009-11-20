@@ -8,7 +8,17 @@ import sessionj.runtime.transport.tcp.InputState;
 import sessionj.runtime.transport.tcp.WaitInitialInputIfNeeded;
 
 /**
- * Hardcodes the number of messages expected from clients in the accept protocol.
+ * FIXME: Hardcodes the number of messages expected from clients in the accept protocol.
+ * 
+ * The messages are:
+ * - client host name
+ * - client port
+ * - client serialized session type
+ * 
+ * See {@link sessionj.runtime.net.SJRuntime#accept( sessionj.runtime.net.SJAbstractSocket )}.
+ * 
+ * Meanwhile, the client is only waiting for the server's serialized session type,
+ * so we can read all of this and only then write our session type.
  * 
  */
 class DefaultSJProtocolAcceptState implements InputState {
