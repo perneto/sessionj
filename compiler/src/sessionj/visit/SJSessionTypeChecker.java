@@ -945,7 +945,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
                             checkMethodTakesSameSessionType(theirs, ours);
                         }
 						else if (arg instanceof SJLocalSocket) // Guaranteed noalias by parser.
-						{
+						{							
                             checkMethodSessionType(theirs, arg, sjname, sjcontext.sessionRemaining(sjname));
                             if (!((SJVariable)arg).isFinal() && !forSJSpawn) // checkSJSpawn will do this itself.
                             {
