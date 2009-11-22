@@ -153,7 +153,7 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 
             s.append(SJ_STRING_CASE_SEPARATOR).append(' ');
         }
-        s.delete(s.length()-TRIM_LEN, s.length());
+        s.delete(s.length()-TRIM_LEN, s.length()); // Deletes the constructor prefix if the branch cases are empty (it shouldn't be empty, but this messes up error printing when it is).
 
 		return s.append(branchConstructorClose()).toString();
 	}

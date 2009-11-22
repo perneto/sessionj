@@ -282,8 +282,14 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		return remaining;
 	}
 	
+	// Can this be put back into the SJLoopType unfold routine? (That routine is currently unused.)
 	private static final SJSessionType substituteTypeVariables(SJSessionType st, Map<SJLabel, SJRecursionType> map)
 	{
+		if (st == null) // Cannot delegate finished sessions (remaining is null), but this is needed for e.g. empty branch cases and loop bodies. 
+		{
+			return null;
+		}
+		
 		SJTypeSystem sjts = (SJTypeSystem) st.typeSystem();
 		
 		SJSessionType child = st.child();
@@ -295,10 +301,10 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 			
 			for (SJLabel lab : bt.labelSet())
 			{
-				nbt.branchCase(lab, substituteTypeVariables(bt.branchCase(lab), map));
+				nbt = nbt.branchCase(lab, substituteTypeVariables(bt.branchCase(lab), map));
 			}
 			
-			st = bt;
+			st = nbt;
 		}
 		else if (st instanceof SJRecursionType) // FIXME: we only want to do this for unbound type variables, but is this a correct way to do it? Not actually sure this is needed: only labels for recursion scopes that have been entered to calculate the remaining session type have been recorded (by remainingSession).
 		{
