@@ -21,18 +21,34 @@ public class OngoingReadImpl implements OngoingRead {
     private static final boolean DEBUG = false;
 
     public void updatePendingInput(ByteBuffer bytes) {
-        if (bytes.remaining() > 0) {
-            if (flag == -1) readFlagAndMaybeSetExpected(bytes);
+        if (bytes.remaining() > 0 && flag == -1) 
+            readFlagAndMaybeSetExpected(bytes);
+        
+        if (bytes.remaining() > 0 && dataExpected == -1)
+            readDataExpected(bytes);
 
-            if (dataExpected != -1 && data == null)
-                data = new byte[dataExpected];
+        if (dataExpected != -1 && data == null)
+            data = new byte[dataExpected];
 
-            if (data != null && bytes.remaining() > 0) {
-                int offset = dataRead;
-                int length = min(data.length - offset, bytes.remaining());
-                bytes.get(data, offset, length);
-                dataRead += length;
-            }
+        if (bytes.remaining() > 0 && data != null) {
+            readData(bytes);
+        }
+    }
+
+    private void readData(ByteBuffer bytes) {
+        int offset = dataRead;
+        int length = min(data.length - offset, bytes.remaining());
+        bytes.get(data, offset, length);
+        dataRead += length;
+    }
+
+    private void readDataExpected(ByteBuffer bytes) {
+        while (bytes.remaining() != 0 && lengthRead < SJ_SERIALIZED_INT_LENGTH) {
+            lengthBytes[lengthRead] = bytes.get();
+            lengthRead++;
+        }
+        if (lengthRead == SJ_SERIALIZED_INT_LENGTH) {
+            dataExpected = deserializeInt(lengthBytes);
         }
     }
 
@@ -55,16 +71,6 @@ public class OngoingReadImpl implements OngoingRead {
             default:
                 debug("Unsupported flag in:" + bytes);
                 throw new SJRuntimeException("[OngoingRead] Unsupported flag: " + flag);
-        }
-
-        if (dataExpected == -1) {
-            while (bytes.remaining() != 0 && lengthRead < SJ_SERIALIZED_INT_LENGTH) {
-                lengthBytes[lengthRead] = bytes.get();
-                lengthRead++;
-            }
-            if (lengthRead == SJ_SERIALIZED_INT_LENGTH) {
-                dataExpected = deserializeInt(lengthBytes);
-            }
         }
     }
 
