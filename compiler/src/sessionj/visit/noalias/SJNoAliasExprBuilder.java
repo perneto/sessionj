@@ -479,11 +479,15 @@ public class SJNoAliasExprBuilder extends ContextVisitor
         }
     }
 
-    private Node buildLit(Lit l)
+  private Node buildLit(Lit l) throws SemanticException
 	{
-		if (l instanceof NullLit || l instanceof StringLit || l instanceof BooleanLit || l instanceof NumLit || l instanceof FloatLit)				
+		if (l instanceof NullLit || l instanceof StringLit || l instanceof BooleanLit || l instanceof NumLit || l instanceof FloatLit || l instanceof ClassLit)				
 		{			
 			l = (Lit) setSJNoAliasExprExt(sjef, l, true, false, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+		}
+		else
+		{
+			throw new SemanticException("[SJNoAliasExpreBuilder] Lit not supported: " + l);
 		}
 		
 		return l;
@@ -821,9 +825,9 @@ public class SJNoAliasExprBuilder extends ContextVisitor
         return n.ext(1, nave);
     }
 
-    public static Node setSJNoAliasExprExt(SJExtFactory sjef, Node n, boolean isNoAlias, boolean isExpr, List<Field> fields, List<Local> locals, List<ArrayAccess> arrayAccesses)
+    public static Node setSJNoAliasExprExt(SJExtFactory sjef, Node n, boolean isNoAlias, boolean isFinal, List<Field> fields, List<Local> locals, List<ArrayAccess> arrayAccesses)
     {
-        SJNoAliasExprExt naee = sjef.SJNoAliasExprExt(isNoAlias, isExpr);
+        SJNoAliasExprExt naee = sjef.SJNoAliasExprExt(isNoAlias, isFinal);
 
         naee.addFields(fields);
         naee.addLocals(locals);

@@ -942,7 +942,7 @@ public class SJRuntime
 			{
 				// We could bind conn to the message formatter here, but currently the serializer must do it manually.
 				
-				return new SJCustomSerializer(params.getCustomMessageFormatter(), conn); // Works for both (or rather handles both cases of) "ordinary" and "stream" connections.  
+				return new SJCustomSerializer(params.createCustomMessageFormatter(), conn); // Works for both (or rather handles both cases of) "ordinary" and "stream" connections.  
 			}
 			default:
 			{
