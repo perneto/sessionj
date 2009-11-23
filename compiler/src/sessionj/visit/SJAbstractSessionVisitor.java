@@ -48,6 +48,8 @@ import java.util.List;
  *
  * Post session type checking visitor which reads the session type information built and recorded by the preceding passes.
  *
+ * N.B. visitors descending from this one must use sjEnter/LeaveCall instead of the regular enter/leaveCalls.
+ *
  */
 abstract public class SJAbstractSessionVisitor extends ContextVisitor  
 {	
@@ -69,7 +71,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 	abstract protected Node sjLeaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException;
 	
 	// This will be called on the visitor cloned by the parent ContextVisitor enter routine. 
-	protected NodeVisitor enterCall(Node parent, Node n) throws SemanticException
+	protected final NodeVisitor enterCall(Node parent, Node n) throws SemanticException
 	{
 		enterSJContext(parent, n);
 		
@@ -78,7 +80,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		//return this; // Otherwise need to hand over the session context object and update the cv field to the new visitor.
 	}
 	
-	protected Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
+	protected final Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
 	{		
 		n = sjLeaveCall(parent, old, n, v); // Want the Visitor to do stuff whilst in the current context, i.e. before it is popped. 
 		
@@ -141,7 +143,7 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		{
 			if (so instanceof SJPass) //FIXME: also do channel passing.
 			{
-                doDelegation(so);
+                doDelegationForSjSocketArgments(so);
 			}
 			
 			sjcontext.advanceSession(sjname, st);
@@ -150,10 +152,14 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 		return so;
 	}
 
-    private void doDelegation(SJSessionOperation so) throws SemanticException {
-        Expr arg = (Expr) ((SJPass) so).arguments().get(1);
+    private void doDelegationForSjSocketArgments(SJSessionOperation so) throws SemanticException {
+    	
+    		System.out.println("a: " + so + ", " + ((SJPass) so).arguments().get(0));
+    	
+        //Expr arg = (Expr) ((SJPass) so).arguments().get(1); // Factor out constants.
+    		Expr arg = (Expr) ((SJPass) so).arguments().get(0); // Ray: I believe that the message argument is now in position 0? 
 
-        if (arg instanceof SJLocalSocket) // A bit lucky that this still works after SJHigherOrderTranslator? Need to be careful about translation is allowed? Or about which passes are allowed to SJSessionVisitors.
+        if (arg instanceof SJLocalSocket) // A bit lucky that this still works after SJHigherOrderTranslator? Need to be careful about translation is allowed? Or about which passes are allowed to be SJSessionVisitors.
         {
             String s = ((SJVariable) arg).sjname();
 

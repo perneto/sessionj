@@ -20,6 +20,7 @@ import static sessionj.util.SJCompilerUtils.*;
 
 // Does type encoding (like SJProtocolDeclTranslator) for session/channel send and receive.
 public class SJHigherOrderTranslator extends ContextVisitor
+//public class SJHigherOrderTranslator extends SJSessionVisitor // Seems alright to do this, but leave it off for now.
 {
 	private SJTypeSystem sjts = (SJTypeSystem) typeSystem();
 	private SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
@@ -32,6 +33,7 @@ public class SJHigherOrderTranslator extends ContextVisitor
 	}
 
 	protected Node leaveCall(Node old, Node n, NodeVisitor v) throws SemanticException
+	//protected Node sjLeaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
 	{
 		if (n instanceof SJPass || n instanceof SJReceive) // Includes both higher-order channel and session communication. // Channel-send takes a channel argument which the protocol can be obtained from directly.
 		{

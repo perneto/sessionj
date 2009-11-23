@@ -44,7 +44,7 @@ public class SJSessionTryTranslator extends SJSessionVisitor
 	}
 
 	//protected Node leaveCall(Node old, Node n, NodeVisitor v) throws SemanticException
-	protected Node sjLeaveCall(Node paren, Node old, Node n, NodeVisitor v) throws SemanticException
+	protected Node sjLeaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
 	{
 		if (n instanceof LocalDecl) // Might be better to make SJAbstractSocket/ServerDecl.
 		{

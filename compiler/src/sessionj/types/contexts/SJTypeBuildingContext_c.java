@@ -171,6 +171,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		return currentContext().getImplemented(sjname);
 	}*/
 	
+	// If anything gets added/changed here due to new session operations/constructs, don't forget to update the super routine as well!
 	public SJSessionType sessionRemaining(String sjname) throws SemanticException  
 	{
 		SJSessionType remaining = null;

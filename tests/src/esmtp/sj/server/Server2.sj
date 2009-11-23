@@ -92,11 +92,17 @@ public class Server2
 				{
 					s = ss.accept();
 					
+					//220 smtp1.cc.ic.ac.uk ESMTP Exim 4.69 Sun, 22 Nov 2009 14:36:55 +0000
 					ServerGreeting greeting = new ServerGreeting("server greeting");
 					System.out.print("Sending: " + greeting);			
 					s.send(greeting);			
 					System.out.print("Received: " + (Ehlo) s.receive());
 	
+					/*250-smtp1.cc.ic.ac.uk Hello tui.doc.ic.ac.uk [146.169.2.83]
+          250-SIZE 26214400
+          250-PIPELINING
+          250-STARTTLS
+          250 HELP*/
 					EhloAck ehloAck = new EhloAck("250 ehlo ack");
 					System.out.print("Sending: " + ehloAck);			
 					s.send(ehloAck);			
@@ -169,7 +175,8 @@ public class Server2
 				}
 				case QUIT:
 				{
-					QuitAck quitAck = new QuitAck("quit ack");
+					//221 smtp1.cc.ic.ac.uk closing connection
+					QuitAck quitAck = new QuitAck("quit ack"); // Unlike the "ack bodies", already prefixes the reply code.
 					System.out.print("Sending: " + quitAck);			
 					s.send(quitAck);	
 				}
@@ -181,6 +188,7 @@ public class Server2
 	{
 		System.out.print("Received: " + (EmailAddress) s.receive());
 		
+		//250 OK
 		s.outbranch($250)
 		{
 			MailAckBody mailAckBody = new MailAckBody(SmtpMessage.SPACE_SEPARATOR + "mail ack body"); // "Ack bodies" need the space/hyphen separator. 
@@ -193,6 +201,7 @@ public class Server2
 	{
 		System.out.print("Received: " + (EmailAddress) s.receive());
 		
+		//250 Accepted
 		s.outbranch($250)
 		{
 			RcptAckBody rcptAckBody = new RcptAckBody(SmtpMessage.SPACE_SEPARATOR + "rcpt ack body");
@@ -203,11 +212,13 @@ public class Server2
 	
 	private static final void doData(final noalias @(smtp_server_data) s) throws SJIOException, ClassNotFoundException
 	{	
+		//354 Enter message, ending with "." on a line by itself
 		DataAck dataAck = new DataAck("data ack"); // Unlike the "ack bodies", already prefixes the reply code.
 		System.out.print("Sending: " + dataAck);			
 		s.send(dataAck);	
-		
+				
 		System.out.print("Received: " + (MessageBody) s.receive());
+		//250 OK id=1NCDaj-0001P0-V7
 		MessageBodyAck messageBodyAck = new MessageBodyAck("message body ack");
 		System.out.print("Sending: " + messageBodyAck);			
 		s.send(messageBodyAck);

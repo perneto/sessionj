@@ -382,18 +382,25 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
 			return createGoal(job, SJHigherOrderTranslator.class, SJSessionTryTranslation(job));
 		}
 		
+		public Goal SJUnicastOptimization(Job job) {
+      // Currently need to do this before compound operation translation, because the latter
+      // destroys the inbranch node and we don't have explicit nodes for the compound socket operations.
+      return createGoal(job, SJUnicastOptimiser.class, SJHigherOrderTranslation(job));
+		}		
+		
+		/*public Goal SJRecursiveSessionCallTranslation(Job job)
+		{
+			return createGoal(job, SJRecursiveSessionCallTranslator.class, SJUnicastOptimization(job));
+		}*/
+		
+		// All SJSessionVisitor passes must come before this one: this translator destroys e.g. SJInbranch, so "automatic" session context management by the SJSessionVisitor framework won't work anymore.
 		public Goal SJCompoundOperationTranslation(Job job)
 		{
-            return createGoal(job, SJCompoundOperationTranslator.class, SJUnicastOptimization(job));
+      //return createGoal(job, SJCompoundOperationTranslator.class, SJRecursiveSessionCallTranslation(job));
+			return createGoal(job, SJCompoundOperationTranslator.class, SJUnicastOptimization(job));
 		}
 
-        private Goal SJUnicastOptimization(Job job) {
-            // Currently need to do this before compound operation translation, because the latter
-            // destroys the inbranch node and we don't have explicit nodes for the compound socket operations.
-            return createGoal(job, SJUnicastOptimiser.class, SJHigherOrderTranslation(job));
-        }
-
-        public Goal Serialized(final Job job)
+    public Goal Serialized(final Job job)
 		{
 			/*TypeSystem ts = extInfo.typeSystem();
 			NodeFactory nf = extInfo.nodeFactory();
@@ -411,6 +418,7 @@ public class ExtensionInfo extends polyglot.frontend.JLExtensionInfo {
                         l.addAll(super.prerequisiteGoals(scheduler));
                         //l.add(SJNoAliasTranslation(job));
                         l.add(SJCompoundOperationTranslation(job));
+                        //l.add(SJRecursiveSessionCallTranslation(job));
 
                         return l;
                     }

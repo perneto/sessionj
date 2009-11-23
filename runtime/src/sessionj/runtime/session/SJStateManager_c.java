@@ -429,10 +429,48 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			debugPrintln("Finished inwhile: " + iwt);
 		}
 	}
-
+	
+	private SJRecursionType findRecursionBinder(SJLabel lab) // HACK: to try and get runtime monitoring working when recursive sessions are done through recursive method calls. But this is not working in general at all. 
+	{		
+		//for (SJRuntimeContextElement rce : contexts) // Starts from innermost (oldest).
+		for (int i = contexts.size() - 1; i >= 0; i--)	
+		{
+			SJRuntimeContextElement rce = contexts.get(i);
+			
+			if (rce instanceof SJRecursionContext)
+			{
+				SJRecursionContext rc = (SJRecursionContext) rce;
+				
+				if (rc.label().equals(lab))
+				{
+					return rc.originalType();
+				}
+			}
+		}
+		
+		throw new SJRuntimeException("[SJStateManager_c] Shouldn't get in here: " + lab);
+	}
+	
+	// This is called by recursionEnter; currently, nothing is done on recursionExit (this seems to be convenient for e.g. registration of sessions with a SJSelector - and delegation within recursion scopes in general?).
 	public final void recursion(SJLabel lab) throws SJIOException // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
 	{
-		pushRecursion(lab, ((SJRecursionType) activeType()).body());
+		//RAY: to handle recursive sessions done through method calls. 
+		SJRecursionType rt;
+		
+		if (activeType() instanceof SJRecurseType) // This may subsume the need to do SJRuntime.recurse. But it seems better to as much explicit as possible.
+		{
+			rt = findRecursionBinder(lab);
+			
+			advanceContext(sjts.SJRecurseType(lab)); // As done by recurse. Is this safe?			
+		}
+		else
+		{
+			rt = (SJRecursionType) activeType(); 			
+		}
+		//YAR
+
+		//pushRecursion(lab, ((SJRecursionType) activeType()).body());
+		pushRecursion(rt); // Changed (now different to e.g. in/outwhile routines) because we want to keep the whole type as information.
 		
 		debugPrintln("Entered recursion for: " + lab);
 	}
@@ -493,7 +531,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 						{
 							SJLabel lab = ((SJRecurseType) sjtype).label();
 
-							while (!((SJRecursionContext) currentContext()).label().equals(lab))
+							while (!((SJRecursionContext) currentContext()).label().equals(lab)) // Other contexts must have been completed (advanced and popped) to get to this point, so it can only be a series of recursion contexts?
 							{
 								popContext();
 							}
@@ -612,7 +650,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 	}
 
-	public final void pushRecursion(SJLabel lab, SJSessionType sjtype)
+	/*public final void pushRecursion(SJLabel lab, SJSessionType sjtype)
 	{
 		if (sjtype == null)
 		{
@@ -622,8 +660,20 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		{
 			pushContext(new SJRecursionContext(lab, sjtype));
 		}
-	}
+	}*/
 
+	public final void pushRecursion(SJRecursionType rt)
+	{
+		if (rt.body() == null)
+		{
+			advanceContext(rt); // Like branch: an empty recursion can't recurse because no recurse type in body.
+		}
+		else
+		{
+			pushContext(new SJRecursionContext(rt));
+		}
+	}
+	
 	private void pushContext(SJRuntimeContextElement sjsc)
 	{
 		contexts.push(sjsc);
