@@ -56,7 +56,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	private SJSessionType activeType()
 	{
-		return currentContext().activeType();
+		return (contexts.isEmpty()) ? null : currentContext().activeType();
 	}
 
 	private SJSessionType implementedType()
