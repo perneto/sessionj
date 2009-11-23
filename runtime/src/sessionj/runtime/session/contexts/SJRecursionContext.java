@@ -34,7 +34,8 @@ public class SJRecursionContext extends SJLoopContext // Analogous to the compil
 
 	public SJRecursionType originalType()
 	{
-		return original;
+		//return original;
+		return (SJRecursionType) original.nodeClone(); // Needed?
 	}
 	
 	/*public final boolean isRecursionContext()
