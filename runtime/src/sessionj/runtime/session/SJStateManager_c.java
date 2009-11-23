@@ -443,7 +443,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 				
 				if (rc.label().equals(lab))
 				{
-					return rc.originalType();
+					return rc.originalType(); // Gets a defensive copy.
 				}
 			}
 		}
@@ -452,6 +452,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	}
 	
 	// This is called by recursionEnter; currently, nothing is done on recursionExit (this seems to be convenient for e.g. registration of sessions with a SJSelector - and delegation within recursion scopes in general?).
+	// FIXME: a better way to do this is to unfold the recursive type every time we come here. That would be "eager" compared to the "lazy" unfolding we do now.
 	public final void recursion(SJLabel lab) throws SJIOException // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
 	{
 		//RAY: to handle recursive sessions done through method calls. 
@@ -461,15 +462,15 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		{
 			rt = findRecursionBinder(lab);
 			
-			advanceContext(sjts.SJRecurseType(lab)); // As done by recurse. Is this safe?			
+			advanceContext(sjts.SJRecurseType(lab)); // As done by recurse. Is this safe?	Need to use the well-formed check to prevent e.g. hacked protocol having two recurse types consecutively.		
 		}
 		else
 		{
-			rt = (SJRecursionType) activeType(); 			
+			rt = (SJRecursionType) activeType().nodeClone(); // Create a defensive copy like body does. 			
 		}
 		//YAR
 
-		//pushRecursion(lab, ((SJRecursionType) activeType()).body());
+		//pushRecursion(lab, ((SJRecursionType) activeType()).body()); // body returns a defensive copy.
 		pushRecursion(rt); // Changed (now different to e.g. in/outwhile routines) because we want to keep the whole type as information.
 		
 		debugPrintln("Entered recursion for: " + lab);
@@ -486,9 +487,9 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return sjrt;//.nodeClone());
 	}
 	
-	public final void close() // Still called for failed sessions, so using currentState here is not always safe.
+	public final void close() 
 	{
-		//debugPrintln("Closing: " + currentState());	
+		//debugPrintln("Closing: " + currentState()); // Still called for failed sessions, so using currentState here is not always safe.	
 		
 		reset();
 		
