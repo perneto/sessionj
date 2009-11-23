@@ -16,8 +16,7 @@ class AsyncConnection implements SJConnection
         this.sc = sc;
     }
 
-    public void disconnect()
-    {
+    public void disconnect() {
         thread.close(sc);
     }
 
@@ -33,20 +32,29 @@ class AsyncConnection implements SJConnection
      * Non-blocking read from the connection.
      * @throws NullPointerException If called when no data is ready on this connection (ie. not after a select call).
      */
-    public byte readByte() throws SJIOException {
-        ByteBuffer input = thread.peekAtInputQueue(sc);
-        if (input.remaining() == 1) thread.dequeueFromInputQueue(sc);
+    public synchronized byte readByte() throws SJIOException {
+        ByteBuffer input = checkAndDequeue(1);
         return input.get();
+    }
+
+    private ByteBuffer checkAndDequeue(int remaining) throws SJIOException {
+        ByteBuffer input = thread.peekAtInputQueue(sc);
+        if (input == null) {
+            throw new SJIOException("No available inputs on connection: " + this);
+            
+        }
+        if (input.remaining() == remaining)
+            thread.dequeueFromInputQueue(sc);
+        return input;
     }
 
     /**
      * Non-blocking read from the connection.
      * @throws NullPointerException If called when no data is ready on this connection (ie. not after a select call).
      */
-    public void readBytes(byte[] bs) throws SJIOException {
-        ByteBuffer input = thread.peekAtInputQueue(sc);
+    public synchronized void readBytes(byte[] bs) throws SJIOException {
+        ByteBuffer input = checkAndDequeue(bs.length);
         input.get(bs, 0, bs.length);
-        if (input.remaining() == 0) thread.dequeueFromInputQueue(sc);
     }
 
     public void flush() throws SJIOException {
@@ -75,7 +83,12 @@ class AsyncConnection implements SJConnection
         return SJAsyncManualTCP.TRANSPORT_NAME;
     }
 
-    public SocketChannel socketChannel() {
+    SocketChannel socketChannel() {
         return sc;
+    }
+    
+    @Override
+    public String toString() {
+        return "AsyncConnection{" + sc + '}';
     }
 }
