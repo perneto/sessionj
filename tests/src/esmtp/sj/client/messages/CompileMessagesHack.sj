@@ -1,4 +1,4 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/messages/CompileMessagesHack.sj -d tests/classes/ 
+//$ bin/sessionjc -sourcepath tests/src/esmtp/sj/client/messages tests/src/esmtp/sj/client/messages/CompileMessagesHack.sj -d tests/classes/ 
 
 package esmtp.sj.client.messages;
 

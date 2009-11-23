@@ -1,4 +1,4 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/SmtpClientFormatter.sj -d tests/classes/ 
+//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/SmtpClientFormatter.sj -d tests/classes/ 
 
 package esmtp.sj.client;
 
