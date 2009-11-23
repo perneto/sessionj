@@ -34,7 +34,8 @@ public class Test1
 					
 					try (s)
 					{
-						s = selector.select(SJSelector.ACCEPT);
+						//s = selector.select(SJSelector.ACCEPT);
+						s = selector.select();
 						
             typecase (s) 
             {
