@@ -153,9 +153,6 @@ abstract public class SJAbstractSessionVisitor extends ContextVisitor
 	}
 
     private void doDelegationForSjSocketArgments(SJSessionOperation so) throws SemanticException {
-    	
-    		System.out.println("a: " + so + ", " + ((SJPass) so).arguments().get(0));
-    	
         //Expr arg = (Expr) ((SJPass) so).arguments().get(1); // Factor out constants.
     		Expr arg = (Expr) ((SJPass) so).arguments().get(0); // Ray: I believe that the message argument is now in position 0? 
 
