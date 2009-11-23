@@ -41,7 +41,6 @@ class AsyncConnection implements SJConnection
         ByteBuffer input = thread.peekAtInputQueue(sc);
         if (input == null) {
             throw new SJIOException("No available inputs on connection: " + this);
-            
         }
         if (input.remaining() == remaining)
             thread.dequeueFromInputQueue(sc);
