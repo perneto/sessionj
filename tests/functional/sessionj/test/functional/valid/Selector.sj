@@ -1,3 +1,5 @@
+//DISABLED
+// Needs to be run with -Dsessionj.transports.negotiation=s -Dsessionj.transports.session=a 
 package sessionj.test.functional;
 
 import sessionj.runtime.*;
