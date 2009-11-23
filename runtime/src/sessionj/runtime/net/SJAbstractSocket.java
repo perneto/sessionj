@@ -353,7 +353,7 @@ abstract public class SJAbstractSocket implements SJSocket
     @Override
     public String toString() {
         return "SJAbstractSocket{" +
-            ", protocol=" + protocol +
+            "protocol=" + protocol +
             ", params=" + params +
             ", hostName='" + hostName + '\'' +
             ", port=" + port +
