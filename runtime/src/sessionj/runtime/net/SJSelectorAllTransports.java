@@ -14,6 +14,7 @@ class SJSelectorAllTransports implements SJSelector {
     private final Collection<SJSelectorInternal> transportSelectors;
     private static final String UNSUPPORTED = "None of the transports support non-blocking mode";
     private final NamedThreadFactory fact = new NamedThreadFactory();
+    private static final boolean DEBUG = true;
 
     SJSelectorAllTransports(Iterable<SJTransport> transports) {
         transportSelectors = new LinkedList<SJSelectorInternal>();
@@ -74,9 +75,14 @@ class SJSelectorAllTransports implements SJSelector {
         }
 
         assert selected != null;
+        debug("Selected socket: " + selected);
         return selected;
     }
-    
+
+    private static void debug(String s) {
+        if (DEBUG) System.out.println(s);
+    }
+
     public void close() throws SJIOException {
         for (SJSelectorInternal sel : transportSelectors) sel.close();
     }
