@@ -40,7 +40,13 @@ class AsyncConnection implements SJConnection
     private ByteBuffer checkAndDequeue(int remaining) throws SJIOException {
         ByteBuffer input = thread.peekAtInputQueue(sc);
         if (input == null) {
-            throw new SJIOException("No available inputs on connection: " + this);
+            //throw new SJIOException("No available inputs on connection: " + this);
+            // HACK to make the close protocol work, even if it doesn't call select
+            try {
+                input = thread.takeFromInputQueue(sc);
+            } catch (InterruptedException e) {
+                throw new SJIOException(e);
+            }
         }
         if (input.remaining() == remaining)
             thread.dequeueFromInputQueue(sc);

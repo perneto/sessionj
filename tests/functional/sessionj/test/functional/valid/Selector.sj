@@ -1,4 +1,3 @@
-//DISABLED
 package sessionj.test.functional;
 
 import sessionj.runtime.*;
@@ -50,7 +49,6 @@ public class Selector extends AbstractValidTest3Peers {
             s = serv.request();
             s.send(42);
         } finally {}
-        System.out.println("peer2 finished");
     }
 
     public void peer3(int port) throws Exception {
@@ -60,6 +58,5 @@ public class Selector extends AbstractValidTest3Peers {
             s = serv.request();
             s.send(false);
         } finally {}
-        System.out.println("peer3 finished");
     }
 }

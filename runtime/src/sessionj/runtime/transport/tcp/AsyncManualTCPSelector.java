@@ -65,13 +65,19 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         }
         if (chan instanceof SocketChannel) {
             SocketChannel sc = (SocketChannel) chan;
-            assert registeredInputs.containsKey(sc);
+            // If the channel was deregistered, but we didn't finish reading all events:
+            // select another one, dropping this one
+            if (!registeredInputs.containsKey(sc)) return select();
+            
             InputState state = registeredInputs.get(sc);
             InputState newState = state.receivedInput();
             registeredInputs.put(sc, newState);
             SJSocket s = newState.sjSocket();
             if (s == null) return select();
-            else return s;
+            
+            if (s.remainingSessionType().child() == null) // Last action of the type
+                deregister(sc);
+            return s;
         } else {
             Pair<ServerSocketChannel, SocketChannel> p = (Pair<ServerSocketChannel, SocketChannel>) chan;
             ServerSocketChannel ssc = p.first;
@@ -88,6 +94,14 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
             // so no need to do anything else. It will be selected when 
             // the first input message is available.
         }
+    }
+
+    private void deregister(SocketChannel sc) {
+        // HACK: Not doing this at the moment, so we can receive
+        // the extra message from the close protocol
+        // thread.deregisterInput(sc);
+        
+        registeredInputs.remove(sc);
     }
 
     private void registerOngoingAccept(SJServerSocket sjss, SocketChannel sc) throws SJIOException {
