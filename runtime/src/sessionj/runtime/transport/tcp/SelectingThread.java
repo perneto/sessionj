@@ -26,18 +26,18 @@ final class SelectingThread implements Runnable {
 
     private final Queue<ChangeRequest> pendingChangeRequests;
 
-    private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> readyInputs;
+    private final ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>> readyInputs;
     private final BlockingQueue<Object> readyForSelect;
     private final ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>> accepted;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
     private static final Logger logger = Logger.getLogger(SelectingThread.class.getName());
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     SelectingThread(SJDeserializer deserializer) throws IOException {
         this.deserializer = deserializer;
         selector = SelectorProvider.provider().openSelector();
         pendingChangeRequests = new ConcurrentLinkedQueue<ChangeRequest>();
-        readyInputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
+        readyInputs = new ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>>();
         requestedOutputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
         readyForSelect = new LinkedBlockingQueue<Object>();
         accepted = new ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>>();
@@ -50,12 +50,15 @@ final class SelectingThread implements Runnable {
         pendingChangeRequests.add(new ChangeRequest(ssc, REGISTER, OP_ACCEPT));
         // Don't touch selector registrations here, do all
         // selector handling in the selecting thread (as selector keys are not thread-safe)
-        selector.wakeup(); // Essential for the first selector registration:
+        
+        selector.wakeup(); 
+        // Essential for the first selector registration:
         // before that, the thread is blocked on select with no channel registered,
         // hence sleeping forever.
     }
 
     synchronized void registerInput(SocketChannel sc) {
+        assert !readyInputs.containsKey(sc) : "The channel " + sc + " has already been registered";
         readyInputs.put(sc, new LinkedBlockingQueue<ByteBuffer>());
         // Don't change the order of these 2 statements: it's safe if we're interrupted after the first
         // one, as the channel is not registered with the selector yet. But if the registration requst is
@@ -74,10 +77,12 @@ final class SelectingThread implements Runnable {
      * @throws java.util.NoSuchElementException if no message is ready for reading.
      */
     public ByteBuffer dequeueFromInputQueue(SocketChannel sc) {
+        debug("Dequeueing input from channel: " + sc);
         return readyInputs.get(sc).remove();
     }
     
     public ByteBuffer peekAtInputQueue(SocketChannel sc) {
+        debug("Peeking at inputs for channel: " + sc);
         return readyInputs.get(sc).peek();
     }
 
@@ -225,13 +230,15 @@ final class SelectingThread implements Runnable {
 
     private void decideIfMoreToRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes) {
         OngoingRead read = (OngoingRead) key.attachment();
-        while (bytes.remaining() != 0) {
+        while (bytes.remaining() > 0) {
             if (read == null) read = attachNewOngoingRead(key);
             
             read.updatePendingInput(bytes);
             
             if (read.finished()) {
-                readyInputs.get(sc).add(read.getCompleteInput());
+                ByteBuffer input = read.getCompleteInput();
+                debug("Received complete input on channel " + sc + ": " + input);
+                readyInputs.get(sc).add(input);
                 // order is important here: adding to readyForSelect makes the read visible to select
                 readyForSelect.add(sc);
                 
@@ -282,7 +289,7 @@ final class SelectingThread implements Runnable {
             void execute(Selector selector, ChangeRequest req) {
                 debug("Changing ops for: " + req.chan + " to: " + req.interestOps);
                 SelectionKey key = req.chan.keyFor(selector);
-                if (key != null) key.interestOps(req.interestOps);
+                if (key != null && key.isValid()) key.interestOps(req.interestOps);
             }
         }, CLOSE {
             void execute(Selector selector, ChangeRequest req) throws IOException {
