@@ -18,7 +18,8 @@ public class SJTransportUtils {
         return new SJSessionParameters(mode);
     }
 
-    public static SJSessionParameters createSJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException {
+    //public static SJSessionParameters createSJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException {
+    public static SJSessionParameters createSJSessionParameters(SJCompatibilityMode mode, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException {
         return new SJSessionParameters(mode, cmf);
     }
 

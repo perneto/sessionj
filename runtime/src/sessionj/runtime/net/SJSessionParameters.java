@@ -1,5 +1,6 @@
 package sessionj.runtime.net;
 
+import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.session.SJCompatibilityMode;
 import sessionj.runtime.session.SJCustomMessageFormatter;
@@ -42,7 +43,8 @@ public class SJSessionParameters
 	
 	private SJCompatibilityMode mode; // The default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise. 
 	
-	private SJCustomMessageFormatter cmf;
+	//private SJCustomMessageFormatter cmf;
+	private Class<? extends SJCustomMessageFormatter> cmf;
 	
 	// HACK: SJSessionParameters are supposed to be user-configurable parameters.
   // But now using as a convenient place to store pseudo compiler-generated optimisation
@@ -72,7 +74,8 @@ public class SJSessionParameters
 	}
 	
 	// FIXME: should be generalised to support custom "deserializers" for other wire formats. Well, in principle, the programmer should add a custom SJSerializer. But this interface may be easier to use than a full serializer implemetation.
-	public SJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException
+	//public SJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException
+	public SJSessionParameters(SJCompatibilityMode mode, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
 	{
 		this(mode, defaultNeg(), defaultSession(), cmf); 
 	}	
@@ -82,7 +85,8 @@ public class SJSessionParameters
 		this(mode, negotiationTransports, sessionTransports, null);
 	}
 	
-	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, SJCustomMessageFormatter cmf) throws SJSessionParametersException
+	//public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, SJCustomMessageFormatter cmf) throws SJSessionParametersException
+	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
 	{
 		this.mode = mode;
         this.negotiationTransports = Collections.unmodifiableList(negotiationTransports); // Relying on implicit iterator ordering.
@@ -142,9 +146,28 @@ public class SJSessionParameters
    {
   	 return mode;
    }
+  
+  protected Class<? extends SJCustomMessageFormatter> getCustomMessageFormatter() 
+  {
+  	return cmf;
+  }
    
-	public SJCustomMessageFormatter getCustomMessageFormatter()
+	//public SJCustomMessageFormatter getCustomMessageFormatter()
+  public SJCustomMessageFormatter createCustomMessageFormatter() throws SJIOException
 	{
-		return cmf; 
+		//return cmf;
+  	 
+  	try
+  	{
+  		return cmf.newInstance();
+  	}
+  	catch (IllegalAccessException iae)
+  	{
+  		throw new SJIOException(iae);
+  	}
+  	catch (InstantiationException ie)
+  	{
+  		throw new SJIOException(ie);
+  	}
 	}
 }
