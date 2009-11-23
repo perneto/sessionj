@@ -230,7 +230,7 @@ final class SelectingThread implements Runnable {
 
     private void decideIfMoreToRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes) {
         OngoingRead read = (OngoingRead) key.attachment();
-        while (bytes.remaining() != 0) {
+        while (bytes.remaining() > 0) {
             if (read == null) read = attachNewOngoingRead(key);
             
             read.updatePendingInput(bytes);
