@@ -10,14 +10,12 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import static java.nio.channels.SelectionKey.*;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.Queue;
 import java.util.Iterator;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- */
 final class SelectingThread implements Runnable {
     private static final int BUFFER_SIZE = 16384;
     private final Selector selector;
@@ -31,7 +29,7 @@ final class SelectingThread implements Runnable {
     private final ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>> accepted;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
     private static final Logger logger = Logger.getLogger(SelectingThread.class.getName());
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     SelectingThread(SJDeserializer deserializer) throws IOException {
         this.deserializer = deserializer;
@@ -68,6 +66,13 @@ final class SelectingThread implements Runnable {
         // selector handling in the selecting thread (as selector keys are not thread-safe)
         selector.wakeup();
     }
+    
+    synchronized void deregisterInput(SocketChannel sc) {
+        readyInputs.remove(sc);
+        pendingChangeRequests.add(new ChangeRequest(sc, CANCEL, -1));
+        selector.wakeup();
+    }
+
 
     /**
      * Non-blocking, as it should be used right after a select
@@ -238,9 +243,13 @@ final class SelectingThread implements Runnable {
             if (read.finished()) {
                 ByteBuffer input = read.getCompleteInput();
                 debug("Received complete input on channel " + sc + ": " + input);
-                readyInputs.get(sc).add(input);
-                // order is important here: adding to readyForSelect makes the read visible to select
-                readyForSelect.add(sc);
+                if (readyInputs.containsKey(sc)) {
+                    readyInputs.get(sc).add(input);
+                    // order is important here: adding to readyForSelect makes the read visible to select
+                    readyForSelect.add(sc);
+                } else {
+                    debug("Dropping input received on deregistered channel: " + sc + ", input: " + input);
+                }
                 
                 read = attachNewOngoingRead(key);
             }
@@ -260,6 +269,10 @@ final class SelectingThread implements Runnable {
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
         debug("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
         queue.add(socketChannel);
+    }
+
+    public ByteBuffer takeFromInputQueue(SocketChannel sc) throws InterruptedException {
+        return readyInputs.get(sc).take();
     }
 
     private static class ChangeRequest {
@@ -296,8 +309,12 @@ final class SelectingThread implements Runnable {
                 // Implicitly cancels all existing selection keys for that channel (see javadoc).
                 req.chan.close();
             }
-        };
-        abstract void execute(Selector selector, ChangeRequest changeRequest) throws IOException;
+        }, CANCEL {
+            void execute(Selector selector, ChangeRequest req) {
+                SelectionKey key = req.chan.keyFor(selector);
+                if (key != null) key.cancel();
+            }};
+        abstract void execute(Selector selector, ChangeRequest req) throws IOException;
     }
 
 }

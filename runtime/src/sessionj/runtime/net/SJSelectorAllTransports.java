@@ -14,7 +14,7 @@ class SJSelectorAllTransports implements SJSelector {
     private final Collection<SJSelectorInternal> transportSelectors;
     private static final String UNSUPPORTED = "None of the transports support non-blocking mode";
     private final NamedThreadFactory fact = new NamedThreadFactory();
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     SJSelectorAllTransports(Iterable<SJTransport> transports) {
         transportSelectors = new LinkedList<SJSelectorInternal>();
