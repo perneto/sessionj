@@ -104,7 +104,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	public boolean treeEquals(SJSessionType tree)
 	{
 		SJSessionType ours = getChild();
-		SJSessionType theirs = getChild();
+		SJSessionType theirs = ((SJSessionType_c) tree).getChild();
 		
 		return nodeEquals(tree) && (ours == null ? theirs == null : ours.typeEquals(theirs));
 	}

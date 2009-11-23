@@ -308,7 +308,7 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 			
 			if (selectorType instanceof SJSetType)
 			{
-				if (!((SJSetType) selectorType).contains(st)) // FIXME: seems contains is not working as expected.
+				if (!((SJSetType) selectorType).contains(st)) // FIXME: seems contains is not working as expected, e.g. selector type is just { ?(T) } but registered type is just ?(T).!<T>, and vice versa.
 				{
 					throw new SemanticException(getVisitorName() + " Selector type " + selectorType + " incompatible with registered session/service: " + st);
 				}
