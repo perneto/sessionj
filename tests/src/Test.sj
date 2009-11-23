@@ -15,48 +15,35 @@ public class Test
 	
 	public static void main(String[] args) throws Exception
 	{		
-		final noalias protocol p1 { cbegin.rec X [?{L1: !<String>.#X}] }
+		final noalias protocol p1 { cbegin.?(String).!<String> }
 		//final noalias protocol p1 { cbegin.?{L1: !<String>} }
 		final noalias protocol p2 { cbegin.?[!<int>]* }
 		
 		final noalias SJService c1 = SJService.create(p1, "A", 1234);
 		final noalias SJService c2 = SJService.create(p2, "B", 1234);
 		
-		final noalias SJSocket s1, s2;
+		protocol p_select { ?(String).!<String> }
 		
-		try (s1, s2)
+		final noalias SJSelector sel = SJRuntime.selectorFor(p_select);
+		
+		try (sel)
 		{
-			s1 = c1.request();
+			noalias SJSocket s1, s2;
 			
-			m(s1);
+			try (s1, s2)
+			{
+				s1 = c1.request();
+				
+				sel.registerInput(s1);
+			}
+			finally
+			{
+				
+			}
 		}
 		finally
 		{
 			
 		}
-	}
-	
-	private static void m(final noalias rec X [?{L1: !<String>.#X}] s1) throws Exception
-	{
-		s1.recursion(X)
-		{
-			s1.inbranch()
-			{
-				case L1:
-				{
-					//s1.send("C");
-					//mm(s1);
-					
-					//s1.recurse(X);
-					
-					selector.register(s1);
-				}
-			}
-		}
-	}
-	
-	private static void mm(final noalias !<String> s1) throws Exception
-	{
-		s1.send("C");		
 	}
 }
