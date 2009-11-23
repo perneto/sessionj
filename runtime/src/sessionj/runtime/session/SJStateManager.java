@@ -70,7 +70,8 @@ public interface SJStateManager // Analogous to SJContext. But only tracks the s
 	public void pushInbranch(SJLabel lab, SJSessionType sjtype);
 	public void pushOutwhile(SJSessionType sjtype);
 	public void pushInwhile(SJSessionType sjtype);
-	public void pushRecursion(SJLabel lab, SJSessionType sjtype);
+	//public void pushRecursion(SJLabel lab, SJSessionType sjtype);
+	public void pushRecursion(SJRecursionType rt);
 
 	//private void pushContext(SJRuntimeContextElement sjsc);
 	//private void popContext();

@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
+ 
 public class SJWhileTranslationTest {
     private Position dummyPos;
     private Expr trueLit;

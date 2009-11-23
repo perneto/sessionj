@@ -111,9 +111,10 @@ public class SJContext_c extends SJContext // Currently only used by SJAbstractS
 	
 	public void advanceSession(String sjname, SJSessionType st) throws SemanticException
 	{
-		SJSessionType active = expectedSessionOperation(sjname);
-        assert active != null : "Tried to advance a completed session on socket " + sjname + " with " + st;
+		SJSessionType active = expectedSessionOperation(sjname);		
 		SJSessionType implemented = sessionImplemented(sjname);
+				  
+		assert active != null : "Tried to advance a completed session on socket " + sjname + " with " + st;
 		
 		if (st != null && st.startsWith(SJDelegatedType.class))
         // Needed e.g. when popping a compound operation context, but the session is still active
@@ -123,7 +124,7 @@ public class SJContext_c extends SJContext // Currently only used by SJAbstractS
 			setSessionActive(sjname, null);
 		}
 		else
-		{
+		{		
 			setSessionActive(sjname, active.child());			
 		}
 		
@@ -168,7 +169,18 @@ public class SJContext_c extends SJContext // Currently only used by SJAbstractS
 			}
 			else
 			{ 
-				if (ce instanceof SJBranchCaseContext)
+				if (ce instanceof SJLoopContext) // We don't expect iteration types here: should have been already checked by previous type building passes.
+				{
+					if (ce instanceof SJSessionRecursionContext) 
+					{
+						SJSessionType child = remaining.child();
+						
+						remaining = ((SJRecursionType) remaining).body(); 
+						
+						remaining = remaining.append(child);
+					}
+				}
+				else if (ce instanceof SJBranchCaseContext)
 				{
 					SJSessionType child = remaining.child();
 					

@@ -11,9 +11,11 @@ import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import static sessionj.SJConstants.*;
 import sessionj.ast.SJNodeFactory;
+import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessops.basicops.SJRecurse;
 import sessionj.ast.sessops.basicops.SJRecursionExit;
 import sessionj.ast.sessops.compoundops.*;
+import sessionj.ast.sessvars.SJSocketVariable;
 import sessionj.extension.sessops.SJSessionOperationExt;
 import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
 import static sessionj.util.SJCompilerUtils.getSJSessionOperationExt;
@@ -27,10 +29,15 @@ import java.util.*;
  * 
  * @author Raymond
  *
- * Also translates basic recurse operation.
+ * Also translates basic recurse operation (and method calls for session recursions).
+ *
+ * Since this visitor adds new code but doesn't not always build type information for the new code immediately (it is done later when leaving an outer context scope), this visitor does not seem to integrate well with the SJSessionVisitor framework. 
+ *
+ * Furthermore, all SJSessionVisitor passes must come before this one: this translator destroys e.g. SJInbranch, so "automatic" session context management by the SJSessionVisitor framework won't work anymore.
  *
  */
-public class SJCompoundOperationTranslator extends ContextVisitor
+public class SJCompoundOperationTranslator extends ContextVisitor 
+//public class SJCompoundOperationTranslator extends SJSessionVisitor // Doesn't work because we translate some code (e.g. SJRecurse) but type information required by the SJSessionVisitor framework is not immediately available.  
 {
 	private final SJTypeSystem sjts;
 	private final SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
@@ -44,7 +51,8 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         sjts = (SJTypeSystem) ts;
 	}
 
-	public NodeVisitor enterCall(Node parent, Node n) throws SemanticException
+	/*protected*/ public NodeVisitor enterCall(Node parent, Node n) throws SemanticException // Made public for the convenience of test programs.
+	//protected NodeVisitor sjEnterCall(Node parent, Node n) throws SemanticException
 	{
 		if (n instanceof SJInbranch || n instanceof SJRecursion)
 		{
@@ -54,7 +62,8 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		return this;
 	}
 	
-	public Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
+	/*protected*/ public Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
+	//protected Node sjLeaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
 	{
 		Node newNode = n;
     
@@ -98,47 +107,15 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		{
 			newNode = translateSJRecurse(parent, (SJRecurse) n, createQQ(n));
 		}
-
+		
     if (shouldBuildAndCheckTypes(n))
+		//if (shouldBuildAndCheckTypes(newNode)) // Don't use newNode here, because it can be translated into something different than n.
     {
-      buildAndCheckTypes(this, newNode);
+      newNode = buildAndCheckTypes(this, newNode);
     }
     
 		return newNode;
 	}
-
-    private boolean shouldBuildAndCheckTypes(Object node) 
-    {
-	    if (node instanceof SJRecurse) 
-	    {
-	    	return false;
-      }
-        // SJRecurse: Can't build the types now because the assignment target variable is not in the context
-        //  - but it will be built when we translate the outer(most) recursion statement.
-      /*else if (node instanceof SJInbranch || node instanceof SJRecursion)
-      {
-      	return compounds.isEmpty();
-        // (Re-)building types might erase previously built SJ type information.
-        // Maybe we don't need to rebuild types in translation phase.
-        // Or maybe no important SJ type information is lost
-        // (e.g. protocol fields, method signatures, etc.).
-        // Need to build types in one go because cannot build types for e.g. the assignment expression
-        // separately from the newly inserted variable declaration for the assignment target.
-      }*/	    
-      else // RAY: not sure if this is right. // It was wrong: we still need to build types for outbranch in case there is a translated recurse or other constructs within.
-      {
-      	//return node instanceof SJCompoundOperation;
-      	if (node instanceof SJCompoundOperation)
-      	{
-      		//return (!(node instanceof SJOutbranch)) && compounds.isEmpty(); // outbranch is the only compound operation we didn't translate here. // But there could be other constructs inside.
-      		return compounds.isEmpty(); // 
-      	}
-      	else // Ignore non compound operations.
-      	{
-      		return false;
-      	}
-      }
-    }
 
     private QQ createQQ(Node node) {
         return new QQ(sjts.extensionInfo(), node.position());
@@ -267,6 +244,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         return qq.parseStmt(translation.toString(), mapping.toArray());
 	}
 
+	//FIXME: does not integrate with recursive session method calls: recursionEnter/Exit and also recurse do not match the control flow of recursive calls, and hence runtime type monitoring does not work.
     private Node translateSJRecursion(SJRecursion r, QQ qq) throws SemanticException
     // recursionEnter inserted by node factory, but translation is finished here..
 	{
@@ -318,6 +296,39 @@ public class SJCompoundOperationTranslator extends ContextVisitor
     return sjnf.Block(pos, r, sjnf.Eval(pos, re));
 	}
 	
+	private boolean shouldBuildAndCheckTypes(Object node) 
+		{
+		  if (node instanceof SJRecurse) 
+		  {
+		  	return false;
+		  }
+		    // SJRecurse: Can't build the types now because the assignment target variable is not in the context
+		    //  - but it will be built when we translate the outer(most) recursion statement.
+		  /*else if (node instanceof SJInbranch || node instanceof SJRecursion)
+		  {
+		  	return compounds.isEmpty();
+		    // (Re-)building types might erase previously built SJ type information.
+		    // Maybe we don't need to rebuild types in translation phase.
+		    // Or maybe no important SJ type information is lost
+		    // (e.g. protocol fields, method signatures, etc.).
+		    // Need to build types in one go because cannot build types for e.g. the assignment expression
+		    // separately from the newly inserted variable declaration for the assignment target.
+		  }*/	    
+		  else // RAY: not sure if this is right. // It was wrong: we still need to build types for outbranch in case there is a translated recurse or other constructs within.
+		  {
+		  	//return node instanceof SJCompoundOperation;
+		  	if (node instanceof SJCompoundOperation)
+		  	{
+		  		//return (!(node instanceof SJOutbranch)) && compounds.isEmpty(); // outbranch is the only compound operation we didn't translate here (and it's not recorded in the compounds stack). // But there could be other constructs inside.
+		  		return compounds.isEmpty(); // 
+		  	}
+		  	else // Ignore non compound operations.
+		  	{
+		  		return false;
+		  	}
+		  }
+		}
+
 	private String getRecursionBooleanName(Iterable<String> sjnames, SJLabel lab)
 	{
 		StringBuilder bname = new StringBuilder(SJ_RECURSION_PREFIX);

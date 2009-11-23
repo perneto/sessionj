@@ -6,14 +6,18 @@ public abstract class SJRuntimeContextElement
 {
 	private static final int CONTEXT_CLASS_PREFIX = "class sessionj.runtime.session.contexts.".length(); // Factor out constants.
 	private static final int CONTEXT_CLASS_SUFFIX = "Context".length();
-
+	
 	private SJSessionType active;
 	//private SJSessionType current; // Currently performing.
 	private SJSessionType implemented; // Performed.
 
+	//private SJSessionType original;
+	
 	public SJRuntimeContextElement(SJSessionType active)
-	{
+	{		
 		this.active = (active == null) ? null : active.treeClone();
+		
+		//this.original = (active == null) ? null : active.treeClone();
 	}
 
 	public SJSessionType activeType() // No cloning ok?
@@ -59,6 +63,11 @@ public abstract class SJRuntimeContextElement
 		return m.substring(CONTEXT_CLASS_PREFIX, m.length() - CONTEXT_CLASS_SUFFIX);
 	}
 
+	/*public SJSessionType originalType()
+	{
+		return original;
+	}*/
+	
 	/*public boolean isTopLevelContext()
 	{
 		return false;
