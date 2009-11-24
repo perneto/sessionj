@@ -1,6 +1,6 @@
 //$ bin/sessionjc -sourcepath tests/src/esmtp/sj/messages/';'tests/src/esmtp/sj/server/ tests/src/esmtp/sj/server/Server4.sj -d tests/classes/
 //$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/server/Server4.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ esmtp.sj.server.Server4 false 2525 
+//$ bin/sessionj -cp te\sts/classes/ esmtp.sj.server.Server4 false 2525 
 
 package esmtp.sj.server;
 

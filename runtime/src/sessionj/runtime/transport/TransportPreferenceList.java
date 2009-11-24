@@ -13,8 +13,10 @@ import java.util.*;
 
 public final class TransportPreferenceList {
     //private final Map<Character, SJTransport> backingStore;
-		private final Map<Class<? extends SJTransport>, SJTransport> backingStore; // Yes, this can be slower than using the character codes, but this is less ad hoc and optimisation can come later. e.g. can use .class.toString(). 
+		private final Map<Class<? extends SJTransport>, SJTransport> backingStore; // Yes, this can be slower than using the character codes, but this is less ad hoc and optimisation can come later. e.g. can use .class.toString().
+		
     private final List<SJTransport> preferenceList;
+    
     //private final String defaultTransportsCodes;
     private final List<Class<? extends SJTransport>> defaultTransportClasses; 
 
@@ -28,6 +30,11 @@ public final class TransportPreferenceList {
         //loadTransports(defaultTransportsCodes);
         loadTransports(defaults);
     }
+    
+  public List<Class<? extends SJTransport>> defaultTransportClasses() 
+  {
+    return defaultTransportClasses;
+  }
     
     public List<SJTransport> defaultTransports() {
         List<SJTransport> defaults = new LinkedList<SJTransport>();
@@ -54,26 +61,13 @@ public final class TransportPreferenceList {
         }
         return ts;
     }*/
-    
-    /*public List<SJTransport> loadTransports(String transportLetterCodes) throws SJIOException {
-      List<SJTransport> ts = new LinkedList<SJTransport>();
-      for (char c : transportLetterCodes.toCharArray()) {
-          SJTransport t = backingStore.get(c);
-          if (t == null) { // If the system has not already loaded a transport component requested by a session, load it now. However, I think this affects the "default" value for transports across the system. Need to factor out an orthogonal defaults value again.
-              t = SJTransportManager_c.createTransport(c);
-              backingStore.put(c, t);
-          }
-          if (!preferenceList.contains(t)) {
-              preferenceList.add(t);
-          }
-          ts.add(t);
-      }
-      return ts;
-  }*/
 
   public List<SJTransport> loadTransports(List<Class<? extends SJTransport>> cs) throws SJIOException 
   {
-    List<SJTransport> ts = new LinkedList<SJTransport>();
+    List<SJTransport> ts;
+    
+    ts = new LinkedList<SJTransport>();
+  	//ts = Collections.unmodifiableList(ts);
 
   	try
   	{	    

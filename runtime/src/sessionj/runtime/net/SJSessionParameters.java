@@ -20,9 +20,9 @@ import java.util.logging.Logger;
  * Can either store the transport classes here and load the components later at session init., or can load the transport components eagerly here and keep pointers to the components. (Currently neither, SJTransportUtils is doing the loading for us for the latter option; this needs to be refactored.)
  * 
  */
-public class SJSessionParameters
+public class SJSessionParameters 
 {
-	public static /*final*/ SJSessionParameters DEFAULT_PARAMETERS;
+	public static /*final*/ SJSessionParameters DEFAULT_PARAMETERS; // The very initial defaults, i.e. the default transports when the SJR is first initialised. Transports can be added to the SJR after initialisation, but this defaults value remains unchanged.    
 	
 	static 
 	{
@@ -36,61 +36,61 @@ public class SJSessionParameters
 		}
 	}
 	
+	// These are given by the user.
+	private List<Class<? extends SJTransport>> negotiationTransportClasses;  
+	private List<Class<? extends SJTransport>> sessionTransportClasses;
+	
+	// These are filled by the constructors of this class and used by the transport manager.
 	private List<SJTransport> negotiationTransports;
 	private List<SJTransport> sessionTransports;
 
 	private int boundedBufferSize = SJBoundedFifoPair.UNBOUNDED_BUFFER_SIZE;
   
-	private static final Logger logger = Logger.getLogger(SJSessionParameters.class.getName());
+	//private static final Logger logger = Logger.getLogger(SJSessionParameters.class.getName());
 	
 	private SJCompatibilityMode mode; // The default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise. 
 	
 	//private SJCustomMessageFormatter cmf;
 	private Class<? extends SJCustomMessageFormatter> cmf;
-	
+
 	// HACK: SJSessionParameters are supposed to be user-configurable parameters.
   // But now using as a convenient place to store pseudo compiler-generated optimisation
   // information for now. Would be better to make a dedicated object for storing such information.
   // But that could be slow. // Factor out constant more generally?
 	public SJSessionParameters() throws SJSessionParametersException
 	{
-		this(defaultNeg(), defaultSession()); 
+		//this(defaultNegClasses(), defaultSessionClasses());
+		this(SJCompatibilityMode.SJ, defaultNegClasses(), defaultSessionClasses(), null);
 	}
-
-    private static List<SJTransport> defaultSession() {
-        return SJRuntime.getTransportManager().defaultSessionTransports();
-    }
-
-    private static List<SJTransport> defaultNeg() {
-        return SJRuntime.getTransportManager().defaultNegotiationTransports();
-    }
-    
-	/*// Commented for now because this signature after erasure of generics becomes the same as the one below.
-	public SJSessionParameters(SJCompatibilityMode mode, List<Class<? extends SJTransport>> negotiationTransports, List<Class<? extends SJTransport>> sessionTransports, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
+  
+	// This is the "main" constructor: others are variants based on this. 
+	public SJSessionParameters(SJCompatibilityMode mode, List<Class<? extends SJTransport>> negotiationTransportClasses, List<Class<? extends SJTransport>> sessionTransportClasses, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
 	{
 		this.mode = mode;
+
+		this.negotiationTransportClasses = negotiationTransportClasses;
+		this.sessionTransportClasses = sessionTransportClasses;
 		
 		SJTransportManager sjtm = SJRuntime.getTransportManager();
 		
-		List<SJTransport> nts = sjtm.loadNegotiationTransports(negotiationTransports);
-		List<SJTransport> sts = sjtm.loadSessionTransports(sessionTransports);		
-		
-    this.negotiationTransports = Collections.unmodifiableList(nts); 
-    this.sessionTransports = Collections.unmodifiableList(sts);
-		this.cmf = cmf;
-		
-		if (!SJRuntime.checkSessionParameters(this)) // Maybe should check more "lazily" at session initiation. Might be a bit convenient from an exception handling point of view. 
+		List<SJTransport> nts; 
+		List<SJTransport> sts; 		
+
+		try
 		{
-			//throw new... // SJRuntime.checkSessionParameters is already raising appropriate exceptions.
+			nts = sjtm.loadNegotiationTransports(negotiationTransportClasses);
+			sts = sjtm.loadSessionTransports(sessionTransportClasses);
 		}
-	}*/   
+		catch (SJIOException ioe)
+		{
+			throw new SJSessionParametersException(ioe);
+		}
+		
+    this.negotiationTransports = Collections.unmodifiableList(nts); // The TransportPreferenceList already makes a new list (although not unmodifiable).
+    this.sessionTransports = Collections.unmodifiableList(sts);
+		/*this.negotiationTransports = nts;  
+    this.sessionTransports = sts;*/
     
-	//public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, SJCustomMessageFormatter cmf) throws SJSessionParametersException
-	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
-	{
-		this.mode = mode;
-        this.negotiationTransports = Collections.unmodifiableList(negotiationTransports); // Relying on implicit iterator ordering.
-        this.sessionTransports = Collections.unmodifiableList(sessionTransports);
 		this.cmf = cmf;
 		
 		if (!SJRuntime.checkSessionParameters(this)) // Maybe should check more "lazily" at session initiation. Might be a bit convenient from an exception handling point of view. 
@@ -98,32 +98,32 @@ public class SJSessionParameters
 			//throw new... // SJRuntime.checkSessionParameters is already raising appropriate exceptions.
 		}
 	}
-    
-	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
+ 
+	public SJSessionParameters(List<Class<? extends SJTransport>> negotiationTransportClasses, List<Class<? extends SJTransport>> sessionTransportClasses) throws SJSessionParametersException
 	{
-		this(SJCompatibilityMode.SJ, negotiationTransports, sessionTransports); // SJ is the default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise.
+		this(SJCompatibilityMode.SJ, negotiationTransportClasses, sessionTransportClasses, null); // SJ is the default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise.
 	}
 
 	// FIXME: should be generalised to support custom "deserializers" for other wire formats. Well, in principle, the programmer should add a custom SJSerializer. But this interface may be easier to use than a full serializer implemetation.
 	//public SJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException
 	public SJSessionParameters(SJCompatibilityMode mode, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
 	{
-		this(mode, defaultNeg(), defaultSession(), cmf); 
+		this(mode, defaultNegClasses(), defaultSessionClasses(), cmf); 
 	}		
 	
-	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
+	public SJSessionParameters(SJCompatibilityMode mode, List<Class<? extends SJTransport>> negotiationTransportClasses, List<Class<? extends SJTransport>> sessionTransportClasses) throws SJSessionParametersException
 	{
-		this(mode, negotiationTransports, sessionTransports, null);
+		this(mode, negotiationTransportClasses, sessionTransportClasses, null);
 	}
 
 	public SJSessionParameters(SJCompatibilityMode mode) throws SJSessionParametersException
 	{
-		this(mode, defaultNeg(), defaultSession()); 
+		this(mode, defaultNegClasses(), defaultSessionClasses()); 
 	}
 	
-	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, int boundedBufferSize) throws SJSessionParametersException
+	public SJSessionParameters(List<Class<? extends SJTransport>> negotiationTransportClasses, List<Class<? extends SJTransport>> sessionTransportClasses, int boundedBufferSize) throws SJSessionParametersException
 	{
-		this(negotiationTransports, sessionTransports); // FIXME: "bounded-buffers" should be a mode (shouldn't be SJ default).
+		this(negotiationTransportClasses, sessionTransportClasses); //FIXME: "bounded-buffers" should be a mode (shouldn't be SJ default).
 		
 		this.boundedBufferSize = boundedBufferSize;
 	}	
@@ -135,25 +135,35 @@ public class SJSessionParameters
 		this.boundedBufferSize = boundedBufferSize;
 	}	
 	
+	public List<Class<? extends SJTransport>> getNegotiationTransportClassess()
+	{
+		return negotiationTransportClasses;
+	}
+	
+	public List<Class<? extends SJTransport>> getSessionTransportsClasses()
+	{
+		return sessionTransportClasses;
+	}	
+	
 	public List<SJTransport> getNegotiationTransports()
 	{
-        // already unmodifiableList.
-        //noinspection ReturnOfCollectionOrArrayField
-        return negotiationTransports;
+		// already unmodifiableList.
+		//noinspection ReturnOfCollectionOrArrayField
+		return negotiationTransports;
 	}
 	
 	public List<SJTransport> getSessionTransports()
 	{
-        // already unmodifiableList.
-        //noinspection ReturnOfCollectionOrArrayField
-        return sessionTransports;
+		// already unmodifiableList.
+		//noinspection ReturnOfCollectionOrArrayField
+		return sessionTransports;
 	}
 	
 	public String toString()
 	{
 		String m = "SJSessionParameters{";
 		
-        m += negotiationTransports + ", " + sessionTransports;
+		m += negotiationTransports + ", " + sessionTransports;
 		m += ", " + boundedBufferSize;
 		
 		return m + "}";
@@ -189,9 +199,30 @@ public class SJSessionParameters
             throw new SJIOException(ie);
         }
 	}
+  
+	private static List<Class<? extends SJTransport>> defaultSessionClasses() 
+	{
+		return SJRuntime.getTransportManager().defaultSessionTransportClasses();
+	}
 
-    public SJDeserializer getDeserializer() {
-        if (cmf == null) return new SJManualDeserializer();
-        else return new CustomMessageFormatterFactory(this);
-    }
+  private static List<Class<? extends SJTransport>> defaultNegClasses() 
+  {
+  	return SJRuntime.getTransportManager().defaultNegotiationTransportClasses();
+  }	
+	
+	/*private static List<SJTransport> defaultSession() 
+	{
+		return SJRuntime.getTransportManager().defaultSessionTransports();
+	}
+	
+	private static List<SJTransport> defaultNeg()
+	{
+		return SJRuntime.getTransportManager().defaultNegotiationTransports();
+	}*/ 
+
+  public SJDeserializer getDeserializer() 
+  {
+    if (cmf == null) return new SJManualDeserializer();
+    else return new CustomMessageFormatterFactory(this);
+  }
 }
