@@ -56,4 +56,7 @@ abstract public class SJTransportManager
 
     public abstract List<SJTransport> defaultSessionTransports();
     public abstract List<SJTransport> defaultNegotiationTransports();
+    
+  abstract public List<Class<? extends SJTransport>> defaultSessionTransportClasses();
+  abstract public List<Class<? extends SJTransport>> defaultNegotiationTransportClasses();
 }

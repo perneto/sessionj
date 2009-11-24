@@ -62,11 +62,19 @@ public class SJTransportManager_c extends SJTransportManager
 
     //private String getDefault(String key, String fallback) {
     private String getDefault(String key) {
-        String s = System.getProperty(key, "d"); // FIXME: factor out "d" constant (should be localised in SJTransportUtils).
+        String s = System.getProperty(key, "d"); // FIXME: factor out "d" constant (should be localised in SJTransportUtils). In principle, we should not be using "d" here but rather a proper default transport class list. 
         //if (s.equals("d")) s = fallback;
         return s;
     }
 
+   public List<Class<? extends SJTransport>> defaultSessionTransportClasses() {
+      return sessionTransports.defaultTransportClasses();
+  }
+
+  public List<Class<? extends SJTransport>> defaultNegotiationTransportClasses() {
+      return negotiationTransports.defaultTransportClasses();
+  }    
+    
     public List<SJTransport> defaultSessionTransports() {
         return sessionTransports.defaultTransports();
     }
