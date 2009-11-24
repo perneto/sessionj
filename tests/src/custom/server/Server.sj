@@ -20,7 +20,7 @@ public class Server
 	public void run(boolean debug, String setups, String transports, int port) throws Exception
 	{
 		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new MyFormatter());
-		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, MyFormatter.class);
+		SJSessionParameters params = new SJSessionParameters(SJCompatibilityMode.CUSTOM, MyFormatter.class);
 		
 		final noalias SJServerSocket ss;
 		

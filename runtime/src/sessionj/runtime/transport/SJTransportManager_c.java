@@ -37,21 +37,33 @@ public class SJTransportManager_c extends SJTransportManager
     private final TransportPreferenceList sessionTransports; // Used to be called just transports.
 
     public SJTransportManager_c() throws SJIOException {
-        String defNegotiationTr = getDefault(DEFAULT_SETUPS_PROPERTY, "fs");
+        /*String defNegotiationTr = getDefault(DEFAULT_SETUPS_PROPERTY, "fs"); // Use "fs" if the system property was not specified to be something else.
         String defSessionTr = getDefault(DEFAULT_TRANSPORTS_PROPERTY, "fs");
+        
         // Important: the TransportPreferenceList instances need to share that map.
-        Map<Character, SJTransport> activeTransports = new HashMap<Character, SJTransport>();
+        Map<Character, SJTransport> activeTransports = new HashMap<Character, SJTransport>();        
+        negotiationTransports = new TransportPreferenceList(activeTransports, defNegotiationTr);
+        sessionTransports = new TransportPreferenceList(activeTransports, defSessionTr);*/
+        
+    		// Allow some dependency here on the "letter code conventions" purely to make specifying runtime parameters more convenient. 
+    		List<Class<? extends SJTransport>> defNegotiationTr = SJTransportUtils.parseTransportFlags(getDefault(DEFAULT_SETUPS_PROPERTY)); 
+    		List<Class<? extends SJTransport>> defSessionTr = SJTransportUtils.parseTransportFlags(getDefault(DEFAULT_TRANSPORTS_PROPERTY));
+    	
+    		Map<Class<? extends SJTransport>, SJTransport> activeTransports = new HashMap<Class<? extends SJTransport>, SJTransport>();   
+    		
         negotiationTransports = new TransportPreferenceList(activeTransports, defNegotiationTr);
         sessionTransports = new TransportPreferenceList(activeTransports, defSessionTr);
+    		
         debug("Default negotiation transports: " + defNegotiationTr
             + ": "+ negotiationTransports.getActive());
         debug("Default session transports: " + defSessionTr
             + ": " + sessionTransports.getActive());
 	}
 
-    private String getDefault(String key, String fallback) {
-        String s = System.getProperty(key, "d");
-        if (s.equals("d")) s = fallback;
+    //private String getDefault(String key, String fallback) {
+    private String getDefault(String key) {
+        String s = System.getProperty(key, "d"); // FIXME: factor out "d" constant (should be localised in SJTransportUtils).
+        //if (s.equals("d")) s = fallback;
         return s;
     }
 
@@ -63,15 +75,18 @@ public class SJTransportManager_c extends SJTransportManager
         return negotiationTransports.defaultTransports();
     }
 
-    public List<SJTransport> loadSessionTransports(String transportLetterCodes) throws SJIOException {
+    //public List<SJTransport> loadSessionTransports(String transportLetterCodes) throws SJIOException {
+    public List<SJTransport> loadSessionTransports(List<Class<? extends SJTransport>> transportLetterCodes) throws SJIOException {
         return sessionTransports.loadTransports(transportLetterCodes);
     }
 
-    public List<SJTransport> loadNegotiationTransports(String transportLetterCodes) throws SJIOException {
+    //public List<SJTransport> loadNegotiationTransports(String transportLetterCodes) throws SJIOException {    	
+    	public List<SJTransport> loadNegotiationTransports(List<Class<? extends SJTransport>> transportLetterCodes) throws SJIOException {
         return negotiationTransports.loadTransports(transportLetterCodes);
     }
 
-    static SJTransport createTransport(char code) throws SJIOException { // The original intention was that these "letter codes" are not fundamental enough to be directly defined by the SJTransportManager, but that's OK.
+    /*// The original intention was that these "letter codes" are not fundamental enough to be directly defined by the SJTransportManager. 
+    static SJTransport createTransport(char code) throws SJIOException { 
         switch (code) {
             case 'f':
                 return new SJFifoPair();
@@ -92,7 +107,7 @@ public class SJTransportManager_c extends SJTransportManager
         }
 
         throw new SJIOException("Unsupported transport code: " + code);
-    }
+    }*/
 
     public SJAcceptorThreadGroup openAcceptorGroup(int port, SJSessionParameters params) throws SJIOException 
 	{
@@ -236,7 +251,7 @@ public class SJTransportManager_c extends SJTransportManager
 			acceptorGroups.remove(port).close();
 		}
 	}
-	
+	 
 	public SJConnection openConnection(String hostName, int port, SJSessionParameters params) throws SJIOException
 	{
         List<SJTransport> ss = params.getNegotiationTransports();

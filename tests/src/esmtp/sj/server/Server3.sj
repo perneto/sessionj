@@ -82,7 +82,7 @@ public class Server3
 	public void run(boolean debug, int port) throws Exception
 	{
 		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SmtpServerFormatter());
-		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpServerFormatter.class);
+		SJSessionParameters params = new SJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpServerFormatter.class);
 		
 		final noalias SJServerSocket ss;
 		

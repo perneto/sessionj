@@ -9,6 +9,7 @@ import sessionj.runtime.net.SJRuntime;
 import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJTransportManager;
+import sessionj.runtime.transport.SJTransportUtils;
 import static sessionj.runtime.transport.httpservlet.SJHTTPServletConnection.*;
 
 import javax.servlet.ServletConfig;
@@ -50,8 +51,10 @@ public class SJHTTPProxyServlet extends HttpServlet
 		super.init(config);
 
         try {
-            sjtm.loadNegotiationTransports("m");
-            sjtm.loadSessionTransports("m");
+            //sjtm.loadNegotiationTransports("m");
+            //sjtm.loadSessionTransports("m");
+        	sjtm.loadNegotiationTransports(SJTransportUtils.parseTransportFlags("m"));
+          sjtm.loadNegotiationTransports(SJTransportUtils.parseTransportFlags("m"));
         } catch (SJIOException e) {
             throw new ServletException(e);
         }

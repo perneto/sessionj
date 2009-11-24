@@ -5,6 +5,7 @@ import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.session.SJCompatibilityMode;
 import sessionj.runtime.session.SJCustomMessageFormatter;
 import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.SJTransportManager;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 
 import java.util.Collections;
@@ -15,7 +16,9 @@ import java.util.logging.Logger;
  * 
  * @author Raymond
  *
- * FIXME: the default is mostly a performance hack. It can't be used to e.g. see which transports were actually used (the ones that were the defaults at the time). 
+ * FIXME: the default is mostly a performance hack. It can't be used to e.g. see which transports were actually used (the ones that were the defaults at the time). // RAY: the defaults is no longer a hack now, but it may be slower since we have to create at least a new list of (pointers to) transport components every time. 
+ * 
+ * Can either store the transport classes here and load the components later at session init., or can load the transport components eagerly here and keep pointers to the components. (Currently neither, SJTransportUtils is doing the loading for us for the latter option; this needs to be refactored.)
  * 
  */
 public class SJSessionParameters
@@ -62,6 +65,26 @@ public class SJSessionParameters
     private static List<SJTransport> defaultNeg() {
         return SJRuntime.getTransportManager().defaultNegotiationTransports();
     }
+    
+	/*// Commented for now because this signature after erasure of generics becomes the same as the one below.
+	public SJSessionParameters(SJCompatibilityMode mode, List<Class<? extends SJTransport>> negotiationTransports, List<Class<? extends SJTransport>> sessionTransports, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
+	{
+		this.mode = mode;
+		
+		SJTransportManager sjtm = SJRuntime.getTransportManager();
+		
+		List<SJTransport> nts = sjtm.loadNegotiationTransports(negotiationTransports);
+		List<SJTransport> sts = sjtm.loadSessionTransports(sessionTransports);		
+		
+    this.negotiationTransports = Collections.unmodifiableList(nts); 
+    this.sessionTransports = Collections.unmodifiableList(sts);
+		this.cmf = cmf;
+		
+		if (!SJRuntime.checkSessionParameters(this)) // Maybe should check more "lazily" at session initiation. Might be a bit convenient from an exception handling point of view. 
+		{
+			//throw new... // SJRuntime.checkSessionParameters is already raising appropriate exceptions.
+		}
+	}*/   
     
 	//public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, SJCustomMessageFormatter cmf) throws SJSessionParametersException
 	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
