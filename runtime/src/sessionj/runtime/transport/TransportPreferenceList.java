@@ -30,7 +30,7 @@ public final class TransportPreferenceList {
         List<SJTransport> ts = new LinkedList<SJTransport>();
         for (char c : transportLetterCodes.toCharArray()) {
             SJTransport t = backingStore.get(c);
-            if (t == null) {
+            if (t == null) { // If the system has not already loaded a transport component requested by a session, load it now. However, I think this affects the "default" value for transports across the system. Need to factor out an orthogonal defaults value again.
                 t = SJTransportManager_c.createTransport(c);
                 backingStore.put(c, t);
             }

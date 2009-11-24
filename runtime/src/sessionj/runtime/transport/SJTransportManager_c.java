@@ -33,8 +33,8 @@ public class SJTransportManager_c extends SJTransportManager
 	
 	private final Map<Integer, SJAcceptorThreadGroup> acceptorGroups = new HashMap<Integer, SJAcceptorThreadGroup>();
 
-    private final TransportPreferenceList negotiationTransports;
-    private final TransportPreferenceList sessionTransports;
+    private final TransportPreferenceList negotiationTransports; // Used to be called setups.
+    private final TransportPreferenceList sessionTransports; // Used to be called just transports.
 
     public SJTransportManager_c() throws SJIOException {
         String defNegotiationTr = getDefault(DEFAULT_SETUPS_PROPERTY, "fs");
@@ -71,7 +71,7 @@ public class SJTransportManager_c extends SJTransportManager
         return negotiationTransports.loadTransports(transportLetterCodes);
     }
 
-    static SJTransport createTransport(char code) throws SJIOException {
+    static SJTransport createTransport(char code) throws SJIOException { // The original intention was that these "letter codes" are not fundamental enough to be directly defined by the SJTransportManager, but that's OK.
         switch (code) {
             case 'f':
                 return new SJFifoPair();
