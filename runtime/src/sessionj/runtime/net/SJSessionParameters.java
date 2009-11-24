@@ -174,23 +174,20 @@ public class SJSessionParameters
   	return cmf;
   }
    
-	//public SJCustomMessageFormatter getCustomMessageFormatter()
   public SJCustomMessageFormatter createCustomMessageFormatter() throws SJIOException
 	{
-		//return cmf;
-  	 
-  	try
-  	{
-  		return cmf.newInstance();
-  	}
-  	catch (IllegalAccessException iae)
-  	{
-  		throw new SJIOException(iae);
-  	}
-  	catch (InstantiationException ie)
-  	{
-  		throw new SJIOException(ie);
-  	}
+        try
+        {
+            return cmf.newInstance();
+        }
+        catch (IllegalAccessException iae)
+        {
+            throw new SJIOException(iae);
+        }
+        catch (InstantiationException ie)
+        {
+            throw new SJIOException(ie);
+        }
 	}
 
     public SJDeserializer getDeserializer() {

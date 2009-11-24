@@ -3,6 +3,7 @@ package sessionj.runtime.transport.tcp;
 import sessionj.runtime.session.OngoingRead;
 import sessionj.runtime.session.SJDeserializer;
 import static sessionj.runtime.transport.tcp.SelectingThread.ChangeAction.*;
+import sessionj.runtime.SJIOException;
 import sessionj.util.Pair;
 
 import java.io.IOException;
@@ -218,13 +219,17 @@ final class SelectingThread implements Runnable {
         // socketChannel.read() advances the position, so need to set it back to 0.
         // also set the limit to the previous position, so that the next
         // method will not try to read past what was read from the socket.
-        readBuffer.flip(); 
-        
-        decideIfMoreToRead(key, (SocketChannel) key.channel(),
-                readBuffer.asReadOnlyBuffer(), // just to be safe (shouldn't hurt speed)
-                numRead == -1
-        );
-        
+        readBuffer.flip();
+
+        try {
+            consumeBytesRead(key, (SocketChannel) key.channel(),
+                    readBuffer.asReadOnlyBuffer(), // just to be safe (shouldn't hurt speed)
+                    numRead == -1 // -1 if and only if eof
+            );
+        } catch (SJIOException e) {
+            logger.log(Level.SEVERE, "Could not deserialize on channel: " + key.channel(), e);
+        }
+
         if (numRead == -1) {
             // Remote entity shut the socket down cleanly. Do the
             // same from our end and cancel the channel.
@@ -234,7 +239,7 @@ final class SelectingThread implements Runnable {
 
     }
 
-    private void decideIfMoreToRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) {
+    private void consumeBytesRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) throws SJIOException {
         OngoingRead read = (OngoingRead) key.attachment();
         while (bytes.remaining() > 0) {
             if (read == null) read = attachNewOngoingRead(key);
@@ -257,7 +262,7 @@ final class SelectingThread implements Runnable {
         }
     }
 
-    private OngoingRead attachNewOngoingRead(SelectionKey key) {
+    private OngoingRead attachNewOngoingRead(SelectionKey key) throws SJIOException {
         OngoingRead read = deserializers.get(key.channel()).newOngoingRead();
         key.attach(read);
         return read;
