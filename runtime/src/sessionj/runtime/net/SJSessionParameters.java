@@ -192,7 +192,6 @@ public class SJSessionParameters
 
     public SJDeserializer getDeserializer() {
         if (cmf == null) return new SJManualDeserializer();
-        //TODO else return new CustomMessageFormatterFactory(this);
-        else return null;
+        else return new CustomMessageFormatterFactory(this);
     }
 }
