@@ -10,8 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import static java.nio.channels.SelectionKey.*;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.Iterator;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,7 +19,6 @@ final class SelectingThread implements Runnable {
     private static final int BUFFER_SIZE = 16384;
     private final Selector selector;
     private final ByteBuffer readBuffer;
-    private final SJDeserializer deserializer;
 
     private final Queue<ChangeRequest> pendingChangeRequests;
 
@@ -30,15 +28,16 @@ final class SelectingThread implements Runnable {
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
     private static final Logger logger = Logger.getLogger(SelectingThread.class.getName());
     private static final boolean DEBUG = false;
+    private final Map<SocketChannel, SJDeserializer> deserializers;
 
-    SelectingThread(SJDeserializer deserializer) throws IOException {
-        this.deserializer = deserializer;
+    SelectingThread() throws IOException {
         selector = SelectorProvider.provider().openSelector();
         pendingChangeRequests = new ConcurrentLinkedQueue<ChangeRequest>();
         readyInputs = new ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>>();
         requestedOutputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
         readyForSelect = new LinkedBlockingQueue<Object>();
         accepted = new ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>>();
+        deserializers = new HashMap<SocketChannel, SJDeserializer>();
         readBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
     }
 
@@ -55,9 +54,10 @@ final class SelectingThread implements Runnable {
         // hence sleeping forever.
     }
 
-    synchronized void registerInput(SocketChannel sc) {
+    synchronized void registerInput(SocketChannel sc, SJDeserializer deserializer) {
         assert !readyInputs.containsKey(sc) : "The channel " + sc + " has already been registered";
         readyInputs.put(sc, new LinkedBlockingQueue<ByteBuffer>());
+        deserializers.put(sc, deserializer);
         // Don't change the order of these 2 statements: it's safe if we're interrupted after the first
         // one, as the channel is not registered with the selector yet. But if the registration requst is
         // added first, could have a NullPointerException
@@ -215,30 +215,31 @@ final class SelectingThread implements Runnable {
             return;
         }
 
-        if (numRead == -1) {
-            // Remote entity shut the socket down cleanly. Do the
-            // same from our end and cancel the channel.
-            key.cancel();
-            socketChannel.close();            
-            return;
-        }
-
         // socketChannel.read() advances the position, so need to set it back to 0.
         // also set the limit to the previous position, so that the next
         // method will not try to read past what was read from the socket.
         readBuffer.flip(); 
         
         decideIfMoreToRead(key, (SocketChannel) key.channel(),
-                readBuffer.asReadOnlyBuffer() // just to be safe (shouldn't hurt speed)
+                readBuffer.asReadOnlyBuffer(), // just to be safe (shouldn't hurt speed)
+                numRead == -1
         );
+        
+        if (numRead == -1) {
+            // Remote entity shut the socket down cleanly. Do the
+            // same from our end and cancel the channel.
+            key.cancel();
+            socketChannel.close();
+        }
+
     }
 
-    private void decideIfMoreToRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes) {
+    private void decideIfMoreToRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) {
         OngoingRead read = (OngoingRead) key.attachment();
         while (bytes.remaining() > 0) {
             if (read == null) read = attachNewOngoingRead(key);
             
-            read.updatePendingInput(bytes);
+            read.updatePendingInput(bytes, eof);
             
             if (read.finished()) {
                 ByteBuffer input = read.getCompleteInput();
@@ -257,7 +258,7 @@ final class SelectingThread implements Runnable {
     }
 
     private OngoingRead attachNewOngoingRead(SelectionKey key) {
-        OngoingRead read = deserializer.newOngoingRead();
+        OngoingRead read = deserializers.get(key.channel()).newOngoingRead();
         key.attach(read);
         return read;
     }

@@ -20,7 +20,7 @@ public class OngoingReadImpl implements OngoingRead {
     private byte[] data = null;
     private static final boolean DEBUG = false;
 
-    public void updatePendingInput(ByteBuffer bytes) {
+    public void updatePendingInput(ByteBuffer bytes, boolean eof) {
         if (bytes.remaining() > 0 && flag == -1) 
             readFlagAndMaybeSetExpected(bytes);
         

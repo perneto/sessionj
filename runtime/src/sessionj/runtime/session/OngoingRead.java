@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 /**
  */
 public interface OngoingRead {
-    void updatePendingInput(ByteBuffer bytes);
+    void updatePendingInput(ByteBuffer bytes, boolean eof);
 
     boolean finished();
 

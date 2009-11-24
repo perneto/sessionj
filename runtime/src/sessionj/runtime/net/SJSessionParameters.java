@@ -2,8 +2,7 @@ package sessionj.runtime.net;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJRuntimeException;
-import sessionj.runtime.session.SJCompatibilityMode;
-import sessionj.runtime.session.SJCustomMessageFormatter;
+import sessionj.runtime.session.*;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.transport.SJTransportManager;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
@@ -193,4 +192,10 @@ public class SJSessionParameters
   		throw new SJIOException(ie);
   	}
 	}
+
+    public SJDeserializer getDeserializer() {
+        if (cmf == null) return new SJManualDeserializer();
+        //TODO else return new CustomMessageFormatterFactory(this);
+        else return null;
+    }
 }
