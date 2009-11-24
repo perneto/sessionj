@@ -1,6 +1,6 @@
 //$ bin/sessionjc -sourcepath tests/src/esmtp/sj/client/messages/';'tests/src/esmtp/sj/client/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
 //$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ esmtp.sj.client.Client false smtp.cc.ic.ac.uk 25 
+//$ bin/sessionj -cp tests/classes/ esmtp.sj.client.Client false smtp.cc.ic.ac.uk 25 s
 
 package esmtp.sj.client;
 
@@ -105,7 +105,7 @@ public class Client
 		.!<Quit>.?(QuitAck)	// In principle, we should be able to QUIT at any time in the protocol, not just at the end.
 	}
 	
-	public void run(boolean debug, String server, int port) throws Exception
+	public void run(boolean debug, String server, int port, String transports) throws Exception
 	{
 		Scanner sc = new Scanner(System.in);
 		
@@ -113,9 +113,7 @@ public class Client
 		
 		System.out.println("fqdn: " + fqdn);
 		
-		//SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SmtpClientFormatter());
-		SJSessionParameters sparams = new SJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpClientFormatter.class);
-		//SJSessionParameters sparams = createSJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpClientFormatter.class);
+		SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, transports, transports, SmtpClientFormatter.class);
 		
 		final noalias SJSocket s;	
 			
@@ -341,6 +339,8 @@ public class Client
 		String server = args[1];
 		int port = Integer.parseInt(args[2]);
 		
-		new Client().run(debug, server, port);
+		String transports = args[3];
+		
+		new Client().run(debug, server, port, transports);
 	}
 }
