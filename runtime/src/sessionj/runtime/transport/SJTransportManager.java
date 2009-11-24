@@ -40,10 +40,14 @@ abstract public class SJTransportManager
      * @param transportLetterCodes The letter codes for the required transports.
      * @return The list of transports that were just loaded.
      */
-    abstract public List<SJTransport> loadNegotiationTransports(String transportLetterCodes) throws SJIOException;
+  //abstract public List<SJTransport> loadNegotiationTransports(String transportLetterCodes) throws SJIOException;
+	//abstract public List<SJTransport> loadSessionTransports(String transportLetterCodes) throws SJIOException;
+    
+	abstract public List<SJTransport> loadNegotiationTransports(List<Class<? extends SJTransport>> transportLetterCodes) throws SJIOException;
+	abstract public List<SJTransport> loadSessionTransports(List<Class<? extends SJTransport>> transportLetterCodes) throws SJIOException;	
 	
 	abstract public List<SJTransport> activeSessionTransports();
-	abstract public List<SJTransport> loadSessionTransports(String transportLetterCodes) throws SJIOException;
+
 	
 	abstract protected void registerConnection(SJConnection conn);
 	
