@@ -1,6 +1,6 @@
-//$ bin/sessionjc -sourcepath tests/src/esmtp/sj/messages/';'tests/src/esmtp/sj/server/ tests/src/esmtp/sj/server/Server2.sj -d tests/classes/
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/server/Server2.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ esmtp.sj.server.Server2 false 2525 
+//$ bin/sessionjc -sourcepath tests/src/esmtp/sj/messages/';'tests/src/esmtp/sj/server/ tests/src/esmtp/sj/server/Server3.sj -d tests/classes/
+//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/server/Server3.sj -d tests/classes/
+//$ bin/sessionj -cp tests/classes/ esmtp.sj.server.Server3 false 2525 
 
 package esmtp.sj.server;
 
@@ -18,7 +18,7 @@ import sessionj.runtime.session.*;
 //import esmtp.sj.SJSmtpFormatter;
 import esmtp.sj.messages.*;
 
-public class Server2
+public class Server3
 {			
 	static protocol smtp_server_mail
 	{
@@ -64,14 +64,19 @@ public class Server2
 			}
 		]		
 	}
-	
-	static protocol smtp_server
+
+	static protocol smtp_server_body
 	{
-		sbegin
-		.!<ServerGreeting>				
+		!<ServerGreeting>				
 		.?(Ehlo)
 		.!<EhloAck>		
 		.@(smtp_server_loop)
+	}
+	
+	static protocol smtp_server
+	{
+		sbegin		
+		.@(smtp_server_body)
 	}
 		
 	public void run(boolean debug, int port) throws Exception
@@ -87,59 +92,13 @@ public class Server2
 			
 			while (true)
 			{			
-				final noalias SJSocket s;			
+				noalias SJSocket s;			
 				
 				try (s)
 				{
 					s = ss.accept();
-					
-					//220 smtp1.cc.ic.ac.uk ESMTP Exim 4.69 Sun, 22 Nov 2009 14:36:55 +0000
-					ServerGreeting greeting = new ServerGreeting("server greeting");
-					System.out.print("Sending: " + greeting);			
-					s.send(greeting);			
-					System.out.print("Received: " + (Ehlo) s.receive());
-	
-					/*250-smtp1.cc.ic.ac.uk Hello tui.doc.ic.ac.uk [146.169.2.83]
-          250-SIZE 26214400
-          250-PIPELINING
-          250-STARTTLS
-          250 HELP*/
-					EhloAck ehloAck = new EhloAck("250 ehlo ack");
-					System.out.print("Sending: " + ehloAck);			
-					s.send(ehloAck);			
-					
-					doMainLoop(s);
-					
-					/*s.recursion(LOOP)
-					{
-						s.inbranch()
-						{
-							case MAIL_FROM:
-							{
-								doMailFrom(s);								
-																
-								s.recurse(LOOP);								
-							}
-							case RCPT_TO:
-							{
-								doRcptTo(s);
-								
-								s.recurse(LOOP);
-							}
-							case DATA:
-							{
-								doData(s);	
-								
-								s.recurse(LOOP);
-							}
-							case QUIT:
-							{
-								QuitAck quitAck = new QuitAck("quit ack");
-								System.out.print("Sending: " + quitAck);			
-								s.send(quitAck);	
-							}			
-						}
-					}*/
+
+					s.spawn(new Server3Thread());
 				}
 				catch (SJIOException ioe)
 				{
@@ -153,6 +112,36 @@ public class Server2
 		}
 	}
 
+	private class Server3Thread extends SJThread
+	{
+		public void srun(noalias @(smtp_server_body) s)
+		{
+			try (s)
+			{
+				//220 smtp1.cc.ic.ac.uk ESMTP Exim 4.69 Sun, 22 Nov 2009 14:36:55 +0000
+				ServerGreeting greeting = new ServerGreeting("server greeting");
+				System.out.print("Sending: " + greeting);			
+				s.send(greeting);			
+				System.out.print("Received: " + (Ehlo) s.receive());
+	
+				/*250-smtp1.cc.ic.ac.uk Hello tui.doc.ic.ac.uk [146.169.2.83]
+				250-SIZE 26214400
+				250-PIPELINING
+				250-STARTTLS
+				250 HELP*/
+				EhloAck ehloAck = new EhloAck("250 ehlo ack");
+				System.out.print("Sending: " + ehloAck);			
+				s.send(ehloAck);			
+				
+				doMainLoop(s);			
+			}
+			catch (Exception x)
+			{
+				x.printStackTrace();
+			}
+		}		
+	}
+	
 	private static final void doMainLoop(final noalias @(smtp_server_loop) s) throws SJIOException, ClassNotFoundException
 	{
 		s.recursion(LOOP)
@@ -219,6 +208,7 @@ public class Server2
 		s.send(dataAck);	
 				
 		System.out.print("Received: " + (MessageBody) s.receive());
+		
 		//250 OK id=1NCDaj-0001P0-V7
 		MessageBodyAck messageBodyAck = new MessageBodyAck("message body ack");
 		System.out.print("Sending: " + messageBodyAck);			
@@ -230,6 +220,6 @@ public class Server2
 		boolean debug = Boolean.parseBoolean(args[0]);
 		int port = Integer.parseInt(args[1]);
 		
-		new Server2().run(debug, port);
+		new Server3().run(debug, port);
 	}
 }

@@ -1,4 +1,4 @@
-//$ bin/sessionjc tests/src/custom/server/Server.sj -d tests/classes/
+//$ bin/sessionjc -cp tests/classes/ tests/src/custom/server/Server.sj -d tests/classes/
 //$ bin/sessionj -cp tests/classes/ custom.server.Server false d d 8888
 
 package custom.server;
@@ -14,15 +14,13 @@ import custom.*;
 
 public class Server
 {	
-	public protocol p_server 
-	{ 
-		sbegin.rec X [?{L1: !<String>.#X, L2: !<String>}]		        
-	}
+	public protocol p_body rec X [?{L1: !<String>.#X, L2: !<String>}]
+	public protocol p_server sbegin.@(p_body)
 	
 	public void run(boolean debug, String setups, String transports, int port) throws Exception
 	{
 		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new MyFormatter());
-		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, MyFormatter.class);
+		SJSessionParameters params = new SJSessionParameters(SJCompatibilityMode.CUSTOM, MyFormatter.class);
 		
 		final noalias SJServerSocket ss;
 		
@@ -38,41 +36,10 @@ public class Server
 				{
 					s = ss.accept();
 						
-					int i = 0;
-					
 					System.out.println(s.currentSessionType());
 					System.out.println(s.remainingSessionType() + "\n");
 					
-					s.recursion(X)
-					{
-						s.inbranch()
-						{
-							case L1:
-							{
-								System.out.println(s.currentSessionType());
-								System.out.println(s.remainingSessionType() + "\n");
-							
-								s.send(new Integer(i++).toString() + "\n");
-							
-								System.out.println(s.currentSessionType());
-								System.out.println(s.remainingSessionType() + "\n");
-							
-								//Thread.sleep(1000);
-								
-								s.recurse(X);								
-							}
-							case L2:
-							{
-								System.out.println(s.currentSessionType());
-								System.out.println(s.remainingSessionType() + "\n");
-								
-								s.send("BYE\n");
-								
-								System.out.println(s.currentSessionType());
-								System.out.println(s.remainingSessionType() + "\n");
-							}
-						}
-					}
+					m(s);
 				}
 				/*catch (Exception x)
 				{
@@ -88,6 +55,45 @@ public class Server
 		{
 			
 		}
+	}
+	
+	//public protocol p_unfold rec X [?{L1: !<String>.#X, L2: !<String>}] 
+	
+	private int i = 0;
+	
+	private void m(final noalias @(p_body) s) throws SJIOException, ClassNotFoundException
+	{
+		s.recursion(X)
+		{
+			s.inbranch()
+			{
+				case L1:
+				{
+					System.out.println(s.currentSessionType());
+					System.out.println(s.remainingSessionType() + "\n");
+				
+					s.send(new Integer(i++).toString() + "\n");
+				
+					System.out.println(s.currentSessionType());
+					System.out.println(s.remainingSessionType() + "\n");
+				
+					//Thread.sleep(1000);
+					
+					//s.recurse(X);					
+					m(s);
+				}
+				case L2:
+				{
+					System.out.println(s.currentSessionType());
+					System.out.println(s.remainingSessionType() + "\n");
+					
+					s.send("BYE\n");
+					
+					System.out.println(s.currentSessionType());
+					System.out.println(s.remainingSessionType() + "\n");
+				}
+			}
+		}		
 	}
 	
 	public static void main(String[] args) throws Exception

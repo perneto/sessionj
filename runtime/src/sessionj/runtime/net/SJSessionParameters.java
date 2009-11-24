@@ -5,6 +5,7 @@ import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.session.SJCompatibilityMode;
 import sessionj.runtime.session.SJCustomMessageFormatter;
 import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.SJTransportManager;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 
 import java.util.Collections;
@@ -15,7 +16,9 @@ import java.util.logging.Logger;
  * 
  * @author Raymond
  *
- * FIXME: the default is mostly a performance hack. It can't be used to e.g. see which transports were actually used (the ones that were the defaults at the time). 
+ * FIXME: the default is mostly a performance hack. It can't be used to e.g. see which transports were actually used (the ones that were the defaults at the time). // RAY: the defaults is no longer a hack now, but it may be slower since we have to create at least a new list of (pointers to) transport components every time. 
+ * 
+ * Can either store the transport classes here and load the components later at session init., or can load the transport components eagerly here and keep pointers to the components. (Currently neither, SJTransportUtils is doing the loading for us for the latter option; this needs to be refactored.)
  * 
  */
 public class SJSessionParameters
@@ -63,28 +66,26 @@ public class SJSessionParameters
         return SJRuntime.getTransportManager().defaultNegotiationTransports();
     }
     
-    public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
+	/*// Commented for now because this signature after erasure of generics becomes the same as the one below.
+	public SJSessionParameters(SJCompatibilityMode mode, List<Class<? extends SJTransport>> negotiationTransports, List<Class<? extends SJTransport>> sessionTransports, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
 	{
-		this(SJCompatibilityMode.SJ, negotiationTransports, sessionTransports); // SJ is the default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise.
-	}
-	
-	public SJSessionParameters(SJCompatibilityMode mode) throws SJSessionParametersException
-	{
-		this(mode, defaultNeg(), defaultSession()); 
-	}
-	
-	// FIXME: should be generalised to support custom "deserializers" for other wire formats. Well, in principle, the programmer should add a custom SJSerializer. But this interface may be easier to use than a full serializer implemetation.
-	//public SJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException
-	public SJSessionParameters(SJCompatibilityMode mode, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
-	{
-		this(mode, defaultNeg(), defaultSession(), cmf); 
-	}	
-	
-	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
-	{
-		this(mode, negotiationTransports, sessionTransports, null);
-	}
-	
+		this.mode = mode;
+		
+		SJTransportManager sjtm = SJRuntime.getTransportManager();
+		
+		List<SJTransport> nts = sjtm.loadNegotiationTransports(negotiationTransports);
+		List<SJTransport> sts = sjtm.loadSessionTransports(sessionTransports);		
+		
+    this.negotiationTransports = Collections.unmodifiableList(nts); 
+    this.sessionTransports = Collections.unmodifiableList(sts);
+		this.cmf = cmf;
+		
+		if (!SJRuntime.checkSessionParameters(this)) // Maybe should check more "lazily" at session initiation. Might be a bit convenient from an exception handling point of view. 
+		{
+			//throw new... // SJRuntime.checkSessionParameters is already raising appropriate exceptions.
+		}
+	}*/   
+    
 	//public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, SJCustomMessageFormatter cmf) throws SJSessionParametersException
 	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
 	{
@@ -98,17 +99,39 @@ public class SJSessionParameters
 			//throw new... // SJRuntime.checkSessionParameters is already raising appropriate exceptions.
 		}
 	}
-	
-	public SJSessionParameters(int boundedBufferSize) throws SJSessionParametersException
+    
+	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
 	{
-		this();
-		
-		this.boundedBufferSize = boundedBufferSize;
-	}	
+		this(SJCompatibilityMode.SJ, negotiationTransports, sessionTransports); // SJ is the default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise.
+	}
+
+	// FIXME: should be generalised to support custom "deserializers" for other wire formats. Well, in principle, the programmer should add a custom SJSerializer. But this interface may be easier to use than a full serializer implemetation.
+	//public SJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException
+	public SJSessionParameters(SJCompatibilityMode mode, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
+	{
+		this(mode, defaultNeg(), defaultSession(), cmf); 
+	}		
+	
+	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
+	{
+		this(mode, negotiationTransports, sessionTransports, null);
+	}
+
+	public SJSessionParameters(SJCompatibilityMode mode) throws SJSessionParametersException
+	{
+		this(mode, defaultNeg(), defaultSession()); 
+	}
 	
 	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, int boundedBufferSize) throws SJSessionParametersException
 	{
 		this(negotiationTransports, sessionTransports); // FIXME: "bounded-buffers" should be a mode (shouldn't be SJ default).
+		
+		this.boundedBufferSize = boundedBufferSize;
+	}	
+	
+	public SJSessionParameters(int boundedBufferSize) throws SJSessionParametersException
+	{
+		this();
 		
 		this.boundedBufferSize = boundedBufferSize;
 	}	
