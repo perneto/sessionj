@@ -49,7 +49,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     public boolean registerInput(SJSocket s) {
         SocketChannel sc = retrieveSocketChannel(s);
         if (sc != null) {
-            thread.registerInput(sc);
+            thread.registerInput(sc, s.getParameters().getDeserializer());
             registeredInputs.put(sc, new DirectlyToUser(s));
             return true;
         }
@@ -108,7 +108,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     }
 
     private void registerOngoingAccept(SJServerSocket sjss, SocketChannel sc) throws SJIOException {
-        thread.registerInput(sc);
+        thread.registerInput(sc, sjss.getParameters().getDeserializer());
         registeredInputs.put(sc, sjprotocol.initialAcceptState(sjss));
     }
 
