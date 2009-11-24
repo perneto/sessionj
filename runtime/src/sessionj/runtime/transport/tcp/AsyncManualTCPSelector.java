@@ -73,11 +73,14 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
             InputState newState = state.receivedInput();
             registeredInputs.put(sc, newState);
             SJSocket s = newState.sjSocket();
-            if (s == null) return select();
-            
-            if (s.remainingSessionType().child() == null) // Last action of the type
+            if (s == null) 
+                return select();
+            else if (s.remainingSessionType() == null) {
+                // User-level inputs all done - this must be from the close protocol
                 deregister(sc);
-            return s;
+                return select();
+            }
+            else return s;
         } else {
             Pair<ServerSocketChannel, SocketChannel> p = (Pair<ServerSocketChannel, SocketChannel>) chan;
             ServerSocketChannel ssc = p.first;
