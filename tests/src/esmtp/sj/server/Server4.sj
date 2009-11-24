@@ -134,8 +134,8 @@ public class Server4
 	
 	public void run(boolean debug, int port) throws Exception
 	{
-		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SmtpServerFormatter());
-		SJSessionParameters params = new SJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpServerFormatter.class);
+		//SJSessionParameters params = new SJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpServerFormatter.class);
+		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, "a", "a", SmtpServerFormatter.class);
 				
 		final noalias SJSelector sel = SJRuntime.selectorFor(p_select);
 		

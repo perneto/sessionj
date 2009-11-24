@@ -29,7 +29,7 @@ public class Client
 		try (s)
 		{
 			//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new MyFormatter());
-			SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, MyFormatter.class);
+			SJSessionParameters params = new SJSessionParameters(SJCompatibilityMode.CUSTOM, MyFormatter.class);
 			
 			s = SJService.create(p_client, server, port).request(params);
 			

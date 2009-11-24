@@ -114,7 +114,8 @@ public class Client
 		System.out.println("fqdn: " + fqdn);
 		
 		//SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SmtpClientFormatter());
-		SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpClientFormatter.class);
+		SJSessionParameters sparams = new SJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpClientFormatter.class);
+		//SJSessionParameters sparams = createSJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpClientFormatter.class);
 		
 		final noalias SJSocket s;	
 			
