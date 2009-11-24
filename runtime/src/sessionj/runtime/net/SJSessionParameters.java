@@ -63,28 +63,6 @@ public class SJSessionParameters
         return SJRuntime.getTransportManager().defaultNegotiationTransports();
     }
     
-    public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
-	{
-		this(SJCompatibilityMode.SJ, negotiationTransports, sessionTransports); // SJ is the default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise.
-	}
-	
-	public SJSessionParameters(SJCompatibilityMode mode) throws SJSessionParametersException
-	{
-		this(mode, defaultNeg(), defaultSession()); 
-	}
-	
-	// FIXME: should be generalised to support custom "deserializers" for other wire formats. Well, in principle, the programmer should add a custom SJSerializer. But this interface may be easier to use than a full serializer implemetation.
-	//public SJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException
-	public SJSessionParameters(SJCompatibilityMode mode, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
-	{
-		this(mode, defaultNeg(), defaultSession(), cmf); 
-	}	
-	
-	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
-	{
-		this(mode, negotiationTransports, sessionTransports, null);
-	}
-	
 	//public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, SJCustomMessageFormatter cmf) throws SJSessionParametersException
 	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
 	{
@@ -98,17 +76,39 @@ public class SJSessionParameters
 			//throw new... // SJRuntime.checkSessionParameters is already raising appropriate exceptions.
 		}
 	}
-	
-	public SJSessionParameters(int boundedBufferSize) throws SJSessionParametersException
+    
+	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
 	{
-		this();
-		
-		this.boundedBufferSize = boundedBufferSize;
-	}	
+		this(SJCompatibilityMode.SJ, negotiationTransports, sessionTransports); // SJ is the default mode. Uses SJStreamSerializer where possible, SJManualSerialier otherwise.
+	}
+
+	// FIXME: should be generalised to support custom "deserializers" for other wire formats. Well, in principle, the programmer should add a custom SJSerializer. But this interface may be easier to use than a full serializer implemetation.
+	//public SJSessionParameters(SJCompatibilityMode mode, SJCustomMessageFormatter cmf) throws SJSessionParametersException
+	public SJSessionParameters(SJCompatibilityMode mode, Class<? extends SJCustomMessageFormatter> cmf) throws SJSessionParametersException
+	{
+		this(mode, defaultNeg(), defaultSession(), cmf); 
+	}		
+	
+	public SJSessionParameters(SJCompatibilityMode mode, List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports) throws SJSessionParametersException
+	{
+		this(mode, negotiationTransports, sessionTransports, null);
+	}
+
+	public SJSessionParameters(SJCompatibilityMode mode) throws SJSessionParametersException
+	{
+		this(mode, defaultNeg(), defaultSession()); 
+	}
 	
 	public SJSessionParameters(List<SJTransport> negotiationTransports, List<SJTransport> sessionTransports, int boundedBufferSize) throws SJSessionParametersException
 	{
 		this(negotiationTransports, sessionTransports); // FIXME: "bounded-buffers" should be a mode (shouldn't be SJ default).
+		
+		this.boundedBufferSize = boundedBufferSize;
+	}	
+	
+	public SJSessionParameters(int boundedBufferSize) throws SJSessionParametersException
+	{
+		this();
 		
 		this.boundedBufferSize = boundedBufferSize;
 	}	

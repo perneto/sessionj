@@ -135,7 +135,7 @@ public class Server4
 	public void run(boolean debug, int port) throws Exception
 	{
 		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SmtpServerFormatter());
-		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpServerFormatter.class);
+		SJSessionParameters params = new SJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpServerFormatter.class);
 				
 		final noalias SJSelector sel = SJRuntime.selectorFor(p_select);
 		
@@ -173,10 +173,10 @@ public class Server4
 								System.out.print("Received: " + (Ehlo) s.receive());
 								
 								/*250-smtp1.cc.ic.ac.uk Hello tui.doc.ic.ac.uk [146.169.2.83]
-					      250-SIZE 26214400
-					      250-PIPELINING
-					      250-STARTTLS
-					      250 HELP*/
+								250-SIZE 26214400
+								250-PIPELINING
+								250-STARTTLS
+								250 HELP*/
 								EhloAck ehloAck = new EhloAck("250 ehlo ack");
 								System.out.print("Sending: " + ehloAck);			
 								s.send(ehloAck);
@@ -253,6 +253,7 @@ public class Server4
 							when (@(smtp_event_data))
 							{
 								System.out.print("Received: " + (MessageBody) s.receive());
+								
 								//250 OK id=1NCDaj-0001P0-V7
 								MessageBodyAck messageBodyAck = new MessageBodyAck("message body ack");
 								System.out.print("Sending: " + messageBodyAck);			
