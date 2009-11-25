@@ -9,6 +9,7 @@ public abstract class SJAcceptorThread extends Thread {
         super(atg, s);
         this.ca = ca;
         this.atg = atg;
+        setDaemon(true);
     }
 
     private boolean hasTransportName(String transportName) {
