@@ -8,13 +8,14 @@ import sessionj.runtime.util.NamedThreadFactory;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.logging.Logger;
 import java.util.concurrent.*;
 
 class SJSelectorAllTransports implements SJSelector {
     private final Collection<SJSelectorInternal> transportSelectors;
     private static final String UNSUPPORTED = "None of the transports support non-blocking mode";
     private final NamedThreadFactory fact = new NamedThreadFactory();
-    private static final boolean DEBUG = false;
+    private static final Logger log = Logger.getLogger(SJSelectorAllTransports.class.getName());
 
     SJSelectorAllTransports(Iterable<SJTransport> transports) {
         transportSelectors = new LinkedList<SJSelectorInternal>();
@@ -75,12 +76,8 @@ class SJSelectorAllTransports implements SJSelector {
         }
 
         assert selected != null;
-        debug("Selected socket: " + selected);
+        log.finer("Selected socket: " + selected);
         return selected;
-    }
-
-    private static void debug(String s) {
-        if (DEBUG) System.out.println(s);
     }
 
     public void close() throws SJIOException {
