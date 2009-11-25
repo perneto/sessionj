@@ -497,6 +497,7 @@
             <sysproperty key="testcase" value="${testcase}"/>
             <sysproperty key="sessionj.transports.negotiation" value="${sessionj.transports.negotiation}"/>
             <sysproperty key="sessionj.transports.session" value="${sessionj.transports.session}"/>
+            <sysproperty key="java.util.logging.config.file" value="logging.properties"/>
             <xmlfileset dir="${functionaltest.src}" includes="testng.xml"/>
             <classpath>
                 <path refid="standard.classpath"/>
