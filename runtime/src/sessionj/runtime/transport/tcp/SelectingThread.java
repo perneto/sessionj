@@ -265,7 +265,6 @@ final class SelectingThread implements Runnable {
 
     private void accept(SelectionKey key) throws IOException {
         ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
-        logger.finer("Accepting on: " + ssc); 
         SocketChannel socketChannel = ssc.accept();
         socketChannel.configureBlocking(false);
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);

@@ -27,6 +27,7 @@ class AsyncTCPAcceptor implements SJConnectionAcceptor {
     public SJConnection accept() throws SJIOException {
         try {
             SocketChannel sc = thread.takeAccept(ssc);
+            logger.finer("Accepted: " + sc);
             return createSJConnection(sc);
         } catch (IOException e) {
             throw new SJIOException(e);
