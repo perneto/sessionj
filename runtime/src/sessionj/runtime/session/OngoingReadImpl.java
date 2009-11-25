@@ -7,6 +7,7 @@ import sessionj.runtime.SJRuntimeException;
 
 import java.nio.ByteBuffer;
 import static java.lang.Math.min;
+import java.util.logging.Logger;
 
 /**
  * TODO Reduce duplication between this and {@link SJManualSerializer}
@@ -18,7 +19,7 @@ public class OngoingReadImpl implements OngoingRead {
     private int lengthRead = 0;
     private final byte[] lengthBytes = new byte[SJ_SERIALIZED_INT_LENGTH];
     private byte[] data = null;
-    private static final boolean DEBUG = false;
+    private static final Logger log = Logger.getLogger(OngoingReadImpl.class.getName());
 
     public void updatePendingInput(ByteBuffer bytes, boolean eof) {
         if (bytes.remaining() > 0 && flag == -1) 
@@ -57,25 +58,21 @@ public class OngoingReadImpl implements OngoingRead {
         switch (flag) {
             case SJ_BYTE:
             case SJ_BOOLEAN:
-                debug("Reading byte or boolean");
+                log.finer("Reading byte or boolean");
                 dataExpected = 1;
                 break;
             case SJ_INT:
-                debug("Reading int");
+                log.finer("Reading int");
                 dataExpected = SJ_SERIALIZED_INT_LENGTH;
                 break;
             case SJ_OBJECT:
             case SJ_CONTROL:
-                debug("Reading object or control signal");
+                log.finer("Reading object or control signal");
                 break; // nothing to do in this case, will read count from socket
             default:
-                debug("Unsupported flag in:" + bytes);
+                log.finer("Unsupported flag in:" + bytes);
                 throw new SJRuntimeException("[OngoingRead] Unsupported flag: " + flag);
         }
-    }
-
-    private static void debug(String s) {
-        if (DEBUG) System.out.println(s);
     }
 
     public boolean finished() {
@@ -91,7 +88,7 @@ public class OngoingReadImpl implements OngoingRead {
         System.arraycopy(data, 0, completed, lengthRead+1, data.length);
         
         ByteBuffer wrapped = ByteBuffer.wrap(completed);
-        debug("completed input: " + wrapped);
+        log.finer("completed input: " + wrapped);
         return wrapped;
     }
 }

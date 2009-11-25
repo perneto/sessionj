@@ -7,15 +7,9 @@ import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.session.SJCompatibilityMode;
-import sessionj.runtime.transport.httpservlet.SJHTTPServlet;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
-import sessionj.runtime.transport.sharedmem.SJFifoPair;
-import sessionj.runtime.transport.tcp.SJAsyncManualTCP;
-import sessionj.runtime.transport.tcp.SJManualTCP;
-import sessionj.runtime.transport.tcp.SJStreamTCP;
 import static sessionj.runtime.util.SJRuntimeUtils.*;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -25,11 +19,10 @@ import java.util.logging.Logger;
  */
 public class SJTransportManager_c extends SJTransportManager
 {
-    private static final Logger logger = Logger.getLogger(SJTransportManager_c.class.getName());
+    private static final Logger log = Logger.getLogger(SJTransportManager_c.class.getName());
 
 	private static final String DEFAULT_SETUPS_PROPERTY = "sessionj.transports.negotiation";
     private static final String DEFAULT_TRANSPORTS_PROPERTY = "sessionj.transports.session";
-	private static final boolean DEBUG = true;
 	
 	private final Map<Integer, SJAcceptorThreadGroup> acceptorGroups = new HashMap<Integer, SJAcceptorThreadGroup>();
 
@@ -53,12 +46,12 @@ public class SJTransportManager_c extends SJTransportManager
     		
         negotiationTransports = new TransportPreferenceList(activeTransports, defNegotiationTr);
         sessionTransports = new TransportPreferenceList(activeTransports, defSessionTr);
-    		
-        debug("Default negotiation transports: " + defNegotiationTr
+
+        log.finer("Default negotiation transports: " + defNegotiationTr
             + ": "+ negotiationTransports.getActive());
-        debug("Default session transports: " + defSessionTr
+        log.finer("Default session transports: " + defSessionTr
             + ": " + sessionTransports.getActive());
-	}
+    }
 
     //private String getDefault(String key, String fallback) {
     private String getDefault(String key) {
@@ -135,7 +128,7 @@ public class SJTransportManager_c extends SJTransportManager
     
 	private SJAcceptorThreadGroup openAcceptorGroup(int port, Iterable<SJTransport> negotiationTrans, Iterable<SJTransport> sessionTrans, Collection<String> negotiationNames, SJSessionParameters params) throws SJIOException // Synchronized where necessary from calling scope.
 	{
-        debug("[SJTransportManager_c] Openening acceptor group: " + port);
+        log.finer("[SJTransportManager_c] Openening acceptor group: " + port);
 
         synchronized (acceptorGroups)
 		{								
@@ -182,14 +175,10 @@ public class SJTransportManager_c extends SJTransportManager
 		
 			acceptorGroups.put(port, atg);
 
-            debug("[SJTransportManager_c] Opened acceptor group: " + port);
-			return atg;
+            log.finer("[SJTransportManager_c] Opened acceptor group: " + port);
+            return atg;
 		}		
 	}
-
-    private void debug(String msg) {
-        if (DEBUG) System.out.println(msg);
-    }
 
     private SJSessionAcceptorThread openAcceptorForSession(int boundedBufferSize, SJAcceptorThreadGroup atg, SJTransport t) {
         try {
@@ -211,14 +200,14 @@ public class SJTransportManager_c extends SJTransportManager
 
             at.start();
 
-            debug("[SJTransportManager_c] " + t.getTransportName() + " transport ready on: " + freePort);
+            log.finer("[SJTransportManager_c] " + t.getTransportName() + " transport ready on: " + freePort);
 
             atg.addTransport(t.getTransportName(), freePort);
             return at;
         }
         catch (SJIOException ioe) // Need to close the failed acceptor?
         {
-            debug("[SJTransportManager_c] " + ioe);
+            log.finer("[SJTransportManager_c] " + ioe);
             return null;
         }
     }
@@ -236,13 +225,13 @@ public class SJTransportManager_c extends SJTransportManager
 
             st.start();
 
-            debug("[SJTransportManager_c] " + t.getTransportName() + " setup ready on: " + port + "(" + t.sessionPortToSetupPort(port) + ")");
+            log.finer("[SJTransportManager_c] " + t.getTransportName() + " setup ready on: " + port + "(" + t.sessionPortToSetupPort(port) + ")");
 
             return st;
         }
         catch (SJIOException ioe) // Need to close the failed acceptor?
         {
-            debug("[SJTransportManager_c] " + ioe);
+            log.finer("[SJTransportManager_c] " + ioe);
 
             for (SJSetupThread setupThread : sts) {
                 setupThread.close();
@@ -271,7 +260,7 @@ public class SJTransportManager_c extends SJTransportManager
         if (conn == null)
             throw new SJIOException("[SJTransportManager_c] Connection failed: " + hostName + ":" + port);
 
-        debug("[SJTransportManager_c] Connected on " + conn.getLocalPort() + " to " + hostName + ":" + port + " (" + conn.getPort() + ") using: " + conn.getTransportName());
+        log.finer("[SJTransportManager_c] Connected on " + conn.getLocalPort() + " to " + hostName + ":" + port + " (" + conn.getPort() + ") using: " + conn.getTransportName());
 
         registerConnection(conn);
 		
@@ -342,10 +331,10 @@ public class SJTransportManager_c extends SJTransportManager
 			{
 				conn.writeByte(SJ_SERVER_TRANSPORT_FORCE); 
 				conn.flush();
-				
-				debug("[SJTransportManager_c] SJ_SERVER_TRANSPORT_FORCE: " + sname);
-				
-				if (conn.readByte() == SJ_CLIENT_TRANSPORT_NO_FORCE) // Negotiation has failed.
+
+                log.finer("[SJTransportManager_c] SJ_SERVER_TRANSPORT_FORCE: " + sname);
+
+                if (conn.readByte() == SJ_CLIENT_TRANSPORT_NO_FORCE) // Negotiation has failed.
 				{
 					throw new SJIOException("[SJTransportManager_c] Server supports no other transports: " + sname); 
 				}
@@ -356,10 +345,10 @@ public class SJTransportManager_c extends SJTransportManager
 			{
 				conn.writeByte(SJ_SERVER_TRANSPORT_SUPPORTED);
 				conn.flush();
-				
-				debug("[SJTransportManager_c] SJ_SERVER_TRANSPORT_SUPPORTED: " + sname);
-				
-				transportAgreed = conn.readByte() == SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED;
+
+                log.finer("[SJTransportManager_c] SJ_SERVER_TRANSPORT_SUPPORTED: " + sname);
+
+                transportAgreed = conn.readByte() == SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED;
 			}
 		}
 		else
@@ -367,9 +356,9 @@ public class SJTransportManager_c extends SJTransportManager
 			conn.writeByte(SJ_SERVER_TRANSPORT_NOT_SUPPORTED); 
 			conn.flush();
 
-			debug("[SJTransportManager_c] SJ_SERVER_TRANSPORT_NOT_SUPPORTED: " + sname);
-			
-			conn.readByte(); // Doesn't matter if Client wants this transport or not. 
+            log.finer("[SJTransportManager_c] SJ_SERVER_TRANSPORT_NOT_SUPPORTED: " + sname);
+
+            conn.readByte(); // Doesn't matter if Client wants this transport or not. 
 			
 			transportAgreed = false;
 		}
@@ -382,9 +371,9 @@ public class SJTransportManager_c extends SJTransportManager
 
             byte[] bs = serializeObject(tn);
 
-            debug("[SJTransportManager_c] Sending server transport configuration to: " + conn.getHostName() + ": " + conn.getPort());
-			
-			conn.writeBytes(serializeInt(bs.length)); 
+            log.finer("[SJTransportManager_c] Sending server transport configuration to: " + conn.getHostName() + ": " + conn.getPort());
+
+            conn.writeBytes(serializeInt(bs.length)); 
 			conn.writeBytes(bs);
 			
 			// Now receive Client's transports.
@@ -425,15 +414,15 @@ public class SJTransportManager_c extends SJTransportManager
 				{
 					conn = t.connect(t.sessionHostToNegociationHost(hostName), t.sessionPortToSetupPort(port));
 				}
-                
-                debug("[SJTransportManager_c] Setting up on " + conn.getLocalPort() + " to " + hostName + ":" + port + " using: " + t.getTransportName());									
-				
-				break;
+
+                log.finer("[SJTransportManager_c] Setting up on " + conn.getLocalPort() + " to " + hostName + ":" + port + " using: " + t.getTransportName());
+
+                break;
 			}
 			catch (SJIOException ioe)
-			{	
-				debug("[SJTransportManager_c] " + t.getTransportName() + " setup failed: " + ioe.getMessage());
-			}		
+			{
+                log.finer("[SJTransportManager_c] " + t.getTransportName() + " setup failed: " + ioe.getMessage());
+            }		
 		}						
 		
 		if (conn == null)
@@ -461,9 +450,9 @@ public class SJTransportManager_c extends SJTransportManager
 			conn.writeByte(SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED);
 			conn.flush();
 
-			debug("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED: " + sname);
-			
-			byte b = conn.readByte();
+            log.finer("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED: " + sname);
+
+            byte b = conn.readByte();
 			
 			transportAgreed = b == SJ_SERVER_TRANSPORT_SUPPORTED || b == SJ_SERVER_TRANSPORT_FORCE;
 		}
@@ -472,11 +461,11 @@ public class SJTransportManager_c extends SJTransportManager
 			if (!tn.contains(sname))
 			{
 				conn.writeByte(SJ_CLIENT_TRANSPORT_NO_FORCE); // Should be sent if the setup isn't a Client transport. 
-				conn.flush();				
-				
-				debug("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NO_FORCE: " + sname);
-				
-				if (conn.readByte() == SJ_SERVER_TRANSPORT_FORCE) // Negotiation has failed.
+				conn.flush();
+
+                log.finer("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NO_FORCE: " + sname);
+
+                if (conn.readByte() == SJ_SERVER_TRANSPORT_FORCE) // Negotiation has failed.
 				{
 					throw new SJIOException("[SJTransportManager_c] Client does not support this transport: " + sname); 
 				}
@@ -487,10 +476,10 @@ public class SJTransportManager_c extends SJTransportManager
 			{
 				conn.writeByte(SJ_CLIENT_TRANSPORT_NEGOTIATION_START);
 				conn.flush();
-				
-				debug("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NEGOTIATION_START: " + sname);
-				
-				byte b = conn.readByte();
+
+                log.finer("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NEGOTIATION_START: " + sname);
+
+                byte b = conn.readByte();
 
 				// FIXME: currently, only comes from SJHTTPProxyServlet, but need to prepare for it more generally.
                 transportAgreed = b == SJ_SERVER_TRANSPORT_FORCE;
@@ -517,10 +506,10 @@ public class SJTransportManager_c extends SJTransportManager
 			conn.readBytes(bs);
 			
 			Map<String, Integer> servers = (Map<String, Integer>) deserializeObject(bs);
-			
-			debug("[SJTransportManager_c] Server at " + hostName + ':' + port + " offers: " + servers);
-			
-			for (SJTransport t : ts)
+
+            log.finer("[SJTransportManager_c] Server at " + hostName + ':' + port + " offers: " + servers);
+
+            for (SJTransport t : ts)
 			{
 				try
 				{
@@ -578,8 +567,8 @@ public class SJTransportManager_c extends SJTransportManager
 				}
 				catch (SJIOException ioe)
 				{
-					debug("[SJTransportManager_c] Transport connection failed: " + ioe);
-				}					
+                    log.finer("[SJTransportManager_c] Transport connection failed: " + ioe);
+                }					
 			}
 		}
 		
