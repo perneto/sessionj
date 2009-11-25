@@ -1,7 +1,6 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.session.SJAcceptProtocol;
 import sessionj.runtime.net.*;
 import sessionj.util.Pair;
 
@@ -20,14 +19,12 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     
     private final SelectingThread thread;
     private final String transportName;
-    private final SJAcceptProtocol sjprotocol;
     private final Map<SocketChannel, InputState> registeredInputs;
     private final Map<ServerSocketChannel, SJServerSocket> registeredAccepts;
 
-    AsyncManualTCPSelector(SelectingThread thread, String transportName, SJAcceptProtocol sjprotocol) {
+    AsyncManualTCPSelector(SelectingThread thread, String transportName) {
         this.thread = thread;
         this.transportName = transportName;
-        this.sjprotocol = sjprotocol;
         registeredInputs = new HashMap<SocketChannel, InputState>();
         registeredAccepts = new HashMap<ServerSocketChannel, SJServerSocket>();
     }
@@ -60,6 +57,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         Object chan;
         try {
             chan = thread.dequeueChannelForSelect(); // blocking dequeue
+            logger.fine("Channel dequeued in select: " + chan);
         } catch (InterruptedException e) {
             throw new SJIOException(e);
         }
@@ -87,15 +85,12 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
             assert registeredAccepts.containsKey(ssc);
 
             SJServerSocket sjss = registeredAccepts.get(ssc);
-            // OK even if we only do outputs: enqueing write requests will change the interest
-            // set for the channel. Input is the default interest that we go back to after 
-            // everything is written.
             registerOngoingAccept(sjss, p.second);
 
-            return select();
-            // The new SocketChannel is registered for input just before,
-            // so no need to do anything else. It will be selected when 
-            // the first input message is available.
+            InputState initialState = registeredInputs.get(p.second);
+            SJSocket s = initialState.sjSocket();
+            if (s == null) return select();
+            else return s;
         }
     }
 
@@ -107,9 +102,12 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         registeredInputs.remove(sc);
     }
 
-    private void registerOngoingAccept(SJServerSocket sjss, SocketChannel sc) throws SJIOException {
+    private void registerOngoingAccept(SJServerSocket sjss, SocketChannel sc) throws SJIOException, SJIncompatibleSessionException {
+        // OK even if we only do outputs: enqueing write requests will change the interest
+        // set for the channel. Input is the default interest that we go back to after 
+        // everything is written.
         thread.registerInput(sc, sjss.getParameters().getDeserializer());
-        registeredInputs.put(sc, sjprotocol.initialAcceptState(sjss));
+        registeredInputs.put(sc, sjss.getParameters().getAcceptProtocol().initialAcceptState(sjss));
     }
 
     public void close() throws SJIOException {

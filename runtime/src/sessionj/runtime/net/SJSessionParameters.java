@@ -6,10 +6,12 @@ import sessionj.runtime.session.*;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.transport.SJTransportManager;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
+import sessionj.runtime.transport.tcp.DirectlyToUser;
+import sessionj.runtime.transport.tcp.InputState;
+import sessionj.runtime.transport.tcp.WaitInitialInputIfNeeded;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * 
@@ -168,24 +170,24 @@ public class SJSessionParameters
 		
 		return m + "}";
 	}
-	
-	public int getBoundedBufferSize()
-	{
-		return boundedBufferSize;
-	}
 
-   public SJCompatibilityMode getCompatibilityMode()
-   {
-  	 return mode;
-   }
-  
-  protected Class<? extends SJCustomMessageFormatter> getCustomMessageFormatter() 
-  {
-  	return cmf;
-  }
-   
-  public SJCustomMessageFormatter createCustomMessageFormatter() throws SJIOException
-	{
+    public int getBoundedBufferSize()
+    {
+        return boundedBufferSize;
+    }
+
+    public SJCompatibilityMode getCompatibilityMode()
+    {
+        return mode;
+    }
+
+    protected Class<? extends SJCustomMessageFormatter> getCustomMessageFormatter()
+    {
+        return cmf;
+    }
+
+    public SJCustomMessageFormatter createCustomMessageFormatter() throws SJIOException
+    {
         try
         {
             return cmf.newInstance();
@@ -198,31 +200,41 @@ public class SJSessionParameters
         {
             throw new SJIOException(ie);
         }
-	}
-  
-	private static List<Class<? extends SJTransport>> defaultSessionClasses() 
-	{
-		return SJRuntime.getTransportManager().defaultSessionTransportClasses();
-	}
+    }
 
-  private static List<Class<? extends SJTransport>> defaultNegClasses() 
-  {
-  	return SJRuntime.getTransportManager().defaultNegotiationTransportClasses();
-  }	
-	
-	/*private static List<SJTransport> defaultSession() 
-	{
-		return SJRuntime.getTransportManager().defaultSessionTransports();
-	}
-	
-	private static List<SJTransport> defaultNeg()
-	{
-		return SJRuntime.getTransportManager().defaultNegotiationTransports();
-	}*/ 
+    private static List<Class<? extends SJTransport>> defaultSessionClasses()
+    {
+        return SJRuntime.getTransportManager().defaultSessionTransportClasses();
+    }
 
-  public SJDeserializer getDeserializer() 
-  {
-    if (cmf == null) return new SJManualDeserializer();
-    else return new CustomMessageFormatterFactory(this);
-  }
+    private static List<Class<? extends SJTransport>> defaultNegClasses()
+    {
+        return SJRuntime.getTransportManager().defaultNegotiationTransportClasses();
+    }
+
+    /*private static List<SJTransport> defaultSession() 
+     {
+         return SJRuntime.getTransportManager().defaultSessionTransports();
+     }
+     
+     private static List<SJTransport> defaultNeg()
+     {
+         return SJRuntime.getTransportManager().defaultNegotiationTransports();
+     }*/
+
+    public SJDeserializer getDeserializer()
+    {
+        if (cmf == null) return new SJManualDeserializer();
+        else return new CustomMessageFormatterFactory(this);
+    }
+
+    public SJAcceptProtocol getAcceptProtocol() {
+        if (cmf == null) return new SJAcceptProtocolImpl();
+        // The custom mode has no accept protocol messages to wait for.
+        else return new SJAcceptProtocol() {
+            public InputState initialAcceptState(SJServerSocket serverSocket) throws SJIOException, SJIncompatibleSessionException {
+                return new WaitInitialInputIfNeeded(serverSocket.accept());
+            }
+        };
+    }
 }

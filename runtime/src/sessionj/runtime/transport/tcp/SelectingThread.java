@@ -28,7 +28,6 @@ final class SelectingThread implements Runnable {
     private final ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>> accepted;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
     private static final Logger logger = Logger.getLogger(SelectingThread.class.getName());
-    private static final boolean DEBUG = false;
     private final Map<SocketChannel, SJDeserializer> deserializers;
 
     SelectingThread() throws IOException {
@@ -57,6 +56,7 @@ final class SelectingThread implements Runnable {
 
     synchronized void registerInput(SocketChannel sc, SJDeserializer deserializer) {
         assert !readyInputs.containsKey(sc) : "The channel " + sc + " has already been registered";
+        logger.finer("Registering for input: " + sc + ", deserializer: " + deserializer);
         readyInputs.put(sc, new LinkedBlockingQueue<ByteBuffer>());
         deserializers.put(sc, deserializer);
         // Don't change the order of these 2 statements: it's safe if we're interrupted after the first
@@ -83,12 +83,12 @@ final class SelectingThread implements Runnable {
      * @throws java.util.NoSuchElementException if no message is ready for reading.
      */
     public ByteBuffer dequeueFromInputQueue(SocketChannel sc) {
-        debug("Dequeueing input from channel: " + sc);
+        logger.finer("Dequeueing input from channel: " + sc);
         return readyInputs.get(sc).remove();
     }
     
     public ByteBuffer peekAtInputQueue(SocketChannel sc) {
-        debug("Peeking at inputs for channel: " + sc);
+        logger.finer("Peeking at inputs for channel: " + sc);
         return readyInputs.get(sc).peek();
     }
 
@@ -99,15 +99,9 @@ final class SelectingThread implements Runnable {
             requestedOutputs.put(sc, outputsForChan);
         }
         outputsForChan.add(ByteBuffer.wrap(bs));
-        debug("Enqueued write on: " + sc + " of: " + bs.length + " bytes");
+        logger.finer("Enqueued write on: " + sc + " of: " + bs.length + " bytes");
         pendingChangeRequests.add(new ChangeRequest(sc, CHANGEOPS, OP_WRITE));
         selector.wakeup();
-    }
-
-    private static void debug(String s) {
-        if (DEBUG) {
-            System.out.println(s);
-        }
     }
 
     public void enqueueOutput(SocketChannel sc, byte b) {
@@ -123,7 +117,7 @@ final class SelectingThread implements Runnable {
         // ConcurrentHashMap and LinkedBlockingQueue, both thread-safe,
         // and no need for atomicity here
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
-        debug("Waiting for accept on server socket: " + ssc + " in queue: " + queue);
+        logger.finer("Waiting for accept on server socket: " + ssc + " in queue: " + queue);
         return queue.take();
     }
 
@@ -155,6 +149,7 @@ final class SelectingThread implements Runnable {
     }
 
     private void doSelect() throws IOException {
+        logger.finer("About to call select()");
         selector.select();
         Iterator<SelectionKey> it = selector.selectedKeys().iterator();
         while (it.hasNext()) {
@@ -182,7 +177,7 @@ final class SelectingThread implements Runnable {
         Queue<ByteBuffer> queue = requestedOutputs.get(socketChannel);
 
         boolean writtenInFull = true;
-        debug("Writing data on: " + socketChannel);
+        logger.finer("Writing data on: " + socketChannel);
         // Write until there's no more data, or the socket's buffer fills up
         while (!queue.isEmpty() && writtenInFull) {
             ByteBuffer buf = queue.peek();
@@ -200,7 +195,7 @@ final class SelectingThread implements Runnable {
 
     private void read(SelectionKey key) throws IOException {
         SocketChannel socketChannel = (SocketChannel) key.channel();
-
+        logger.finer("Reading on: " + socketChannel);
         // Clear out our read buffer so it's ready for new data
         readBuffer.clear();
 
@@ -209,7 +204,7 @@ final class SelectingThread implements Runnable {
         try {
             numRead = socketChannel.read(readBuffer);
         } catch (IOException e) {
-            logger.log(Level.INFO, 
+            logger.log(Level.WARNING, 
                 "Remote peer forcibly closed connection, closing channel and cancelling key", e);
             key.cancel();
             socketChannel.close();
@@ -248,13 +243,13 @@ final class SelectingThread implements Runnable {
             
             if (read.finished()) {
                 ByteBuffer input = read.getCompleteInput();
-                debug("Received complete input on channel " + sc + ": " + input);
+                logger.finer("Received complete input on channel " + sc + ": " + input);
                 if (readyInputs.containsKey(sc)) {
                     readyInputs.get(sc).add(input);
                     // order is important here: adding to readyForSelect makes the read visible to select
                     readyForSelect.add(sc);
                 } else {
-                    debug("Dropping input received on deregistered channel: " + sc + ", input: " + input);
+                    logger.finer("Dropping input received on deregistered channel: " + sc + ", input: " + input);
                 }
                 
                 read = attachNewOngoingRead(key);
@@ -270,10 +265,11 @@ final class SelectingThread implements Runnable {
 
     private void accept(SelectionKey key) throws IOException {
         ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
+        logger.finer("Accepting on: " + ssc); 
         SocketChannel socketChannel = ssc.accept();
         socketChannel.configureBlocking(false);
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
-        debug("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
+        logger.finer("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
         queue.add(socketChannel);
     }
 
@@ -306,7 +302,7 @@ final class SelectingThread implements Runnable {
             }
         }, CHANGEOPS {
             void execute(Selector selector, ChangeRequest req) {
-                debug("Changing ops for: " + req.chan + " to: " + req.interestOps);
+                logger.finer("Changing ops for: " + req.chan + " to: " + req.interestOps);
                 SelectionKey key = req.chan.keyFor(selector);
                 if (key != null && key.isValid()) key.interestOps(req.interestOps);
             }

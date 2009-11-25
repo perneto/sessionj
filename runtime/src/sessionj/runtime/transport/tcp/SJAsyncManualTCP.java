@@ -2,7 +2,6 @@ package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.SJSelectorInternal;
-import sessionj.runtime.session.SJAcceptProtocolImpl;
 import sessionj.runtime.transport.*;
 
 import java.io.IOException;
@@ -27,7 +26,7 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
 
     public SJAsyncManualTCP() throws IOException {
         thread = new SelectingThread();
-        selector = new AsyncManualTCPSelector(thread, TRANSPORT_NAME, new SJAcceptProtocolImpl());
+        selector = new AsyncManualTCPSelector(thread, TRANSPORT_NAME);
         Thread t = new Thread(thread, "AsyncManualTCP Selecting Thread");
         t.setDaemon(true);
         t.start();
