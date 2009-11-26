@@ -18,6 +18,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * @author Raymond
@@ -42,9 +44,10 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
     protected SJSocket s;
     protected SJSerializer ser;
     
-   protected SJStateManager sm; 
-    
-  public SJSessionProtocolsImpl(SJSocket s, SJSerializer ser)
+   protected SJStateManager sm;
+    private static final Logger log = Logger.getLogger(SJSessionProtocolsImpl.class.getName());
+
+    public SJSessionProtocolsImpl(SJSocket s, SJSerializer ser)
 	{
 		this.s = s;
 		this.ser = ser;
@@ -89,7 +92,8 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		try
 		{
 			if (ser.getConnection() != null && !ser.isClosed()) // FIXME: need a isClosed. null in delegation case 2, session-receiver.
-			{												
+			{
+                log.finer("About to write SJFIN");
 				ser.writeControlSignal(new SJFIN()); // FIXME: currently fails for delegated sessions. 
 			
 				SJControlSignal cs = null;						
@@ -100,10 +104,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 					{
 						try
 						{
+                            log.finer("About to read control signal");
 							cs = ser.readControlSignal(); 
 						}
 						catch (SJIOException ioe) // We are prematurely closing. 
 						{
+                            log.log(Level.WARNING, "Could not read close signal", ioe);
 							// E.g. could be a non-forwarded message due to failed delegation.
 						}
 					}
@@ -147,6 +153,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 				}
 			}
 			
+            log.fine("Closing socket: " + s);
 			SJRuntime.closeSocket(s); // Maybe need to guard by an isClosed? Forwarding protocol closes sockets early.  
 		}	
 	}
