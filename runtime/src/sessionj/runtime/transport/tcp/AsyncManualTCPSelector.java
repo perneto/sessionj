@@ -57,8 +57,9 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     public SJSocket select() throws SJIOException, SJIncompatibleSessionException {
         Object chan;
         try {
+            logger.fine("Blocking dequeue...");
             chan = thread.dequeueChannelForSelect(); // blocking dequeue
-            logger.fine("Channel dequeued in select: " + chan);
+            logger.fine("Channel selected: " + chan);
         } catch (InterruptedException e) {
             throw new SJIOException(e);
         }
