@@ -1,6 +1,6 @@
 //$ bin/sessionjc -sourcepath tests/src/esmtp/sj/messages/';'tests/src/esmtp/sj/server/ tests/src/esmtp/sj/server/Server4.sj -d tests/classes/
 //$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/server/Server4.sj -d tests/classes/
-//$ bin/sessionj -cp te\sts/classes/ esmtp.sj.server.Server4 false 2525 
+//$ bin/sessionj -cp te\sts/classes/ esmtp.sj.server.Server4 false 2525 a
 
 package esmtp.sj.server;
 
@@ -132,10 +132,11 @@ public class Server4
 		.@(smtp_server_body)
 	}		
 	
-	public void run(boolean debug, int port) throws Exception
+	public void run(boolean debug, int port, String setups) throws Exception
 	{
-		//SJSessionParameters params = new SJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpServerFormatter.class);
-		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, "a", "a", SmtpServerFormatter.class);
+		// Although we currently need to give e.g. "s" and "a" as the negotiation and session transports for asynch. comm. support, non-SJ compatibility mode disables the session initiation handshake and so we can just use "a" directly (as the negotiation (and session) transport). 
+		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, setups, transports, SmtpServerFormatter.class);
+		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, setups, setups, SmtpServerFormatter.class);
 				
 		final noalias SJSelector sel = SJRuntime.selectorFor(p_select);
 		
@@ -288,6 +289,9 @@ public class Server4
 		boolean debug = Boolean.parseBoolean(args[0]);
 		int port = Integer.parseInt(args[1]);
 		
-		new Server4().run(debug, port);
+		String setups = args[2];
+		//String transports = args[3];					
+		
+		new Server4().run(debug, port, setups);
 	}
 }

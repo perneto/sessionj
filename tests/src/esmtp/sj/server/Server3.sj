@@ -1,6 +1,6 @@
 //$ bin/sessionjc -sourcepath tests/src/esmtp/sj/messages/';'tests/src/esmtp/sj/server/ tests/src/esmtp/sj/server/Server3.sj -d tests/classes/
 //$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/server/Server3.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ esmtp.sj.server.Server3 false 2525 
+//$ bin/sessionj -cp tests/classes/ esmtp.sj.server.Server3 false 2525 s 
 
 package esmtp.sj.server;
 
@@ -79,10 +79,10 @@ public class Server3
 		.@(smtp_server_body)
 	}
 		
-	public void run(boolean debug, int port) throws Exception
+	public void run(boolean debug, int port, String setups) throws Exception
 	{
-		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, new SmtpServerFormatter());
-		SJSessionParameters params = new SJSessionParameters(SJCompatibilityMode.CUSTOM, SmtpServerFormatter.class);
+		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, setups, transports, SmtpServerFormatter.class);
+		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, setups, setups, SmtpServerFormatter.class);
 		
 		final noalias SJServerSocket ss;
 		
@@ -219,7 +219,10 @@ public class Server3
 	{
 		boolean debug = Boolean.parseBoolean(args[0]);
 		int port = Integer.parseInt(args[1]);
+
+		String setups = args[2];
+		//String transports = args[3];			
 		
-		new Server3().run(debug, port);
+		new Server3().run(debug, port, setups);
 	}
 }
