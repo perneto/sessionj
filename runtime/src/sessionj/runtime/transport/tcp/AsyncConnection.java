@@ -5,11 +5,13 @@ import sessionj.runtime.transport.SJConnection;
 
 import java.nio.channels.SocketChannel;
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 class AsyncConnection implements SJConnection
 {
     private final SelectingThread thread;
     private final SocketChannel sc;
+    private static final Logger log = Logger.getLogger(AsyncConnection.class.getName());
 
     AsyncConnection(SelectingThread thread, SocketChannel sc) {
         this.thread = thread;
@@ -17,6 +19,7 @@ class AsyncConnection implements SJConnection
     }
 
     public void disconnect() {
+        log.fine("Closing channel: " + sc);
         thread.close(sc);
     }
 
@@ -39,14 +42,17 @@ class AsyncConnection implements SJConnection
 
     private ByteBuffer checkAndDequeue(int remaining) throws SJIOException {
         ByteBuffer input = thread.peekAtInputQueue(sc);
+        log.finest("Input: " + input);
         if (input == null) {
             throw new SJIOException("No available inputs on connection: " + this);
             // HACK to make the close protocol work, even if it doesn't call select
             // Update: the hack wreaks havoc for the clients connecting after the first one.
             // The message from the close protocol seems to arrive quickly enough in practice...
+            
             /*
             try {
                 input = thread.takeFromInputQueue(sc);
+                log.finer("Unblocked after take, input: " + input);
             } catch (InterruptedException e) {
                 throw new SJIOException(e);
             }
