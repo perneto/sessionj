@@ -1,7 +1,6 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.*;
 import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
 
@@ -12,10 +11,12 @@ import java.net.Socket;
 class SJManualTCPAcceptor implements SJConnectionAcceptor
 {
 	private final ServerSocket ss;
-	
-	SJManualTCPAcceptor(int port) throws SJIOException
+    private final SJTransport transport;
+
+    SJManualTCPAcceptor(int port, SJTransport transport) throws SJIOException
 	{
-		try
+        this.transport = transport;
+        try
 		{
 			ss = new ServerSocket(port); // Didn't bother to explicitly check portInUse.
 		}
@@ -38,7 +39,7 @@ class SJManualTCPAcceptor implements SJConnectionAcceptor
 			
 			s.setTcpNoDelay(SJManualTCP.TCP_NO_DELAY);
 			
-			return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream());
+			return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream(), transport);
 		}
 		catch (IOException ioe)
 		{
@@ -80,15 +81,18 @@ class SJManualTCPConnection implements SJConnection
 	
 	private final DataOutputStream dos;
 	private final DataInputStream dis;
-	
-	SJManualTCPConnection(Socket s, OutputStream os, InputStream is) {
+    private final SJTransport transport;
+
+    SJManualTCPConnection(Socket s, OutputStream os, InputStream is, SJTransport transport) {
 		this.s = s;
+        this.transport = transport;
         dos = new DataOutputStream(os);
         dis = new DataInputStream(is);
 	}
 
-	SJManualTCPConnection(Socket s, InputStream is, OutputStream os) {
+	SJManualTCPConnection(Socket s, InputStream is, OutputStream os, SJTransport transport) {
 		this.s = s;
+        this.transport = transport;
         dis = new DataInputStream(is);
         dos = new DataOutputStream(os);		
 	}
@@ -188,6 +192,10 @@ class SJManualTCPConnection implements SJConnection
 	{
 		return SJManualTCP.TRANSPORT_NAME;
 	}
+
+    public SJTransport getTransport() {
+        return transport;
+    }
 }
 
 /**
@@ -204,7 +212,7 @@ public class SJManualTCP extends AbstractSJTransport
 	
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
-		return new SJManualTCPAcceptor(port);
+		return new SJManualTCPAcceptor(port, this);
 	}
 	
 	/*public SJManualTCPConnection connect(SJServerIdentifier si) throws SJIOException
@@ -220,7 +228,7 @@ public class SJManualTCP extends AbstractSJTransport
 			s = new Socket(hostName, port);
 			s.setTcpNoDelay(TCP_NO_DELAY);
 			
-			return new SJManualTCPConnection(s, s.getOutputStream(), s.getInputStream()); // Have to get I/O streams here for exception handling.
+			return new SJManualTCPConnection(s, s.getOutputStream(), s.getInputStream(), this); // Have to get I/O streams here for exception handling.
 
 		} catch (IOException ioe) {
 			throw new SJIOException(ioe);

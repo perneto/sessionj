@@ -129,12 +129,14 @@ public class SJHTTPConnection implements SJConnection{
 				}
 		}
 	};
-	
-	public SJHTTPConnection(Socket socket, OutputStream os, InputStream is) throws IOException
+    private final SJTransport transport;
+
+    public SJHTTPConnection(Socket socket, OutputStream os, InputStream is, SJTransport transport) throws IOException
 	{		
 		this.socket = socket;
-		
-		socket.setTcpNoDelay(false);
+        this.transport = transport;
+
+        socket.setTcpNoDelay(false);
 		
 		dos = new DataOutputStream(os);
 		dis = new DataInputStream(is);
@@ -359,6 +361,10 @@ public class SJHTTPConnection implements SJConnection{
 	public String getTransportName(){
 		
 		return SJHTTP.TRANSPORT_NAME;
-	}	
-	
+	}
+
+    public SJTransport getTransport() {
+        return transport;
+    }
+
 }

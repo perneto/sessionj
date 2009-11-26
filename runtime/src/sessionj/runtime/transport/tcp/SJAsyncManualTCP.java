@@ -34,7 +34,7 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
 
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException {
         try {
-            return new AsyncTCPAcceptor(thread, port);
+            return new AsyncTCPAcceptor(thread, port, this);
         } catch (IOException e) {
             throw new SJIOException("Could not open acceptor on (physical) port: " + port, e);
         }
@@ -49,7 +49,7 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
             s.setTcpNoDelay(TCP_NO_DELAY);
 
             // TODO: Allow async operation on the client too.
-            return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream()) {
+            return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream(), this) {
                 @Override
                 public String getTransportName() {
                     return TRANSPORT_NAME;
@@ -69,6 +69,11 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
 
     public SJSelectorInternal transportSelector() {
         return selector;
+    }
+
+    @Override
+    public boolean supportsBlocking() {
+        return true;
     }
 
     public boolean portInUse(int port)

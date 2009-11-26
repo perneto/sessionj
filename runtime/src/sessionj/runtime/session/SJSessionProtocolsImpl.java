@@ -105,6 +105,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 						try
 						{
                             log.finer("About to read control signal");
+                            
 							cs = ser.readControlSignal(); 
 						}
 						catch (SJIOException ioe) // We are prematurely closing. 

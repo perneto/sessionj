@@ -90,25 +90,21 @@ made to be able to cope with such interleaving.
 
 package sessionj.runtime.transport.udp;
 
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
-import java.net.*;
-import java.util.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJTransport;
 
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
-
-import sessionj.runtime.transport.*;
-
-import static sessionj.runtime.util.SJRuntimeUtils.*;
+import java.net.DatagramSocket;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
 
 public class SJUDPConnection implements SJConnection, Runnable
 {
 
-    private DatagramChannel datagramChannel;
-    private SocketAddress socketAddress;
-    private DatagramSocket socket;
+    private final DatagramChannel datagramChannel;
+    private final SocketAddress socketAddress;
+    private final DatagramSocket socket;
 
     private boolean closing = false;
 
@@ -124,34 +120,33 @@ public class SJUDPConnection implements SJConnection, Runnable
     // NB: (1) ack and ack-ack only use a header
     //     (2) short messages are truncated when sending
     //         but always stored in a 1500 bytes slot
-    private final int maxSlot = 1024; 
-    private final int dataSize = 1500;
-    private final int headerSize = 12; // 4bytes (for int) x 3
-    private final int packetSize = dataSize+headerSize;
-    private final int receiveInterval = 1; // in ms
+    private static final int MAX_SLOT = 1024; 
+    private static final int DATA_SIZE = 1500;
+    private static final int HEADER_SIZE = 12; // 4bytes (for int) x 3
+    private static final int PACKET_SIZE = DATA_SIZE + HEADER_SIZE;
+    private static final int RECEIVE_INTERVAL = 1; // in ms
 
     // The send/receive packets which we reuse.
-    private byte [] sendingPacket = new byte[packetSize];
-    private byte [] receivedPacket = new byte[packetSize];
+    private byte [] receivedPacket = new byte[PACKET_SIZE];
     // The ack and ack-ack packet which we reuse.
-    private byte [] ackPacket = new byte[headerSize];
+    private final byte [] ackPacket = new byte[HEADER_SIZE];
     // reused header
-    private int [] header = new int[headerSize/4]; 
+    private final int [] header = new int[HEADER_SIZE /4]; 
 
     // buffer for sending
-    private byte [][] sbuf = new byte[packetSize][maxSlot];
-    private boolean [] sAcked = new boolean[maxSlot];
+    private final byte [][] sbuf = new byte[PACKET_SIZE][MAX_SLOT];
+    private final boolean [] sAcked = new boolean[MAX_SLOT];
 
     // buffer for receiving
-    private byte [][] rbuf = new byte[packetSize][maxSlot];
-    private boolean [] rFilled = new boolean[maxSlot];
+    private byte [][] rbuf = new byte[PACKET_SIZE][MAX_SLOT];
+    private final boolean [] rFilled = new boolean[MAX_SLOT];
 
     // The two cursors for sending buffer:
     //   (1) nextSendingPacket: what it will send next
     //   (2) ackedUptoThis: up to here contiguously
     //       acked.
     // s.t. the invariant
-    //     nextSendingPacket - ackedUptoThis < maxSlot
+    //     nextSendingPacket - ackedUptoThis < MAX_SLOT
     // is always obeyed.
     private int nextSendingPacket = 0;
     private int ackedUptoThis = -1; //
@@ -172,40 +167,41 @@ public class SJUDPConnection implements SJConnection, Runnable
     // For an ack-ack we uses 
     //     (1)  maxNMP 
     //     (2)  ackTimes
-    //     (3)  maxAckTimes
+    //     (3)  MAX_ACK_TIMES
     // (1) is the receiver's record that its ack is acked
     // (NMP is next missing packet).
-    // (2)(3) are for: for maxAckTimes of acks, an ack-ack 
+    // (2)(3) are for: for MAX_ACK_TIMES of acks, an ack-ack 
     // will be sent.
     private int maxNMP = -1;
     private int ackTimes = 0;
-    private int maxAckTimes = 10;
+    private static final int MAX_ACK_TIMES = 10;
 
     // Parameters for repeatedack 
     //   (1) ackRepeated reaches maxAckRepeated 
     //       then resend
-    //   (2) ackCheckInterval (ms) to check acks
+    //   (2) ACK_CHECK_INTERVAL (ms) to check acks
     // NB: We can also send acks more sparingly
     private int ackRepeated = 0;
-    private final int maxAckRepeated = 3;
+    private static final int maxAckRepeated = 3;
 
     // helper thread is stored here
-    Thread helper;
-    private final long ackCheckInterval = 100;
+    private final Thread helper;
+    private static final long ACK_CHECK_INTERVAL = 100;
 
     // whether we wish to invoke a thread or not.
-    volatile boolean helperNeeded = false;
-    volatile boolean closed = false;
+    private volatile boolean helperNeeded = false;
+    private final SJTransport transport;
 
-    public SJUDPConnection(DatagramChannel datagramChannel)
+    public SJUDPConnection(DatagramChannel datagramChannel, SJTransport transport)
     {
      // (1) all the initialisation above are performed.
      // (2) UDP channel (assuming it is already connected)
      this.datagramChannel = datagramChannel;
-     this.socketAddress = 
+        this.transport = transport;
+        this.socketAddress = 
          datagramChannel.socket().getRemoteSocketAddress();
      // (3) initialise arrays.
-     for (int i=0; i<this.maxSlot; i++) {
+     for (int i=0; i< MAX_SLOT; i++) {
          // no send packet acked yet.
          this.sAcked[i]=false;
          this.rFilled[i]=false;
@@ -232,7 +228,6 @@ public class SJUDPConnection implements SJConnection, Runnable
          this.helper.join();
      }
      catch(Exception e) {
-         ;
      }
     }
 
@@ -242,14 +237,14 @@ public class SJUDPConnection implements SJConnection, Runnable
          // (1) let the helper sleep and wait until it does sleep.
          helperSleeps();
          // (2) send (and store) data
-         final int packetsNeeded = 
-            (bs.length / this.dataSize) +
-            (bs.length % this.dataSize == 0? 0: 1);
+         int packetsNeeded = 
+            (bs.length / this.DATA_SIZE) +
+            (bs.length % this.DATA_SIZE == 0? 0: 1);
          for (int i=0; i<packetsNeeded; i++) {
-            int offset = i*this.dataSize;
+            int offset = i*this.DATA_SIZE;
             int length = ((i<packetsNeeded-1)?
-                        this.dataSize:
-                        (bs.length % this.dataSize));
+                        this.DATA_SIZE :
+                        (bs.length % this.DATA_SIZE));
             sendDataPacket(bs, offset, length);
          }
          // (3) invoke helper thread.
@@ -265,13 +260,13 @@ public class SJUDPConnection implements SJConnection, Runnable
          helperSleeps();
          // (2) receive and put data into bs
          int packetsNeeded = 
-          (bs.length / this.dataSize) +
-          (bs.length % this.dataSize == 0? 0: 1);
+          (bs.length / this.DATA_SIZE) +
+          (bs.length % this.DATA_SIZE == 0? 0: 1);
          for (int i=0; i<packetsNeeded; i++) {
-          int offset = i*this.dataSize;
+          int offset = i*this.DATA_SIZE;
           int length = ((i<packetsNeeded-1)?
-                     this.dataSize:
-                     (bs.length % this.dataSize));
+                     this.DATA_SIZE :
+                     (bs.length % this.DATA_SIZE));
           if (this.nextReadingPacket < this.nextMissingPacket) {
               // Read from the rbuf at this.nextReadigPacket
               // It also incretment this.nextReadingPacket
@@ -344,7 +339,7 @@ public class SJUDPConnection implements SJConnection, Runnable
             this.wait();
          else {
             Thread.currentThread(). 
-               sleep(this.ackCheckInterval);
+               sleep(this.ACK_CHECK_INTERVAL);
          }
      }
      } catch (Exception e) {
@@ -384,7 +379,7 @@ public class SJUDPConnection implements SJConnection, Runnable
        throws SJIOException
     {
        try {
-           if (length>this.dataSize ||
+           if (length>this.DATA_SIZE ||
               offset+length-1>bs.length)
                throw new SJIOException();
            // (1) needs one free slot in this.sbuf.
@@ -423,7 +418,7 @@ public class SJUDPConnection implements SJConnection, Runnable
                   toExit = true;
               else if (!received) {
                   // sleep a bit then rapidly repeat 
-              Thread.currentThread().sleep(this.receiveInterval);
+              Thread.currentThread().sleep(this.RECEIVE_INTERVAL);
               }
            }
        } catch (Exception ioe) {
@@ -468,7 +463,7 @@ public class SJUDPConnection implements SJConnection, Runnable
               } else if (isAck()) {
                   // ack is already processed so only ack-ack
                   this.ackTimes++;
-                  if (this.ackTimes >= this.maxAckTimes) {
+                  if (this.ackTimes >= this.MAX_ACK_TIMES) {
                      sendAckAck();
                      this.ackTimes=0;
                   }
@@ -499,7 +494,7 @@ public class SJUDPConnection implements SJConnection, Runnable
         writeHeader(data);
         // (4) copy from the bs
         for (int i=0; i< length; i++) 
-            data[this.headerSize+i]=bs[offset+i];
+            data[this.HEADER_SIZE +i]=bs[offset+i];
         // (5) set the flag.
         this.sAcked[slot]=false;
     }
@@ -509,7 +504,7 @@ public class SJUDPConnection implements SJConnection, Runnable
     void copyFromReceivedBuffer(byte[] bs, int offset, int length) {
        // this is the slot to read from
        int slot = getSlot(this.nextReadingPacket);
-       int start = this.headerSize;
+       int start = this.HEADER_SIZE;
        byte [] data = this.rbuf[slot];
        for (int i=0; i<length; i++)
            bs[offset+i]=data[start+i];
@@ -615,14 +610,14 @@ public class SJUDPConnection implements SJConnection, Runnable
     }
 
     int getSlot (int packetNumber) {
-       return ((packetNumber / this.maxSlot) - 1);
+       return ((packetNumber / this.MAX_SLOT) - 1);
     }
            
     // no more sending
     boolean sendBufferFull () {
        return  (this.nextSendingPacket - this.ackedUptoThis 
                > 
-               this.maxSlot);
+               this.MAX_SLOT);
     }
 
     //RAY
@@ -647,7 +642,7 @@ public class SJUDPConnection implements SJConnection, Runnable
     // max receivable packet (sender automatically does not
     // exceed this, as far as all are working fine)
     public int getMaxReceivablePacket() {
-       return (this.nextReadingPacket + this.maxSlot - 1);
+       return (this.nextReadingPacket + this.MAX_SLOT - 1);
     }
 
     // is this.header an ack?
@@ -733,6 +728,10 @@ public class SJUDPConnection implements SJConnection, Runnable
 
     public String getTransportName() {
        return SJUDP.TRANSPORT_NAME;
+    }
+
+    public SJTransport getTransport() {
+        return transport;
     }
 
     public int getLocalPort() {

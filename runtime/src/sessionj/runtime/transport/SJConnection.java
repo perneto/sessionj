@@ -26,4 +26,5 @@ public interface SJConnection
 	int getLocalPort();
 
 	String getTransportName();
+    SJTransport getTransport();
 }
