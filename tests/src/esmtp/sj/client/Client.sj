@@ -1,6 +1,7 @@
 //$ bin/sessionjc -sourcepath tests/src/esmtp/sj/client/messages/';'tests/src/esmtp/sj/client/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
 //$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
 //$ bin/sessionj -cp tests/classes/ esmtp.sj.client.Client false smtp.cc.ic.ac.uk 25 sa 
+//$ $ bin/sessionj -Djava.util.logging.config.file=logging.properties -cp tests/classes/ esmtp.sj.client.Client false localhost 2525 sa
 
 package esmtp.sj.client;
 
