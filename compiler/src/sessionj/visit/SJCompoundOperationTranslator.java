@@ -237,6 +237,9 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 			}
 		}
 		
+		translation.append("else { throw new SJIOException(\"Unexpected inbranch label: \" + %s); }");
+		mapping.add(labVar);
+		
 		//FIXME: need a final else case to better handle, if runtime monitoring is disabled, non-sj-compatibility mode and in case of malicious peers.
 		
 		translation.append('}');

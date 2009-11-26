@@ -1,6 +1,6 @@
 //$ bin/sessionjc -sourcepath tests/src/esmtp/sj/client/messages/';'tests/src/esmtp/sj/client/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
 //$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ esmtp.sj.client.Client false smtp.cc.ic.ac.uk 25 s 
+//$ bin/sessionj -cp tests/classes/ esmtp.sj.client.Client false smtp.cc.ic.ac.uk 25 sa 
 
 package esmtp.sj.client;
 
