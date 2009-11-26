@@ -32,6 +32,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     @SuppressWarnings({"MethodParameterOfConcreteClass"})
     public boolean registerAccept(SJServerSocket ss) throws IOException {
         ServerSocketChannel ssc = retrieveServerSocketChannel(ss);
+        
         if (ssc != null) {
             // No need to do the real registration with the selecting thread,
             // this is done by the acceptor, ahead of time.

@@ -281,6 +281,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		
 		r = (SJRecursion) r.body(sjnf.Block(pos, stmts));
 	
+		/*// Appending the recursion-exit hook. // Disabled to support delegation from within recursion scopes (socket will be null on recursion-exit). 
 		List<Local> targets = new LinkedList<Local>(); // FIXME: should be SJLocalSockets.
 		
 		for (String sjname : soe.targetNames()) // Unicast optimisation for SJRecursionExit is done within the NodeFactory method - this pass comes after SJUnicastOptimiser.
@@ -291,9 +292,10 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 		SJRecursionExit re = sjnf.SJRecursionExit(pos, targets); // Problem: the sockets argument array is not yet filled (for other (internal) basic operations, this was done earlier by SJSessionOperationParser)...								
 		
 		re = (SJRecursionExit) SJVariableParser.parseSJSessionOperation(this, re); // ...Current fix: use those routines form those earlier passes.   
-		re = (SJRecursionExit) SJSessionOperationParser.fixSJBasicOperationArguments(this, re);
+		re = (SJRecursionExit) SJSessionOperationParser.fixSJBasicOperationArguments(this, re);*/
 		
-    return sjnf.Block(pos, r, sjnf.Eval(pos, re));
+    //return sjnf.Block(pos, r, sjnf.Eval(pos, re));
+		return sjnf.Block(pos, r);
 	}
 	
 	private boolean shouldBuildAndCheckTypes(Object node) 

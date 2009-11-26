@@ -115,7 +115,7 @@ public class SJTransportManager_c extends SJTransportManager
         List<SJTransport> ss = params.getNegotiationTransports();
         List<SJTransport> ts = params.getSessionTransports();
         Collection<String> sn = transportNames(ss);
-
+        
         return openAcceptorGroup(port, ss, ts, sn, params);
 	}
 
@@ -402,7 +402,7 @@ public class SJTransportManager_c extends SJTransportManager
 	{
 		SJConnection conn = null;
 		
-		for (SJTransport t : ss)
+		for (SJTransport t : ss) // The negotiation transports.
 		{
 			try
 			{
@@ -432,7 +432,7 @@ public class SJTransportManager_c extends SJTransportManager
 				
 		SJCompatibilityMode mode = params.getCompatibilityMode();
 		
-		if (mode == SJCompatibilityMode.CUSTOM) // Bypass negotiation protocol: go straight to session-layer accept/request protocol.
+		if (mode == SJCompatibilityMode.CUSTOM) // Bypass negotiation protocol: go straight to session-layer accept/request protocol. Basically custom mode just tries the negotiation transports one-by-one, and session transports are ignored. Perhaps makes more sense to be the other way round, but can see it is convenient due to the way the negotiation protocol is implemented for now.
 		{
 			return conn;
 		}

@@ -19,6 +19,7 @@ class SJSelectorAllTransports implements SJSelector {
 
     SJSelectorAllTransports(Iterable<SJTransport> transports) {
         transportSelectors = new LinkedList<SJSelectorInternal>();
+        
         for (SJTransport t : transports) {
             SJSelectorInternal trSel = t.transportSelector();
             if (trSel != null) transportSelectors.add(trSel);
@@ -28,6 +29,7 @@ class SJSelectorAllTransports implements SJSelector {
     @SuppressWarnings({"MethodParameterOfConcreteClass"})
     public void registerAccept(SJServerSocket ss) throws SJIOException {
         Collection<Boolean> results = new HashSet<Boolean>();
+      	
         for (SJSelectorInternal sel : transportSelectors)
             try {
                 results.add(sel.registerAccept(ss));
