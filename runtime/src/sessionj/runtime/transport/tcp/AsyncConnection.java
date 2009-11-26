@@ -2,6 +2,7 @@ package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJTransport;
 
 import java.nio.channels.SocketChannel;
 import java.nio.ByteBuffer;
@@ -11,11 +12,13 @@ class AsyncConnection implements SJConnection
 {
     private final SelectingThread thread;
     private final SocketChannel sc;
+    private final SJTransport transport;
     private static final Logger log = Logger.getLogger(AsyncConnection.class.getName());
 
-    AsyncConnection(SelectingThread thread, SocketChannel sc) {
+    AsyncConnection(SelectingThread thread, SocketChannel sc, SJTransport transport) {
         this.thread = thread;
         this.sc = sc;
+        this.transport = transport;
     }
 
     public void disconnect() {
@@ -96,6 +99,10 @@ class AsyncConnection implements SJConnection
     public String getTransportName()
     {
         return SJAsyncManualTCP.TRANSPORT_NAME;
+    }
+
+    public SJTransport getTransport() {
+        return transport;
     }
 
     SocketChannel socketChannel() {

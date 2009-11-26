@@ -1,7 +1,6 @@
 package sessionj.runtime.transport.http;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.*;
 
 import javax.net.ssl.*;
@@ -21,7 +20,7 @@ public class SJHTTPS extends AbstractSJTransport {
 	
 	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException{
 		
-		return new SJHTTPSAcceptor(port);
+		return new SJHTTPSAcceptor(port, this);
 	}
 	
 	/*public SJConnection connect(SJServerIdentifier si) throws SJIOException{
@@ -62,7 +61,7 @@ public class SJHTTPS extends AbstractSJTransport {
 		
 			SSLSocket conn = (SSLSocket)ssf.createSocket(hostName, port);
 			
-			return new SJHTTPConnection(conn, conn.getOutputStream(), conn.getInputStream());
+			return new SJHTTPConnection(conn, conn.getOutputStream(), conn.getInputStream(), this);
 		}
 		catch (IOException ioe)
 		{

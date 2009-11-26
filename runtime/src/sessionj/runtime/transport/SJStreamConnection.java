@@ -16,11 +16,13 @@ abstract public class SJStreamConnection implements SJConnection
 {
 	private final DataOutputStream dos;
 	private final DataInputStream dis;
-	
-	protected SJStreamConnection(InputStream in, OutputStream out)
+    private final SJTransport transport;
+
+    protected SJStreamConnection(InputStream in, OutputStream out, SJTransport transport)
     // HACK: to avoid deadlock when setting up I/O streams.
 	// ie. order of parameters, in before out
     {
+        this.transport = transport;
         dis = new DataInputStream(in);
         dos = new DataOutputStream(out);
 	}
@@ -101,4 +103,8 @@ abstract public class SJStreamConnection implements SJConnection
 			throw new SJIOException(ioe);
 		}				
 	}
+
+    public SJTransport getTransport() {
+        return transport;
+    }
 }

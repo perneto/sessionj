@@ -67,8 +67,9 @@ public class SJHTTPServletConnection implements SJConnection
 	private boolean closed;
 	
 	private static final String localHostName; // Because getLocalAddress on s seems bugged.
-	
-	static 
+    private final SJTransport transport;
+
+    static 
 	{
 		try
 		{
@@ -81,12 +82,13 @@ public class SJHTTPServletConnection implements SJConnection
 		}
 	}
 	
-	public SJHTTPServletConnection(String hostName, int port) throws SJIOException
+	public SJHTTPServletConnection(String hostName, int port, SJTransport transport) throws SJIOException
 	{		
 		this.hostName = hostName;
 		this.port = port;
+        this.transport = transport;
 
-		this.closed = false;
+        this.closed = false;
 		
 		try
 		{
@@ -119,10 +121,11 @@ public class SJHTTPServletConnection implements SJConnection
 		}
 	}
 	
-	public SJHTTPServletConnection(Socket s, InputStream is, OutputStream os) throws SJIOException
+	public SJHTTPServletConnection(Socket s, SJTransport transport) throws SJIOException
 	{
 		this.s = s;
-		this.hostName = s.getInetAddress().getHostName();
+        this.transport = transport;
+        this.hostName = s.getInetAddress().getHostName();
 		this.port = s.getPort();
 		
 		try
@@ -560,8 +563,12 @@ public class SJHTTPServletConnection implements SJConnection
 	{	
 		return SJHTTPServlet.TRANSPORT_NAME;
 	}
-	
-	public boolean usingSJServletProxy()
+
+    public SJTransport getTransport() {
+        return transport;
+    }
+
+    public boolean usingSJServletProxy()
 	{
 		return usingServletProxy;
 	}
