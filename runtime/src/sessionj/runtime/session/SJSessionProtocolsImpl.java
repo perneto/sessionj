@@ -632,18 +632,28 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	    return isPeerInt;
 	}
 
-	public boolean recurse(String lab) throws SJIOException // FIXME: recursion operations need to update type monitor; see SJNonSjCompatibilityProtocols.
+	public boolean recurse(String lab) throws SJIOException 
 	{
+		if (RUNTIME_MONITORING)
+		{
+			sm.recurse(new SJLabel(lab));
+		}	  		
+		
 		return true;
 	}
 	
-	//public boolean recursionEnter() throws SJIOException // FIXME: recursion operations need to update type monitor; see SJNonSjCompatibilityProtocols.
+	//public boolean recursionEnter() throws SJIOException 
 	public boolean recursionEnter(String lab) throws SJIOException 
 	{
+		if (RUNTIME_MONITORING)
+		{
+			sm.recursion(new SJLabel(lab));
+		}		
+		
 		return false;
 	}
 	
-	public boolean recursionExit() throws SJIOException
+	public boolean recursionExit() throws SJIOException // Recursion-exit currently doesn't do anything (wrt. to runtime type monitoring). // This hook is now not generated at all to support delegation from within recursion scopes.
 	{
 		return false;
 	}    
