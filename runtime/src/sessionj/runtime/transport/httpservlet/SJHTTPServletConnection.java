@@ -18,7 +18,7 @@ import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
  * FIXME: improve byte array encoding routines. Direct connections not yet done. Connections from failed Client-Servlet sessions not cleaned up at Servlet (Server hangs); probably need timeouts. Need to allow for "Connection: close", i.e. don't rely on persistence. Use "Connection: close" to clean up Servlet side.       
  *
  */
-public class SJHTTPServletConnection implements SJConnection
+public class SJHTTPServletConnection extends AbstractSJConnection
 {
 	private static final boolean debug = false;
 	//private static final boolean debug = true;
@@ -54,7 +54,7 @@ public class SJHTTPServletConnection implements SJConnection
 	
 	private boolean usingServletProxy;
 	
-	private String hostName;
+	private final String hostName;
 	private int port;
 	
 	private Socket s;
@@ -67,7 +67,6 @@ public class SJHTTPServletConnection implements SJConnection
 	private boolean closed;
 	
 	private static final String localHostName; // Because getLocalAddress on s seems bugged.
-    private final SJTransport transport;
 
     static 
 	{
@@ -83,12 +82,12 @@ public class SJHTTPServletConnection implements SJConnection
 	}
 	
 	public SJHTTPServletConnection(String hostName, int port, SJTransport transport) throws SJIOException
-	{		
-		this.hostName = hostName;
+	{
+        super(transport);
+        this.hostName = hostName;
 		this.port = port;
-        this.transport = transport;
 
-        this.closed = false;
+        closed = false;
 		
 		try
 		{
@@ -123,8 +122,8 @@ public class SJHTTPServletConnection implements SJConnection
 	
 	public SJHTTPServletConnection(Socket s, SJTransport transport) throws SJIOException
 	{
-		this.s = s;
-        this.transport = transport;
+        super(transport);
+        this.s = s;
         this.hostName = s.getInetAddress().getHostName();
 		this.port = s.getPort();
 		
@@ -559,15 +558,6 @@ public class SJHTTPServletConnection implements SJConnection
 		return s.getLocalPort();
 	}	
 	
-	public String getTransportName()
-	{	
-		return SJHTTPServlet.TRANSPORT_NAME;
-	}
-
-    public SJTransport getTransport() {
-        return transport;
-    }
-
     public boolean usingSJServletProxy()
 	{
 		return usingServletProxy;

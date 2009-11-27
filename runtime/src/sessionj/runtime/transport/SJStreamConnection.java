@@ -12,17 +12,15 @@ import java.io.*;
  * @author Raymond
  *
  */
-abstract public class SJStreamConnection implements SJConnection
-{
+abstract public class SJStreamConnection extends AbstractSJConnection {
 	private final DataOutputStream dos;
 	private final DataInputStream dis;
-    private final SJTransport transport;
 
     protected SJStreamConnection(InputStream in, OutputStream out, SJTransport transport)
     // HACK: to avoid deadlock when setting up I/O streams.
 	// ie. order of parameters, in before out
     {
-        this.transport = transport;
+        super(transport);
         dis = new DataInputStream(in);
         dos = new DataOutputStream(out);
 	}
@@ -104,7 +102,4 @@ abstract public class SJStreamConnection implements SJConnection
 		}				
 	}
 
-    public SJTransport getTransport() {
-        return transport;
-    }
 }

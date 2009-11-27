@@ -75,24 +75,23 @@ class SJManualTCPAcceptor implements SJConnectionAcceptor
 	}
 }
 
-class SJManualTCPConnection implements SJConnection 
+class SJManualTCPConnection extends AbstractSJConnection 
 {
 	private final Socket s;
 	
 	private final DataOutputStream dos;
 	private final DataInputStream dis;
-    private final SJTransport transport;
 
     SJManualTCPConnection(Socket s, OutputStream os, InputStream is, SJTransport transport) {
-		this.s = s;
-        this.transport = transport;
+        super(transport);
+        this.s = s;
         dos = new DataOutputStream(os);
         dis = new DataInputStream(is);
 	}
 
 	SJManualTCPConnection(Socket s, InputStream is, OutputStream os, SJTransport transport) {
-		this.s = s;
-        this.transport = transport;
+        super(transport);
+        this.s = s;
         dis = new DataInputStream(is);
         dos = new DataOutputStream(os);		
 	}
@@ -187,15 +186,6 @@ class SJManualTCPConnection implements SJConnection
 	{
 		return s.getLocalPort();
 	}
-	
-	public String getTransportName()
-	{
-		return SJManualTCP.TRANSPORT_NAME;
-	}
-
-    public SJTransport getTransport() {
-        return transport;
-    }
 }
 
 /**

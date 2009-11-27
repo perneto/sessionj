@@ -4,6 +4,7 @@ import sessionj.runtime.session.OngoingRead;
 import sessionj.runtime.session.SJDeserializer;
 import static sessionj.runtime.transport.tcp.SelectingThread.ChangeAction.*;
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.util.Pair;
 
 import java.io.IOException;
@@ -27,7 +28,7 @@ final class SelectingThread implements Runnable {
     private final BlockingQueue<Object> readyForSelect;
     private final ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>> accepted;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
-    private static final Logger log = Logger.getLogger(SelectingThread.class.getName());
+    private static final Logger log = SJRuntimeUtils.getLogger(SelectingThread.class);
     private final Map<SocketChannel, SJDeserializer> deserializers;
 
     SelectingThread() throws IOException {
@@ -147,14 +148,18 @@ final class SelectingThread implements Runnable {
     }
 
     private void updateRegistrations() throws IOException {
+        Set<SelectableChannel> modified = new HashSet<SelectableChannel>();
+        Collection<ChangeRequest> postponed = new LinkedList<ChangeRequest>();
         while (!pendingChangeRequests.isEmpty()) {
             ChangeRequest req = pendingChangeRequests.remove();
-            req.execute(selector);
+            boolean done = req.execute(selector, modified);
+            if (!done) postponed.add(req);
         }
+        pendingChangeRequests.addAll(postponed);
     }
 
     private void doSelect() throws IOException {
-        log.finer("About to call select()");
+        log.finer("NIO select...");
         selector.select();
         Iterator<SelectionKey> it = selector.selectedKeys().iterator();
         while (it.hasNext()) {
@@ -181,8 +186,8 @@ final class SelectingThread implements Runnable {
         SocketChannel socketChannel = (SocketChannel) key.channel();
         Queue<ByteBuffer> queue = requestedOutputs.get(socketChannel);
 
-        boolean writtenInFull = true;
         log.finer("Writing data on: " + socketChannel);
+        boolean writtenInFull = true;
         // Write until there's no more data, or the socket's buffer fills up
         while (!queue.isEmpty() && writtenInFull) {
             ByteBuffer buf = queue.peek();
@@ -294,33 +299,59 @@ final class SelectingThread implements Runnable {
             this.interestOps = interestOps;
         }
 
-        void execute(Selector selector) throws IOException {
-            changeAction.execute(selector, this);
+        boolean execute(Selector selector, Set<SelectableChannel> modified) throws IOException {
+            return changeAction.execute(selector, this, modified);
         }
     }
 
     enum ChangeAction {
         REGISTER {
-            void execute(Selector selector, ChangeRequest req) throws ClosedChannelException {
+            boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws ClosedChannelException {
+                log.finer("Registering chan: " + req.chan + ", ops: " + req.interestOps + translateOps(req.interestOps));
                 req.chan.register(selector, req.interestOps);
+                return true;
             }
         }, CHANGEOPS {
-            void execute(Selector selector, ChangeRequest req) {
-                log.finer("Changing ops for: " + req.chan + " to: " + req.interestOps);
+            boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) {
                 SelectionKey key = req.chan.keyFor(selector);
-                if (key != null && key.isValid()) key.interestOps(req.interestOps);
+                if (key != null && key.isValid() && key.interestOps() != req.interestOps) {
+                    if (!modified.contains(req.chan)){
+                        log.finer("Changing ops for: " + req.chan 
+                            + " to: " + req.interestOps + translateOps(req.interestOps));
+                        key.interestOps(req.interestOps);
+                        modified.add(req.chan);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
             }
         }, CLOSE {
-            void execute(Selector selector, ChangeRequest req) throws IOException {
+            boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws IOException {
+                log.finer("Closing channel: " + req.chan);
                 // Implicitly cancels all existing selection keys for that channel (see javadoc).
                 req.chan.close();
+                return true;
             }
         }, CANCEL {
-            void execute(Selector selector, ChangeRequest req) {
+            boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) {
                 SelectionKey key = req.chan.keyFor(selector);
                 if (key != null) key.cancel();
+                return true;
             }};
-        abstract void execute(Selector selector, ChangeRequest req) throws IOException;
+
+        private static String translateOps(int interestOps) {
+            switch (interestOps) {
+                case 1: return " (OP_READ)";
+                case 4: return " (OP_WRITE)";
+                case 8: return " (OP_CONNECT)";
+                case 16: return " (OP_ACCEPT)";
+                default: return "";
+            }
+        }
+
+        abstract boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws IOException;
     }
 
 }

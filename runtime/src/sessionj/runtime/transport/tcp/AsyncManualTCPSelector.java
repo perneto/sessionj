@@ -1,6 +1,8 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.util.SJRuntimeUtils;
+import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.net.*;
 import sessionj.util.Pair;
 
@@ -15,16 +17,17 @@ import java.util.logging.Logger;
 /**
  */
 class AsyncManualTCPSelector implements SJSelectorInternal {
-    private static final Logger logger = Logger.getLogger(AsyncManualTCPSelector.class.getName());
+    private static final Logger logger = SJRuntimeUtils.getLogger(AsyncManualTCPSelector.class);
     
     private final SelectingThread thread;
-    private final String transportName;
+    private final SJTransport transport;
     private final Map<SocketChannel, InputState> registeredInputs;
     private final Map<ServerSocketChannel, SJServerSocket> registeredAccepts;
+    
 
-    AsyncManualTCPSelector(SelectingThread thread, String transportName) {
+    AsyncManualTCPSelector(SelectingThread thread, SJTransport transport) {
         this.thread = thread;
-        this.transportName = transportName;
+        this.transport = transport;
         registeredInputs = new HashMap<SocketChannel, InputState>();
         registeredAccepts = new HashMap<ServerSocketChannel, SJServerSocket>();
     }
@@ -54,7 +57,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         return false;
     }
 
-    public SJSocket select() throws SJIOException, SJIncompatibleSessionException {
+    public SJSocket select(boolean considerSessionType) throws SJIOException, SJIncompatibleSessionException {
         Object chan;
         try {
             logger.fine("Blocking dequeue...");
@@ -67,18 +70,23 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
             SocketChannel sc = (SocketChannel) chan;
             // If the channel was deregistered, but we didn't finish reading all events:
             // select another one, dropping this one
-            if (!registeredInputs.containsKey(sc)) return select();
+            if (!registeredInputs.containsKey(sc)) {
+                logger.finer("Selected deregistered channel: calling select again");
+                return select(true);
+            }
             
             InputState state = registeredInputs.get(sc);
             InputState newState = state.receivedInput();
             registeredInputs.put(sc, newState);
             SJSocket s = newState.sjSocket();
-            if (s == null) 
-                return select();
-            else if (s.remainingSessionType() == null) {
+            if (s == null) { 
+                logger.finest("Read: InputState not complete: calling select again");
+                return select(true);
+            } else if (considerSessionType && s.remainingSessionType() == null) {
                 // User-level inputs all done - this must be from the close protocol
+                logger.finer("remainingSessionType is null: calling select again and deregistering socket " + s);
                 deregister(sc);
-                return select();
+                return select(true);
             }
             else return s;
         } else {
@@ -91,7 +99,10 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
 
             InputState initialState = registeredInputs.get(p.second);
             SJSocket s = initialState.sjSocket();
-            if (s == null) return select();
+            if (s == null) {
+                logger.finest("Accept: InputState not complete: calling select again");
+                return select(true);
+            }
             else return s;
         }
     }
@@ -113,15 +124,12 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     }
 
     public void close() throws SJIOException {
+        logger.finer("Closing selector");
         Collection<SelectableChannel> channels = new LinkedList<SelectableChannel>();
         channels.addAll(registeredAccepts.keySet());
         channels.addAll(registeredInputs.keySet());
         for (SelectableChannel chan : channels) {
-            try {
-                chan.close();
-            } catch (IOException e) {
-                logger.log(Level.WARNING, "Could not close channel", e);
-            }
+            thread.close(chan);
         }
     }
 
@@ -135,7 +143,8 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     }
     
     private ServerSocketChannel retrieveServerSocketChannel(SJServerSocket ss) {
-        AsyncTCPAcceptor acceptor = (AsyncTCPAcceptor) ss.getAcceptorFor(transportName);
+        AsyncTCPAcceptor acceptor = (AsyncTCPAcceptor) 
+            ss.getAcceptorFor(transport.getTransportName());
         if (acceptor == null) {
             return null;
         } else {
@@ -144,10 +153,6 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     }
 
     private boolean isOurSocket(SJSocket s) {
-        return isOurName(s.getConnection().getTransportName());
-    }
-
-    private boolean isOurName(Object name) {
-        return name.equals(transportName);
+        return transport.equals(s.getConnection().getTransport());
     }
 }

@@ -4,6 +4,7 @@ import sessionj.runtime.SJIOException;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.util.ValueLatch;
 import sessionj.runtime.util.NamedThreadFactory;
+import sessionj.runtime.util.SJRuntimeUtils;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,7 +16,7 @@ class SJSelectorAllTransports implements SJSelector {
     private final Collection<SJSelectorInternal> transportSelectors;
     private static final String UNSUPPORTED = "None of the transports support non-blocking mode";
     private final NamedThreadFactory fact = new NamedThreadFactory();
-    private static final Logger log = Logger.getLogger(SJSelectorAllTransports.class.getName());
+    private static final Logger log = SJRuntimeUtils.getLogger(SJSelectorAllTransports.class);
 
     SJSelectorAllTransports(Iterable<SJTransport> transports) {
         transportSelectors = new LinkedList<SJSelectorInternal>();
@@ -59,10 +60,10 @@ class SJSelectorAllTransports implements SJSelector {
         final ValueLatch<SJSocket> latch = new ValueLatch<SJSocket>();
         
         for (final SJSelectorInternal sel : transportSelectors) {
-            fact.setName("Consolidated selector calling " + sel);
+            fact.setName("SJSelector calling " + sel);
             executor.submit(new Callable<Object>() {
                 public Object call() throws SJIOException, SJIncompatibleSessionException {
-                    latch.submitValue(sel.select());
+                    latch.submitValue(sel.select(true));
                 	return null;
                 }
             });
