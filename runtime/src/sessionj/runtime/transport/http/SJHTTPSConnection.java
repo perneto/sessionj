@@ -1,36 +1,34 @@
 package sessionj.runtime.transport.http;
 
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.transport.AbstractSJConnection;
+import sessionj.runtime.transport.SJTransport;
+import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
+
+import javax.net.ssl.SSLSocket;
 import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
-import javax.net.ssl.*;
+public class SJHTTPSConnection extends AbstractSJConnection {
 
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
-import sessionj.runtime.transport.*;
+    private final SSLSocket socket;
 
-import static sessionj.runtime.util.SJRuntimeUtils.*;
+    private final DataOutputStream dos;
+    private final DataInputStream dis;
 
-public class SJHTTPSConnection implements SJConnection {
-
-    private SSLSocket socket;
-
-    DataOutputStream dos;
-    DataInputStream dis;
-
-    private Vector msgSent;
+    private final Vector msgSent;
 
     private boolean closed;
 
     private String status = "";
     private int numMsgSent = 0;
 
-    private Integer lock_sending = new Integer(0);
-    private Integer lock_status = new Integer(0);
-    private Integer lock_msgSent = new Integer(0);
+    private final Integer lock_sending = new Integer(0);
+    private final Integer lock_status = new Integer(0);
+    private final Integer lock_msgSent = new Integer(0);
 
-    private Thread sendingThread = new Thread() {
+    private final Thread sendingThread = new Thread() {
 
         public void run() {
 
@@ -133,11 +131,10 @@ public class SJHTTPSConnection implements SJConnection {
             }
         }
     };
-    private final SJTransport transport;
 
     public SJHTTPSConnection(SSLSocket socket, InputStream is, OutputStream os, SJTransport transport) throws IOException {
+        super(transport);
         this.socket = socket;
-        this.transport = transport;
 
         socket.setTcpNoDelay(false);
 
@@ -363,13 +360,5 @@ public class SJHTTPSConnection implements SJConnection {
 
     public int getLocalPort() {
         return socket.getLocalPort();
-    }
-
-    public String getTransportName() {
-        return SJHTTPS.TRANSPORT_NAME;
-    }
-
-    public SJTransport getTransport() {
-        return transport;
     }
 }

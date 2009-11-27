@@ -8,6 +8,7 @@ import sessionj.util.SJLabel;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public final class SJRuntimeUtils
 {
@@ -253,21 +254,18 @@ public final class SJRuntimeUtils
 			w.flush();
 			w.close();
 		}
-	}	
-	
-	public static final void debugPrint(Object obj)
-	{
-		if (debugMode)
-		{
-			System.out.print(obj);
-		}
 	}
 
-	public static final void debugPrintln(Object obj)
+    public static final void debugPrintln(Object obj)
 	{
 		if (debugMode)
 		{
 			System.out.println(obj);
 		}
-	}	
+	}
+
+    public static Logger getLogger(Class<?> aClass) {
+        String name = aClass.getName();
+        return Logger.getLogger(name.replaceAll("sessionj\\.runtime", "sessionj"));
+    }
 }

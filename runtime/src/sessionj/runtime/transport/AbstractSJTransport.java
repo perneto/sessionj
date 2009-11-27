@@ -23,7 +23,7 @@ public abstract class AbstractSJTransport implements SJTransport {
     }
 
     public boolean supportsBlocking() {
-        return false;
+        return true;
     }
 
 }

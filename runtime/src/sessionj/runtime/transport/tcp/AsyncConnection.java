@@ -1,24 +1,24 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.util.SJRuntimeUtils;
+import sessionj.runtime.transport.AbstractSJConnection;
 import sessionj.runtime.transport.SJTransport;
 
-import java.nio.channels.SocketChannel;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.logging.Logger;
 
-class AsyncConnection implements SJConnection
+class AsyncConnection extends AbstractSJConnection
 {
     private final SelectingThread thread;
     private final SocketChannel sc;
-    private final SJTransport transport;
-    private static final Logger log = Logger.getLogger(AsyncConnection.class.getName());
+    private static final Logger log = SJRuntimeUtils.getLogger(AsyncConnection.class);
 
     AsyncConnection(SelectingThread thread, SocketChannel sc, SJTransport transport) {
+        super(transport);
         this.thread = thread;
         this.sc = sc;
-        this.transport = transport;
     }
 
     public void disconnect() {
@@ -45,22 +45,10 @@ class AsyncConnection implements SJConnection
 
     private ByteBuffer checkAndDequeue(int remaining) throws SJIOException {
         ByteBuffer input = thread.peekAtInputQueue(sc);
-        log.finest("Input: " + input);
         if (input == null) {
             throw new SJIOException("No available inputs on connection: " + this);
-            // HACK to make the close protocol work, even if it doesn't call select
-            // Update: the hack wreaks havoc for the clients connecting after the first one.
-            // The message from the close protocol seems to arrive quickly enough in practice...
-            
-            /*
-            try {
-                input = thread.takeFromInputQueue(sc);
-                log.finer("Unblocked after take, input: " + input);
-            } catch (InterruptedException e) {
-                throw new SJIOException(e);
-            }
-            */
         }
+        log.finest("Returning input: " + input);
         if (input.remaining() == remaining)
             thread.dequeueFromInputQueue(sc);
         return input;
@@ -96,19 +84,15 @@ class AsyncConnection implements SJConnection
         return sc.socket().getLocalPort();
     }
 
-    public String getTransportName()
-    {
-        return SJAsyncManualTCP.TRANSPORT_NAME;
-    }
-
-    public SJTransport getTransport() {
-        return transport;
-    }
-
     SocketChannel socketChannel() {
         return sc;
     }
-    
+
+    @Override
+    public boolean supportsBlocking() {
+        return false;
+    }
+
     @Override
     public String toString() {
         return "AsyncConnection{" + sc + '}';

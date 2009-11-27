@@ -1,11 +1,12 @@
 package sessionj.runtime.transport.sharedmem;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
-import sessionj.runtime.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.transport.*;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.*;
 
 // All derived from sessionj.runtime.transport.sharedmem.SJFifoPair.
 
@@ -118,28 +119,28 @@ class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
 	}
 }
 
-class SJBoundedFifoPairConnection implements SJBoundedBufferConnection
+class SJBoundedFifoPairConnection extends AbstractSJConnection
 {
-    private final SJTransport transport;
-	private String hostName;	
-	private int port;
+	private final String hostName;	
+	private final int port;
 	
-	private int localPort;
+	private final int localPort;
 	
 	private SJBoundedFifo ours;
 	private SJBoundedFifo theirs;
 	
-	boolean[] hasBeenAccepted = { false };
+    // package-private for access in SJBoundedFifoPair#accept()
+	final boolean[] hasBeenAccepted = { false };
 	
 	//private boolean initialised = false;
 	
 	protected SJBoundedFifoPairConnection(String hostName, int port, int localPort, SJBoundedFifo ours, SJTransport transport) {
-		this.hostName = hostName;
+        super(transport);
+        this.hostName = hostName;
 		this.port = port;
 		this.localPort = localPort;
 		
 		this.ours = ours;
-        this.transport = transport;
     }
 	
 	/*public void initBoundedBuffers(int size)
@@ -268,16 +269,6 @@ class SJBoundedFifoPairConnection implements SJBoundedBufferConnection
 		return localPort;
 	}
 	
-	public String getTransportName()
-	{
-		return transport.getTransportName();
-	}
-
-    @Override
-    public SJTransport getTransport() {
-        return transport;
-    }
-
     protected SJBoundedFifo getOurFifo()
 	{
 		return ours;

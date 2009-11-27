@@ -1,10 +1,13 @@
 package sessionj.runtime.transport.sharedmem;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.*;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.FileLock;
@@ -120,28 +123,28 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 	}
 }
 
-class SJFifoPairConnection implements SJLocalConnection
+class SJFifoPairConnection extends AbstractSJConnection
 {
 	private static Object EOF = new Object() {}; 
 	
-	private String hostName;	
-	private int port;
+	private final String hostName;	
+	private final int port;
 	
-	private int localPort;
+	private final int localPort;
 	
 	protected List<Object> ours;
 	protected List<Object> theirs;
 	
-	protected boolean[] hasBeenAccepted = { false };
-    private final SJTransport transport;
+    // package-private for access in accept()
+	final boolean[] hasBeenAccepted = { false };
 
     protected SJFifoPairConnection(String hostName, int port, int localPort, List<Object> ours, SJTransport transport) {
-		this.hostName = hostName;
+        super(transport);
+        this.hostName = hostName;
 		this.port = port;
 		this.localPort = localPort;
 		
 		this.ours = ours;
-        this.transport = transport;
     }
 	
 	public void disconnect() 
@@ -338,15 +341,6 @@ class SJFifoPairConnection implements SJLocalConnection
 		return localPort;
 	}
 	
-	public String getTransportName()
-	{
-		return SJFifoPair.TRANSPORT_NAME;
-	}
-
-    public SJTransport getTransport() {
-        return transport;
-    }
-
     protected List<Object> getOurFifo()
 	{
 		return ours;
@@ -364,7 +358,7 @@ class SJFifoPairConnection implements SJLocalConnection
  */
 public class SJFifoPair extends AbstractSJTransport
 {
-    static final Logger logger = Logger.getLogger(SJFifoPair.class.getName());
+    static final Logger logger = SJRuntimeUtils.getLogger(SJFifoPair.class);
     
     private static final File locksDir;
     private static final File dirLock;

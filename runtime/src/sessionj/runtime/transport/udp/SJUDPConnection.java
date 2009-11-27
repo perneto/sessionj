@@ -93,13 +93,14 @@ package sessionj.runtime.transport.udp;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.AbstractSJConnection;
 
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 
-public class SJUDPConnection implements SJConnection, Runnable
+public class SJUDPConnection extends AbstractSJConnection implements Runnable
 {
 
     private final DatagramChannel datagramChannel;
@@ -190,30 +191,29 @@ public class SJUDPConnection implements SJConnection, Runnable
 
     // whether we wish to invoke a thread or not.
     private volatile boolean helperNeeded = false;
-    private final SJTransport transport;
 
     public SJUDPConnection(DatagramChannel datagramChannel, SJTransport transport)
     {
-     // (1) all the initialisation above are performed.
-     // (2) UDP channel (assuming it is already connected)
-     this.datagramChannel = datagramChannel;
-        this.transport = transport;
-        this.socketAddress = 
-         datagramChannel.socket().getRemoteSocketAddress();
-     // (3) initialise arrays.
-     for (int i=0; i< MAX_SLOT; i++) {
-         // no send packet acked yet.
-         this.sAcked[i]=false;
-         this.rFilled[i]=false;
-     }
-     // (5) run the helper thread (the helper "waits" immediately).
-     this.helperNeeded = false;
-     this.helper = new Thread(this);
-     this.helper.start();
-     
-     //RAY
-     this.socket = datagramChannel.socket();
-     //YAR
+        super(transport);
+        // (1) all the initialisation above are performed.
+        // (2) UDP channel (assuming it is already connected)
+        this.datagramChannel = datagramChannel;
+        this.socketAddress =
+            datagramChannel.socket().getRemoteSocketAddress();
+        // (3) initialise arrays.
+        for (int i=0; i< MAX_SLOT; i++) {
+            // no send packet acked yet.
+            this.sAcked[i]=false;
+            this.rFilled[i]=false;
+        }
+        // (5) run the helper thread (the helper "waits" immediately).
+        this.helperNeeded = false;
+        this.helper = new Thread(this);
+        this.helper.start();
+
+        //RAY
+        this.socket = datagramChannel.socket();
+        //YAR
     }
 
     public void disconnect() {
@@ -724,14 +724,6 @@ public class SJUDPConnection implements SJConnection, Runnable
      //     as the next packet number. 
      this.header[0]=-2;
      this.header[2]=ack;
-    }
-
-    public String getTransportName() {
-       return SJUDP.TRANSPORT_NAME;
-    }
-
-    public SJTransport getTransport() {
-        return transport;
     }
 
     public int getLocalPort() {

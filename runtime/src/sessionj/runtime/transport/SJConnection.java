@@ -27,4 +27,6 @@ public interface SJConnection
 
 	String getTransportName();
     SJTransport getTransport();
+
+    boolean supportsBlocking();
 }
