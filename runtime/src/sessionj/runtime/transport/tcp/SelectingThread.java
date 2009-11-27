@@ -159,7 +159,7 @@ final class SelectingThread implements Runnable {
     }
 
     private void doSelect() throws IOException {
-        log.finer("NIO select...");
+        log.finest("NIO select, registered keys: " + dumpKeys(selector) + "...");
         selector.select();
         Iterator<SelectionKey> it = selector.selectedKeys().iterator();
         while (it.hasNext()) {
@@ -180,6 +180,19 @@ final class SelectingThread implements Runnable {
                 }
             }
         }
+    }
+
+    private static String dumpKeys(Selector selector) {
+        Set<SelectionKey> keys = selector.keys();
+        StringBuilder b = new StringBuilder();
+        for (Iterator<SelectionKey> it = keys.iterator(); it.hasNext();) {
+            SelectionKey key = it.next();
+            b.append(key.channel())
+                .append(" : ")
+                .append(formatOps(key.interestOps()));
+            if (it.hasNext()) b.append(", ");
+        }
+        return b.toString();
     }
 
     private void write(SelectionKey key) throws IOException {
@@ -307,7 +320,7 @@ final class SelectingThread implements Runnable {
     enum ChangeAction {
         REGISTER {
             boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws ClosedChannelException {
-                log.finer("Registering chan: " + req.chan + ", ops: " + req.interestOps + translateOps(req.interestOps));
+                log.finer("Registering chan: " + req.chan + ", ops: " + formatOps(req.interestOps));
                 req.chan.register(selector, req.interestOps);
                 return true;
             }
@@ -317,7 +330,7 @@ final class SelectingThread implements Runnable {
                 if (key != null && key.isValid() && key.interestOps() != req.interestOps) {
                     if (!modified.contains(req.chan)){
                         log.finer("Changing ops for: " + req.chan 
-                            + " to: " + req.interestOps + translateOps(req.interestOps));
+                            + " to: " + formatOps(req.interestOps));
                         key.interestOps(req.interestOps);
                         modified.add(req.chan);
                         return true;
@@ -341,17 +354,17 @@ final class SelectingThread implements Runnable {
                 return true;
             }};
 
-        private static String translateOps(int interestOps) {
-            switch (interestOps) {
-                case 1: return " (OP_READ)";
-                case 4: return " (OP_WRITE)";
-                case 8: return " (OP_CONNECT)";
-                case 16: return " (OP_ACCEPT)";
-                default: return "";
-            }
-        }
-
         abstract boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws IOException;
+    }
+
+    private static String formatOps(int interestOps) {
+        switch (interestOps) {
+            case 1: return "1 (OP_READ)";
+            case 4: return "4 (OP_WRITE)";
+            case 8: return "8 (OP_CONNECT)";
+            case 16: return "16 (OP_ACCEPT)";
+            default: return String.valueOf(interestOps);
+        }
     }
 
 }
