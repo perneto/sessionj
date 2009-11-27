@@ -5,7 +5,6 @@ import java.net.*;
 import java.util.*;
 
 import sessionj.runtime.*;
-import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
 
 public class SJHTTP extends AbstractSJTransport {
@@ -17,7 +16,7 @@ public class SJHTTP extends AbstractSJTransport {
 	
 	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException{
 		
-		return new SJHTTPAcceptor(port);
+		return new SJHTTPAcceptor(port, this);
 	}
 	
 	/*public SJConnection connect(SJServerIdentifier si) throws SJIOException{
@@ -31,7 +30,7 @@ public class SJHTTP extends AbstractSJTransport {
 		{
 			Socket conn = new Socket(hostName, port);
 			
-			return new SJHTTPConnection(conn, conn.getOutputStream(), conn.getInputStream());
+			return new SJHTTPConnection(conn, conn.getOutputStream(), conn.getInputStream(), this);
 		} 
 		catch (IOException ioe) 
 		{

@@ -1,12 +1,12 @@
 package sessionj.runtime.transport.sharedmem;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.transport.*;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.*;
 
 // All derived from sessionj.runtime.transport.sharedmem.SJFifoPair.
 
@@ -18,11 +18,13 @@ class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
 	protected boolean isClosed = false;
 	
 	private int boundedBufferSize;
+    private final SJTransport transport;
 	
-	SJBoundedFifoPairAcceptor(int port, int boundedBufferSize) {
+	SJBoundedFifoPairAcceptor(int port, int boundedBufferSize, SJTransport transport) {
 		this.port = port;
-		
-		servers.put(port, new LinkedList<SJBoundedFifoPairConnection>());
+        this.transport = transport;
+
+        servers.put(port, new LinkedList<SJBoundedFifoPairConnection>());
 		
 		this.boundedBufferSize = boundedBufferSize;
 	}
@@ -57,7 +59,7 @@ class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
 		
 		SJBoundedFifoPair.bindPort(localPort); // Can the connection establishment after this fail? Would need to free the port.
 		
-		SJBoundedFifoPairConnection ourConn = new SJBoundedFifoPairConnection(null, theirConn.getLocalPort(), localPort, ours); // FIXME: need peer hostname.
+		SJBoundedFifoPairConnection ourConn = new SJBoundedFifoPairConnection(null, theirConn.getLocalPort(), localPort, ours, transport); // FIXME: need peer hostname.
 		//SJBoundedFifoPairConnection ourConn = new SJBoundedFifoPairConnection(null, theirConn.getLocalPort(), port, ours); // FIXME: need peer hostname. // Reusing server port value for local port, as in TCP. // Problem: hard to tell when need to free port after a connection is closed (don't know if server is using that port still).
 		
 		theirConn.setPeerFifo(ours);
@@ -117,27 +119,29 @@ class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
 	}
 }
 
-class SJBoundedFifoPairConnection implements SJBoundedBufferConnection
+class SJBoundedFifoPairConnection extends AbstractSJConnection
 {
-	private String hostName;	
-	private int port;
+	private final String hostName;	
+	private final int port;
 	
-	private int localPort;
+	private final int localPort;
 	
 	private SJBoundedFifo ours;
 	private SJBoundedFifo theirs;
 	
-	boolean[] hasBeenAccepted = { false };
+    // package-private for access in SJBoundedFifoPair#accept()
+	final boolean[] hasBeenAccepted = { false };
 	
 	//private boolean initialised = false;
 	
-	protected SJBoundedFifoPairConnection(String hostName, int port, int localPort, SJBoundedFifo ours) {
-		this.hostName = hostName;
+	protected SJBoundedFifoPairConnection(String hostName, int port, int localPort, SJBoundedFifo ours, SJTransport transport) {
+        super(transport);
+        this.hostName = hostName;
 		this.port = port;
 		this.localPort = localPort;
 		
 		this.ours = ours;
-	}
+    }
 	
 	/*public void initBoundedBuffers(int size)
 	{
@@ -265,12 +269,7 @@ class SJBoundedFifoPairConnection implements SJBoundedBufferConnection
 		return localPort;
 	}
 	
-	public String getTransportName()
-	{
-		return SJBoundedFifoPair.TRANSPORT_NAME;
-	}
-	
-	protected SJBoundedFifo getOurFifo()
+    protected SJBoundedFifo getOurFifo()
 	{
 		return ours;
 	}
@@ -326,7 +325,7 @@ public class SJBoundedFifoPair extends AbstractSJTransport
 			//throw new SJIOException("[" + getTransportName() + "] Maximum bound on buffer out of range: " + boundedBufferSize);
 		}		
 		
-		SJConnectionAcceptor a = new SJBoundedFifoPairAcceptor(port, boundedBufferSize);
+		SJConnectionAcceptor a = new SJBoundedFifoPairAcceptor(port, boundedBufferSize, this);
 		
 		bindPort(port);
 		
@@ -375,7 +374,7 @@ public class SJBoundedFifoPair extends AbstractSJTransport
 		bindPort(localPort); // Can the connection establishment after this fail? Would need to free the port.
 		
 		//SJBoundedFifoPairConnection ourConn = new SJBoundedFifoPairConnection(hostName, port, localPort, new SJBoundedFifo(INIT_BUFFER_SIZE));
-		SJBoundedFifoPairConnection ourConn = new SJBoundedFifoPairConnection(hostName, port, localPort, new SJBoundedFifo(boundedBufferSize));
+		SJBoundedFifoPairConnection ourConn = new SJBoundedFifoPairConnection(hostName, port, localPort, new SJBoundedFifo(boundedBufferSize), this);
 		
 		SJBoundedFifoPairAcceptor.addRequest(port, ourConn);
 		

@@ -21,5 +21,9 @@ public abstract class AbstractSJTransport implements SJTransport {
     public SJSelectorInternal transportSelector() {
         return null;
     }
-    
+
+    public boolean supportsBlocking() {
+        return true;
+    }
+
 }

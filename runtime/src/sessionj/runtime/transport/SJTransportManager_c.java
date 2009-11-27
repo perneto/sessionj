@@ -9,9 +9,11 @@ import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.session.SJCompatibilityMode;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 import static sessionj.runtime.util.SJRuntimeUtils.*;
+import sessionj.runtime.util.SJRuntimeUtils;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * @author Raymond
@@ -19,7 +21,7 @@ import java.util.logging.Logger;
  */
 public class SJTransportManager_c extends SJTransportManager
 {
-    private static final Logger log = Logger.getLogger(SJTransportManager_c.class.getName());
+    private static final Logger log = SJRuntimeUtils.getLogger(SJTransportManager_c.class);
 
 	private static final String DEFAULT_SETUPS_PROPERTY = "sessionj.transports.negotiation";
     private static final String DEFAULT_TRANSPORTS_PROPERTY = "sessionj.transports.session";
@@ -128,7 +130,7 @@ public class SJTransportManager_c extends SJTransportManager
     
 	private SJAcceptorThreadGroup openAcceptorGroup(int port, Iterable<SJTransport> negotiationTrans, Iterable<SJTransport> sessionTrans, Collection<String> negotiationNames, SJSessionParameters params) throws SJIOException // Synchronized where necessary from calling scope.
 	{
-        log.finer("[SJTransportManager_c] Openening acceptor group: " + port);
+        log.finer("Openening acceptor group: " + port);
 
         synchronized (acceptorGroups)
 		{								
@@ -175,7 +177,7 @@ public class SJTransportManager_c extends SJTransportManager
 		
 			acceptorGroups.put(port, atg);
 
-            log.finer("[SJTransportManager_c] Opened acceptor group: " + port);
+            log.finer("Opened acceptor group: " + port);
             return atg;
 		}		
 	}
@@ -200,14 +202,14 @@ public class SJTransportManager_c extends SJTransportManager
 
             at.start();
 
-            log.finer("[SJTransportManager_c] " + t.getTransportName() + " transport ready on: " + freePort);
+            log.finer(t.getTransportName() + " transport ready on: " + freePort);
 
             atg.addTransport(t.getTransportName(), freePort);
             return at;
         }
         catch (SJIOException ioe) // Need to close the failed acceptor?
         {
-            log.finer("[SJTransportManager_c] " + ioe);
+            log.log(Level.FINER, "Could not open session acceptor", ioe);
             return null;
         }
     }
@@ -225,13 +227,13 @@ public class SJTransportManager_c extends SJTransportManager
 
             st.start();
 
-            log.finer("[SJTransportManager_c] " + t.getTransportName() + " setup ready on: " + port + "(" + t.sessionPortToSetupPort(port) + ")");
+            log.finer("" + t.getTransportName() + " setup ready on: " + port + "(" + t.sessionPortToSetupPort(port) + ")");
 
             return st;
         }
         catch (SJIOException ioe) // Need to close the failed acceptor?
         {
-            log.finer("[SJTransportManager_c] " + ioe);
+            log.finer("" + ioe);
 
             for (SJSetupThread setupThread : sts) {
                 setupThread.close();
@@ -260,7 +262,7 @@ public class SJTransportManager_c extends SJTransportManager
         if (conn == null)
             throw new SJIOException("[SJTransportManager_c] Connection failed: " + hostName + ":" + port);
 
-        log.finer("[SJTransportManager_c] Connected on " + conn.getLocalPort() + " to " + hostName + ":" + port + " (" + conn.getPort() + ") using: " + conn.getTransportName());
+        log.finer("Connected on " + conn.getLocalPort() + " to " + hostName + ":" + port + " (" + conn.getPort() + ") using: " + conn.getTransportName());
 
         registerConnection(conn);
 		
@@ -332,7 +334,7 @@ public class SJTransportManager_c extends SJTransportManager
 				conn.writeByte(SJ_SERVER_TRANSPORT_FORCE); 
 				conn.flush();
 
-                log.finer("[SJTransportManager_c] SJ_SERVER_TRANSPORT_FORCE: " + sname);
+                log.finer("SJ_SERVER_TRANSPORT_FORCE: " + sname);
 
                 if (conn.readByte() == SJ_CLIENT_TRANSPORT_NO_FORCE) // Negotiation has failed.
 				{
@@ -346,7 +348,7 @@ public class SJTransportManager_c extends SJTransportManager
 				conn.writeByte(SJ_SERVER_TRANSPORT_SUPPORTED);
 				conn.flush();
 
-                log.finer("[SJTransportManager_c] SJ_SERVER_TRANSPORT_SUPPORTED: " + sname);
+                log.finer("SJ_SERVER_TRANSPORT_SUPPORTED: " + sname);
 
                 transportAgreed = conn.readByte() == SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED;
 			}
@@ -356,7 +358,7 @@ public class SJTransportManager_c extends SJTransportManager
 			conn.writeByte(SJ_SERVER_TRANSPORT_NOT_SUPPORTED); 
 			conn.flush();
 
-            log.finer("[SJTransportManager_c] SJ_SERVER_TRANSPORT_NOT_SUPPORTED: " + sname);
+            log.finer("SJ_SERVER_TRANSPORT_NOT_SUPPORTED: " + sname);
 
             conn.readByte(); // Doesn't matter if Client wants this transport or not. 
 			
@@ -371,7 +373,7 @@ public class SJTransportManager_c extends SJTransportManager
 
             byte[] bs = serializeObject(tn);
 
-            log.finer("[SJTransportManager_c] Sending server transport configuration to: " + conn.getHostName() + ": " + conn.getPort());
+            log.finer("Sending server transport configuration to: " + conn.getHostName() + ": " + conn.getPort());
 
             conn.writeBytes(serializeInt(bs.length)); 
 			conn.writeBytes(bs);
@@ -415,13 +417,13 @@ public class SJTransportManager_c extends SJTransportManager
 					conn = t.connect(t.sessionHostToNegociationHost(hostName), t.sessionPortToSetupPort(port));
 				}
 
-                log.finer("[SJTransportManager_c] Setting up on " + conn.getLocalPort() + " to " + hostName + ":" + port + " using: " + t.getTransportName());
+                log.finer("Setting up on " + conn.getLocalPort() + " to " + hostName + ":" + port + " using: " + t.getTransportName());
 
                 break;
 			}
 			catch (SJIOException ioe)
 			{
-                log.finer("[SJTransportManager_c] " + t.getTransportName() + " setup failed: " + ioe.getMessage());
+                log.finer("" + t.getTransportName() + " setup failed: " + ioe.getMessage());
             }		
 		}						
 		
@@ -450,7 +452,7 @@ public class SJTransportManager_c extends SJTransportManager
 			conn.writeByte(SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED);
 			conn.flush();
 
-            log.finer("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED: " + sname);
+            log.finer("SJ_CLIENT_TRANSPORT_NEGOTIATION_NOT_NEEDED: " + sname);
 
             byte b = conn.readByte();
 			
@@ -463,7 +465,7 @@ public class SJTransportManager_c extends SJTransportManager
 				conn.writeByte(SJ_CLIENT_TRANSPORT_NO_FORCE); // Should be sent if the setup isn't a Client transport. 
 				conn.flush();
 
-                log.finer("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NO_FORCE: " + sname);
+                log.finer("SJ_CLIENT_TRANSPORT_NO_FORCE: " + sname);
 
                 if (conn.readByte() == SJ_SERVER_TRANSPORT_FORCE) // Negotiation has failed.
 				{
@@ -477,7 +479,7 @@ public class SJTransportManager_c extends SJTransportManager
 				conn.writeByte(SJ_CLIENT_TRANSPORT_NEGOTIATION_START);
 				conn.flush();
 
-                log.finer("[SJTransportManager_c] SJ_CLIENT_TRANSPORT_NEGOTIATION_START: " + sname);
+                log.finer("SJ_CLIENT_TRANSPORT_NEGOTIATION_START: " + sname);
 
                 byte b = conn.readByte();
 
@@ -507,7 +509,7 @@ public class SJTransportManager_c extends SJTransportManager
 			
 			Map<String, Integer> servers = (Map<String, Integer>) deserializeObject(bs);
 
-            log.finer("[SJTransportManager_c] Server at " + hostName + ':' + port + " offers: " + servers);
+            log.finer("Server at " + hostName + ':' + port + " offers: " + servers);
 
             for (SJTransport t : ts)
 			{
@@ -567,7 +569,7 @@ public class SJTransportManager_c extends SJTransportManager
 				}
 				catch (SJIOException ioe)
 				{
-                    log.finer("[SJTransportManager_c] Transport connection failed: " + ioe);
+                    log.finer("Transport connection failed: " + ioe);
                 }					
 			}
 		}

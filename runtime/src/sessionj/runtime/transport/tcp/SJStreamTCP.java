@@ -1,9 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.transport.AbstractSJTransport;
-import sessionj.runtime.transport.SJConnectionAcceptor;
-import sessionj.runtime.transport.SJStreamConnection;
+import sessionj.runtime.transport.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,10 +13,12 @@ import java.util.Random;
 class SJStreamTCPAcceptor implements SJConnectionAcceptor
 {
 	private final ServerSocket ss;
-	
-	SJStreamTCPAcceptor(int port) throws SJIOException
+    private final SJTransport transport;
+
+    SJStreamTCPAcceptor(int port, SJTransport transport) throws SJIOException
 	{
-		try
+        this.transport = transport;
+        try
 		{
 			ss = new ServerSocket(port); // Didn't bother to explicitly check portInUse.
 		}
@@ -41,7 +41,7 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 			
 			s.setTcpNoDelay(SJStreamTCP.TCP_NO_DELAY);
 			
-			return new SJStreamTCPConnection(s, s.getInputStream(), s.getOutputStream());
+			return new SJStreamTCPConnection(s, s.getInputStream(), s.getOutputStream(), transport);
 		}
 		catch (IOException ioe)
 		{
@@ -81,8 +81,8 @@ class SJStreamTCPConnection extends SJStreamConnection
 {
 	private final Socket s;
 	
-	protected SJStreamTCPConnection(Socket s, InputStream is, OutputStream os) {
-		super(is, os);
+	protected SJStreamTCPConnection(Socket s, InputStream is, OutputStream os, SJTransport transport) {
+		super(is, os, transport);
 		
 		this.s = s;
 	}
@@ -139,7 +139,7 @@ public class SJStreamTCP extends AbstractSJTransport
 
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
-		return new SJStreamTCPAcceptor(port);
+		return new SJStreamTCPAcceptor(port, this);
 	}
 	
 	public SJStreamTCPConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
@@ -150,7 +150,7 @@ public class SJStreamTCP extends AbstractSJTransport
 			
 			s.setTcpNoDelay(TCP_NO_DELAY);
 			
-			return new SJStreamTCPConnection(s, s.getInputStream(), s.getOutputStream()); // Have to get I/O streams here for exception handling.
+			return new SJStreamTCPConnection(s, s.getInputStream(), s.getOutputStream(), this); // Have to get I/O streams here for exception handling.
 		} 
 		catch (IOException ioe) 
 		{

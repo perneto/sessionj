@@ -1,6 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.*;
 
@@ -18,23 +19,21 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
 
 	public static final int TCP_PORT_MAP_ADJUST = 200;
 	
-	static final boolean TCP_NO_DELAY = true;
-	
     private final AsyncManualTCPSelector selector;
     private final SelectingThread thread;
-    private static final Logger logger = Logger.getLogger(SJAsyncManualTCP.class.getName());
+    private static final Logger logger = SJRuntimeUtils.getLogger(SJAsyncManualTCP.class);
 
     public SJAsyncManualTCP() throws IOException {
         thread = new SelectingThread();
-        selector = new AsyncManualTCPSelector(thread, TRANSPORT_NAME);
-        Thread t = new Thread(thread, "AsyncManualTCP Selecting Thread");
+        Thread t = new Thread(thread, "SelectingThread");
         t.setDaemon(true);
         t.start();
+        selector = new AsyncManualTCPSelector(thread, this);
     }
 
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException {
         try {
-            return new AsyncTCPAcceptor(thread, port);
+            return new AsyncTCPAcceptor(thread, port, this);
         } catch (IOException e) {
             throw new SJIOException("Could not open acceptor on (physical) port: " + port, e);
         }
@@ -46,13 +45,18 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
         try {
             //noinspection SocketOpenedButNotSafelyClosed
             s = new Socket(hostName, port);
-            s.setTcpNoDelay(TCP_NO_DELAY);
+            s.setTcpNoDelay(SJManualTCP.TCP_NO_DELAY);
 
             // TODO: Allow async operation on the client too.
-            return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream()) {
+            return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream(), this) {
                 @Override
                 public String getTransportName() {
                     return TRANSPORT_NAME;
+                }
+
+                @Override
+                public boolean supportsBlocking() {
+                    return true;
                 }
             };
         }
@@ -69,6 +73,11 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
 
     public SJSelectorInternal transportSelector() {
         return selector;
+    }
+
+    @Override
+    public boolean supportsBlocking() {
+        return false;
     }
 
     public boolean portInUse(int port)
