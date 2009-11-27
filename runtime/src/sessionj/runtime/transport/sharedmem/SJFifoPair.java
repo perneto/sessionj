@@ -1,14 +1,16 @@
 package sessionj.runtime.transport.sharedmem;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.*;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.FileLock;
-import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,11 +21,13 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 
 	private final int port;
 	private boolean isClosed = false;
+    private final SJTransport transport;
 
-    SJFifoPairAcceptor(int port) {
+    SJFifoPairAcceptor(int port, SJTransport transport) {
 		this.port = port;
-		
-		servers.put(port, new LinkedList<SJFifoPairConnection>());
+        this.transport = transport;
+
+        servers.put(port, new LinkedList<SJFifoPairConnection>());
 	}
 	
 	public SJFifoPairConnection accept() throws SJIOException
@@ -55,7 +59,7 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 
 		SJFifoPair.bindPort(localPort); // Can the connection establishment after this fail? Would need to free the port.
 
-		SJFifoPairConnection ourConn = new SJFifoPairConnection(null, theirConn.getLocalPort(), localPort, ours); // FIXME: need peer hostname.
+		SJFifoPairConnection ourConn = new SJFifoPairConnection(null, theirConn.getLocalPort(), localPort, ours, transport); // FIXME: need peer hostname.
 		//SJFifoPairConnection ourConn = new SJFifoPairConnection(null, theirConn.getLocalPort(), port, ours); // FIXME: need peer hostname. // Reusing server port value for local port, as in TCP. // Problem: hard to tell when need to free port after a connection is closed (don't know if server is using that port still).
 		
 		theirConn.setPeerFifo(ours);
@@ -119,27 +123,29 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 	}
 }
 
-class SJFifoPairConnection implements SJLocalConnection
+class SJFifoPairConnection extends AbstractSJConnection
 {
 	private static Object EOF = new Object() {}; 
 	
-	private String hostName;	
-	private int port;
+	private final String hostName;	
+	private final int port;
 	
-	private int localPort;
+	private final int localPort;
 	
 	protected List<Object> ours;
 	protected List<Object> theirs;
 	
-	protected boolean[] hasBeenAccepted = { false };
-	
-	protected SJFifoPairConnection(String hostName, int port, int localPort, List<Object> ours) {
-		this.hostName = hostName;
+    // package-private for access in accept()
+	final boolean[] hasBeenAccepted = { false };
+
+    protected SJFifoPairConnection(String hostName, int port, int localPort, List<Object> ours, SJTransport transport) {
+        super(transport);
+        this.hostName = hostName;
 		this.port = port;
 		this.localPort = localPort;
 		
 		this.ours = ours;
-	}
+    }
 	
 	public void disconnect() 
 	{		
@@ -335,12 +341,7 @@ class SJFifoPairConnection implements SJLocalConnection
 		return localPort;
 	}
 	
-	public String getTransportName()
-	{
-		return SJFifoPair.TRANSPORT_NAME;
-	}
-	
-	protected List<Object> getOurFifo()
+    protected List<Object> getOurFifo()
 	{
 		return ours;
 	}
@@ -357,7 +358,7 @@ class SJFifoPairConnection implements SJLocalConnection
  */
 public class SJFifoPair extends AbstractSJTransport
 {
-    static final Logger logger = Logger.getLogger(SJFifoPair.class.getName());
+    static final Logger logger = SJRuntimeUtils.getLogger(SJFifoPair.class);
     
     private static final File locksDir;
     private static final File dirLock;
@@ -409,7 +410,7 @@ public class SJFifoPair extends AbstractSJTransport
 
 	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
-		SJFifoPairAcceptor a = new SJFifoPairAcceptor(port);
+		SJFifoPairAcceptor a = new SJFifoPairAcceptor(port, this);
 		
 		bindPort(port);
 		
@@ -440,7 +441,7 @@ public class SJFifoPair extends AbstractSJTransport
 		
 		bindPort(localPort); // Can the connection establishment after this fail? Would need to free the port.
 		
-		SJFifoPairConnection ourConn = new SJFifoPairConnection(hostName, port, localPort, new LinkedList<Object>());
+		SJFifoPairConnection ourConn = new SJFifoPairConnection(hostName, port, localPort, new LinkedList<Object>(), this);
 		
 		SJFifoPairAcceptor.addRequest(port, ourConn);
 		

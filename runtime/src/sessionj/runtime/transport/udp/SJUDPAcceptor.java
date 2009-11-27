@@ -14,26 +14,24 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.net.*;
-import java.util.*;
 
 import sessionj.runtime.*;
-import sessionj.runtime.net.*;
 
 import sessionj.runtime.transport.*;
 
-import static sessionj.runtime.util.SJRuntimeUtils.*;
-
 public class SJUDPAcceptor implements SJConnectionAcceptor{
        
-    private DatagramSocket ss;
-    private int initialMessageSize = 8; 
-    private DatagramPacket request
-       = new DatagramPacket(new byte [initialMessageSize],
-                          initialMessageSize);
-       
-    public SJUDPAcceptor(int port) throws SJIOException
+    private final DatagramSocket ss;
+    private static final int INITIAL_MESSAGE_SIZE = 8; 
+    private final DatagramPacket request
+       = new DatagramPacket(new byte [INITIAL_MESSAGE_SIZE],
+        INITIAL_MESSAGE_SIZE);
+    private final SJTransport transport;
+
+    public SJUDPAcceptor(int port, SJTransport transport) throws SJIOException
     {
-       try {      	 
+        this.transport = transport;
+        try {      	 
            ss = new DatagramSocket(port);
        } catch (IOException ioe) {
            throw new SJIOException(ioe);
@@ -42,7 +40,7 @@ public class SJUDPAcceptor implements SJConnectionAcceptor{
        
     public SJConnection accept() throws SJIOException{
        try {
-           if (this.ss == null) {
+           if (ss == null) {
               throw new SJIOException("[" + 
                                    getTransportName() + 
                                    "]" +
@@ -118,7 +116,7 @@ public class SJUDPAcceptor implements SJConnectionAcceptor{
            
            // can be 3-way but for simplicity just this
            // now return the connection
-           return new SJUDPConnection(datagramChannel);
+           return new SJUDPConnection(datagramChannel, transport);
        }
        catch (IOException ioe) {
            throw new SJIOException(ioe);

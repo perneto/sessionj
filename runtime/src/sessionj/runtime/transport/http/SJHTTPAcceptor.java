@@ -2,23 +2,22 @@ package sessionj.runtime.transport.http;
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
 import java.nio.channels.SelectableChannel;
 
 import sessionj.runtime.*;
-import sessionj.runtime.net.*;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJConnectionAcceptor;
-
-import static sessionj.runtime.util.SJRuntimeUtils.*;
+import sessionj.runtime.transport.SJTransport;
 
 public class SJHTTPAcceptor implements SJConnectionAcceptor{
 	
 	private ServerSocket ss;
-	
-	public SJHTTPAcceptor(int port) throws SJIOException
+    private final SJTransport transport;
+
+    public SJHTTPAcceptor(int port, SJTransport transport) throws SJIOException
 	{
-		try
+        this.transport = transport;
+        try
 		{
 			ss = new ServerSocket(port); // Didn't bother to explicitly check portInUse.
 		}
@@ -39,7 +38,7 @@ public class SJHTTPAcceptor implements SJConnectionAcceptor{
 			
 			Socket s = ss.accept(); 
 			
-			return new SJHTTPConnection(s, s.getOutputStream(), s.getInputStream());
+			return new SJHTTPConnection(s, s.getOutputStream(), s.getInputStream(), transport);
 		}
 		catch (IOException ioe)
 		{

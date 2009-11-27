@@ -6,11 +6,10 @@ package sessionj.runtime.session;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
 import sessionj.runtime.SJRuntimeException;
+import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.runtime.net.*;
 import static sessionj.runtime.session.SJMessage.*;
-import sessionj.runtime.transport.SJAcceptorThreadGroup;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJTransportManager;
+import sessionj.runtime.transport.*;
 import sessionj.types.sesstypes.SJSessionType;
 import sessionj.util.SJLabel;
 
@@ -41,11 +40,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 
     /** Collects messages received after a session has been delegated. */
 	private List<SJMessage> lostMessages = new LinkedList<SJMessage>(); // Doesn't need synchronization, shouldn't be adding and removing in different threads.
-    protected SJSocket s;
-    protected SJSerializer ser;
+    private final SJSocket s;
+    private SJSerializer ser;
     
-   protected SJStateManager sm;
-    private static final Logger log = Logger.getLogger(SJSessionProtocolsImpl.class.getName());
+    private final SJStateManager sm;
+    private static final Logger log = SJRuntimeUtils.getLogger(SJSessionProtocolsImpl.class);
 
     public SJSessionProtocolsImpl(SJSocket s, SJSerializer ser)
 	{
@@ -56,7 +55,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{
 			try
 			{
-				this.sm = new SJStateManager_c(SJRuntime.getTypeSystem(), s.getProtocol().type());
+                sm = new SJStateManager_c(SJRuntime.getTypeSystem(), s.getProtocol().type());
 				
 				s.setStateManager(sm);
 			}
@@ -93,7 +92,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{
 			if (ser.getConnection() != null && !ser.isClosed()) // FIXME: need a isClosed. null in delegation case 2, session-receiver.
 			{
-                log.finer("About to write SJFIN");
+                log.finer("About to write SJFIN...");
 				ser.writeControlSignal(new SJFIN()); // FIXME: currently fails for delegated sessions. 
 			
 				SJControlSignal cs = null;						
@@ -102,16 +101,32 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 				{				
 					if (ser.getConnection() != null) // FIXME: need a isClosed.
 					{
-						try
+                        SJSelectorInternal sel = null;
+                        //noinspection EmptyFinallyBlock
+                        try
 						{
-                            log.finer("About to read control signal");
+                            log.finer("About to read control signal...");
+                            SJConnection connection = ser.getConnection();
+                            // FIXME: HACK to support non-blocking transports.
+                            if (!connection.supportsBlocking()) {
+                                SJTransport transport = connection.getTransport();
+                                log.finer("Starting close protocol hack for non-blocking transport: " + transport);
+                                sel = transport.transportSelector();
+                                sel.registerInput(s);
+                                SJSocket selected = sel.select(false);
+                                log.finer("Selected socket in close protocol: " + s);
+                                assert selected.getConnection().equals(ser.getConnection());
+                            }
 							cs = ser.readControlSignal(); 
+                            log.fine("Control signal read.");
 						}
-						catch (SJIOException ioe) // We are prematurely closing. 
+						catch (Exception ioe) // We are prematurely closing. 
 						{
                             log.log(Level.WARNING, "Could not read close signal", ioe);
 							// E.g. could be a non-forwarded message due to failed delegation.
-						}
+						} finally {
+                            // Not calling sel.close() to avoid closing the socket for this connection
+                        }
 					}
 				}
 				else

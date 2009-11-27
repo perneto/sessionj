@@ -2,6 +2,7 @@ package sessionj.runtime.session;
 
 import static sessionj.runtime.util.SJRuntimeUtils.SJ_SERIALIZED_INT_LENGTH;
 import static sessionj.runtime.util.SJRuntimeUtils.deserializeInt;
+import sessionj.runtime.util.SJRuntimeUtils;
 import static sessionj.runtime.session.SJAbstractSerializer.*;
 import sessionj.runtime.SJRuntimeException;
 
@@ -19,7 +20,7 @@ public class OngoingReadImpl implements OngoingRead {
     private int lengthRead = 0;
     private final byte[] lengthBytes = new byte[SJ_SERIALIZED_INT_LENGTH];
     private byte[] data = null;
-    private static final Logger log = Logger.getLogger(OngoingReadImpl.class.getName());
+    private static final Logger log = SJRuntimeUtils.getLogger(OngoingReadImpl.class);
 
     public void updatePendingInput(ByteBuffer bytes, boolean eof) {
         if (bytes.remaining() > 0 && flag == -1) 
@@ -66,8 +67,10 @@ public class OngoingReadImpl implements OngoingRead {
                 dataExpected = SJ_SERIALIZED_INT_LENGTH;
                 break;
             case SJ_OBJECT:
+                log.finer("Reading object");
+                break; // nothing to do in this case, will read count from socket
             case SJ_CONTROL:
-                log.finer("Reading object or control signal");
+                log.finer("Reading control signal");
                 break; // nothing to do in this case, will read count from socket
             default:
                 log.finer("Unsupported flag in:" + bytes);

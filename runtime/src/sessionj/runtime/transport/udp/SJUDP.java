@@ -1,7 +1,6 @@
 package sessionj.runtime.transport.udp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.*;
 
 import java.io.IOException;
@@ -19,20 +18,18 @@ public class SJUDP extends AbstractSJTransport {
     private static final int LOWER_PORT_LIMIT = 1024; 
     private static final int PORT_RANGE = 10000;
 
-    private int initialMessageSize = 8; 
-    private DatagramPacket request
-       = new DatagramPacket(new byte [initialMessageSize],
-                          initialMessageSize);
-    private DatagramPacket answer
-       = new DatagramPacket(new byte [initialMessageSize],
-                          initialMessageSize);
-       
+    private static final int INITIAL_MESSAGE_SIZE = 8; 
+    private final DatagramPacket request
+       = new DatagramPacket(new byte [INITIAL_MESSAGE_SIZE],
+        INITIAL_MESSAGE_SIZE);
+    private final DatagramPacket answer
+       = new DatagramPacket(new byte [INITIAL_MESSAGE_SIZE],
+        INITIAL_MESSAGE_SIZE);
+
     public SJConnectionAcceptor openAcceptor (int port) 
        throws SJIOException
-    { 	
-    	SJUDPAcceptor a = new SJUDPAcceptor(port);
-    	
-       return a;
+    {
+        return new SJUDPAcceptor(port, this);
     }
        
     public SJConnection connect(String s, int i) throws SJIOException 
@@ -118,7 +115,7 @@ public class SJUDP extends AbstractSJTransport {
 				foo.send(new DatagramPacket(ba, 4));
 				//YAR
 				
-        return new SJUDPConnection(datagramChannel); 
+        return new SJUDPConnection(datagramChannel, this); 
 	    } 
 	    catch (IOException ioe) 
 	    {

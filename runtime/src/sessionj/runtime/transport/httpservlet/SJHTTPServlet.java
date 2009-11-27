@@ -1,7 +1,6 @@
 package sessionj.runtime.transport.httpservlet;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSelectorInternal;
 import sessionj.runtime.transport.*;
 
 import java.io.IOException;
@@ -19,12 +18,12 @@ public class SJHTTPServlet extends AbstractSJTransport
 	
 	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{	
-		return new SJHTTPServletAcceptor(port);
+		return new SJHTTPServletAcceptor(port, this);
 	}
 		
 	public SJConnection connect(String hostName, int port) throws SJIOException // FIXME: the transport manager will run the negotiation protocol after the connection is established - the servlet proxy needs to take care of it (not just forward it to the Server). // FIXME: how to accommodate alternative transport preferences after setup phase? 
 	{
-		return new SJHTTPServletConnection(hostName, port);
+		return new SJHTTPServletConnection(hostName, port, this);
 	}
 
     public boolean portInUse(int port)

@@ -10,7 +10,7 @@ import java.io.*;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.transport.*;
 
-public class SJHTTPConnection implements SJConnection{
+public class SJHTTPConnection extends AbstractSJConnection {
 
 	private Socket socket;
 
@@ -129,12 +129,13 @@ public class SJHTTPConnection implements SJConnection{
 				}
 		}
 	};
-	
-	public SJHTTPConnection(Socket socket, OutputStream os, InputStream is) throws IOException
-	{		
-		this.socket = socket;
-		
-		socket.setTcpNoDelay(false);
+
+    public SJHTTPConnection(Socket socket, OutputStream os, InputStream is, SJTransport transport) throws IOException
+	{
+        super(transport);
+        this.socket = socket;
+
+        socket.setTcpNoDelay(false);
 		
 		dos = new DataOutputStream(os);
 		dis = new DataInputStream(is);
@@ -354,11 +355,6 @@ public class SJHTTPConnection implements SJConnection{
 	public int getLocalPort(){
 		
 		return socket.getLocalPort();
-	}	
-	
-	public String getTransportName(){
-		
-		return SJHTTP.TRANSPORT_NAME;
 	}	
 	
 }
