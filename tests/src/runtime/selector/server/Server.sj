@@ -34,62 +34,62 @@ public class Server
 				ss = SJServerSocket.create(p_server, port, params);
 				
 				sel.registerAccept(ss);
-				
-				while (true)
-				{
-					noalias SJSocket s;
-					
-					try (s)
-					{
-						s = sel.select();
-
-						typecase (s)
-						{
-							when (@(p_body))
-							{
-								s.recursion(X) // Selected session means there is a message available for reading.
-								{
-									int i = s.receiveInt();
-									
-									System.out.println("Received (" + s.getPort() + "): " + i);
-									
-									map.put(new Integer(s.getPort()), new Integer(i));
-									
-									sel.registerInput(s);
-								}								
-							}
-							when (?(String).!<int>.@(p_body))
-							{
-								String m = (String) s.receive();
-								
-								System.out.println("Received (" + s.getPort() + "): " + m);
-								
-								s.send(((Integer) map.get(new Integer(s.getPort()))).intValue() * Integer.parseInt(m));
-								
-								//s.recursion(X)
-								{
-									sel.registerInput(s); // Any problem registering the recursion as an input event?
-								}
-							}
-						}
-																				
-						//System.out.println("Current session type: " + s.currentSessionType());
-						//System.out.println("Remaining session type: " + s.remainingSessionType());						
-					}
-					/*catch (Exception x)
-					{
-						x.printStackTrace();
-					}*/
-					finally 
-					{
-						
-					}
-				}
 			}
 			finally
 			{
 				
 			}
+			
+			while (true)
+			{
+				noalias SJSocket s;
+				
+				try (s)
+				{
+					s = sel.select();
+
+					typecase (s)
+					{
+						when (@(p_body))
+						{
+							s.recursion(X) // Selected session means there is a message available for reading.
+							{
+								int i = s.receiveInt();
+								
+								System.out.println("Received (" + s.getPort() + "): " + i);
+								
+								map.put(new Integer(s.getPort()), new Integer(i));
+								
+								sel.registerInput(s);
+							}								
+						}
+						when (?(String).!<int>.@(p_body))
+						{
+							String m = (String) s.receive();
+							
+							System.out.println("Received (" + s.getPort() + "): " + m);
+							
+							s.send(((Integer) map.get(new Integer(s.getPort()))).intValue() * Integer.parseInt(m));
+							
+							//s.recursion(X)
+							{
+								sel.registerInput(s); // Any problem registering the recursion as an input event?
+							}
+						}
+					}
+																			
+					//System.out.println("Current session type: " + s.currentSessionType());
+					//System.out.println("Remaining session type: " + s.remainingSessionType());						
+				}
+				/*catch (Exception x)
+				{
+					x.printStackTrace();
+				}*/
+				finally 
+				{
+					
+				}
+			}			
 		}
 		finally
 		{
