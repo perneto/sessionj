@@ -7,11 +7,7 @@ import java.util.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
-import sessionj.runtime.session.SJCompatibilityMode;
 import sessionj.runtime.transport.*;
-import sessionj.runtime.transport.tcp.*;
-import sessionj.runtime.transport.sharedmem.*;
-import sessionj.runtime.transport.httpservlet.*;
 
 public class Server
 {	
