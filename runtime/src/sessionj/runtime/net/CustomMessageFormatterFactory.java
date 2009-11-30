@@ -10,16 +10,17 @@ import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
 public class CustomMessageFormatterFactory implements SJDeserializer {
-    private final SJSessionParameters params;
     private static final Logger log = SJRuntimeUtils.getLogger(CustomMessageFormatterFactory.class);
+    private final MessageFormatterOngoingRead messageFormatterOngoingRead;
 
-    public CustomMessageFormatterFactory(SJSessionParameters params) {
-        this.params = params;
+    public CustomMessageFormatterFactory(SJCustomMessageFormatter cmf) {
+        messageFormatterOngoingRead = new MessageFormatterOngoingRead(cmf);
     }
 
     @Override
     public OngoingRead newOngoingRead() throws SJIOException {
-        return new MessageFormatterOngoingRead(params.createCustomMessageFormatter());
+        // Need to reuse the same message formatter
+        return messageFormatterOngoingRead;
     }
 
     private class MessageFormatterOngoingRead implements OngoingRead {

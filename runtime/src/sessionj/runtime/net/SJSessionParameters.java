@@ -6,7 +6,6 @@ import sessionj.runtime.session.*;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.transport.SJTransportManager;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
-import sessionj.runtime.transport.tcp.DirectlyToUser;
 import sessionj.runtime.transport.tcp.InputState;
 import sessionj.runtime.transport.tcp.WaitInitialInputIfNeeded;
 
@@ -222,10 +221,9 @@ public class SJSessionParameters
          return SJRuntime.getTransportManager().defaultNegotiationTransports();
      }*/
 
-    public SJDeserializer getDeserializer()
-    {
+    public SJDeserializer createDeserializer() throws SJIOException {
         if (cmf == null) return new SJManualDeserializer();
-        else return new CustomMessageFormatterFactory(this);
+        else return new CustomMessageFormatterFactory(createCustomMessageFormatter());
     }
 
     public SJAcceptProtocol getAcceptProtocol() {
