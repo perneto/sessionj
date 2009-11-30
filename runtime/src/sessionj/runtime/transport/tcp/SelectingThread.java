@@ -189,7 +189,7 @@ final class SelectingThread implements Runnable {
             SelectionKey key = it.next();
             b.append(key.channel())
                 .append(" : ")
-                .append(formatOps(key.interestOps()));
+                .append(formatKey(key));
             if (it.hasNext()) b.append(", ");
         }
         return b.toString();
@@ -357,13 +357,18 @@ final class SelectingThread implements Runnable {
         abstract boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws IOException;
     }
 
-    private static String formatOps(int interestOps) {
-        switch (interestOps) {
+    private static String formatKey(SelectionKey key) {
+        if (!key.isValid()) return "[cancelled]";
+        return formatOps(key.interestOps());
+    }
+
+    private static String formatOps(int interests) {
+        switch (interests) {
             case 1: return "1 (OP_READ)";
             case 4: return "4 (OP_WRITE)";
             case 8: return "8 (OP_CONNECT)";
             case 16: return "16 (OP_ACCEPT)";
-            default: return String.valueOf(interestOps);
+            default: return String.valueOf(interests);
         }
     }
 
