@@ -1,9 +1,9 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.util.SJRuntimeUtils;
-import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.net.*;
+import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.util.Pair;
 
 import java.io.IOException;
@@ -11,7 +11,6 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -50,7 +49,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     public boolean registerInput(SJSocket s) {
         SocketChannel sc = retrieveSocketChannel(s);
         if (sc != null) {
-            thread.registerInput(sc, s.getParameters().getDeserializer());
+            thread.registerInput(sc, s.getParameters().createDeserializer());
             registeredInputs.put(sc, new DirectlyToUser(s));
             return true;
         }
@@ -119,7 +118,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         // OK even if we only do outputs: enqueing write requests will change the interest
         // set for the channel. Input is the default interest that we go back to after 
         // everything is written.
-        thread.registerInput(sc, sjss.getParameters().getDeserializer());
+        thread.registerInput(sc, sjss.getParameters().createDeserializer());
         registeredInputs.put(sc, sjss.getParameters().getAcceptProtocol().initialAcceptState(sjss));
     }
 
