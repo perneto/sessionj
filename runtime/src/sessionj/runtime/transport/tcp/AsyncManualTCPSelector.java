@@ -46,7 +46,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         return false;
     }
 
-    public boolean registerInput(SJSocket s) {
+    public boolean registerInput(SJSocket s) throws SJIOException {
         SocketChannel sc = retrieveSocketChannel(s);
         if (sc != null) {
             thread.registerInput(sc, s.getParameters().createDeserializer());
