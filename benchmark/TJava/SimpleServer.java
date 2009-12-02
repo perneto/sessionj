@@ -4,14 +4,12 @@ import java.net.*;
 import java.util.concurrent.*;
 
 
-public class SimpleServer {
-
-  long start, end;
+public class SimpleServer implements Server{
 
   private ExecutorService es;
 
-  public SimpleServer() {
-    es = Executors.newCachedThreadPool();
+  public SimpleServer(int numThreads) {
+    es = Executors.newFixedThreadPool(numThreads);
   }
 
   class socketWorker implements Runnable {
@@ -31,11 +29,11 @@ public class SimpleServer {
     }
   }
 
-  public void server(int port) {
+  public void server(int port, int numClients) {
     ServerSocket serverSocket;
     try {
       serverSocket = new ServerSocket(port);
-      while(true){
+      while(numClients-- != 0){
         Socket clientSocket = serverSocket.accept();
         socketWorker w = new socketWorker(clientSocket);
         es.execute(w);
@@ -43,15 +41,10 @@ public class SimpleServer {
     }
     catch (IOException e) {
       System.out.println("Accept failed: " + port);
+      e.printStackTrace();
       System.exit(-1);
     }
+    es.shutdown();
   }
 
-  public static void main(String[] args) throws IOException {
-    SimpleServer s = new SimpleServer();
-    s.start = System.nanoTime();
-    s.server(1234);
-    s.end = System.nanoTime();
-    System.out.println(s.end - s.start);
-  }
 }

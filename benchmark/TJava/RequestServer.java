@@ -3,14 +3,12 @@ import java.net.*;
 
 import java.util.concurrent.*;
 
-
-public class RequestServer {
+public class RequestServer implements Server{
 
   private ExecutorService es;
-  long start,  end;
 
-  public RequestServer() {
-    es = Executors.newCachedThreadPool();
+  public RequestServer(int numThreads) {
+    es = Executors.newFixedThreadPool(numThreads);
   }
 
   class socketWorker implements Runnable {
@@ -40,12 +38,12 @@ public class RequestServer {
   }
 
 
-  public void server(int port) {
+  public void server(int port, int numClients) {
     ServerSocket serverSocket;
 
     try {
       serverSocket = new ServerSocket(port);
-      while(true){
+      while(numClients-- != 0){
           Socket clientSocket = serverSocket.accept();
           socketWorker w = new socketWorker(clientSocket);
           es.execute(w);
@@ -54,14 +52,7 @@ public class RequestServer {
       System.out.println("Accept failed: " + port);
       System.exit(-1);
     }
-  }
-
-
-  public static void main(String[] args) throws IOException {
-      RequestServer s = new RequestServer();
-      s.start = System.nanoTime();
-      s.server(1234);
-      s.end = System.nanoTime();
+    es.shutdown();
   }
 
 }

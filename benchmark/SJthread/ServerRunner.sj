@@ -1,10 +1,10 @@
-package sessionj.benchmark.SJThread;
+package sessionj.benchmark.SJthread;
 
 public class ServerRunner {
 
   public static void main(String []args) {
-    if (args.length != 3) {
-      System.out.println("Usage: java ServerRunner <server name> <port> <client num>");
+    if (args.length != 4) {
+      System.out.println("Usage: sessionj ServerRunner <server name> <port> <client num> <dummy>");
       return;
     }
 
