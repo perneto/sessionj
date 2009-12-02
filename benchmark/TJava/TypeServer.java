@@ -4,13 +4,12 @@ import java.net.*;
 import java.util.concurrent.*;
 
 
-public class TypeServer {
+public class TypeServer implements Server {
 
   private ExecutorService es;
-  long start,  end;
 
-  public TypeServer() {
-    es = Executors.newCachedThreadPool();
+  public TypeServer(int numThreads) {
+    es = Executors.newFixedThreadPool(numThreads);
   }
 
   class socketWorker implements Runnable {
@@ -19,7 +18,7 @@ public class TypeServer {
     private int iparse(String str){
       int numEnd = str.indexOf(' ', 7);
       String subs = str.substring(7, numEnd);
-      return Integer.valueOf(subs);
+      return Integer.parseInt(subs);
     }
    
     private String sparse(String str){
@@ -62,12 +61,12 @@ public class TypeServer {
   }
 
 
-  public void server(int port) {
+  public void server(int port, int numClients) {
     ServerSocket serverSocket;
 
     try {
       serverSocket = new ServerSocket(port);
-      while(true){
+      while(numClients-- != 0){
           Socket clientSocket = serverSocket.accept();
           socketWorker w = new socketWorker(clientSocket);
           es.execute(w);
@@ -76,14 +75,7 @@ public class TypeServer {
       System.out.println("Accept failed: " + port);
       System.exit(-1);
     }
-  }
-
-
-  public static void main(String[] args) throws IOException {
-      TypeServer s = new TypeServer();
-      s.start = System.nanoTime();
-      s.server(1234);
-      s.end = System.nanoTime();
+    es.shutdown();
   }
 
 }

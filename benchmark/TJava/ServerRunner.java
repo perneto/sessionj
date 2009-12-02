@@ -1,26 +1,27 @@
-package sessionj.benchmark.SJE;
+
 
 public class ServerRunner {
 
   public static void main(String []args) {
     if (args.length != 4) {
-      System.out.println("Usage: sessionj ServerRunner <server name> <port> <client num> <dummy>");
+      System.out.println("Usage: java ServerRunner <server name> <port> <thread num> <client num>");
       return;
     }
 
     String server = args[0];
-    int port = Integer.parseInt(args[1]);
-    int clientNum = Integer.parseInt(args[2]);
+    int port = Integer.valueOf(args[1]);
+    int threadNum = Integer.valueOf(args[2]);
+    int clientNum = Integer.valueOf(args[3]);
     Server s = null;
 
     if (server.equals("Simple")) {
-      s = new SimpleServer();
+      s = new SimpleServer(threadNum);
     }
     else if (server.equals("Request")) {
-      s = new RequestServer();
+      s = new RequestServer(threadNum);
     }
     else if (server.equals("Type")) {
-      s = new TypeServer();
+      s = new TypeServer(threadNum);
     }
 
     long start = System.nanoTime();
