@@ -14,5 +14,6 @@ lib/sessionj.jar
 tests/classes
 compiler/classes
 runtime/classes
+benchmark/classes
 test-output
 .DS_Store
