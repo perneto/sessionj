@@ -3,27 +3,27 @@ import java.net.*;
 
 
 
-public class simpleClient {
+public class SimpleClient implements Client {
 
   long start, end;
 
-  public void client (int port) {
-
+  public String client (String domain, int port) {
+    int x = 0;
     try {
-      Socket clientSocket = new Socket("", port);
+      Socket clientSocket = new Socket(domain, port);
       DataInputStream in = new DataInputStream(clientSocket.getInputStream());
-      int x = in.readInt();
+      x = in.readInt();
       System.out.println(x);
     }
-    catch (IOException e) {}
-
+    catch (IOException e) {e.printStackTrace();}
+    return "" + x;
 
   }
 
     public static void main(String[] args) throws IOException {
-        simpleClient c = new simpleClient();
+        SimpleClient c = new SimpleClient();
         c.start = System.nanoTime();
-        c.client(1234);
+        c.client("", 1234);
         c.end = System.nanoTime();
         System.out.println(c.end - c.start);
     }

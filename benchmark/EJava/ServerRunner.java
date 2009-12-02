@@ -1,16 +1,16 @@
-package sessionj.benchmark.SJE;
+
 
 public class ServerRunner {
 
   public static void main(String []args) {
     if (args.length < 3) {
-      System.out.println("Usage: sessionj ServerRunner <server name> <port> <client num>");
+      System.out.println("Usage: java ServerRunner <server name> <port> <client num>");
       return;
     }
 
     String server = args[0];
-    int port = Integer.parseInt(args[1]);
-    int clientNum = Integer.parseInt(args[2]);
+    int port = Integer.valueOf(args[1]);
+    int clientNum = Integer.valueOf(args[2]);
     Server s = null;
 
     if (server.equals("Simple")) {
@@ -20,7 +20,7 @@ public class ServerRunner {
       s = new RequestServer();
     }
     else if (server.equals("Type")) {
-      s = new TypeServer();
+     /* s = new TypeServer();*/
     }
 
     long start = System.nanoTime();
