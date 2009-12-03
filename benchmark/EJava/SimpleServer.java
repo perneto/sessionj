@@ -37,7 +37,7 @@ public class SimpleServer implements Server {
           if (selKey.isAcceptable()) {
             ss = (ServerSocketChannel)selKey.channel();
             s = ss.socket().accept();
-            DataOutputStream out = new DataOutputStream(s.getOutputStream());
+            ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
             out.writeInt(5);
           }
         }

@@ -11,7 +11,7 @@ public class SimpleClient implements Client {
     int x = 0;
     try {
       Socket clientSocket = new Socket(domain, port);
-      DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+      ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
       x = in.readInt();
       System.out.println(x);
     }

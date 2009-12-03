@@ -53,8 +53,7 @@ public class TypeServer implements Server {
            out.writeObject(oparse(str2));
         }
       }
-      catch (Exception e){
-      }
+      catch (Exception e){e.printStackTrace();}
 
     }
 

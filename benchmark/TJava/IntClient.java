@@ -19,7 +19,8 @@ public class IntClient implements Client {
     try {
       clientSocket = new Socket(domain, port);
       PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-      DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+      //DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+      ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
 
       out.println("int");
       out.println(this.requestString);
