@@ -6,7 +6,7 @@ import java.util.*;
 import java.nio.*;
 import java.nio.charset.Charset;
 
-public class RequestServer implements Server {
+public class TypeServer implements Server {
 
   private int throughput = 0;
 
@@ -14,10 +14,19 @@ public class RequestServer implements Server {
 
   private static Charset charset = Charset.forName("UTF-8");
 
-  private int parse(String str){
-      int numEnd = str.indexOf(' ', 7);
-      String sub = str.substring(7, numEnd);
+  private int iparse(String str) {
+      int numEnd = str.indexOf(' ', 8);
+      String sub = str.substring(8, numEnd);
       return Integer.parseInt(sub);
+  }
+
+  private String sparse(String str) {
+    int numEnd = str.indexOf(' ', 8);
+    return (str.substring(8, numEnd));
+  }
+
+  private Object oparse(String str) {
+    return (Object) str.substring(1, str.length() - 1);
   }
 
 
@@ -62,7 +71,7 @@ public class RequestServer implements Server {
             ss = (ServerSocketChannel)selKey.channel();
             sc = ss.accept();
             sc.configureBlocking(false);
-            
+
             sc.register(sel, SelectionKey.OP_READ).attach(ByteBuffer.allocate(4096));
           }
           else if (selKey.isReadable()) {
@@ -82,9 +91,20 @@ public class RequestServer implements Server {
             CharBuffer cb = charset.decode(b);
   
             if (cb.charAt(cb.length() - 1) == '@') {
-              int x = parse(cb.toString());
               b.clear();
-              b.put(intToByteArray(x));
+              if (cb.charAt(0) == 'i') {
+                int x = iparse(cb.toString());
+                b.put(intToByteArray(x));
+              }
+              else if (cb.charAt(0) == 's') {
+                String x = sparse(cb.toString());
+                b.put(x.getBytes());
+              }
+              else if (cb.charAt(0) == 'o') {
+                Object x = oparse(cb.toString());
+                b.put(((String) x).getBytes());
+              }
+
               b.flip();
               sc.write(b);
               selKey.cancel();
@@ -104,7 +124,10 @@ public class RequestServer implements Server {
   }
 
   public static void main(String args[]) throws Exception{
-    new RequestServer().server(1234, 1234);
+    TypeServer s = new TypeServer();
+    s.start = System.nanoTime();
+    s.server(1234, 1234);
+    s.end = System.nanoTime();
   }
 
 }

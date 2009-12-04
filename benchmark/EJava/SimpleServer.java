@@ -1,20 +1,33 @@
 import java.nio.channels.*;
 import java.io.*;
 import java.net.*;
-import java.util.Iterator;
+import java.util.*;
+
+import java.nio.*;
+import java.nio.charset.Charset;
 
 public class SimpleServer implements Server {
 
-  private int throughput = 0;
+  private static Charset charset = Charset.forName("UTF-8");
 
-  private long start, end;
+  private static final byte[] intToByteArray(int value) {
+        return new byte[] {
+                (byte)(value >>> 24),
+                (byte)(value >>> 16),
+                (byte)(value >>> 8),
+                (byte)value};
+  }
+
 
   public void server(int port, int numClients) {
 
     Selector sel = null;
     ServerSocketChannel ss = null;
-    Socket s;
+    SocketChannel sc;
 
+    ByteBuffer b = ByteBuffer.allocate(64);
+    
+    
     try {
         sel = Selector.open();
 
@@ -30,15 +43,22 @@ public class SimpleServer implements Server {
         sel.select();
         // Get list of selection keys with pending events
         Iterator it = sel.selectedKeys().iterator();
-      
+
         while (it.hasNext()) {
-          SelectionKey selKey = (SelectionKey)it.next();
+          SelectionKey selKey = (SelectionKey) it.next();
           it.remove();
+
           if (selKey.isAcceptable()) {
-            ss = (ServerSocketChannel)selKey.channel();
-            s = ss.socket().accept();
-            DataOutputStream out = new DataOutputStream(s.getOutputStream());
-            out.writeInt(5);
+            ss = (ServerSocketChannel) selKey.channel();
+            sc = ss.accept();
+
+            b.clear();
+            b.put(intToByteArray(5));
+            b.flip();
+
+            sc.write(b);
+
+            sc.close();
           }
         }
       } catch (Exception e) {e.printStackTrace();}
@@ -46,10 +66,7 @@ public class SimpleServer implements Server {
   }
 
   public static void main(String args[]) throws Exception{
-    SimpleServer s = new SimpleServer();
-    s.start = System.nanoTime();
-    s.server(1234, 1234);
-    s.end = System.nanoTime();
+    new SimpleServer().server(1234, 1234);
   }
 
 }
