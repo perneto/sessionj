@@ -1,13 +1,17 @@
 import java.nio.channels.*;
 import java.io.*;
 import java.net.*;
-import java.util.*;
 
 import java.nio.*;
 import java.nio.charset.Charset;
 
-public class SimpleClient implements Client {
+import java.util.Random;
 
+public class ObjectClient implements Client {
+
+  private static Random generator = new Random(System.currentTimeMillis());
+  private String requestString;
+  
   private static Charset charset = Charset.forName("UTF-8");
 
   private static int byteArrayToInt(byte []b) {
@@ -19,32 +23,39 @@ public class SimpleClient implements Client {
     return x;
   }
 
-  public String client (String domain, int port) {
-    int x = 0;
+  public ObjectClient() {
+    requestString = new String("Number " + (generator.nextInt() % 1024) + " is beeing send@");
+  }
+
+  public String client(String domain, int port) {
+
     ByteBuffer b = ByteBuffer.allocate(64);
+    String x = null;
 
     try {
+
       InetSocketAddress socketAddress = new InetSocketAddress(domain, port);
       SocketChannel sc = SocketChannel.open(socketAddress);
 
-      int numRead = 0; 
+      sc.write(charset.encode("o"));
+      sc.write(charset.encode(requestString));
 
-      while(numRead < 4) {
-        numRead += sc.read(b);
-      }
+      int numRead  = 0;
+
+      b.clear();
+      while (numRead != -1) 
+        numRead = sc.read(b);
 
       b.flip();
-
-      x = byteArrayToInt(b.array());
+      x = charset.decode(b).toString();
       sc.close();
     }
     catch (IOException e) {e.printStackTrace();}
-    return "" + x;
-
+    return x;
   }
 
     public static void main(String[] args) throws IOException {
-      new SimpleClient().client("", 1234);
+      new ObjectClient().client("", 1234);
     }
 }
 

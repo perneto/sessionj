@@ -1035,7 +1035,11 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		
 		try
 		{
-			SJSessionType theirs = SJRuntime.decodeSessionType((String) ser.readObject());
+            String encodedType = (String) ser.readObject();
+            /*
+            Disabled for benchmarking.
+            
+            SJSessionType theirs = SJRuntime.decodeSessionType(encodedType);
 			
 			if (!ours.isDualtype(theirs))
 			{
@@ -1049,6 +1053,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 				
 				throw new SJIncompatibleSessionException("[SJSessionProtocolsImpl] Our session type (" + ours + ") incompatible with theirs: " + theirs);
 			}
+			*/
 		}
 		catch (ClassNotFoundException cnfe)
 		{

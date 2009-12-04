@@ -35,11 +35,12 @@ class ClientRunner implements Runnable{
       case 2:
        return new RequestClient();
       case 3:
-        /*switch ((x = generator.nextInt() % 3) > 0 ? x : -x) {
+        switch ((x = generator.nextInt() % 3) > 0 ? x : -x) {
           case 0: return new IntClient();
           case 1: return new StringClient();
           case 2: return new ObjectClient();
-        }*/
+        }
+
     }
     return null;
   }
