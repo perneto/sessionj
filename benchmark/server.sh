@@ -17,4 +17,4 @@ TRANSPORTS=
 if [ "$1" = "SJE" ]; then
     TRANSPORTS="-Dsessionj.transports.session=a"
 fi
-sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $TRANSPORTS sessionj.benchmark.$1.ServerRunner $VERSION 2000 $CLIENTS
+sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $TRANSPORTS sessionj.benchmark.$1.ServerRunner $VERSION 2000 $CLIENTS dummy
