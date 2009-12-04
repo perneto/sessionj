@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 
 import java.util.Random;
 
-public class RequestClient implements Client {
+public class StringClient implements Client {
 
   private static Random generator = new Random(System.currentTimeMillis());
   private long start, end;
@@ -24,37 +24,39 @@ public class RequestClient implements Client {
     return x;
   }
 
-  public RequestClient() {
+  public StringClient() {
     requestString = new String("Number " + (generator.nextInt() % 1024) + " is beeing send@");
   }
 
   public String client(String domain, int port) {
 
     ByteBuffer b = ByteBuffer.allocate(64);
-    int x = 0;
+    String x = null;
 
     try {
 
       InetSocketAddress socketAddress = new InetSocketAddress(domain, port);
       SocketChannel sc = SocketChannel.open(socketAddress);
 
+      sc.write(charset.encode("s"));
       sc.write(charset.encode(requestString));
 
       int numRead  = 0;
 
       b.clear();
-      while (numRead < 4)
-        numRead += sc.read(b);
+      while (numRead != -1) 
+        numRead = sc.read(b);
 
-      x = byteArrayToInt(b.array());
+      b.flip();
+      x = charset.decode(b).toString();
       sc.close();
     }
     catch (IOException e) {e.printStackTrace();}
-    return x + "";
+    return x;
   }
 
     public static void main(String[] args) throws IOException {
-      new RequestClient().client("", 1234);
+      new StringClient().client("", 1234);
     }
 }
 

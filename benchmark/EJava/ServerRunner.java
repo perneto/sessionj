@@ -20,7 +20,7 @@ public class ServerRunner {
       s = new RequestServer();
     }
     else if (server.equals("Type")) {
-     /* s = new TypeServer();*/
+      s = new TypeServer();
     }
 
     long start = System.nanoTime();
