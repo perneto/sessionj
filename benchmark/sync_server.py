@@ -2,11 +2,11 @@
 import sys, socket
 import os
 
-if len(sys.argv) != 4:
-  print "usage runClient <server> <clients> <output file>"
+if len(sys.argv) != 5:
+  print "usage runClient <server> <threads> <clients> <output file>"
   exit
 else:
-  command = 'java ServerRunner ' +  sys.argv[1] + ' 2000 ' + sys.argv[2] + ' > ' + sys.argv[3] + ' &'
+  command = 'java ServerRunner ' +  sys.argv[1] + ' 2000 ' +sys.argv[2] + ' ' + sys.argv[3] + ' > ' + sys.argv[4] + ' &'
 
   os.system(command)
 
