@@ -1,4 +1,5 @@
 DIRS="EJava SJE SJthread TJava"
+mkdir -p classes
 for dir in $DIRS; do
     if [ -e $dir/ClientRunner.sj ]; then 
         sessionjc -sourcepath $dir -d classes $dir/ServerRunner.sj
