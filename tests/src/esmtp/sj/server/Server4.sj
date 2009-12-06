@@ -158,7 +158,7 @@ public class Server4
 					try (s)
 					{
 						s = sel.select();
-	
+						
 						typecase (s)
 						{
 							when (@(smtp_server_body))
@@ -184,7 +184,7 @@ public class Server4
 								s.send(ehloAck);
 								
 								s.recursion(LOOP)
-								{
+								{							
 									sel.registerInput(s);
 								}
 							}
@@ -266,11 +266,11 @@ public class Server4
 									sel.registerInput(s);
 								}								
 							}
-						}
+						}					
 					}
-					catch (SJIOException ioe)
+					catch (Exception x)
 					{
-						ioe.printStackTrace();
+						x.printStackTrace();
 					}
 				}
 			}

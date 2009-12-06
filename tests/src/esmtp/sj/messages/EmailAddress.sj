@@ -4,7 +4,7 @@ package esmtp.sj.messages;
 
 public class EmailAddress extends SmtpMessage
 {
-	private static final String suffix = SmtpMessage.LINE_FEED;
+	private static final String suffix = SmtpMessage.CARRIAGE_RETURN_LINE_FEED;
 	
 	public EmailAddress(String addr)
 	{

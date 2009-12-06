@@ -18,7 +18,7 @@ public class EhloAckBody implements SmtpParseable
 	
 	public boolean isParseable(String m)
 	{
-		return m.endsWith(SmtpMessage.LINE_FEED);
+		return m.endsWith(SmtpMessage.CARRIAGE_RETURN_LINE_FEED);
 	}
 	
 	//public EhloAckBody parse(String m) // Annoying: covariant return types not supported until Java 5.

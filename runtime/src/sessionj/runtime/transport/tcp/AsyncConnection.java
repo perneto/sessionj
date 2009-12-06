@@ -7,6 +7,7 @@ import sessionj.runtime.transport.SJTransport;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
 
 class AsyncConnection extends AbstractSJConnection
@@ -40,6 +41,7 @@ class AsyncConnection extends AbstractSJConnection
      */
     public synchronized byte readByte() throws SJIOException {
         ByteBuffer input = checkAndDequeue(1);
+        
         return input.get();
     }
 
@@ -48,12 +50,15 @@ class AsyncConnection extends AbstractSJConnection
         if (input == null) {
             throw new SJIOException("No available inputs on connection: " + this);
         }
+        
         log.finest("Returning input: " + input);
+
         if (input.remaining() == remaining)
             thread.dequeueFromInputQueue(sc);
+        
         return input;
     }
-
+    
     /**
      * Non-blocking read from the connection.
      * @throws NullPointerException If called when no data is ready on this connection (ie. not after a select call).

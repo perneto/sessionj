@@ -1,11 +1,14 @@
 package sessionj.runtime.session;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 
 import sessionj.types.*;
+import sessionj.types.contexts.SJTypeBuildingContext_c;
 import sessionj.types.sesstypes.*;
 import sessionj.util.*;
 
@@ -56,9 +59,38 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	private SJSessionType activeType()
 	{
-		return (contexts.isEmpty()) ? null : currentContext().activeType();
+		SJSessionType st = (contexts.isEmpty()) ? null : currentContext().activeType();
+		
+		if (st != null) // HACK: because recurse types are unrolled lazily.
+		{
+			st = SJTypeBuildingContext_c.substituteTypeVariables(st, getRecursions()); 
+		}
+		
+		return st;
 	}
 
+	private Map<SJLabel, SJRecursionType> getRecursions() // FIXME: should instead build this information as we go along (i.e. scopes entered/left).  
+	{
+		Map<SJLabel, SJRecursionType> map = new HashMap<SJLabel, SJRecursionType>(); 
+
+		for (int i = contexts.size() - 1; i >= 0; i--)
+		{
+			SJRuntimeContextElement rce = contexts.get(i);
+			
+			if (rce instanceof SJRecursionContext)
+			{
+				SJRecursionContext rc = (SJRecursionContext) rce;
+				
+				SJLabel lab = rc.label();
+				SJRecursionType rt = rc.originalType();
+								
+				map.put(lab, rt); // Will overwrite types from outer scopes if necessary.
+			}
+		}
+		
+		return map;
+	}
+	
 	private SJSessionType implementedType()
 	{
 		return currentContext().implementedType();

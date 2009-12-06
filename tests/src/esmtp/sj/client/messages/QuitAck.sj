@@ -25,7 +25,7 @@ public class QuitAck extends SmtpAck
 	
 	public boolean isParseable(String m)
 	{
-		return m.startsWith(QUIT_REPLY_CODE) && m.endsWith(SmtpMessage.LINE_FEED);
+		return m.startsWith(QUIT_REPLY_CODE) && m.endsWith(SmtpMessage.CARRIAGE_RETURN_LINE_FEED);
 	}
 	
 	public SmtpParseable parse(String m)

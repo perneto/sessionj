@@ -97,7 +97,7 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
         parameters.add(socket.sjname());
 
         for (SJWhen when : whenStatements) {
-            statement.append("if (%s.typeEquals(SJRuntime.decodeType(%E))) { %LS; } else ");
+        		statement.append("if (%s.typeEquals(SJRuntime.decodeType(%E))) { %LS; } else ");
             parameters.add(tmpVar);
             parameters.add(new StringLit_c(when.position(), sjte.encode(when.type())));
             parameters.add(copyOfStatements(when)); // QQ tries to modify the list in some cases

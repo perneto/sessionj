@@ -1,5 +1,5 @@
 //$ bin/sessionjc -cp tests/classes/ tests/src/runtime/selector/client/Client.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ runtime.selector.client.Client false s a localhost 8888 
+//$ bin/sessionj -cp tests/classes/ runtime.selector.client.Client false a localhost 8888 
 
 package runtime.selector.client;
 
@@ -15,13 +15,13 @@ public class Client
 {		
 	private final noalias protocol p_client { ^(runtime.selector.server.Server.p_server) }
 	
-	public void run(boolean debug, String setups, String transports, String server, int port) throws Exception
+	public void run(boolean debug, String setups, String server, int port) throws Exception
 	{
 		final noalias SJSocket s;	
 			
 		try (s)
 		{
-			s = SJService.create(p_client, server, port).request(SJTransportUtils.createSJSessionParameters(setups, transports));
+			s = SJService.create(p_client, server, port).request(SJTransportUtils.createSJSessionParameters(setups, setups));
 			
 			//System.out.println("Current session type: " + s.currentSessionType());					
 			//System.out.println("Remaining session type: " + s.remainingSessionType());
@@ -40,6 +40,8 @@ public class Client
 				
 				Thread.sleep(1000);
 				
+				i++;
+				
 				s.recurse(X);
 			}									
 		}
@@ -54,11 +56,12 @@ public class Client
 		boolean debug = Boolean.parseBoolean(args[0]);
 		
 		String setups = args[1];
-		String transports = args[2];
+		//String transports = args[2];
 		
-		String server = args[3];
-		int port = Integer.parseInt(args[4]);
+		String server = args[2];
+		int port = Integer.parseInt(args[3]);
 		
-		new Client().run(debug, setups, transports, server, port);
+		//new Client().run(debug, setups, transports, server, port);
+		new Client().run(debug, setups, server, port);
 	}
 }

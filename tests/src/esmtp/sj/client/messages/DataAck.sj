@@ -25,7 +25,7 @@ public class DataAck extends SmtpAck
 	
 	public boolean isParseable(String m)
 	{
-		return m.startsWith(DATA_REPLY_CODE) && m.endsWith(SmtpMessage.LINE_FEED);
+		return m.startsWith(DATA_REPLY_CODE) && m.endsWith(SmtpMessage.CARRIAGE_RETURN_LINE_FEED);
 	}
 	
 	public SmtpParseable parse(String m)

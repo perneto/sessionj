@@ -7,7 +7,7 @@ public class ServerGreeting extends SmtpMessage
 	public static final String GREETING_REPLY_CODE = "220";
 	
 	private static final String prefix = GREETING_REPLY_CODE + SmtpMessage.SPACE_SEPARATOR;
-	private static final String suffix = SmtpMessage.LINE_FEED;	
+	private static final String suffix = SmtpMessage.CARRIAGE_RETURN_LINE_FEED;	
 	
 	public ServerGreeting(String greeting)
 	{

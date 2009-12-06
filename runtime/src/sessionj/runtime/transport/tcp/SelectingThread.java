@@ -1,6 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.session.OngoingRead;
+import sessionj.runtime.session.SJCustomMessageFormatter;
 import sessionj.runtime.session.SJDeserializer;
 import static sessionj.runtime.transport.tcp.SelectingThread.ChangeAction.*;
 import sessionj.runtime.SJIOException;
@@ -24,7 +25,7 @@ final class SelectingThread implements Runnable {
 
     private final Queue<ChangeRequest> pendingChangeRequests;
 
-    private final ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>> readyInputs;
+    /*private*/ public final ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>> readyInputs;
     private final BlockingQueue<Object> readyForSelect;
     private final ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>> accepted;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
@@ -160,6 +161,7 @@ final class SelectingThread implements Runnable {
 
     private void doSelect() throws IOException {
         log.finest("NIO select, registered keys: " + dumpKeys(selector) + "...");
+        log.finest("Remaining outputs: " + dumpOutputs());
         selector.select();
         Iterator<SelectionKey> it = selector.selectedKeys().iterator();
         while (it.hasNext()) {
@@ -182,7 +184,17 @@ final class SelectingThread implements Runnable {
         }
     }
 
-    private static String dumpKeys(Selector selector) {
+    private String dumpOutputs()
+		{
+    	StringBuilder b = new StringBuilder();
+			for (SocketChannel chan : requestedOutputs.keySet()) {
+				Queue q = requestedOutputs.get(chan);
+				b.append(chan).append(':').append(q);
+			}
+			return b.toString();
+		}
+
+		private static String dumpKeys(Selector selector) {
         Set<SelectionKey> keys = selector.keys();
         StringBuilder b = new StringBuilder();
         for (Iterator<SelectionKey> it = keys.iterator(); it.hasNext();) {
@@ -241,7 +253,8 @@ final class SelectingThread implements Runnable {
 
         try {
             consumeBytesRead(key, (SocketChannel) key.channel(),
-                    readBuffer.asReadOnlyBuffer(), // just to be safe (shouldn't hurt speed)
+                    //readBuffer.asReadOnlyBuffer(), // just to be safe (shouldn't hurt speed)
+            				readBuffer,
                     numRead == -1 // -1 if and only if eof
             );
         } catch (SJIOException e) {
@@ -257,6 +270,51 @@ final class SelectingThread implements Runnable {
 
     }
 
+    //RAY
+    //private Map<SocketChannel, OngoingRead> ongoingReads = new HashMap<SocketChannel, OngoingRead>(); // FIXME: should garbage collect from this map on session close or whatever.
+    
+    // This has been modified to use the same OngoingRead (as a cache for unconsumed read data) for the whole of a session, rather than making new ones because that loses the unconsumed data (or, rather, assumes that the data chunks read by the SelectingThread always completely parse into a whole number of messages). 
+    private void consumeBytesRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) throws SJIOException
+    //private void foo(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) throws SJIOException
+    {
+    	//OngoingRead or = ongoingReads.get(sc);
+    	OngoingRead or = (OngoingRead) key.attachment();
+    		
+    	if (or == null)
+    	{
+    		//or = deserializers.get(key.channel()).newOngoingRead();
+    		or = attachNewOngoingRead(key); // For custom message formatting mode, this does *not* create a new OngoingRead: it returns a singleton. 
+    	}
+    	
+    	while (bytes.remaining() > 0) 
+    	{
+				or.updatePendingInput(bytes, eof);
+				
+				if (or.finished()) 
+				{
+			    ByteBuffer input = or.getCompleteInput();
+			    
+			    log.finer("Received complete input on channel " + sc + ": " + input);
+				
+					if (readyInputs.containsKey(sc)) 
+					{
+				    readyInputs.get(sc).add(input);				    
+				    readyForSelect.add(sc); // order is important here: adding to readyForSelect makes the read visible to select
+					} 
+					else 
+					{
+				    log.finer("Dropping input received on deregistered channel: " + sc + ", input: " + input);
+					}
+					
+					or = attachNewOngoingRead(key);
+	      }
+    	}
+    	
+    	//ongoingReads.put(sc, or);
+    }
+    //YAR
+
+    /*
     private void consumeBytesRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) throws SJIOException {
         OngoingRead read = (OngoingRead) key.attachment();
         while (bytes.remaining() > 0) {
@@ -279,7 +337,8 @@ final class SelectingThread implements Runnable {
             }
         }
     }
-
+    //*/
+    
     private OngoingRead attachNewOngoingRead(SelectionKey key) throws SJIOException {
         OngoingRead read = deserializers.get(key.channel()).newOngoingRead();
         key.attach(read);

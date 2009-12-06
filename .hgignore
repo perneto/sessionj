@@ -17,3 +17,4 @@ runtime/classes
 benchmark/classes
 test-output
 .DS_Store
+benchmark/results
