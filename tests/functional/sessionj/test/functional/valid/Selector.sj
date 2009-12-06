@@ -1,5 +1,5 @@
 //DISABLED
-// Needs to be run with -Dsessionj.transports.negotiation=s -Dsessionj.transports.session=a 
+//$ ant -Dsessionj.transports.negotiation=s -Dsessionj.transports.session=a -Dtestcase=Selector functionaltest  
 package sessionj.test.functional;
 
 import sessionj.runtime.*;

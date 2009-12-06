@@ -119,7 +119,7 @@ public class Server3
 			try (s)
 			{
 				//220 smtp1.cc.ic.ac.uk ESMTP Exim 4.69 Sun, 22 Nov 2009 14:36:55 +0000
-				ServerGreeting greeting = new ServerGreeting("server greeting");
+				ServerGreeting greeting = new ServerGreeting("localhost ESMTP blah blah blah");
 				System.out.print("Sending: " + greeting);			
 				s.send(greeting);			
 				System.out.print("Received: " + (Ehlo) s.receive());
@@ -129,7 +129,7 @@ public class Server3
 				250-PIPELINING
 				250-STARTTLS
 				250 HELP*/
-				EhloAck ehloAck = new EhloAck("250 ehlo ack");
+				EhloAck ehloAck = new EhloAck("250 Hello foobar [1.2.3.4]");
 				System.out.print("Sending: " + ehloAck);			
 				s.send(ehloAck);			
 				
@@ -166,7 +166,7 @@ public class Server3
 				case QUIT:
 				{
 					//221 smtp1.cc.ic.ac.uk closing connection
-					QuitAck quitAck = new QuitAck("quit ack"); // Unlike the "ack bodies", already prefixes the reply code.
+					QuitAck quitAck = new QuitAck("localhost closing connection"); // Unlike the "ack bodies", already prefixes the reply code.
 					System.out.print("Sending: " + quitAck);			
 					s.send(quitAck);	
 				}
@@ -181,7 +181,7 @@ public class Server3
 		//250 OK
 		s.outbranch($250)
 		{
-			MailAckBody mailAckBody = new MailAckBody(SmtpMessage.SPACE_SEPARATOR + "mail ack body"); // "Ack bodies" need the space/hyphen separator. 
+			MailAckBody mailAckBody = new MailAckBody(SmtpMessage.SPACE_SEPARATOR + "OK"); // "Ack bodies" need the space/hyphen separator. 
 			System.out.print("Sending: " + mailAckBody);			
 			s.send(mailAckBody);
 		}
@@ -194,7 +194,7 @@ public class Server3
 		//250 Accepted
 		s.outbranch($250)
 		{
-			RcptAckBody rcptAckBody = new RcptAckBody(SmtpMessage.SPACE_SEPARATOR + "rcpt ack body");
+			RcptAckBody rcptAckBody = new RcptAckBody(SmtpMessage.SPACE_SEPARATOR + "Accepted");
 			System.out.print("Sending: " + rcptAckBody);			
 			s.send(rcptAckBody);
 		}
@@ -203,14 +203,14 @@ public class Server3
 	private static final void doData(final noalias @(smtp_server_data) s) throws SJIOException, ClassNotFoundException
 	{	
 		//354 Enter message, ending with "." on a line by itself
-		DataAck dataAck = new DataAck("data ack"); // Unlike the "ack bodies", already prefixes the reply code.
+		DataAck dataAck = new DataAck("Enter message, ending with \".\" on a line by itself"); // Unlike the "ack bodies", already prefixes the reply code.
 		System.out.print("Sending: " + dataAck);			
 		s.send(dataAck);	
 				
 		System.out.print("Received: " + (MessageBody) s.receive());
 		
 		//250 OK id=1NCDaj-0001P0-V7
-		MessageBodyAck messageBodyAck = new MessageBodyAck("message body ack");
+		MessageBodyAck messageBodyAck = new MessageBodyAck("OK id=1ABCde-2345F6-G7");
 		System.out.print("Sending: " + messageBodyAck);			
 		s.send(messageBodyAck);
 	}

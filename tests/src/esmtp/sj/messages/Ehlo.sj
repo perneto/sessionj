@@ -7,7 +7,7 @@ public class Ehlo extends SmtpMessage
 	public static final String EHLO_COMMAND = "EHLO";
 	
 	private static final String prefix = EHLO_COMMAND + SmtpMessage.SPACE_SEPARATOR;
-	private static final String suffix = SmtpMessage.LINE_FEED;
+	private static final String suffix = SmtpMessage.CARRIAGE_RETURN_LINE_FEED;
 
 	public Ehlo(String fqdn)
 	{
