@@ -12,11 +12,10 @@ public class SJProtocol implements Serializable
 	public static final long serialVersionUID = SJ_VERSION;
 
 	private final String encoded;
-    private final SJSessionType canonicalForm;
+    private SJSessionType canonicalForm = null;
 
-    public SJProtocol(String encoded) throws SJIOException {
+    public SJProtocol(String encoded) {
 		this.encoded = encoded;
-        canonicalForm = SJRuntime.decodeType(this.encoded).getCanonicalForm();
     }
 
 	public String encoded()
@@ -24,9 +23,12 @@ public class SJProtocol implements Serializable
 		return encoded; // Maybe should return the decoded type. 
 	}
 
-    public SJSessionType type() throws SJIOException 
+    public synchronized SJSessionType type() throws SJIOException 
     {
-    	return canonicalForm;
+        if (canonicalForm == null) {
+            canonicalForm = SJRuntime.decodeType(encoded).getCanonicalForm();
+        }
+        return canonicalForm;
     }
 	
 	public String toString()
