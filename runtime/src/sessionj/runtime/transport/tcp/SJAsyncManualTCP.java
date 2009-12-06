@@ -19,7 +19,6 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
 
 	public static final int TCP_PORT_MAP_ADJUST = 200;
 	
-    private final AsyncManualTCPSelector selector;
     private final SelectingThread thread;
     private static final Logger logger = SJRuntimeUtils.getLogger(SJAsyncManualTCP.class);
 
@@ -28,7 +27,6 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
         Thread t = new Thread(thread, "SelectingThread");
         t.setDaemon(true);
         t.start();
-        selector = new AsyncManualTCPSelector(thread, this);
     }
 
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException {
@@ -72,7 +70,7 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
 	}
 
     public SJSelectorInternal transportSelector() {
-        return selector;
+        return new AsyncManualTCPSelector(thread, this);
     }
 
     @Override

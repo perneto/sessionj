@@ -60,19 +60,14 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         Object chan;
         try {
             logger.fine("Blocking dequeue...");
-            chan = thread.dequeueChannelForSelect(); // blocking dequeue
+            chan = thread.dequeueChannelForSelect(registeredChannels()); // blocking dequeue
             logger.fine("Channel selected: " + chan);
         } catch (InterruptedException e) {
             throw new SJIOException(e);
         }
         if (chan instanceof SocketChannel) {
             SocketChannel sc = (SocketChannel) chan;
-            // If the channel was deregistered, but we didn't finish reading all events:
-            // select another one, dropping this one
-            if (!registeredInputs.containsKey(sc)) {
-                logger.finer("Selected deregistered channel: calling select again");
-                return select(true);
-            }
+            assert registeredInputs.containsKey(sc);
             
             InputState state = registeredInputs.get(sc);
             InputState newState = state.receivedInput();
@@ -106,10 +101,17 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         }
     }
 
+    private Collection<SelectableChannel> registeredChannels() {
+        Collection<SelectableChannel> chans = new 
+            LinkedList<SelectableChannel>(registeredInputs.keySet());
+        chans.addAll(registeredAccepts.keySet());
+        return chans;
+    }
+
     private void deregister(SocketChannel sc) {
-        // HACK: Not doing this at the moment, so we can receive
-        // the extra message from the close protocol
-        // thread.deregisterInput(sc);
+        // Not deregistering the channel from the selecting thread,
+        // so that other instances of this class can receive extra messages
+        // (at the moment, this is used by the close protocol - see SJSessionProtocolsImpl)
         
         registeredInputs.remove(sc);
     }
