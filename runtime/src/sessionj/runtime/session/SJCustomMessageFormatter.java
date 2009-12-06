@@ -4,6 +4,7 @@
 package sessionj.runtime.session;
 
 import java.io.EOFException;
+import java.nio.Buffer;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -20,13 +21,20 @@ import sessionj.runtime.transport.SJConnection;
  * For "simple" protocols, this component may not need to be stateful; but for many protocols, we probably need to implement a state machine here. For that purpose, message formatters are like a localised version of the protocol: the messages received by writeMessage should follow the dual protocol to the messages returned by readNextMessage. But the formatter is an object: need object-based session types to control this.
  * 
  * A less centralised option is to move formatting/parsing operations into each message type. The SJ Runtime can use session type monitoring to work out which message to expect and use the appropriate deserialization/parsing routine. Need to be a bit careful for inbranches, and with subtyping (if supported, need to be able to decode a subtype message using the supertype routine).   
+ *
+ * FIXME: need to really make clear the contracts (pre and post conditions, wrt. arguments and fields) of each method, particularly parseMessage, since that's the one the user must implement.
  * 
  */
 abstract public class SJCustomMessageFormatter 
 {		
 	private SJConnection conn;
 	
-	private ByteBuffer bb = ByteBuffer.allocate(SJConstants.CUSTOM_MESSAGE_FORMATTER_INIT_BUFFER_SIZE); // Size should be at least greater than 0. // Called by SJCustomSerializer in a "sequentialised" way, i.e. no race conditions. 
+	private ByteBuffer bb; 
+	
+	{
+		 bb = ByteBuffer.allocate(SJConstants.CUSTOM_MESSAGE_FORMATTER_INIT_BUFFER_SIZE); // Size should be at least greater than 0. // Called by SJCustomSerializer in a "sequentialised" way, i.e. no race conditions.
+		 bb.flip();
+	}
 	
 	private LinkedList<Object> history = new LinkedList<Object>();
 	
@@ -58,22 +66,49 @@ abstract public class SJCustomMessageFormatter
 		history.push(o); // Not compatible with noalias reference passing.
 	}
 	
-	//public final SJMessage readNextMessage() throws SJIOException
+	// Pre: bb should be ready for reading.
+	//public final SJMessage readNextMessage() throws SJIOException	
 	protected final Object readNextMessage() throws SJIOException // FIXME: would be better if could implement using arrived.
 	{		
 		Object o = null;
 		
+		//f (bb.position() > 0)
+		if (bb.remaining() > 0)
+		{
+			//o = parseMessage(getFlippedReadOnlyByteBuffer(bb), false);
+			o = parseMessage(bb, false);
+			
+			if (o != null)
+			{
+				return o;
+			}
+		}
+		else if (bb.position() == bb.limit() && bb.position() > 0) // Nothing to read (but user didn't call restoreReadButUnusedData) - not needed for correctness, just being efficient with space.
+		{
+			bb.clear();
+		}
+		else
+		{
+			unflipBuffer(bb);
+		}
+			
 		try
 		{
+			//unflipBuffer(bb);
 			bb.put(conn.readByte()); // Need at least one byte for a message. This gives the guarantee that parseMessage will not be called with empty arrays.
 							
 			//byte[] bs = copyByteBufferContents(bb);		
 			
 			//for (o = parseMessage(bs); o == null; o = parseMessage(bs)) // Assuming parseMessage returns null if parsing unsuccessful. (But what if we want to communicate a null?)
-			for (o = parseMessage(getFlippedReadOnlyByteBuffer(bb), false); o == null; o = parseMessage(getFlippedReadOnlyByteBuffer(bb), false)) // Assuming parseMessage returns null if parsing unsuccessful. (But what if we want to communicate a null?)
-			{			
-				if (bb.position() == bb.limit())
+			//for (o = parseMessage(getFlippedReadOnlyByteBuffer(bb), false); o == null; o = parseMessage(getFlippedReadOnlyByteBuffer(bb), false)) // Assuming parseMessage returns null if parsing unsuccessful. (But what if we want to communicate a null?)
+			for (o = parseMessage((ByteBuffer) bb.flip(), false); o == null; o = parseMessage((ByteBuffer) bb.flip(), false)) // Assuming parseMessage returns null if parsing unsuccessful. (But what if we want to communicate a null?)
+			{		
+				unflipBuffer(bb);
+				
+				if (bb.position() == bb.limit()) // Cannot be greater than.
 				{
+					bb.flip();
+					
 					ByteBuffer bbb = ByteBuffer.allocate(bb.capacity() * 2); // Crude reallocation scheme. Buffer never shrinks back.
 					
 					bbb.put(bb);
@@ -81,7 +116,7 @@ abstract public class SJCustomMessageFormatter
 					bb = bbb;
 				}
 				
-				bb.put(conn.readByte()); // FIXME: reallocate bb if it gets full? Or is this already done for us?
+				bb.put(conn.readByte()); 
 							
 				//bs = copyByteBufferContents(bb);
 			}
@@ -90,7 +125,8 @@ abstract public class SJCustomMessageFormatter
 		{
 			if (ioe.getCause() instanceof EOFException)
 			{	
-				o = parseMessage(getFlippedReadOnlyByteBuffer(bb), true); // "Last chance" to parse the message, but .
+				//o = parseMessage(getFlippedReadOnlyByteBuffer(bb), true); // "Last chance" to parse the message.
+				o = parseMessage((ByteBuffer) bb.flip(), true); 
 				
 				if (o == null)
 				{
@@ -100,20 +136,35 @@ abstract public class SJCustomMessageFormatter
 		}
 		finally
 		{			
-			bb.clear();			
+
 		}
 		
 		return o;
 	}
 	
-	private static final ByteBuffer getFlippedReadOnlyByteBuffer(ByteBuffer bb)
+	/*private static final ByteBuffer getFlippedReadOnlyByteBuffer(ByteBuffer bb)
 	{
 		ByteBuffer fbb = bb.asReadOnlyBuffer();
 		
 		fbb.flip();
 		
 		return fbb;
-	}	
+	}*/	
+
+	private static void unflipBuffer(Buffer b)
+	{
+		int lim = b.limit();
+		
+		b.limit(b.capacity());
+		b.position(lim);
+	}
+	
+	protected static void restoreReadButUnusedData(ByteBuffer bb, int consumed) // Leaves buffer in reading mode.
+	{
+		bb.position(consumed);
+		bb.compact();
+		bb.flip();
+	}
 	
 	/*private static final byte[] copyByteBufferContents(ByteBuffer bb)
 	{

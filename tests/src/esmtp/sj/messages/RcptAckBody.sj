@@ -6,7 +6,7 @@ public class RcptAckBody extends SmtpMessage
 {	
 	private static final String prefix1 = SmtpMessage.HYPHEN_SEPARATOR;
 	private static final String prefix2 = SmtpMessage.SPACE_SEPARATOR;
-	private static final String suffix = SmtpMessage.LINE_FEED;
+	private static final String suffix = SmtpMessage.CARRIAGE_RETURN_LINE_FEED;
 	
 	public RcptAckBody(String msg)
 	{

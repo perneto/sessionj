@@ -4,7 +4,7 @@ package esmtp.sj.messages;
 
 abstract public class SmtpMessage
 {
-	public static final String LINE_FEED = "\n";
+	public static final String CARRIAGE_RETURN_LINE_FEED = "\r\n";
 	
 	public static final String HYPHEN_SEPARATOR = "-";
 	public static final String SPACE_SEPARATOR = " ";
@@ -33,6 +33,6 @@ abstract public class SmtpMessage
 	
 	public static final String removeLineFeedSuffix(String m)
 	{
-		return m.substring(0, m.length() - SmtpMessage.LINE_FEED.length());
+		return m.substring(0, m.length() - SmtpMessage.CARRIAGE_RETURN_LINE_FEED.length());
 	}
 }

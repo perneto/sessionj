@@ -7,7 +7,7 @@ public class MessageBodyAck extends SmtpMessage
 	public static final String MESSAGE_BODY_REPLY_CODE = "250";
 	
 	private static final String prefix = MESSAGE_BODY_REPLY_CODE;
-	private static final String suffix = SmtpMessage.LINE_FEED; 
+	private static final String suffix = SmtpMessage.CARRIAGE_RETURN_LINE_FEED; 
 	
 	public MessageBodyAck(String msg)
 	{

@@ -4,8 +4,8 @@ package esmtp.sj.client.messages;
 
 abstract public class SmtpMessage
 {
-	public static final String LINE_FEED = "\n";
-	public static final String SMTP_MESSAGE_SUFFIX = LINE_FEED;
+	public static final String CARRIAGE_RETURN_LINE_FEED = "\r\n"; 
+	public static final String SMTP_MESSAGE_SUFFIX = CARRIAGE_RETURN_LINE_FEED;
 	
 	public SmtpMessage()
 	{

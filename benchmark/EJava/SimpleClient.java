@@ -1,19 +1,42 @@
+import java.nio.channels.*;
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
-
+import java.nio.*;
+import java.nio.charset.Charset;
 
 public class SimpleClient implements Client {
 
-  long start, end;
+  private static Charset charset = Charset.forName("UTF-8");
+
+  private static int byteArrayToInt(byte []b) {
+    int x = 0;
+    x |= b[0]; x <<= 8;
+    x |= b[1]; x <<= 8;
+    x |= b[2]; x <<= 8;
+    x |= b[3];
+    return x;
+  }
 
   public String client (String domain, int port) {
     int x = 0;
+    ByteBuffer b = ByteBuffer.allocate(64);
+
     try {
-      Socket clientSocket = new Socket(domain, port);
-      DataInputStream in = new DataInputStream(clientSocket.getInputStream());
-      x = in.readInt();
-      System.out.println(x);
+      InetSocketAddress socketAddress = new InetSocketAddress(domain, port);
+      SocketChannel sc = SocketChannel.open(socketAddress);
+
+      int numRead = 0; 
+
+      while(numRead < 4) {
+        numRead += sc.read(b);
+      }
+
+      b.flip();
+
+      x = byteArrayToInt(b.array());
+      sc.close();
     }
     catch (IOException e) {e.printStackTrace();}
     return "" + x;
@@ -21,11 +44,7 @@ public class SimpleClient implements Client {
   }
 
     public static void main(String[] args) throws IOException {
-        SimpleClient c = new SimpleClient();
-        c.start = System.nanoTime();
-        c.client("", 1234);
-        c.end = System.nanoTime();
-        System.out.println(c.end - c.start);
+      new SimpleClient().client("", 1234);
     }
 }
 
