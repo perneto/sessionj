@@ -101,7 +101,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 				{				
 					if (ser.getConnection() != null) // FIXME: need a isClosed.
 					{
-                        SJSelectorInternal sel = null;
+                        SJSelectorInternal sel;
                         //noinspection EmptyFinallyBlock
                         try
 						{
@@ -117,7 +117,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
                                 log.finer("Selected socket in close protocol: " + s);
                                 assert selected.getConnection().equals(ser.getConnection());
                             }
-							cs = ser.readControlSignal(); 
+							ser.readControlSignal(); 
                             log.fine("Control signal read.");
 						}
 						catch (Exception ioe) // We are prematurely closing. 

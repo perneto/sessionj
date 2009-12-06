@@ -1,10 +1,9 @@
 package sessionj.runtime.transport.tcp;
 
+import sessionj.runtime.SJIOException;
 import sessionj.runtime.session.OngoingRead;
-import sessionj.runtime.session.SJCustomMessageFormatter;
 import sessionj.runtime.session.SJDeserializer;
 import static sessionj.runtime.transport.tcp.SelectingThread.ChangeAction.*;
-import sessionj.runtime.SJIOException;
 import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.util.Pair;
 
@@ -25,7 +24,7 @@ final class SelectingThread implements Runnable {
 
     private final Queue<ChangeRequest> pendingChangeRequests;
 
-    /*private*/ public final ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>> readyInputs;
+    private final ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>> readyInputs;
     private final BlockingQueue<Object> readyForSelect;
     private final ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>> accepted;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
@@ -132,8 +131,25 @@ final class SelectingThread implements Runnable {
         readyForSelect.add(new Pair<ServerSocketChannel, SocketChannel>(ssc, socketChannel));
     }
 
-    public Object dequeueChannelForSelect() throws InterruptedException {
-        return readyForSelect.take();
+    public synchronized Object dequeueChannelForSelect
+        (Collection<SelectableChannel> registeredChannels) throws InterruptedException 
+    {
+        Object o = readyForSelect.take();
+        if (contains(registeredChannels, o)) {
+            return o;
+        } else {
+            readyForSelect.add(o);
+            return dequeueChannelForSelect(registeredChannels);
+        }
+    }
+    
+    private boolean contains(Collection<SelectableChannel> coll, Object o) {
+        if (o instanceof SocketChannel) {
+            return coll.contains(o);
+        } else {
+            Pair<ServerSocketChannel, SocketChannel> p = (Pair<ServerSocketChannel, SocketChannel>) o;
+            return coll.contains(p.first);
+        }
     }
 
     public void run() {
@@ -185,16 +201,16 @@ final class SelectingThread implements Runnable {
     }
 
     private String dumpOutputs()
-		{
-    	StringBuilder b = new StringBuilder();
-			for (SocketChannel chan : requestedOutputs.keySet()) {
-				Queue q = requestedOutputs.get(chan);
-				b.append(chan).append(':').append(q);
-			}
-			return b.toString();
-		}
+    {
+        StringBuilder b = new StringBuilder();
+        for (SocketChannel chan : requestedOutputs.keySet()) {
+            Queue<ByteBuffer> q = requestedOutputs.get(chan);
+            b.append(chan).append(':').append(q);
+        }
+        return b.toString();
+    }
 
-		private static String dumpKeys(Selector selector) {
+    private static String dumpKeys(Selector selector) {
         Set<SelectionKey> keys = selector.keys();
         StringBuilder b = new StringBuilder();
         for (Iterator<SelectionKey> it = keys.iterator(); it.hasNext();) {
