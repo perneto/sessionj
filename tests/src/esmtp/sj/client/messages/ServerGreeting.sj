@@ -18,7 +18,7 @@ public class ServerGreeting implements SmtpParseable // Actually, the server gre
 	
 	public boolean isParseable(String m)
 	{
-		return m.endsWith(SmtpMessage.LINE_FEED);
+		return m.endsWith(SmtpMessage.CARRIAGE_RETURN_LINE_FEED);
 	}
 	
 	public SmtpParseable parse(String m)

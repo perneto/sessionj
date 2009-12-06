@@ -13,6 +13,6 @@ abstract public class SmtpAck extends SmtpMessage implements SmtpParseable
 	
 	public static final String removeTrailingLineFeed(String m)
 	{
-		return m.substring(0, m.length() - SmtpMessage.LINE_FEED.length());
+		return m.substring(0, m.length() - SmtpMessage.CARRIAGE_RETURN_LINE_FEED.length());
 	}
 }

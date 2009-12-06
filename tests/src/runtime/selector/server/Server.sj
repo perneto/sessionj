@@ -1,5 +1,5 @@
 //$ bin/sessionjc tests/src/runtime/selector/server/Server.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ runtime.selector.server.Server false s a 8888
+//$ bin/sessionj -cp tests/classes/ runtime.selector.server.Server false a 8888
 
 package runtime.selector.server;
 
@@ -14,12 +14,12 @@ public class Server
 	public protocol p_body rec X [?(int).?(String).!<int>.#X] // Receive two numbers: first as an int, next as a String, and then return their product as an int.
 	public protocol p_server sbegin.@(p_body)
 		
-	public void run(boolean debug, String setups, String transports, int port) throws Exception
+	public void run(boolean debug, String setups, int port) throws Exception
 	{
 		//protocol p_selector { @(p_body), ?(int).?(String).!<int>.@(p_body), ?(String).!<int>.@(p_body) }
 		protocol p_selector { @(p_body), ?(String).!<int>.@(p_body) }
 		
-		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(setups, transports); // NB. this must come before selector creation. 
+		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(setups, setups); // NB. this must currently come before selector creation. 
 		
 		final noalias SJSelector sel = SJRuntime.selectorFor(p_selector);
 		
@@ -46,11 +46,15 @@ public class Server
 				
 				try (s)
 				{
+					System.out.println("a: ");
+					
 					s = sel.select();
 
+					System.out.println("b: ");
+					
 					typecase (s)
 					{
-						when (@(p_body))
+						when (@(p_body)) // Should be the "accept" event.
 						{
 							s.recursion(X) // Selected session means there is a message available for reading.
 							{
@@ -63,7 +67,7 @@ public class Server
 								sel.registerInput(s);
 							}								
 						}
-						when (?(String).!<int>.@(p_body))
+						when (?(String).!<int>.@(p_body)) // Every iteration after the first.
 						{
 							String m = (String) s.receive();
 							
@@ -102,10 +106,10 @@ public class Server
 		boolean debug = Boolean.parseBoolean(args[0]);
 		
 		String setups = args[1];
-		String transports = args[2];
+		//String transports = args[2];
 
-		int port = Integer.parseInt(args[3]);
+		int port = Integer.parseInt(args[2]);
 		
-		new Server().run(debug, setups, transports, port);
-	}
+		//new Server().run(debug, setups, transports, port);
+		new Server().run(debug, setups, port);}
 }

@@ -90,9 +90,19 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 	
 	public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
 	{
+		/*if (bb.limit() == 0)
+		{
+			return null;
+		}*/
+		
 		try
 		{
 			String m = decodeFromUtf8(bb);
+			
+			String mm = m;
+			String consumed = "";
+			
+			Object o = null;
 			
 			if (eof)// && state != QUIT_ACK) 
 			{
@@ -105,7 +115,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = EHLO_ACK_FIRST_DIGIT;
 					
-					return GREETING.parse(m);
+					//return GREETING.parse(m);
+					o = GREETING.parse(m);
+					consumed = m;
 				}
 			}
 			
@@ -115,7 +127,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = EHLO_ACK_SECOND_AND_THIRD_DIGITS;
 					
-					return m;
+					//return m;
+					o = m;
+					consumed = m;
 				}
 				else
 				{
@@ -128,7 +142,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = EHLO_ACK_HYPHEN_OR_SPACE;
 					
-					return EHLO_ACK_SECOND_AND_THIRD_DIGITS.parse(m);
+					//return EHLO_ACK_SECOND_AND_THIRD_DIGITS.parse(m);
+					o = EHLO_ACK_SECOND_AND_THIRD_DIGITS.parse(m);
+					consumed = m;
 				}
 			} 
 			else if (state == EHLO_ACK_HYPHEN_OR_SPACE)
@@ -137,13 +153,17 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = EHLO_ACK_HYPHEN_BODY;
 					
-					return _HYPHEN;
+					//return _HYPHEN;
+					o = _HYPHEN;
+					consumed = "-";
 				}
 				else if (m.equals(" ")) 
 				{
 					state = EHLO_ACK_SPACE_BODY;
 					
-					return _SPACE;
+					//return _SPACE;
+					o = _SPACE;
+					consumed = " ";
 				}
 				else
 				{
@@ -156,7 +176,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = EHLO_ACK_FIRST_DIGIT;
 					
-					return EHLO_ACK_HYPHEN_BODY.parse(m);
+					//return EHLO_ACK_HYPHEN_BODY.parse(m);
+					o = EHLO_ACK_HYPHEN_BODY.parse(m);
+					consumed = m;
 				}
 			}
 			else if (state == EHLO_ACK_SPACE_BODY)
@@ -165,7 +187,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = MAIL_ACK_FIRST_DIGIT;
 					
-					return EHLO_ACK_SPACE_BODY.parse(m);
+					//return EHLO_ACK_SPACE_BODY.parse(m);
+					o = EHLO_ACK_SPACE_BODY.parse(m);
+					consumed = m;
 				}
 			}
 			
@@ -175,13 +199,17 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = MAIL_ACK_2_SECOND_AND_THIRD_DIGITS;
 					
-					return m;
+					//return m;
+					o = m;
+					consumed = "2";
 				}
 				else if (m.equals("5")) 
 				{
 					state = MAIL_ACK_5_SECOND_AND_THIRD_DIGITS;
 					
-					return m;
+					//return m;
+					o = m;
+					consumed = "5";
 				}				
 				else
 				{
@@ -194,7 +222,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = MAIL_ACK_2_HYPHEN_OR_SPACE;
 					
-					return MAIL_ACK_2_SECOND_AND_THIRD_DIGITS.parse(m);
+					//return MAIL_ACK_2_SECOND_AND_THIRD_DIGITS.parse(m);
+					o = MAIL_ACK_2_SECOND_AND_THIRD_DIGITS.parse(m);
+					consumed = m;
 				}
 			} 
 			else if (state == MAIL_ACK_2_HYPHEN_OR_SPACE)
@@ -203,13 +233,17 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = MAIL_ACK_2_HYPHEN_BODY;
 					
-					return _HYPHEN;
+					//return _HYPHEN;
+					o = _HYPHEN;
+					consumed = "-";
 				}
 				else if (m.equals(" ")) 
 				{
 					state = MAIL_ACK_2_SPACE_BODY;
 					
-					return _SPACE;
+					//return _SPACE;
+					o = _SPACE;
+					consumed = " ";
 				}
 				else
 				{
@@ -222,7 +256,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = MAIL_ACK_FIRST_DIGIT;
 					
-					return MAIL_ACK_2_HYPHEN_BODY.parse(m);
+					//return MAIL_ACK_2_HYPHEN_BODY.parse(m);
+					o = MAIL_ACK_2_HYPHEN_BODY.parse(m);
+					consumed = m;
 				}
 			}
 			else if (state == MAIL_ACK_2_SPACE_BODY)
@@ -231,7 +267,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = RCPT_OR_DATA_ACK_FIRST_DIGIT;
 					
-					return MAIL_ACK_2_SPACE_BODY.parse(m);
+					//return MAIL_ACK_2_SPACE_BODY.parse(m);
+					o = MAIL_ACK_2_SPACE_BODY.parse(m);
+					consumed = m;
 				}
 			}
 			else if (state == MAIL_ACK_5_SECOND_AND_THIRD_DIGITS)
@@ -240,7 +278,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = MAIL_ACK_5_HYPHEN_OR_SPACE;
 					
-					return MAIL_ACK_5_SECOND_AND_THIRD_DIGITS.parse(m);
+					//return MAIL_ACK_5_SECOND_AND_THIRD_DIGITS.parse(m);
+					o = MAIL_ACK_5_SECOND_AND_THIRD_DIGITS.parse(m);
+					consumed = m;
 				}
 			} 
 			else if (state == MAIL_ACK_5_HYPHEN_OR_SPACE)
@@ -249,13 +289,17 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = MAIL_ACK_5_HYPHEN_BODY;
 					
-					return _HYPHEN;
+					//return _HYPHEN;
+					o = _HYPHEN;
+					consumed = "-";
 				}
 				else if (m.equals(" ")) 
 				{
 					state = MAIL_ACK_5_SPACE_BODY;
 					
-					return _SPACE;
+					//return _SPACE;
+					o = _SPACE;
+					consumed = " ";
 				}
 				else
 				{
@@ -268,7 +312,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = MAIL_ACK_FIRST_DIGIT;
 					
-					return MAIL_ACK_5_HYPHEN_BODY.parse(m);
+					//return MAIL_ACK_5_HYPHEN_BODY.parse(m);
+					o = MAIL_ACK_5_HYPHEN_BODY.parse(m);
+					consumed = m;
 				}
 			}
 			else if (state == MAIL_ACK_5_SPACE_BODY)
@@ -277,7 +323,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = MAIL_ACK_FIRST_DIGIT;
 					
-					return MAIL_ACK_5_SPACE_BODY.parse(m);
+					//return MAIL_ACK_5_SPACE_BODY.parse(m);
+					o = MAIL_ACK_5_SPACE_BODY.parse(m);
+					consumed = m;
 				}
 			}
 			
@@ -287,19 +335,25 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = RCPT_ACK_2_SECOND_AND_THIRD_DIGITS;
 					
-					return m;
+					//return m;
+					o = m;
+					consumed = "2";
 				}
 				else if (m.equals("5")) 
 				{
 					state = RCPT_ACK_5_SECOND_AND_THIRD_DIGITS;
 					
-					return m;
+					//return m;
+					o = m;
+					consumed = "5";
 				}				
 				else if (m.equals("3")) 
 				{
 					state = DATA_ACK;
 					
-					return null; // Go to next state, to keep reading this message (DataAck).
+					//return null; // Go to next state, to keep reading this message (DataAck).
+					o = null;
+					consumed = "";
 				}	
 				else
 				{
@@ -313,7 +367,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = RCPT_ACK_2_BODY;
 					
-					return RCPT_ACK_2_SECOND_AND_THIRD_DIGITS.parse(m);
+					//return RCPT_ACK_2_SECOND_AND_THIRD_DIGITS.parse(m);
+					o = RCPT_ACK_2_SECOND_AND_THIRD_DIGITS.parse(m);
+					consumed = m;
 				}
 			} 
 			else if (state == RCPT_ACK_2_BODY)
@@ -322,7 +378,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = RCPT_OR_DATA_ACK_FIRST_DIGIT;
 					
-					return RCPT_ACK_2_BODY.parse(m);
+					//return RCPT_ACK_2_BODY.parse(m);
+					o = RCPT_ACK_2_BODY.parse(m);
+					consumed = m;
 				}
 			}
 			else if (state == RCPT_ACK_5_SECOND_AND_THIRD_DIGITS)
@@ -331,7 +389,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = RCPT_ACK_5_BODY;
 					
-					return RCPT_ACK_5_SECOND_AND_THIRD_DIGITS.parse(m);
+					//return RCPT_ACK_5_SECOND_AND_THIRD_DIGITS.parse(m);
+					o = RCPT_ACK_5_SECOND_AND_THIRD_DIGITS.parse(m);
+					consumed = m;
 				}
 			} 
 			else if (state == RCPT_ACK_5_BODY)
@@ -340,7 +400,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = RCPT_OR_DATA_ACK_FIRST_DIGIT;
 					
-					return RCPT_ACK_5_BODY.parse(m);
+					//return RCPT_ACK_5_BODY.parse(m);
+					o = RCPT_ACK_5_BODY.parse(m);
+					consumed = m;
 				}
 			}
 			
@@ -350,7 +412,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = MESSAGE_BODY_ACK;
 					
-					return DATA_ACK.parse(m);
+					//return DATA_ACK.parse(m);
+					o = DATA_ACK.parse(m);
+					consumed = m;
 				}
 			}
 			
@@ -360,15 +424,21 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				{
 					state = QUIT_ACK;
 					
-					return MESSAGE_BODY_ACK.parse(m);
+					//return MESSAGE_BODY_ACK.parse(m);
+					o = MESSAGE_BODY_ACK.parse(m);
+					consumed = m;
 				}
 			}
 
 			else if (state == QUIT_ACK)
 			{
+				//System.out.println("1: " + m + ", " Arrays.toString(m.getBytes()));
+				
 				if (QUIT_ACK.isParseable(m))
 				{
-					return QUIT_ACK.parse(m);
+					//return QUIT_ACK.parse(m);
+					o = QUIT_ACK.parse(m);
+					consumed = m;
 				}
 			}
 			
@@ -377,7 +447,21 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				throw new SJIOException("[SJSmptFormatter] Invalid state: " + state);
 			}
 			
-			return null;
+			//putBackRemainderReadyForReading(bb, "");
+			//bb.clear();
+			
+			//System.out.println("p " + bb.position() + ", l " + bb.limit() + ", c" + bb.capacity());
+			
+			//foo(o, bb, consumed);
+			if (o != null && consumed.length() > 0)
+			{
+				restoreReadButUnusedData(bb, consumed.getBytes().length); // FIXME: should specify the charset.
+			}
+			
+			//bb.compact();
+			
+			//return null;
+			return o;
 			
 			/*if (state == GREETING)
 			{

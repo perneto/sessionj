@@ -4,7 +4,7 @@ package esmtp.sj.client.messages;
 
 public class MessageBody extends SmtpMessage
 {
-	public static final String MESSAGEBODY_SUFFIX = ".\n";
+	public static final String MESSAGEBODY_SUFFIX = CARRIAGE_RETURN_LINE_FEED + "." + CARRIAGE_RETURN_LINE_FEED;
 	
 	private String body;
 	
