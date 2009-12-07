@@ -176,8 +176,10 @@ final class SelectingThread implements Runnable {
     }
 
     private void doSelect() throws IOException {
-        log.finest("NIO select, registered keys: " + dumpKeys(selector) + "...");
-        log.finest("Remaining outputs: " + dumpOutputs());
+        if (log.isLoggable(Level.FINEST)) {
+            log.finest("NIO select, registered keys: " + dumpKeys(selector) 
+                + " - remaining outputs: " + dumpOutputs() + "...");
+        }
         selector.select();
         Iterator<SelectionKey> it = selector.selectedKeys().iterator();
         while (it.hasNext()) {

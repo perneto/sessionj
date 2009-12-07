@@ -28,25 +28,31 @@ abstract public class SJAbstractSocket implements SJSocket
 	protected SJSerializer ser;
 	
 	private boolean isActive = false;
+    private final SJSessionType receivedRuntimeType;
 
     protected SJAbstractSocket(SJProtocol protocol, SJSessionParameters params)
         throws SJIOException
     {
+        this(protocol, params, null);
+    }
+
+    public SJAbstractSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType receivedRuntimeType) throws SJIOException {
         this.protocol = protocol; // Remainder of initialisation for client sockets performed when init is called.
-		this.params = params;
-        
-		try
-		{
-			localHostName = InetAddress.getLocalHost().getHostName();
-		}
+        this.params = params;
+
+        try
+        {
+            localHostName = InetAddress.getLocalHost().getHostName();
+        }
         catch (UnknownHostException e) {
             throw new SJIOException(e);
         }
 
-		//this.sm = new SJStateManager_c(SJRuntime.getTypeSystem(), protocol.type()); // Replaced by a setter (called by SJProtocolsImp).
+        //this.sm = new SJStateManager_c(SJRuntime.getTypeSystem(), protocol.type()); // Replaced by a setter (called by SJProtocolsImp).
+        this.receivedRuntimeType = receivedRuntimeType;
     }
-	
-  // FIXME: refactor the initialisation/binding of SJR session and transport components to session sockets. Move decision making more explicitly into the SJR and make more modular. 
+
+    // FIXME: refactor the initialisation/binding of SJR session and transport components to session sockets. Move decision making more explicitly into the SJR and make more modular. 
 	protected void init(SJConnection conn) throws SJIOException // conn can be null (delegation case 2?).
 	{
 		this.conn = conn;
@@ -348,6 +354,10 @@ abstract public class SJAbstractSocket implements SJSocket
 
     public boolean typeStartsWithOutput() throws SJIOException {
         return protocol.type().child().startsWithOutput(); 
+    }
+
+    public SJSessionType getInitialRuntimeType() throws SJIOException {
+        return receivedRuntimeType == null ? protocol.type() : receivedRuntimeType;
     }
 
     @Override
