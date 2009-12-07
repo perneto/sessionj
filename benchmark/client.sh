@@ -4,21 +4,23 @@ if [ -z "$1" ]; then
     exit
 fi
 
-VERSION=Simple
-if [ ! -z "$2" ]; then
-    VERSION=$2
-fi
 THREADS=1
+if [ ! -z "$2" ]; then
+    THREADS=$2
+fi
+VERSION=Simple
 if [ ! -z "$3" ]; then
-    THREADS=$3
+    VERSION=$3
 fi
 CLIENTS_PERTHREAD=10
 if [ ! -z "$4" ]; then
     CLIENTS_PERTHREAD=$4
 fi
 
-TRANSPORTS=
+NEGOTIATION_TR="-Dsessionj.transports.negotiation=s"
+SESSION_TR="-Dsessionj.transports.session=s"
 if [ "$1" = "SJE" ]; then
-    TRANSPORTS="-Dsessionj.transports.session=a"
+    SESSION_TR="-Dsessionj.transports.session=a"
 fi
-sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $TRANSPORTS sessionj.benchmark.$1.ClientRunner $VERSION 2000 localhost $THREADS $CLIENTS_PERTHREAD
+echo sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $NEGOTIATION_TR $SESSION_TR sessionj.benchmark.$1.ClientRunner $VERSION 2000 localhost $THREADS $CLIENTS_PERTHREAD
+sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $NEGOTIATION_TR $SESSION_TR sessionj.benchmark.$1.ClientRunner $VERSION 2000 localhost $THREADS $CLIENTS_PERTHREAD
