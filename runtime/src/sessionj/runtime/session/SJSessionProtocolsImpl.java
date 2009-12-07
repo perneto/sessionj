@@ -55,7 +55,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{
 			try
 			{
-                sm = new SJStateManager_c(SJRuntime.getTypeSystem(), s.getProtocol().type());
+                sm = new SJStateManager_c(SJRuntime.getTypeSystem(), s.getInitialRuntimeType());
 				
 				s.setStateManager(sm);
 			}

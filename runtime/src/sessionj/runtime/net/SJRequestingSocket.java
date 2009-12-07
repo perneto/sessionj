@@ -20,9 +20,9 @@ public class SJRequestingSocket extends SJAbstractSocket
     /**
      * For session receive: type can be a set type, need to know the actual runtime type for typecase
      */
-	public SJRequestingSocket(SJProtocol p, SJSessionParameters params, SJSessionType actualType) throws SJIOException
+	public SJRequestingSocket(SJProtocol p, SJSessionParameters params, SJSessionType receivedRuntimeType) throws SJIOException
 	{
-		super(p, params); // FIXME: null service OK? Probably OK for received sessions.
+		super(p, params, receivedRuntimeType); // FIXME: null service OK? Probably OK for received sessions.
 	}
 
     @Override
