@@ -1,5 +1,5 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/runtime/selector/client/Client.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ runtime.selector.client.Client false s a localhost 8888 
+//$ bin/sessionjc -cp tests/classes/ tests/src/runtime/selector/client/Client2.sj -d tests/classes/
+//$ bin/sessionj -cp tests/classes/ runtime.selector.client.Client2 false s a localhost 8888 
 
 package runtime.selector.client;
 
@@ -11,9 +11,9 @@ import sessionj.runtime.transport.*;
 
 import runtime.selector.server.*;
 
-public class Client
+public class Client2
 {		
-	private final noalias protocol p_client { ^(runtime.selector.server.Server.p_server) }
+	private final noalias protocol p_client { ^(runtime.selector.server.Server2.p_server) }
 	
 	public void run(boolean debug, String setups, String transports, String server, int port) throws Exception
 	{
@@ -28,20 +28,16 @@ public class Client
 			
 			int i = 1;
 			
+			s.send(i++);
+			
+			Thread.sleep(1000);
+			
 			s.recursion(X)
 			{				
-				s.send(i);
+				s.send(i++);
 				
 				Thread.sleep(1000);
-				
-				s.send(new Integer(i).toString());
-				
-				System.out.println("Received: " + s.receiveInt());
-				
-				Thread.sleep(1000);
-				
-				i++;
-				
+
 				s.recurse(X);
 			}									
 		}
@@ -61,6 +57,6 @@ public class Client
 		String server = args[3];
 		int port = Integer.parseInt(args[4]);
 		
-		new Client().run(debug, setups, transports, server, port);
+		new Client2().run(debug, setups, transports, server, port);		
 	}
 }
