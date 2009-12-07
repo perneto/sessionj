@@ -17,8 +17,8 @@ public class SJAcceptingSocket extends SJAbstractSocket
     /**
      * For delegation: type can be a set type, need to know actual runtime type for typecase
      */
-    public SJAcceptingSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType actualType) throws SJIOException {
-        super(protocol, params);
+    public SJAcceptingSocket(SJProtocol protocol, SJSessionParameters params, SJSessionType receivedRuntimeType) throws SJIOException {
+        super(protocol, params, receivedRuntimeType);
     }
 
     @Override

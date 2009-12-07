@@ -4,20 +4,10 @@
 package sessionj.runtime.session;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.SJProtocol;
 import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.net.*;
-import static sessionj.runtime.session.SJMessage.*;
-import sessionj.runtime.transport.SJAcceptorThreadGroup;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJTransportManager;
 import sessionj.types.sesstypes.SJSessionType;
 import sessionj.util.SJLabel;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * @author Raymond
@@ -31,13 +21,12 @@ import java.util.List;
  */
 public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
 { 
-	//private static final boolean RUNTIME_MONITORING = false; 
 	private static final boolean RUNTIME_MONITORING = true; // Basically a necessity for this session mode.
 	
-	protected SJSocket s;
-	protected SJSerializer ser;
+	private final SJSocket s;
+	private SJSerializer ser;
     
-	protected SJStateManager sm; 
+	private SJStateManager sm; 
     
   public SJNonSjCompatibilityProtocols(SJSocket s, SJSerializer ser)
 	{
@@ -48,7 +37,7 @@ public class SJNonSjCompatibilityProtocols implements SJSessionProtocols
 		{
 			try
 			{
-				this.sm = new SJStateManager_c(SJRuntime.getTypeSystem(), s.getProtocol().type());
+				sm = new SJStateManager_c(SJRuntime.getTypeSystem(), s.getInitialRuntimeType());
 				
 				s.setStateManager(sm);
 			}

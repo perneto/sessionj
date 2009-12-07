@@ -171,6 +171,10 @@ public class MultiPartyInsyncTest {
             return false;
         }
 
+        public SJSessionType getInitialRuntimeType() {
+            return null;
+        }
+
         public boolean recurse(String lab) throws SJIOException {
             // TODO Auto-generated method stub
             return false;

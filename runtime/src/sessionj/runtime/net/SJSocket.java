@@ -86,4 +86,6 @@ public interface SJSocket extends SJChannel
   public SJSessionType remainingSessionType();
 
     boolean typeStartsWithOutput() throws SJIOException;
+
+    SJSessionType getInitialRuntimeType() throws SJIOException;
 }
