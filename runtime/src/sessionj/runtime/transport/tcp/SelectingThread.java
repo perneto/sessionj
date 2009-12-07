@@ -30,6 +30,7 @@ final class SelectingThread implements Runnable {
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
     private static final Logger log = SJRuntimeUtils.getLogger(SelectingThread.class);
     private final Map<SocketChannel, SJDeserializer> deserializers;
+    private final Map<SocketChannel, Collection<AsyncManualTCPSelector>> interestedSelectors;
 
     SelectingThread() throws IOException {
         selector = SelectorProvider.provider().openSelector();
@@ -39,6 +40,7 @@ final class SelectingThread implements Runnable {
         readyForSelect = new LinkedBlockingQueue<Object>();
         accepted = new ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>>();
         deserializers = new HashMap<SocketChannel, SJDeserializer>();
+        interestedSelectors = new HashMap<SocketChannel, Collection<AsyncManualTCPSelector>>();
         readBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
     }
 
@@ -55,11 +57,14 @@ final class SelectingThread implements Runnable {
         // hence sleeping forever.
     }
 
-    synchronized void registerInput(SocketChannel sc, SJDeserializer deserializer) {
+    synchronized void registerInput(SocketChannel sc, SJDeserializer deserializer, AsyncManualTCPSelector sel) {
         if (!readyInputs.containsKey(sc)) {
             log.finer("New registration for input: " + sc + ", deserializer: " + deserializer);
             readyInputs.put(sc, new LinkedBlockingQueue<ByteBuffer>());
             deserializers.put(sc, deserializer);
+            HashSet<AsyncManualTCPSelector> set = new HashSet<AsyncManualTCPSelector>();
+            set.add(sel);
+            interestedSelectors.put(sc, set);
             // Don't change the order of these 2 statements: it's safe if we're interrupted after the first
             // one, as the channel is not registered with the selector yet. But if the registration requst is
             // added first, could have a NullPointerException
@@ -68,18 +73,24 @@ final class SelectingThread implements Runnable {
             // selector handling in the selecting thread (as selector keys are not thread-safe)
             selector.wakeup();
         } else {
-            log.finer("Asked for input registration, but channel already registered. Changing interest to OP_READ. Channel: " + sc);
-            pendingChangeRequests.add(new ChangeRequest(sc, CHANGEOPS, OP_READ));
+            // Not changing interest ops for now, to avoid losing/delaying writes. The interest ops
+            // will be changed to OP_READ when everything has been written (see write() method).
+            log.finer("Asked for input registration, but channel already registered. Channel: " + sc);
+            interestedSelectors.get(sc).add(sel);
             selector.wakeup();
         }
     }
     
-    synchronized void deregisterInput(SocketChannel sc) {
-        readyInputs.remove(sc);
-        pendingChangeRequests.add(new ChangeRequest(sc, CANCEL, -1));
-        selector.wakeup();
+    synchronized void deregisterInput(SocketChannel sc, AsyncManualTCPSelector sel) {
+        Collection<AsyncManualTCPSelector> coll = interestedSelectors.get(sc);
+        coll.remove(sel);
+        if (coll.isEmpty()) {
+            log.finer("Deregistering channel: " + sc);
+            readyInputs.remove(sc);
+            pendingChangeRequests.add(new ChangeRequest(sc, CANCEL, -1));
+            selector.wakeup();
+        }
     }
-
 
     /**
      * Non-blocking, as it should be used right after a select
@@ -114,7 +125,8 @@ final class SelectingThread implements Runnable {
         enqueueOutput(sc, new byte[]{b});
     }
 
-    public void close(SelectableChannel sc) {
+    synchronized void close(SelectableChannel sc) {
+        
         // ConcurrentLinkedQueue - no synchronization needed
         pendingChangeRequests.add(new ChangeRequest(sc, CLOSE, -1));
     }
@@ -131,7 +143,7 @@ final class SelectingThread implements Runnable {
         readyForSelect.add(new Pair<ServerSocketChannel, SocketChannel>(ssc, socketChannel));
     }
 
-    public synchronized Object dequeueChannelForSelect
+    synchronized Object dequeueChannelForSelect
         (Collection<SelectableChannel> registeredChannels) throws InterruptedException 
     {
         Object o = readyForSelect.take();
@@ -288,74 +300,40 @@ final class SelectingThread implements Runnable {
 
     }
 
-    //RAY
-    //private Map<SocketChannel, OngoingRead> ongoingReads = new HashMap<SocketChannel, OngoingRead>(); // FIXME: should garbage collect from this map on session close or whatever.
-    
-    // This has been modified to use the same OngoingRead (as a cache for unconsumed read data) for the whole of a session, rather than making new ones because that loses the unconsumed data (or, rather, assumes that the data chunks read by the SelectingThread always completely parse into a whole number of messages). 
     private void consumeBytesRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) throws SJIOException
-    //private void foo(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) throws SJIOException
     {
-    	//OngoingRead or = ongoingReads.get(sc);
     	OngoingRead or = (OngoingRead) key.attachment();
     		
     	if (or == null)
     	{
-    		//or = deserializers.get(key.channel()).newOngoingRead();
-    		or = attachNewOngoingRead(key); // For custom message formatting mode, this does *not* create a new OngoingRead: it returns a singleton. 
+            // For custom message formatting mode, this does *not* create a new OngoingRead: it returns a singleton. 
+    		or = attachNewOngoingRead(key); 
     	}
     	
     	while (bytes.remaining() > 0) 
     	{
-				or.updatePendingInput(bytes, eof);
-				
-				if (or.finished()) 
-				{
-			    ByteBuffer input = or.getCompleteInput();
-			    
-			    log.finer("Received complete input on channel " + sc + ": " + input);
-				
-					if (readyInputs.containsKey(sc)) 
-					{
-				    readyInputs.get(sc).add(input);				    
-				    readyForSelect.add(sc); // order is important here: adding to readyForSelect makes the read visible to select
-					} 
-					else 
-					{
-				    log.finer("Dropping input received on deregistered channel: " + sc + ", input: " + input);
-					}
-					
-					or = attachNewOngoingRead(key);
-	      }
-    	}
-    	
-    	//ongoingReads.put(sc, or);
-    }
-    //YAR
+            or.updatePendingInput(bytes, eof);
 
-    /*
-    private void consumeBytesRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) throws SJIOException {
-        OngoingRead read = (OngoingRead) key.attachment();
-        while (bytes.remaining() > 0) {
-            if (read == null) read = attachNewOngoingRead(key);
-            
-            read.updatePendingInput(bytes, eof);
-            
-            if (read.finished()) {
-                ByteBuffer input = read.getCompleteInput();
+            if (or.finished())
+            {
+                ByteBuffer input = or.getCompleteInput();
+
                 log.finer("Received complete input on channel " + sc + ": " + input);
-                if (readyInputs.containsKey(sc)) {
+
+                if (readyInputs.containsKey(sc))
+                {
                     readyInputs.get(sc).add(input);
-                    // order is important here: adding to readyForSelect makes the read visible to select
-                    readyForSelect.add(sc);
-                } else {
+                    readyForSelect.add(sc); // order is important here: adding to readyForSelect makes the read visible to select
+                }
+                else
+                {
                     log.finer("Dropping input received on deregistered channel: " + sc + ", input: " + input);
                 }
-                
-                read = attachNewOngoingRead(key);
+
+                or = attachNewOngoingRead(key);
             }
-        }
+    	}
     }
-    //*/
     
     private OngoingRead attachNewOngoingRead(SelectionKey key) throws SJIOException {
         OngoingRead read = deserializers.get(key.channel()).newOngoingRead();

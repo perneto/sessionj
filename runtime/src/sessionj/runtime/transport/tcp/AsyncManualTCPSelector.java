@@ -49,7 +49,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     public boolean registerInput(SJSocket s) throws SJIOException {
         SocketChannel sc = retrieveSocketChannel(s);
         if (sc != null) {
-            thread.registerInput(sc, s.getParameters().createDeserializer());
+            thread.registerInput(sc, s.getParameters().createDeserializer(), this);
             registeredInputs.put(sc, new DirectlyToUser(s));
             return true;
         }
@@ -75,12 +75,12 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
             SJSocket s = newState.sjSocket();
             if (s == null) { 
                 logger.finest("Read: InputState not complete: calling select again");
-                return select(true);
+                return select(considerSessionType);
             } else if (considerSessionType && s.remainingSessionType() == null) {
                 // User-level inputs all done - this must be from the close protocol
                 logger.finer("remainingSessionType is null: calling select again and deregistering socket " + s);
                 deregister(sc);
-                return select(true);
+                return select(considerSessionType);
             }
             else return s;
         } else {
@@ -95,7 +95,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
             SJSocket s = initialState.sjSocket();
             if (s == null) {
                 logger.finest("Accept: InputState not complete: calling select again");
-                return select(true);
+                return select(considerSessionType);
             }
             else return s;
         }
@@ -109,9 +109,9 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     }
 
     private void deregister(SocketChannel sc) {
-        // Not deregistering the channel from the selecting thread,
-        // so that other instances of this class can receive extra messages
-        // (at the moment, this is used by the close protocol - see SJSessionProtocolsImpl)
+        // Does not really cancel the selection key, unless no
+        // other instance of this class is interested.
+        thread.deregisterInput(sc, this); 
         
         registeredInputs.remove(sc);
     }
@@ -120,7 +120,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         // OK even if we only do outputs: enqueing write requests will change the interest
         // set for the channel. Input is the default interest that we go back to after 
         // everything is written.
-        thread.registerInput(sc, sjss.getParameters().createDeserializer());
+        thread.registerInput(sc, sjss.getParameters().createDeserializer(), this);
         registeredInputs.put(sc, sjss.getParameters().getAcceptProtocol().initialAcceptState(sjss));
     }
 
