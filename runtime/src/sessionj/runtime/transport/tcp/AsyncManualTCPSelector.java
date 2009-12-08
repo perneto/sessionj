@@ -58,47 +58,48 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     }
 
     public SJSocket select(boolean considerSessionType) throws SJIOException, SJIncompatibleSessionException {
-        Object chan;
-        try {
-            log.fine("Blocking dequeue...");
-            chan = thread.dequeueChannelForSelect(registeredChannels()); // blocking dequeue
-            log.fine("Channel selected: " + chan);
-        } catch (InterruptedException e) {
-            throw new SJIOException(e);
-        }
-        if (chan instanceof SocketChannel) {
-            SocketChannel sc = (SocketChannel) chan;
-            assert registeredInputs.containsKey(sc);
-            
-            InputState state = registeredInputs.get(sc);
-            InputState newState = state.receivedInput();
-            registeredInputs.put(sc, newState);
-            SJSocket s = newState.sjSocket();
-            if (s == null) { 
-                log.finest("Read: InputState not complete: calling select again");
-                return select(considerSessionType);
-            } else if (considerSessionType && s.remainingSessionType() == null) {
-                // User-level inputs all done - this must be from the close protocol
-                log.finer("remainingSessionType is null: calling select again and deregistering socket " + s);
-                deregister(sc);
-                return select(considerSessionType);
+        while (true) {
+            Object chan;
+            try {
+                log.fine("Blocking dequeue...");
+                chan = thread.dequeueChannelForSelect(registeredChannels()); // blocking dequeue
+                log.fine("Channel selected: " + chan);
+            } catch (InterruptedException e) {
+                throw new SJIOException(e);
             }
-            else return s;
-        } else {
-            Pair<ServerSocketChannel, SocketChannel> p = (Pair<ServerSocketChannel, SocketChannel>) chan;
-            ServerSocketChannel ssc = p.first;
-            assert registeredAccepts.containsKey(ssc);
+            if (chan instanceof SocketChannel) {
+                SocketChannel sc = (SocketChannel) chan;
+                assert registeredInputs.containsKey(sc);
 
-            SJServerSocket sjss = registeredAccepts.get(ssc);
-            registerOngoingAccept(sjss, p.second);
+                InputState state = registeredInputs.get(sc);
+                InputState newState = state.receivedInput();
+                registeredInputs.put(sc, newState);
+                SJSocket s = newState.sjSocket();
+                if (s == null) {
+                    log.finest("Read: InputState not complete: looping in select");
+                } else if (considerSessionType && s.remainingSessionType() == null) {
+                    // User-level inputs all done - this must be from the close protocol
+                    log.finer("remainingSessionType is null: looping in select and deregistering socket " + s);
+                    deregister(sc);
+                } else {
+                    return s;
+                }
+            } else {
+                Pair<ServerSocketChannel, SocketChannel> p = (Pair<ServerSocketChannel, SocketChannel>) chan;
+                ServerSocketChannel ssc = p.first;
+                assert registeredAccepts.containsKey(ssc);
 
-            InputState initialState = registeredInputs.get(p.second);
-            SJSocket s = initialState.sjSocket();
-            if (s == null) {
-                log.finest("Accept: InputState not complete: calling select again");
-                return select(considerSessionType);
+                SJServerSocket sjss = registeredAccepts.get(ssc);
+                registerOngoingAccept(sjss, p.second);
+
+                InputState initialState = registeredInputs.get(p.second);
+                SJSocket s = initialState.sjSocket();
+                if (s == null) {
+                    log.finest("Accept: InputState not complete: looping in select");
+                } else {
+                    return s;
+                }
             }
-            else return s;
         }
     }
 
