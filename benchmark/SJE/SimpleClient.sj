@@ -17,7 +17,7 @@ public class SimpleClient implements Client {
     try (s) {
       s = serv.request();
       x = s.receiveInt();
-      System.out.println("client:" + x);
+      //System.out.println("client:" + x);
     } catch (SJIOException e) {e.printStackTrace();}
       catch (SJIncompatibleSessionException ee) {ee.printStackTrace();}
       finally {}

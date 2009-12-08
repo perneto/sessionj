@@ -28,12 +28,14 @@ public class SimpleServer implements Server {
         sel.registerAccept(ss);
         while (numClients-- != 0) {
           try (s) {
-            System.out.println("miaou");
+            //System.out.println("miaou");
             s = sel.select();
-            System.out.println("miaou2");
+            //System.out.println("miaou2");
             s.send(5);
-            System.out.println("miaou3");
-          } catch (Exception e) {System.out.println("1");} finally {}
+            //System.out.println("miaou3");
+          } catch (Exception e) {
+            System.out.println("1");
+          } finally {}
         }
       }  catch (Exception e) {e.printStackTrace();}  finally {}
     }  catch (Exception e) {System.out.println("3");}  finally {}
