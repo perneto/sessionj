@@ -88,12 +88,12 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 		}
 	}
 	
-	void queueConnection(SJConnection c)
+	public void queueConnection(SJConnection c)
 	{
 		synchronized (pending)
 		{
 			pending.add(c);
-			pending.notifyAll(); // notify should be enough.
+			pending.notify(); // notify should be enough.
 		}
 	}
 	
@@ -116,6 +116,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 				}
 				catch (InterruptedException ie)
 				{
+                    //FIXME: Should throw an SJIOException?
 					//throw new SJRuntimeException(ie); // Runtime exceptions only terminate the current thread.
 				}
 			}

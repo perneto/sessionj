@@ -1,19 +1,19 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.runtime.transport.AbstractSJConnection;
 import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.util.SJRuntimeUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
 
-class AsyncConnection extends AbstractSJConnection
+public class AsyncConnection extends AbstractSJConnection
 {
     private final SelectingThread thread;
-    private final SocketChannel sc;
+    // HACK: to allow selection of the correct connection when more than one is available in SJServerSocket.nextConnection()
+    public final SocketChannel sc;
     private static final Logger log = SJRuntimeUtils.getLogger(AsyncConnection.class);
 
     AsyncConnection(SelectingThread thread, SocketChannel sc, SJTransport transport) {

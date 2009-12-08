@@ -5,12 +5,15 @@ import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.session.*;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.transport.SJTransportManager;
+import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 import sessionj.runtime.transport.tcp.InputState;
 import sessionj.runtime.transport.tcp.WaitInitialInputIfNeeded;
+import sessionj.runtime.transport.tcp.AsyncConnection;
 
 import java.util.Collections;
 import java.util.List;
+import java.nio.channels.SocketChannel;
 
 /**
  * 
@@ -53,8 +56,9 @@ public class SJSessionParameters
 	
 	//private SJCustomMessageFormatter cmf;
 	private Class<? extends SJCustomMessageFormatter> cmf;
+    private SocketChannel sc = null;
 
-	// HACK: SJSessionParameters are supposed to be user-configurable parameters.
+    // HACK: SJSessionParameters are supposed to be user-configurable parameters.
   // But now using as a convenient place to store pseudo compiler-generated optimisation
   // information for now. Would be better to make a dedicated object for storing such information.
   // But that could be slow. // Factor out constant more generally?
@@ -230,9 +234,17 @@ public class SJSessionParameters
         if (cmf == null) return new SJAcceptProtocolImpl();
         // The custom mode has no accept protocol messages to wait for.
         else return new SJAcceptProtocol() {
-            public InputState initialAcceptState(SJServerSocket serverSocket) throws SJIOException, SJIncompatibleSessionException {
+            public InputState initialAcceptState(SJServerSocket serverSocket, SocketChannel sc) throws SJIOException, SJIncompatibleSessionException {
                 return new WaitInitialInputIfNeeded(serverSocket.accept());
             }
         };
+    }
+
+    public void setSocketChannelHack(SocketChannel sc) {
+        this.sc = sc;
+    }
+    
+    public boolean validConnection(SJConnection conn) {
+        return sc == null || ((AsyncConnection) conn).sc.equals(sc);
     }
 }

@@ -97,8 +97,15 @@ abstract public class SJServerSocket implements SJChannel
         return getProtocol().type().child().startsWithOutput();
     }
 
-    public SJConnection nextConnection() throws SJIOException {
-        return getAcceptorGroup().nextConnection();
+    public synchronized SJConnection nextConnection() throws SJIOException {
+        while (true) {
+            SJConnection conn = getAcceptorGroup().nextConnection();
+            if (params.validConnection(conn)) {
+                return conn;
+            } else {
+                getAcceptorGroup().queueConnection(conn);
+            }
+        }
     }
 
     public SJConnectionAcceptor getAcceptorFor(String transportName) {
