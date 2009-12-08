@@ -337,27 +337,27 @@ public class SJRuntime
 		s.request();
 	}
 
-	public static void close(SJSocket s)
+	public static void close(final SJSocket s)
 	{
-		if (s != null) s.close();
+        // Need to allow arbitrary interleaving of close() calls, as there
+        // is a handshake with the other party in the close protocol.
+        if (s != null) {
+            Runnable closer = new Runnable() {
+                public void run() {
+                    s.close();
+                }
+            };
+            Thread t = new Thread(closer);
+            //t.setDaemon(true);
+            t.start();
+        }
 	}	
 	
 	public static void close(SJSocket... sockets)
 	{
-		for (final SJSocket s : sockets)
+		for (SJSocket s : sockets)
 		{
-			// Need to allow arbitrary interleaving of close() calls, as there
-            // is a handshake with the other party in the close protocol.
-            if (s != null) {
-                Runnable closer = new Runnable() {
-                    public void run() {
-                        s.close();
-                    }
-                };
-                Thread t = new Thread(closer);
-                t.setDaemon(true);
-                t.start();
-            }
+            close(s);
 		}
 	}
 
