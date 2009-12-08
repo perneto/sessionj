@@ -17,4 +17,8 @@ TRANSPORTS=
 if [ "$1" = "SJE" ]; then
     TRANSPORTS="-Dsessionj.transports.session=a"
 fi
-sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $TRANSPORTS sessionj.benchmark.$1.ServerRunner $VERSION 2000 $CLIENTS dummy
+CLASS="sessionj.benchmark.$1.ServerRunner"
+if [ "$1" = "TJava" ] || [ "$1" = "EJava" ]; then
+    CLASS="ServerRunner"
+fi
+sessionj -Xmx1024m -Djava.util.logging.config.file=../logging.properties -cp classes $TRANSPORTS $CLASS $VERSION 2000 $CLIENTS 10000

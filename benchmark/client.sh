@@ -22,5 +22,8 @@ SESSION_TR="-Dsessionj.transports.session=s"
 if [ "$1" = "SJE" ]; then
     SESSION_TR="-Dsessionj.transports.session=a"
 fi
-echo sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $NEGOTIATION_TR $SESSION_TR sessionj.benchmark.$1.ClientRunner $VERSION 2000 localhost $THREADS $CLIENTS_PERTHREAD
-sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $NEGOTIATION_TR $SESSION_TR sessionj.benchmark.$1.ClientRunner $VERSION 2000 localhost $THREADS $CLIENTS_PERTHREAD
+CLASS="sessionj.benchmark.$1.ClientRunner"
+if [ "$1" = "TJava" ] || [ "$1" = "EJava" ]; then
+    CLASS="ClientRunner"
+fi
+sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $NEGOTIATION_TR $SESSION_TR $CLASS $VERSION 2000 localhost $THREADS $CLIENTS_PERTHREAD
