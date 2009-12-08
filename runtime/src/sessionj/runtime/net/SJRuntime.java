@@ -3,6 +3,7 @@ package sessionj.runtime.net;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.concurrent.*;
 import java.io.IOException;
 
@@ -16,6 +17,7 @@ import sessionj.runtime.session.*;
 import sessionj.runtime.transport.*;
 import sessionj.runtime.util.SJClassResolver;
 import sessionj.runtime.util.SJRuntimeTypeEncoder;
+import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.types.SJTypeSystem;
 import sessionj.types.sesstypes.SJSessionType;
 
@@ -29,14 +31,15 @@ public class SJRuntime
 	
 	private static final String LOCAL_HOST_NAME;
 
-  private static SJTransportManager sjtm;
+    private static SJTransportManager sjtm;
 
 	private static final int LOWER_PORT_LIMIT = 1024;
 	private static final int UPPER_PORT_LIMIT = 65535;
   
-  private static final Set<Integer> portsInUse = new HashSet<Integer>();
-  
-  static
+    private static final Set<Integer> portsInUse = new HashSet<Integer>();
+    private static final Logger log = SJRuntimeUtils.getLogger(SJRuntime.class);
+
+    static
 	{
 		try
 		{
@@ -275,6 +278,7 @@ public class SJRuntime
 	
 	public static void accept(SJAbstractSocket s) throws SJIOException, SJIncompatibleSessionException
 	{					
+        log.finer("accept on socket: " + s);
 		if (s.getParameters().getCompatibilityMode() == SJCompatibilityMode.SJ) // FIXME: maybe move into SJSessionParametersImpl? Since we don't do it for custom compatibility modes.
 		{
 			/*try
@@ -291,7 +295,9 @@ public class SJRuntime
 			{
 				SJSerializer ser = s.getSerializer();
 				
+                log.finest("About to read host name (object)");
 				s.setHostName((String) ser.readObject()); // Will be whatever requestor has set its LOCAL_HOST_NAME to. // Maybe host name can be gotten from the underlying connection. Session port value needs to be sent though.
+                log.finest("About to read port (int)");
 				s.setPort(ser.readInt());
 			}
 			catch (ClassNotFoundException cnfe)
