@@ -1,3 +1,5 @@
+//$ bin/sessionj -ea -cp tests/classes -Dsessionj.transports.negotiation=s -Dsessitransports.session=a ClientRunner Type 1234 localhost 1 1
+
 import java.util.concurrent.*;
 import java.util.Random;
 

@@ -104,10 +104,15 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
         }
         // There's always at least one when branch (guaranteed by typing).
         
-        statement.append(" { assert false : \"Typecase with unexpected type:\"+ %s;}"
-            + "}");
+        /*statement.append(" { assert false : \"Typecase given an unexpected type:\"+ %s;}");
+        parameters.add(tmpVar);*/
+        
+        statement.append("{ throw new sessionj.runtime.SJIOException(\"Typecase given an unexpected type: \" + %s); }"); // FIXME: factor out SJIOException constant.
+        //statement.append("{ System.out.println(%s); }");
         parameters.add(tmpVar);
 
+        statement.append("}");
+        
         return qq.parseStmt(statement.toString() , parameters);
 
     }

@@ -1,3 +1,5 @@
+//$ bin/sessionj -Dsessionj.transports.negotiation=s -Dsessionj.transports.session=a -cp tests/classes/ TypeServer
+
 //package sessionj.benchmark.SJE;
 
 import sessionj.runtime.*;
@@ -32,38 +34,45 @@ public class TypeServer implements Server {
   }
 
   public void server(int port, int numClients) {
-    final noalias SJSelector sel = SJRuntime.selectorFor(reqRep);
-    noalias SJServerSocket ss;
-    noalias SJSocket s;
-    int i; String x, str; Object o;
-    try (ss) {
-      ss = SJServerSocket.create(serverSide, port);
-      try (sel) {
-        sel.registerAccept(ss);
-        while (numClients-- != 0) {
-          try (s) {
-            s = sel.select();
-            str = (String) s.receive();
-            try(s) {
-              typecase(s){
-                when (@(sInt)) {
-                  i = iparse(str);
-                  s.send(i);
-                }
-                when (@(sStr)) {
-                  x = sparse(str);
-                  s.send(x);
-                }
-                when (@(sObj)) {
-                  o = oparse(str);
-                  s.send(o);
-                }
-              }
-            }  catch (Exception e) {}  finally {}
-          }  catch (Exception e) {} finally {}
-        }
-      }  catch (Exception e) {} finally {}
-    }  catch (Exception e) {} finally {}
+  	try
+  	{
+	    final noalias SJSelector sel = SJRuntime.selectorFor(reqRep);
+	    noalias SJServerSocket ss;
+	    noalias SJSocket s;
+	    int i; String x, str; Object o;
+	    try (ss) {
+	      ss = SJServerSocket.create(serverSide, port);
+	      try (sel) {
+	        sel.registerAccept(ss);
+	        while (numClients-- != 0) {
+	          try (s) {
+	            s = sel.select();
+	            str = (String) s.receive();
+	            try(s) {
+	              typecase(s){
+	                when (@(sInt)) {
+	                  i = iparse(str);
+	                  s.send(i);
+	                }
+	                when (@(sStr)) {
+	                  x = sparse(str);
+	                  s.send(x);
+	                }
+	                when (@(sObj)) {
+	                  o = oparse(str);
+	                  s.send(o);
+	                }
+	              }
+	            }  finally {}
+	          }  finally {}
+	        }
+	      }  finally {}
+	    }  finally {}
+  	}
+  	catch (Exception x)
+  	{
+  		x.printStackTrace();
+  	}
   }
 
   public static void main(String args[]) throws Exception{
