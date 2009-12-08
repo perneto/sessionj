@@ -16,13 +16,13 @@ import java.util.logging.Logger;
 /**
  */
 class AsyncManualTCPSelector implements SJSelectorInternal {
-    private static final Logger logger = SJRuntimeUtils.getLogger(AsyncManualTCPSelector.class);
+    private static final Logger log = SJRuntimeUtils.getLogger(AsyncManualTCPSelector.class);
     
     private final SelectingThread thread;
     private final SJTransport transport;
     private final Map<SocketChannel, InputState> registeredInputs;
     private final Map<ServerSocketChannel, SJServerSocket> registeredAccepts;
-    
+
 
     AsyncManualTCPSelector(SelectingThread thread, SJTransport transport) {
         this.thread = thread;
@@ -49,6 +49,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     public boolean registerInput(SJSocket s) throws SJIOException {
         SocketChannel sc = retrieveSocketChannel(s);
         if (sc != null) {
+            log.finer("Registering: " + sc);
             thread.registerInput(sc, s.getParameters().createDeserializer(), this);
             registeredInputs.put(sc, new DirectlyToUser(s));
             return true;
@@ -59,9 +60,9 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
     public SJSocket select(boolean considerSessionType) throws SJIOException, SJIncompatibleSessionException {
         Object chan;
         try {
-            logger.fine("Blocking dequeue...");
+            log.fine("Blocking dequeue...");
             chan = thread.dequeueChannelForSelect(registeredChannels()); // blocking dequeue
-            logger.fine("Channel selected: " + chan);
+            log.fine("Channel selected: " + chan);
         } catch (InterruptedException e) {
             throw new SJIOException(e);
         }
@@ -74,11 +75,11 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
             registeredInputs.put(sc, newState);
             SJSocket s = newState.sjSocket();
             if (s == null) { 
-                logger.finest("Read: InputState not complete: calling select again");
+                log.finest("Read: InputState not complete: calling select again");
                 return select(considerSessionType);
             } else if (considerSessionType && s.remainingSessionType() == null) {
                 // User-level inputs all done - this must be from the close protocol
-                logger.finer("remainingSessionType is null: calling select again and deregistering socket " + s);
+                log.finer("remainingSessionType is null: calling select again and deregistering socket " + s);
                 deregister(sc);
                 return select(considerSessionType);
             }
@@ -94,7 +95,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
             InputState initialState = registeredInputs.get(p.second);
             SJSocket s = initialState.sjSocket();
             if (s == null) {
-                logger.finest("Accept: InputState not complete: calling select again");
+                log.finest("Accept: InputState not complete: calling select again");
                 return select(considerSessionType);
             }
             else return s;
@@ -120,12 +121,13 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
         // OK even if we only do outputs: enqueing write requests will change the interest
         // set for the channel. Input is the default interest that we go back to after 
         // everything is written.
+        log.finest("sjss: " + sjss + ", sc: " + sc);
         thread.registerInput(sc, sjss.getParameters().createDeserializer(), this);
-        registeredInputs.put(sc, sjss.getParameters().getAcceptProtocol().initialAcceptState(sjss));
+        registeredInputs.put(sc, sjss.getParameters().getAcceptProtocol().initialAcceptState(sjss, sc));
     }
 
     public void close() throws SJIOException {
-        logger.finer("Closing selector");
+        log.finer("Closing selector");
         Collection<SelectableChannel> channels = new LinkedList<SelectableChannel>();
         channels.addAll(registeredAccepts.keySet());
         channels.addAll(registeredInputs.keySet());

@@ -35,12 +35,20 @@ final class SelectingThread implements Runnable {
     SelectingThread() throws IOException {
         selector = SelectorProvider.provider().openSelector();
         pendingChangeRequests = new ConcurrentLinkedQueue<ChangeRequest>();
+
+
+        // TODO: use a WeakHashMap
         readyInputs = new ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>>();
         requestedOutputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
+        
         readyForSelect = new LinkedBlockingQueue<Object>();
+        
         accepted = new ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>>();
         deserializers = new HashMap<SocketChannel, SJDeserializer>();
+        
+        // TODO: use a WeakHashMap
         interestedSelectors = new HashMap<SocketChannel, Collection<AsyncManualTCPSelector>>();
+        
         readBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
     }
 
@@ -62,7 +70,7 @@ final class SelectingThread implements Runnable {
             log.finer("New registration for input: " + sc + ", deserializer: " + deserializer);
             readyInputs.put(sc, new LinkedBlockingQueue<ByteBuffer>());
             deserializers.put(sc, deserializer);
-            HashSet<AsyncManualTCPSelector> set = new HashSet<AsyncManualTCPSelector>();
+            Set<AsyncManualTCPSelector> set = new HashSet<AsyncManualTCPSelector>();
             set.add(sel);
             interestedSelectors.put(sc, set);
             // Don't change the order of these 2 statements: it's safe if we're interrupted after the first
@@ -100,13 +108,22 @@ final class SelectingThread implements Runnable {
      * @throws java.util.NoSuchElementException if no message is ready for reading.
      */
     public ByteBuffer dequeueFromInputQueue(SocketChannel sc) {
-        log.finer("Dequeueing input from channel: " + sc);
+        log.finer("Dequeueing input from: " + sc);
         return readyInputs.get(sc).remove();
     }
     
     public ByteBuffer peekAtInputQueue(SocketChannel sc) {
-        log.finer("Peeking at inputs for channel: " + sc);
-        return readyInputs.get(sc).peek();
+        log.finest("Peeking at inputs for: " + sc);
+        ByteBuffer b;
+        try {
+            b = readyInputs.get(sc).peek();
+        } catch (RuntimeException e) {
+            log.severe("foo" + e);
+            e.printStackTrace();
+            throw e;
+        }
+        log.finest("Found input for: " + sc + ", input: " + b);
+        return b;
     }
 
     public synchronized void enqueueOutput(SocketChannel sc, byte[] bs) {
@@ -144,17 +161,28 @@ final class SelectingThread implements Runnable {
     }
 
     synchronized Object dequeueChannelForSelect
-        (Collection<SelectableChannel> registeredChannels) throws InterruptedException 
-    {
-        Object o = readyForSelect.take();
-        if (contains(registeredChannels, o)) {
-            return o;
-        } else {
-            readyForSelect.add(o);
-            return dequeueChannelForSelect(registeredChannels);
+        (Collection<SelectableChannel> registeredChannels) throws InterruptedException {
+        while (true) {
+            Object o = readyForSelect.take();
+            if (contains(registeredChannels, o)) {
+                log.finest("Returning: " + o + ". readyForSelect queue: " + readyForSelect);
+                return o;
+            } else if (hasInterestedSelector(o)) {
+                readyForSelect.add(o);
+            } else {
+                log.finer("Dropping from readyForSelect: " + o);
+            }
         }
     }
-    
+
+    private boolean hasInterestedSelector(Object o) {
+        if (!(o instanceof SocketChannel)) return true;
+        else {
+            SocketChannel chan = (SocketChannel) o;
+            return !interestedSelectors.get(chan).isEmpty();
+        }
+    }
+
     private boolean contains(Collection<SelectableChannel> coll, Object o) {
         if (o instanceof SocketChannel) {
             return coll.contains(o);
@@ -254,6 +282,7 @@ final class SelectingThread implements Runnable {
         if (writtenInFull) {
             // We wrote away all data, so we're no longer interested
             // in writing on this socket. Switch back to waiting for data.
+            log.finest("Finished writing, changing interest back to OP_READ on: " + socketChannel); 
             key.interestOps(OP_READ);
         }
     }
@@ -348,10 +377,6 @@ final class SelectingThread implements Runnable {
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
         log.finer("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
         queue.add(socketChannel);
-    }
-
-    public ByteBuffer takeFromInputQueue(SocketChannel sc) throws InterruptedException {
-        return readyInputs.get(sc).take();
     }
 
     private static class ChangeRequest {
