@@ -5,6 +5,9 @@ import java.text.Format;
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
 import java.util.Date;
+import java.io.StringWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
 
 public class MessageFormatFormatter extends Formatter {
 	private static final Format messageFormat = new MessageFormat("[{0}|{5}|{2}|{3,date,HH:mm:ss}] {1}: {4}\n{6}");
@@ -17,7 +20,16 @@ public class MessageFormatFormatter extends Formatter {
 		arguments[3] = new Date(record.getMillis());
 		arguments[4] = record.getMessage();
         arguments[5] = record.getSourceMethodName();
-        arguments[6] = record.getThrown() == null ? "" : record.getThrown();
+        Throwable t = record.getThrown();
+        if (t != null) {
+            StringWriter writer = new StringWriter(256);
+            t.printStackTrace(new PrintWriter(writer));
+            arguments[6] = writer.toString();
+            try {
+                writer.close();
+            } catch (IOException ignored) {
+            }
+        }
 		return messageFormat.format(arguments);
 	}	
  
