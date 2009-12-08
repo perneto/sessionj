@@ -1029,6 +1029,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	private void dualityCheck(SJProtocol proto) throws SJIOException, SJIncompatibleSessionException
 	{
         String encoded = proto.encoded();
+        log.finest("About to send (write) our sessiontype");
 		ser.writeObject(encoded);
 		
 		SJSessionType ours = proto.type();
