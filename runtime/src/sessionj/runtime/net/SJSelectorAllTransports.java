@@ -62,6 +62,8 @@ class SJSelectorAllTransports implements SJSelector {
         for (final SJSelectorInternal sel : transportSelectors) {
             fact.setName("SJSelector calling " + sel);
             executor.submit(new Callable<Object>() {
+                // TODO: use Runnable and handle exceptions explicitly - right now, this swallows them
+                // (since we never call get on the Future returned by submit).
                 public Object call() throws SJIOException, SJIncompatibleSessionException {
                     latch.submitValue(sel.select(true));
                 	return null;
