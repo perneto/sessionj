@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.concurrent.*;
 
 class SJSelectorAllTransports implements SJSelector {
@@ -61,12 +62,15 @@ class SJSelectorAllTransports implements SJSelector {
         
         for (final SJSelectorInternal sel : transportSelectors) {
             fact.setName("SJSelector calling " + sel);
-            executor.submit(new Callable<Object>() {
+            executor.submit(new Runnable() {
                 // TODO: use Runnable and handle exceptions explicitly - right now, this swallows them
                 // (since we never call get on the Future returned by submit).
-                public Object call() throws SJIOException, SJIncompatibleSessionException {
-                    latch.submitValue(sel.select(true));
-                	return null;
+                public void run() {
+                    try {
+                        latch.submitValue(sel.select(true));
+                    } catch (Throwable t) {
+                        log.log(Level.SEVERE, "Error calling select on: " + sel, t);
+                    }
                 }
             });
         }

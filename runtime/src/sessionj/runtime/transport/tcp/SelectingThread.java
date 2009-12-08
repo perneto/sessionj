@@ -70,7 +70,7 @@ final class SelectingThread implements Runnable {
             log.finer("New registration for input: " + sc + ", deserializer: " + deserializer);
             readyInputs.put(sc, new LinkedBlockingQueue<ByteBuffer>());
             deserializers.put(sc, deserializer);
-            Set<AsyncManualTCPSelector> set = new HashSet<AsyncManualTCPSelector>();
+            Collection<AsyncManualTCPSelector> set = new HashSet<AsyncManualTCPSelector>();
             set.add(sel);
             interestedSelectors.put(sc, set);
             // Don't change the order of these 2 statements: it's safe if we're interrupted after the first
@@ -114,14 +114,7 @@ final class SelectingThread implements Runnable {
     
     public ByteBuffer peekAtInputQueue(SocketChannel sc) {
         log.finest("Peeking at inputs for: " + sc);
-        ByteBuffer b;
-        try {
-            b = readyInputs.get(sc).peek();
-        } catch (RuntimeException e) {
-            log.severe("foo" + e);
-            e.printStackTrace();
-            throw e;
-        }
+        ByteBuffer b = readyInputs.get(sc).peek();
         log.finest("Found input for: " + sc + ", input: " + b);
         return b;
     }
