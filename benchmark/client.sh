@@ -17,7 +17,7 @@ if [ ! -z "$4" ]; then
     CLIENTS_PERTHREAD=$4
 fi
 
-NEGOTIATION_TR="-Dsessionj.transports.negotiation=s"
+NEGOTIATION_TR="-Dsessionj.transports.negotiation=m"
 SESSION_TR="-Dsessionj.transports.session=s"
 if [ "$1" = "SJE" ]; then
     SESSION_TR="-Dsessionj.transports.session=a"
@@ -26,4 +26,5 @@ CLASS="sessionj.benchmark.$1.ClientRunner"
 if [ "$1" = "TJava" ] || [ "$1" = "EJava" ]; then
     CLASS="ClientRunner"
 fi
+echo sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $NEGOTIATION_TR $SESSION_TR $CLASS $VERSION 2000 localhost $THREADS $CLIENTS_PERTHREAD
 sessionj -Djava.util.logging.config.file=../logging.properties -cp classes $NEGOTIATION_TR $SESSION_TR $CLASS $VERSION 2000 localhost $THREADS $CLIENTS_PERTHREAD
