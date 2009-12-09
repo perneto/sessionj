@@ -215,12 +215,11 @@ public class SJManualTCP extends AbstractSJTransport
 	
 	public SJManualTCPConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
 	{
-        Socket s = null;
 
-		try {
+        try {
             log.finer("Opening socket to: " + hostName + ':' + port);
-			s = new Socket(hostName, port);
-			s.setTcpNoDelay(TCP_NO_DELAY);
+            Socket s = new Socket(hostName, port);
+            s.setTcpNoDelay(TCP_NO_DELAY);
 			
 			return new SJManualTCPConnection(s, s.getOutputStream(), s.getInputStream(), this); // Have to get I/O streams here for exception handling.
 
