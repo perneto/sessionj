@@ -136,7 +136,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			}
 		}
 
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			if (sjsc instanceof SJOutwhileContext) // Not possible during a delegation.
 			{
@@ -172,7 +172,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		SJBeginType sjbt = null;
 		
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			sjbt = begin(sjts.SJSBeginType());
 		}
@@ -186,7 +186,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		SJBeginType sjbt = null;
 		
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			sjbt = begin(sjts.SJCBeginType());	
 		}
@@ -222,7 +222,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		try
 		{
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				mt = parseClassName(sjts, fullClassName(obj));
 			}
@@ -239,7 +239,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		Type t = null;
 		
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			t = sjts.Boolean();
 		}
@@ -251,7 +251,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		Type t = null;
 		
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			t = sjts.Int();
 		}
@@ -263,7 +263,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		Type t = null;
 	
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			t = sjts.Byte();
 		}
@@ -275,7 +275,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		Type t = null;
 		
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			t = sjts.Double();
 		}
@@ -306,7 +306,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		try
 		{
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				sjst = sjts.SJSendType(mt);
 			}
@@ -336,7 +336,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		try
 		{
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				mt = parseClassName(sjts, fullClassName(obj));
 			}			
@@ -353,7 +353,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		Type t = null;
 		
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			t = sjts.Boolean();
 		}
@@ -365,7 +365,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		Type t = null;
 		
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			t = sjts.Int();
 		}
@@ -377,7 +377,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		Type t = null;
 		
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			t = sjts.Byte();
 		}			
@@ -389,7 +389,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		Type t = null;
 		
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			t = sjts.Double();
 		}				
@@ -418,7 +418,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		try
 		{
-			synchronized (sjts)
+			//synchronized (sjts)
 			{				
 				sjrt = sjts.SJReceiveType(mt);
 			}
@@ -504,7 +504,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		{
 			SJOutwhileType owt = null;
 			
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				owt = sjts.SJOutwhileType().body(active); // Hacky? (The actual implemented type was lost when the context was popped by the last operation in the iteration, so have to use the expected type.)
 			}
@@ -542,7 +542,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		{
 			SJInwhileType iwt = null;
 			
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				iwt = sjts.SJInwhileType().body(active);
 			}
@@ -587,7 +587,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			
 			SJRecurseType foo = null;
 			
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				foo = sjts.SJRecurseType(lab);
 			}
@@ -610,7 +610,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		SJRecurseType sjrt = null;
 		
-		synchronized (sjts)
+		//synchronized (sjts)
 		{
 			sjrt = sjts.SJRecurseType(lab);
 		}
@@ -682,7 +682,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 							SJLabel lab = ((SJRecursionContext) sjsc).label();
 
-							synchronized (sjts)
+							//synchronized (sjts)
 							{
 								implemented = sjts.SJRecursionType(lab).body(completed); // Only the branch type that quits the iteration is recorded.
 							}
@@ -703,7 +703,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 					SJLabel lab = ((SJBranchContext) sjsc).label();
 
-					synchronized (sjts)
+					//synchronized (sjts)
 					{
 						if (sjsc instanceof SJOutbranchContext)
 						{
@@ -750,7 +750,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		{
 			SJOutbranchType obt = null;
 			
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				obt = sjts.SJOutbranchType().branchCase(lab, null);
 			}
@@ -769,7 +769,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		{
 			SJInbranchType ibt = null;
 			
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				ibt = sjts.SJInbranchType().branchCase(lab, null);
 			}
@@ -788,7 +788,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		{
 			SJUnknownType ut = null;
 			
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				ut = sjts.SJUnknownType();				
 			}
@@ -807,7 +807,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		{
 			SJUnknownType ut = null;
 			
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				ut = sjts.SJUnknownType();				
 			}
@@ -913,7 +913,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	
 			Type messageType = null;
 	
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				if (n.equals("boolean")) // Factor out constants. // But shouldn't get in here? (Primitive-typed operations have been separated?)
 				{
@@ -943,7 +943,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 		else
 		{
-			synchronized (sjts)
+			//synchronized (sjts)
 			{
 				mt = sjts.typeForName(m);
 			}
