@@ -49,7 +49,7 @@ public class ClientRunner implements Runnable {
     int timedClients = Integer.parseInt(args[3]);
     iterations = Integer.parseInt(args[4]);
 
-    exec = Executors.newFixedThreadPool(loadClients + timedClients);
+    /*exec = Executors.newFixedThreadPool(loadClients + timedClients);
 
     times = new long[loadClients + timedClients][iterations];
 
@@ -57,7 +57,22 @@ public class ClientRunner implements Runnable {
       exec.execute(new ClientRunner(i, true));
 
     for(; i < loadClients + timedClients; i++)
-      exec.execute(new ClientRunner(i, false));
-   
+      exec.execute(new ClientRunner(i, false));*/      
+
+		foo(loadClients);
+		foo(timedClients);   
+  }
+  
+  private static void foo(int num) 
+  {
+		for (int i = 0; i < num; i++)
+		{
+			new Thread() {
+				public void run()
+				{
+					new Client();
+				}
+			}.start();
+		}
   }
 }
