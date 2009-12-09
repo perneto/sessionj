@@ -59,18 +59,18 @@ public class ClientRunner implements Runnable {
     for(; i < loadClients + timedClients; i++)
       exec.execute(new ClientRunner(i, false));*/      
 
-		foo(loadClients);
-		foo(timedClients);   
+		spawnClients(0, loadClients, true);
+		spawnClients(loadClients, timedClients, false);   
   }
-  
-  private static void foo(int num) 
+  static int i;
+  private static void spawnClients(int s, int e, final boolean b) 
   {
-		for (int i = 0; i < num; i++)
+		for (i = s; i < e; i++)
 		{
 			new Thread() {
 				public void run()
 				{
-					new Client();
+					new ClientRunner(i, b).run();
 				}
 			}.start();
 		}
