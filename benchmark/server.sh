@@ -21,4 +21,5 @@ CLASS="sessionj.benchmark.$1.ServerRunner"
 if [ "$1" = "TJava" ] || [ "$1" = "EJava" ]; then
     CLASS="ServerRunner"
 fi
-sessionj -Xmx1024m -Dsessionj.transports.negotiation=m  -Djava.util.logging.config.file=../logging.properties -cp classes $TRANSPORTS $CLASS $VERSION 2000 $CLIENTS 10000
+NEGOTIATION=-Dsessionj.transports.negotiation=m 
+sessionj -Xmx1024m $NEGOTIATION -Djava.util.logging.config.file=../logging.properties -cp classes $TRANSPORTS $CLASS $VERSION 2000 $CLIENTS 10000
