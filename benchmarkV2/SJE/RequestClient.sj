@@ -28,10 +28,10 @@ public class RequestClient implements Client{
     s = serv.request();
     s.send(requestString);
     x = s.receiveInt();
+    times[i][j] = System.nanoTime() - times[i][j];
     } catch (SJIOException e) {}
       catch (SJIncompatibleSessionException ee) {}
       finally {}
-      times[i][j] = System.nanoTime() - times[i][j];
       return "" + x;
   }
 }
