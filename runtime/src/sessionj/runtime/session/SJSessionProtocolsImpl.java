@@ -32,7 +32,7 @@ import java.util.logging.Level;
  */
 public class SJSessionProtocolsImpl implements SJSessionProtocols
 {
-	//private static final boolean RUNTIME_MONITORING = false; 
+	//private static final boolean RUNTIME_MONITORING = false;  
 	private static final boolean RUNTIME_MONITORING = true; // FIXME: factor out as a configurable parameter.
 	
 	private static final byte DELEGATION_START = -1; // Would be more uniform to be a control signal (although slower).
@@ -64,6 +64,10 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 				throw new SJRuntimeException("[SJProtocolsImpl] Shouldn't get in here: ", ioe);
 			}
 	  }
+		else
+		{
+			sm = null;
+		}
 	}
 
 	public void accept() throws SJIOException, SJIncompatibleSessionException
