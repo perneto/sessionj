@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Run from the sessionj root directory:
+# newBenchmark/eventSJ/make 
+
+
+echo Compiling newBenchmark/eventSJ/ServerRunner.sj
+bin/sessionjc -cp tests/classes -sourcepath newBenchmark/eventSJ newBenchmark/eventSJ/ServerRunner.sj -d tests/classes
+if [ $? -ne 0 ]; then exit 1; else echo; fi
+
+echo Compiling newBenchmark/eventSJ/ClientRunner.sj
+bin/sessionjc -cp tests/classes -sourcepath newBenchmark/eventSJ newBenchmark/eventSJ/ClientRunner.sj -d tests/classes
+if [ $? -ne 0 ]; then exit 1; else echo; fi
