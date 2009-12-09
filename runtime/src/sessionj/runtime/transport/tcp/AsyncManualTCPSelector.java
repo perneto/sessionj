@@ -80,6 +80,7 @@ class AsyncManualTCPSelector implements SJSelectorInternal {
                 } else if (considerSessionType && s.remainingSessionType() == null) {
                     // User-level inputs all done - this must be from the close protocol
                     log.finer("remainingSessionType is null: looping in select and deregistering socket " + s);
+                    thread.enqueueChannelForSelect(sc);
                     deregister(sc);
                 } else {
                     return s;
