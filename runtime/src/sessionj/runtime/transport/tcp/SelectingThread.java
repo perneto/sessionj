@@ -1,6 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSocket;
 import sessionj.runtime.session.OngoingRead;
 import sessionj.runtime.session.SJDeserializer;
 import static sessionj.runtime.transport.tcp.SelectingThread.ChangeAction.*;
@@ -47,7 +48,7 @@ final class SelectingThread implements Runnable {
         deserializers = new HashMap<SocketChannel, SJDeserializer>();
         
         // TODO: use a WeakHashMap
-        interestedSelectors = new HashMap<SocketChannel, Collection<AsyncManualTCPSelector>>();
+        interestedSelectors = new ConcurrentHashMap<SocketChannel, Collection<AsyncManualTCPSelector>>();
         
         readBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
     }
@@ -155,8 +156,8 @@ final class SelectingThread implements Runnable {
 
     // Do not synchronize: readyForSelect is thread-safe, and no need for the whole method to
     // be atomic. Moreover, if synchronization becomes desirable when this method is modified,
-    // make sure not to synchronize on this: it causes a deadlock when another thread
-    // owns the monitor for this in registerInput.
+    // make sure not to synchronize on this: it causes a deadlock when we block in take()
+    // while another thread tries to aquire the "this" monitor, in registerInput. 
     Object dequeueChannelForSelect
         (Collection<SelectableChannel> registeredChannels) throws InterruptedException {
         while (true) {
@@ -171,7 +172,13 @@ final class SelectingThread implements Runnable {
             }
         }
     }
+    
+    void enqueueChannelForSelect(Object sc) {
+        readyForSelect.add(sc);
+    }
 
+
+    // interestedSelectors is a ConcurrentHashMap, because registerInput happens in parallel.
     private boolean hasInterestedSelector(Object o) {
         if (!(o instanceof SocketChannel)) return true;
         else {
@@ -195,7 +202,7 @@ final class SelectingThread implements Runnable {
             try {
                 updateRegistrations();
                 doSelect();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.log(Level.SEVERE, "Error in selecting loop", e);
             }
         }
@@ -214,8 +221,8 @@ final class SelectingThread implements Runnable {
 
     private void doSelect() throws IOException {
         if (log.isLoggable(Level.FINEST)) {
-            log.finest("NIO select, registered keys: " + dumpKeys(selector) 
-                + " - remaining outputs: " + dumpOutputs() + "...");
+            log.finest("NIO select, registered keys: \n" + dumpKeys(selector) 
+                + "\nRemaining outputs:\n" + dumpOutputs());
         }
         selector.select();
         Iterator<SelectionKey> it = selector.selectedKeys().iterator();
@@ -242,9 +249,12 @@ final class SelectingThread implements Runnable {
     private String dumpOutputs()
     {
         StringBuilder b = new StringBuilder();
-        for (SocketChannel chan : requestedOutputs.keySet()) {
+        for (Iterator<SocketChannel> it = requestedOutputs.keySet().iterator(); it.hasNext();) {
+            SocketChannel chan = it.next();
             Queue<ByteBuffer> q = requestedOutputs.get(chan);
             b.append(chan).append(':').append(q);
+            if (it.hasNext()) b.append(", ");
+            b.append('\n');
         }
         return b.toString();
     }
@@ -258,6 +268,7 @@ final class SelectingThread implements Runnable {
                 .append(" : ")
                 .append(formatKey(key));
             if (it.hasNext()) b.append(", ");
+            b.append('\n');
         }
         return b.toString();
     }
@@ -362,9 +373,15 @@ final class SelectingThread implements Runnable {
     }
     
     private OngoingRead attachNewOngoingRead(SelectionKey key) throws SJIOException {
-        OngoingRead read = deserializers.get(key.channel()).newOngoingRead();
+        try {
+        OngoingRead read = deserializers.get(
+            key.channel()
+        ).newOngoingRead();
         key.attach(read);
         return read;
+        } catch (RuntimeException e) {
+            throw e;
+        }
     }
 
     private void accept(SelectionKey key) throws IOException {
@@ -397,8 +414,14 @@ final class SelectingThread implements Runnable {
     enum ChangeAction {
         REGISTER {
             boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws ClosedChannelException {
-                log.finer("Registering chan: " + req.chan + ", ops: " + formatOps(req.interestOps));
-                req.chan.register(selector, req.interestOps);
+                try {
+                    log.finer("Registering chan: " + req.chan + ", ops: " + formatOps(req.interestOps));
+                    req.chan.register(selector, req.interestOps);
+                } catch (ClosedChannelException e) {
+                    // This can happen with the close-protocol selector. In this case,
+                    // we're fine: it just means the reads are in the inputs queue already.
+                    log.fine("Tried to register but channel already closed: " + req.chan);
+                }
                 return true;
             }
         }, CHANGEOPS {

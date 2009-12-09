@@ -22,4 +22,4 @@ if [ "$1" = "TJava" ] || [ "$1" = "EJava" ]; then
     CLASS="ServerRunner"
 fi
 NEGOTIATION=-Dsessionj.transports.negotiation=m 
-sessionj -Xmx1024m $NEGOTIATION -Djava.util.logging.config.file=../logging.properties -cp classes $TRANSPORTS $CLASS $VERSION 2000 $CLIENTS 10000
+sessionj -ea -Xmx1024m $NEGOTIATION -Djava.util.logging.config.file=../logging.properties -cp classes $TRANSPORTS $CLASS $VERSION 2000 $CLIENTS 10000

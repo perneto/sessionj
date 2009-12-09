@@ -26,4 +26,8 @@ public abstract class AbstractSJTransport implements SJTransport {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 }

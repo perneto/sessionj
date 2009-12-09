@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.concurrent.*;
 import java.io.IOException;
 
@@ -337,6 +338,15 @@ public class SJRuntime
 		s.request();
 	}
 
+    private static int i = 1;
+    private static final ExecutorService executor = Executors.newFixedThreadPool(5, new ThreadFactory() {
+        public Thread newThread(Runnable runnable) {
+            Thread t = Executors.defaultThreadFactory().newThread(runnable);
+            t.setName("SessionCloser" + i++);
+            t.setDaemon(true);
+            return t;
+        }
+    });
 	public static void close(final SJSocket s)
 	{
         // Need to allow arbitrary interleaving of close() calls, as there
@@ -347,9 +357,9 @@ public class SJRuntime
                     s.close();
                 }
             };
-            Thread t = new Thread(closer);
-            //t.setDaemon(true);
-            t.start();
+            if (log.isLoggable(Level.FINER)) 
+                log.finer("Submitting close for: " + s);
+            executor.submit(closer);
         }
 	}	
 	
