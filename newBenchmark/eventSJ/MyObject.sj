@@ -7,6 +7,7 @@ public class MyObject implements Serializable {
   public static int DEFAULT_SIZE = 1024;
   public static final int KILL_LOAD = 0x00000001;
   public static final int BEGIN_TIMING = 0x00000002;
+  public static final int BEGIN_COUNTING = 0x00000004;
   public static final int NO_SIGNAL = 0x00000000;
 
   public MyObject(int signal) {

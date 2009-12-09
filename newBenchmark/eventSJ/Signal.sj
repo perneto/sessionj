@@ -16,15 +16,21 @@ public class Signal {
 
   public static void main(String args[]) {
     if (args.length < 3) {
-      System.out.println("Usage: java Sigal <host> <port> <signal>");
+      System.out.println("Usage: java Sigal <host> <port> <signal1> [signal2] [signal3]");
     }
 
-    if (args[2].equals("Kill")) {
-      sendSignal(args[0], Integer.parseInt(args[1]), MyObject.KILL_LOAD);
+    int signal = 0;
+    for (int i = 2; i < args.length; i++) {
+      if (args[i].equals("Kill"))
+        signal |= MyObject.KILL_LOAD;
+      else if (args[i].equals("Time"))
+        signal |= MyObject.BEGIN_TIMING;
+      if (args[i].equals("Count"))
+        signal |= MyObject.BEGIN_COUNTING;
     }
-    if (args[2].equals("Time")) {
-      sendSignal(args[0], Integer.parseInt(args[1]), MyObject.BEGIN_TIMING);
-    }
+
+    sendSignal(args[0], Integer.parseInt(args[1]), signal);
+
   }
 
 }

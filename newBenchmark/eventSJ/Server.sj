@@ -18,6 +18,8 @@ public class Server implements Runnable {
 
   private static int signal = MyObject.NO_SIGNAL;
 
+  private static boolean counting = false;
+
   public Server(int port, int numClients) {
     this.port = port;
     this.numClients = numClients;
@@ -53,13 +55,17 @@ public class Server implements Runnable {
 	                      sel.registerInput(s);
 	                    case QUIT:
 	                      numClients--;
+                        System.out.println(numClients);
 	                  }
 	                }
 	              }
 	              when(@(rcv)) {
 	                s.receiveInt();
 	                s.send(new MyObject(signal));
-	                count++;
+                  if (counting) {
+	                  count++;
+                    System.out.println("count:" + count);
+                  }
 	                sel.registerInput(s);
 	              }
 	            }
@@ -70,7 +76,7 @@ public class Server implements Runnable {
 	      catch(Exception e){e.printStackTrace();}
 	    }
 	    catch(Exception e){e.printStackTrace();}
-
+      System.out.println("Server finished");
   }
 
   public static void sendKill() {
@@ -79,6 +85,10 @@ public class Server implements Runnable {
 
   public static void sendTiming() {
     signal |= MyObject.BEGIN_TIMING;
+  }
+
+  public static void sendCounting() {
+    counting = true;
   }
 
   public static void main(String [] args) {

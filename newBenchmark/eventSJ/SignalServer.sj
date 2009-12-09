@@ -14,10 +14,11 @@ public class SignalServer implements Runnable {
 
   public void run() {
     ObjectInputStream in;
+    boolean quit = false;
 
     try {
       ServerSocket serverSocket = new ServerSocket(port);
-      while (true) {
+      while (!quit) {
         Socket clientSocket = serverSocket.accept();
 
         in = new ObjectInputStream(clientSocket.getInputStream());
@@ -25,14 +26,16 @@ public class SignalServer implements Runnable {
 
         if ((x & MyObject.BEGIN_TIMING) != 0)
           Server.sendTiming();
+        if ((x & MyObject.BEGIN_COUNTING) != 0)
+          Server.sendCounting();
         if ((x & MyObject.KILL_LOAD) != 0) {
           Server.sendKill();
-
-          break;
+          quit = true;
         }
       }
     }
     catch(Exception e){e.printStackTrace();}
+    System.out.println("Signal finished");
   }
 
   public static void main(String args[]) {

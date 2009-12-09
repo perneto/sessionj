@@ -10,6 +10,9 @@ public class Client {
 
   protocol clientSide cbegin.rec X[!{QUIT: , REC: !<int>.?(MyObject).#X}]
 
+  public static int port = 2000;
+  public static String host = "";
+
   private boolean timing;
   private int iterations;
 
@@ -17,22 +20,29 @@ public class Client {
   public boolean beginTiming;
   public boolean killLoad;
 
+  private int clientNum;
+  private long []times;
 
   /*Load Client*/
-  public Client() {
+  public Client(int clientNum) {
     this.timing = false;
     this.beginTiming = false;
     this.killLoad = false;
-    this.iterations = 0;
+    this.iterations = 0;  
+    this.clientNum = clientNum;
   }
   
   /*Time Client*/
-  public Client(int iterations) {
+  public Client(int clientNum, int iterations) {
     this.timing = true;
+    this.beginTiming = false;
+    this.killLoad = false;
     this.iterations = iterations;
+    this.times = new long[iterations];
+    this.clientNum = clientNum;
   }
 
-  public void client(String domain, int port, long time[][], int i) 
+  public void client() 
   {  	
   	SJSessionParameters params = null;
   	
@@ -45,10 +55,9 @@ public class Client {
   		x.printStackTrace();
   	}
   	
-  	final noalias SJService serv = SJService.create(clientSide, domain, port);
+  	final noalias SJService serv = SJService.create(clientSide, host, port);
     noalias SJSocket s;
-    int j = 0;
-    //Object o = null;
+    int i = 0;
     MyObject mo = null;
 
     try(s) {
@@ -56,33 +65,39 @@ public class Client {
 
       s.recursion(X) {
         if(!this.killLoad) {
-          if (this.beginTiming && this.timing && (i < iterations)) {
-            time[i][j++] = System.nanoTime();
-          }
           s.outbranch(REC) {
-            s.send(j);
+            s.send(i);
             mo =(MyObject) s.receive();
-            //mo = (MyObject) o;
             killLoad = mo.killSignal();
             beginTiming = mo.timeSignal();
-            System.out.println(i + ":" + killLoad + ":" + beginTiming);
+         //   System.out.println(clientNum + ":" + killLoad + ":" + beginTiming);
+
+            if (this.beginTiming && this.timing && (i < iterations)) {
+              times[i++] = System.nanoTime();
+            }
             s.recurse(X);
           }
         }
         else {
-          s.outbranch(QUIT) {}
-        } 
+          s.outbranch(QUIT) { System.out.println(clientNum + " finished");}
+        }
       }
 
     }
     catch (Exception e) {e.printStackTrace();}
-  }
 
-  public boolean getTiming() {return timing;}
+    if (timing) {
+      for (int j = 0; j < iterations; j++)
+        System.out.println("Client Number: " + clientNum + ".Iteration: " + j + ". Time: " + times[j] + ".");
+    }
+    
+  }
 
   public static void main(String []args) {
     long [][]timing = new long[1][1];
-    new Client().client("", 2000, timing, 1);
+    port = 2000;
+    host = "";
+    new Client(0).client();
   }
 
 }

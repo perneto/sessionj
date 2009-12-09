@@ -14,14 +14,12 @@ public class ServerRunner {
     }
 
     final int port = Integer.parseInt(args[0]);
-//    int numClients = Integer.parseInt(args[1]);
     exec = Executors.newFixedThreadPool(2);
 
     exec.execute(new Server(port, Integer.parseInt(args[1])));
     exec.execute(new SignalServer(port + 1));
+
+    exec.shutdown();
     
-    /*final int numClients = Integer.parseInt(args[1]);
-    
-    new Thread(new Server(port, numClients)).start();*/
   }
 }
