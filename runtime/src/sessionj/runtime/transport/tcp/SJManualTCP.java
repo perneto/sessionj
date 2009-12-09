@@ -208,11 +208,6 @@ public class SJManualTCP extends AbstractSJTransport
 		return new SJManualTCPAcceptor(port, this);
 	}
 	
-	/*public SJManualTCPConnection connect(SJServerIdentifier si) throws SJIOException
-	{
-		return connect(si.getHostName(), si.getPort());
-	}*/
-	
 	public SJManualTCPConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
 	{
 
