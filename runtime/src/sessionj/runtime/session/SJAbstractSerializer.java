@@ -42,4 +42,9 @@ abstract public class SJAbstractSerializer implements SJSerializer
 	{
 		return conn;
 	}
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + '{' + conn + '}';
+    }
 }

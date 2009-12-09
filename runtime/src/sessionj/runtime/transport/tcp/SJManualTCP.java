@@ -188,6 +188,11 @@ class SJManualTCPConnection extends AbstractSJConnection
 	{
 		return s.getLocalPort();
 	}
+
+    @Override
+    public String toString() {
+        return "SJManualTCPConnection{" + s + '}';
+    }
 }
 
 /**

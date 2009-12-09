@@ -1,7 +1,8 @@
 package sessionj.benchmark.SJE;
 
 import java.util.concurrent.*;
-import java.util.Random;
+import java.util.*;
+import java.lang.management.*;
 
 class ClientRunner implements Runnable{
 
@@ -62,7 +63,7 @@ class ClientRunner implements Runnable{
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     int i;
 
     if (args.length != 5) {
@@ -77,7 +78,14 @@ class ClientRunner implements Runnable{
     int numCores = Integer.parseInt(args[3]);
     repetitions = Integer.parseInt(args[4]);
 
-    exec = Executors.newFixedThreadPool(numCores);
+    exec = Executors.newFixedThreadPool(numCores, new ThreadFactory() {
+        ThreadFactory def = Executors.defaultThreadFactory();
+        public Thread newThread(Runnable r) {
+            Thread t = def.newThread(r);
+            t.setDaemon(true);
+            return t;
+        }
+    });
 
     times = new long[numCores][repetitions];
     results = new String[numCores][repetitions];
@@ -87,9 +95,49 @@ class ClientRunner implements Runnable{
       exec.execute(new ClientRunner(i));
     }
     exec.shutdown();
+    exec.awaitTermination(1, TimeUnit.HOURS);
+    System.out.println("Executor was shut down.");
+    System.out.println(Arrays.toString(getAllThreads()));
+    System.out.println(Arrays.toString(getAllDaemonThreads()));
     
    // System.out.println(threadNum + ", " + i + ": " + "->" + times[i]);
 
   }
 
+  static Thread[] getAllThreads( ) {
+      final ThreadGroup root = getRootThreadGroup( );
+      final ThreadMXBean thbean = ManagementFactory.getThreadMXBean( );
+      int nAlloc = thbean.getThreadCount( );
+      int n = 0;
+      Thread[] threads;
+      do {
+          nAlloc *= 2;
+          threads = new Thread[ nAlloc ];
+          n = root.enumerate( threads, true );
+      } while ( n == nAlloc );
+      return (Thread []) java.util.Arrays.copyOf( threads, n );
+  }
+
+ static Thread[] getAllDaemonThreads( ) {
+      final Thread[] allThreads = getAllThreads( );
+      final Thread[] daemons = new Thread[allThreads.length];
+      int nDaemon = 0;
+      for ( int i=0; i<allThreads.length; ++i ) {
+          Thread thread = allThreads[i];
+          if ( thread.isDaemon( ) )
+              daemons[nDaemon++] = thread; 
+      }
+      return (Thread[]) java.util.Arrays.copyOf( daemons, nDaemon );
+  }
+  static ThreadGroup rootThreadGroup = null;
+   
+  static ThreadGroup getRootThreadGroup( ) {
+      if ( rootThreadGroup != null )
+          return rootThreadGroup;
+      ThreadGroup tg = Thread.currentThread( ).getThreadGroup( );
+      ThreadGroup ptg;
+      while ( (ptg = tg.getParent( )) != null )
+          tg = ptg;
+      return tg;
+  }
 }

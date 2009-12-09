@@ -92,7 +92,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{
 			if (ser.getConnection() != null && !ser.isClosed()) // FIXME: need a isClosed. null in delegation case 2, session-receiver.
 			{
-                log.finer("About to write SJFIN...");
+                log.finer("About to write SJFIN on: " + ser);
 				ser.writeControlSignal(new SJFIN()); // FIXME: currently fails for delegated sessions. 
 			
 				SJControlSignal cs = null;						
@@ -105,12 +105,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
                         //noinspection EmptyFinallyBlock
                         try
 						{
-                            log.finer("About to read control signal...");
+                            log.finer("About to read control signal from: " + ser);
                             SJConnection connection = ser.getConnection();
                             // FIXME: HACK to support non-blocking transports.
                             if (!connection.supportsBlocking()) {
                                 SJTransport transport = connection.getTransport();
-                                log.finer("Starting close protocol hack for non-blocking transport: " + transport);
+                                log.finer("Starting close protocol hack for non-blocking transport on:" + s);
                                 sel = transport.transportSelector();
                                 sel.registerInput(s);
                                 SJSocket selected = sel.select(false);
@@ -1029,13 +1029,14 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	private void dualityCheck(SJProtocol proto) throws SJIOException, SJIncompatibleSessionException
 	{
         String encoded = proto.encoded();
-        log.finest("About to send (write) our sessiontype");
+        log.finest("About to send our session type on: " + ser);
 		ser.writeObject(encoded);
 		
 		SJSessionType ours = proto.type();
 		
 		try
 		{
+            log.finest("About to receive peer session type from: " + ser);
             String encodedType = (String) ser.readObject();
             /*
             Disabled for benchmarking.
