@@ -52,6 +52,7 @@ public class Client {
             //mo = (MyObject) o;
             killLoad = mo.killSignal();
             beginTiming = mo.timeSignal();
+            System.out.println(i + ":" + killLoad + ":" + beginTiming);
             s.recurse(X);
           }
         }
