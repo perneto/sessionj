@@ -417,13 +417,13 @@ public class SJTransportManager_c extends SJTransportManager
 					conn = t.connect(t.sessionHostToNegociationHost(hostName), t.sessionPortToSetupPort(port));
 				}
 
-                log.finer("Setting up on " + conn.getLocalPort() + " to " + hostName + ":" + port + " using: " + t.getTransportName());
+                log.finer("Setting up on " + conn.getLocalPort() + " to " + hostName + ':' + t.sessionPortToSetupPort(port) + " using: " + t.getTransportName());
 
                 break;
 			}
 			catch (SJIOException ioe)
 			{
-                log.finer("" + t.getTransportName() + " setup failed: " + ioe.getMessage());
+                log.finer(t.getTransportName() + " setup failed: " + ioe.getMessage());
             }		
 		}						
 		
