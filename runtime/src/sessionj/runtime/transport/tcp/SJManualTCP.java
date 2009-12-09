@@ -3,10 +3,12 @@ package sessionj.runtime.transport.tcp;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.transport.*;
 import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
+import sessionj.runtime.util.SJRuntimeUtils;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Logger;
 
 class SJManualTCPAcceptor implements SJConnectionAcceptor
 {
@@ -199,36 +201,26 @@ public class SJManualTCP extends AbstractSJTransport
 	public static final int TCP_PORT_MAP_ADJUST = 20; // FIXME: sort out port potential mapping clashes better.
 
 	protected static final boolean TCP_NO_DELAY = true;
-	
+    private static final Logger log = SJRuntimeUtils.getLogger(SJManualTCP.class);
+
     public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
 	{
 		return new SJManualTCPAcceptor(port, this);
 	}
 	
-	/*public SJManualTCPConnection connect(SJServerIdentifier si) throws SJIOException
-	{
-		return connect(si.getHostName(), si.getPort());
-	}*/
-	
 	public SJManualTCPConnection connect(String hostName, int port) throws SJIOException // Transport-level values.
 	{
-        Socket s = null;
 
-		try {
-			s = new Socket(hostName, port);
-			s.setTcpNoDelay(TCP_NO_DELAY);
+        try {
+            log.finer("Opening socket to: " + hostName + ':' + port);
+            Socket s = new Socket(hostName, port);
+            s.setTcpNoDelay(TCP_NO_DELAY);
 			
 			return new SJManualTCPConnection(s, s.getOutputStream(), s.getInputStream(), this); // Have to get I/O streams here for exception handling.
 
 		} catch (IOException ioe) {
 			throw new SJIOException(ioe);
-		} finally {
-            if (s != null) try {
-                s.close();
-            } catch (IOException e) {
-                // ignore
-            }
-        }
+		} 
 	}
 
     public boolean portInUse(int port)

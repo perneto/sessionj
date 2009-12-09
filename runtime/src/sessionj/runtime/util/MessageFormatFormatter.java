@@ -29,6 +29,8 @@ public class MessageFormatFormatter extends Formatter {
                 writer.close();
             } catch (IOException ignored) {
             }
+        } else {
+            arguments[6] = "";
         }
 		return messageFormat.format(arguments);
 	}	
