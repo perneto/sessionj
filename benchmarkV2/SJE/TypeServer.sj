@@ -12,7 +12,8 @@ public class TypeServer implements Server {
   protocol sInt !<int>
   protocol sStr !<String>
   protocol sObj !<Object>
-  protocol type {@(sInt), @(sStr), @(sObj)}
+  protocol type !{int, String, Object}
+  //protocol type {@(sInt), @(sStr), @(sObj)}
   protocol reqRep @(request).@(type)
   protocol serverSide sbegin.@(request).@(type)
 
