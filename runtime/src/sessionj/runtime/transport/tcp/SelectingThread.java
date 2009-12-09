@@ -107,19 +107,19 @@ final class SelectingThread implements Runnable {
      * @return A complete message (according to the OngoingRead instance obtained from the serializer)
      * @throws java.util.NoSuchElementException if no message is ready for reading.
      */
-    public ByteBuffer dequeueFromInputQueue(SocketChannel sc) {
+    ByteBuffer dequeueFromInputQueue(SocketChannel sc) {
         log.finer("Dequeueing input from: " + sc);
         return readyInputs.get(sc).remove();
     }
     
-    public ByteBuffer peekAtInputQueue(SocketChannel sc) {
+    ByteBuffer peekAtInputQueue(SocketChannel sc) {
         log.finest("Peeking at inputs for: " + sc);
         ByteBuffer b = readyInputs.get(sc).peek();
         log.finest("Found input for: " + sc + ", input: " + b);
         return b;
     }
 
-    public synchronized void enqueueOutput(SocketChannel sc, byte[] bs) {
+    synchronized void enqueueOutput(SocketChannel sc, byte[] bs) {
         Queue<ByteBuffer> outputsForChan = requestedOutputs.get(sc);
         if (outputsForChan == null) {
             outputsForChan = new ConcurrentLinkedQueue<ByteBuffer>();
@@ -131,17 +131,17 @@ final class SelectingThread implements Runnable {
         selector.wakeup();
     }
 
-    public void enqueueOutput(SocketChannel sc, byte b) {
+    void enqueueOutput(SocketChannel sc, byte b) {
         enqueueOutput(sc, new byte[]{b});
     }
 
-    synchronized void close(SelectableChannel sc) {
+    void close(SelectableChannel sc) {
         
         // ConcurrentLinkedQueue - no synchronization needed
         pendingChangeRequests.add(new ChangeRequest(sc, CLOSE, -1));
     }
 
-    public SocketChannel takeAccept(ServerSocketChannel ssc) throws InterruptedException {
+    SocketChannel takeAccept(ServerSocketChannel ssc) throws InterruptedException {
         // ConcurrentHashMap and LinkedBlockingQueue, both thread-safe,
         // and no need for atomicity here
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
@@ -149,11 +149,15 @@ final class SelectingThread implements Runnable {
         return queue.take();
     }
 
-    public void notifyAccepted(ServerSocketChannel ssc, SocketChannel socketChannel) {
+    void notifyAccepted(ServerSocketChannel ssc, SocketChannel socketChannel) {
         readyForSelect.add(new Pair<ServerSocketChannel, SocketChannel>(ssc, socketChannel));
     }
 
-    synchronized Object dequeueChannelForSelect
+    // Do not synchronize: readyForSelect is thread-safe, and no need for the whole method to
+    // be atomic. Moreover, if synchronization becomes desirable when this method is modified,
+    // make sure not to synchronize on this: it causes a deadlock when another thread
+    // owns the monitor for this in registerInput.
+    Object dequeueChannelForSelect
         (Collection<SelectableChannel> registeredChannels) throws InterruptedException {
         while (true) {
             Object o = readyForSelect.take();
