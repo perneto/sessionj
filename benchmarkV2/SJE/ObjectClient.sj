@@ -28,11 +28,11 @@ public class ObjectClient implements Client {
       s = serv.request();
       s.send(requestString);
       x = s.receive();
+      times[i][j] = System.nanoTime() - times[i][j];
     } catch (SJIOException e) {}
       catch (SJIncompatibleSessionException ee) {}
       catch (ClassNotFoundException cnf) {}
       finally {}
-      times[i][j] = System.nanoTime() - times[i][j];
       return (String) x;
   }
 }
