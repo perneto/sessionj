@@ -3,7 +3,8 @@ import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
 
-// to run: sessionj -cp . -Dsessionj.transports.session=a Client
+// to run: sessionj -cp . -Dsessionj.transports.session=a Client // RAY: no need to specify transports anymore.
+//$ bin/sessionj -cp tests/classes/ Client
 
 public class Client {
 
@@ -31,15 +32,27 @@ public class Client {
     this.iterations = iterations;
   }
 
-  public void client(String domain, int port, long time[][], int i) {
-    final noalias SJService serv = SJService.create(clientSide, domain, port);
+  public void client(String domain, int port, long time[][], int i) 
+  {  	
+  	SJSessionParameters params = null;
+  	
+  	try
+  	{
+  		params = SJTransportUtils.createSJSessionParameters("s", "a");
+  	}
+  	catch (Exception x)
+  	{
+  		x.printStackTrace();
+  	}
+  	
+  	final noalias SJService serv = SJService.create(clientSide, domain, port);
     noalias SJSocket s;
     int j = 0;
     //Object o = null;
     MyObject mo = null;
 
     try(s) {
-      s = serv.request();
+      s = serv.request(params);
 
       s.recursion(X) {
         if(!this.killLoad) {

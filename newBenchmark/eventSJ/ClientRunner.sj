@@ -1,6 +1,7 @@
 import java.util.concurrent.*;
 
-//sessionj -cp . -Dsessionj.transports.session=a ServerRunner
+//sessionj -cp . -Dsessionj.transports.session=a ServerRunner // RAY: no need to specify transports anymore.
+//$ bin/sessionj -cp tests/classes/ ClientRunner localhost 2000 0 1 1
 
 public class ClientRunner implements Runnable {
   private static int port;
@@ -59,8 +60,11 @@ public class ClientRunner implements Runnable {
     for(; i < loadClients + timedClients; i++)
       exec.execute(new ClientRunner(i, false));*/      
 
-		spawnClients(0, loadClients, true);
-		spawnClients(loadClients, timedClients, false);   
+		//spawnClients(0, loadClients, true);
+		//spawnClients(loadClients, timedClients, false);
+    
+    spawnClients(0, loadClients, true);
+		spawnClients(loadClients, timedClients, false);
   }
   static int i;
   private static void spawnClients(int s, int e, final boolean b) 

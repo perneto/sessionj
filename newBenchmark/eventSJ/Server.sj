@@ -2,7 +2,8 @@ import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
 
-//to run: sessionj -cp . -Dsessionj.transports.session=a Client
+//to run: sessionj -cp . -Dsessionj.transports.session=a Client // RAY: no need to specify transports anymore.
+//$ bin/sessionj -cp tests/classes/ Server
 
 public class Server implements Runnable {
 
@@ -24,42 +25,51 @@ public class Server implements Runnable {
 
   public void run() {
 
-    final noalias SJSelector sel = SJRuntime.selectorFor(types);
-    noalias SJServerSocket ss;
-    noalias SJSocket s;
-
-    try(ss) {
-      ss = SJServerSocket.create(serverSide, port);
-      try(sel) {
-        sel.registerAccept(ss);
-        try (s) {
-          while(numClients != 0) {
-            s = sel.select();
-            typecase(s) {
-              when(@(recSide)) {
-                s.recursion(X) {
-                  s.inbranch() {
-                    case REC:
-                      sel.registerInput(s);
-                    case QUIT:
-                      numClients--;
-                  }
-                }
-              }
-              when(@(rcv)) {
-                s.receiveInt();
-                s.send(new MyObject(signal));
-                count++;
-                sel.registerInput(s);
-              }
-            }
-          }
-        }
-        catch(Exception e){e.printStackTrace();}
-      }
-      catch(Exception e){e.printStackTrace();}
-    }
-    catch(Exception e){e.printStackTrace();}
+  	SJSessionParameters params = null;
+  	
+  	try
+  	{
+	  	params = SJTransportUtils.createSJSessionParameters("s", "a");
+  	}
+  	catch(Exception e){e.printStackTrace();}	
+	  	
+	    final noalias SJSelector sel = SJRuntime.selectorFor(types);
+	    noalias SJServerSocket ss;
+	    noalias SJSocket s;
+	
+	    try(ss) {
+	      //ss = SJServerSocket.create(serverSide, port);
+	    	ss = SJServerSocket.create(serverSide, port, params);
+	      try(sel) {
+	        sel.registerAccept(ss);
+	        try (s) {
+	          while(numClients != 0) {
+	            s = sel.select();
+	            typecase(s) {
+	              when(@(recSide)) {
+	                s.recursion(X) {
+	                  s.inbranch() {
+	                    case REC:
+	                      sel.registerInput(s);
+	                    case QUIT:
+	                      numClients--;
+	                  }
+	                }
+	              }
+	              when(@(rcv)) {
+	                s.receiveInt();
+	                s.send(new MyObject(signal));
+	                count++;
+	                sel.registerInput(s);
+	              }
+	            }
+	          }
+	        }
+	        catch(Exception e){e.printStackTrace();}
+	      }
+	      catch(Exception e){e.printStackTrace();}
+	    }
+	    catch(Exception e){e.printStackTrace();}
 
   }
 
