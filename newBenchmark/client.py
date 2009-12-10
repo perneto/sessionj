@@ -13,7 +13,7 @@ serversocket.listen(5)
 #accept connections
 (s, address) = serversocket.accept()
 
-clients = ['100', '200', '300', '400', '500', '600', '700']
+clients = ['20', '50', '100', '150', '200', '250', '350']
 sessionLength = ['10', '20', '30']
 msgSize = ['1024', '2048', '4096']
 hostname = socket.gethostname()

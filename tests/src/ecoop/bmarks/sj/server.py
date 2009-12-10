@@ -36,59 +36,49 @@ s11.connect(("camelot11", 4321))
 s12.connect(("camelot12", 4321))
 s13.connect(("camelot13", 4321))
 s14.connect(("camelot14", 4321))
-s15.connect(("camelot15", 4321))
+s15.connect(("camelot15", 4321))   
 
-#clients = ['20', '7500', '1500', '150', '200', '250', '350']
-clients = ['3000', '7500', '15000', '22500', '30000', '37500', '52500']
-sessionLength = ['10', '20', '30']
-msgSize = ['1024', '2048', '4096']
+clients = ['12', '22', '32', '42']
+sessionLength = ['0', '1', '10', '100', '1000']
+msgSize = ['10', '100', '1000', '10000']
+
+#clients = ['12', '102', '1002', '10002']
+#sessionLength = ['0', '1', '10', '100', '1000']
+#msgSize = ['10', '100', '1000', '10000']
 
 for i in clients:
-  for k in sessionLength:
-    for j in msgSize:
-      command = 'java ServerRunner 2000 ' + i + ' ' + j + ' > camelot16.' + i + '.' + k + '.' + j + ' &'
-      #print command + '\n'
-      os.system(command)
+  for k in msgSize:
+    for j in sessionLength:
+      for l in range(0, sys.argv[1]):
+        command = 'java ServerRunner 2000 ' + i + ' ' + j + ' > camelot16.' + i + '.' + k + '.' + j + ' &'
+        os.system(command)
 
-      s1.send('1');
-      s2.send('1');
-      s3.send('1');
-      s4.send('1');
-      s5.send('1');
-      s6.send('1');
-      s7.send('1');
-      s8.send('1');
-      s9.send('1');
-      s10.send('1');
-      s11.send('1');
-      s12.send('1');
-      s13.send('1');
-      s14.send('1');
-      s15.send('1');
+        #s1.send('1');
+        s2.send('1');
+        s3.send('1');
+        s4.send('1');
+        s5.send('1');
+        s6.send('1');
+        s7.send('1');
+        s8.send('1');
+        s9.send('1');
+        s10.send('1');
+        s11.send('1');
+        #s12.send('1');
+        #s13.send('1');
+        #s14.send('1');
+        #s15.send('1');
       
-      time.sleep(5);
-      os.system('java Signal localhost 2001 Count');
-
-      time.sleep(1);
-      os.system('java Signal localhost 2001 Time');
-  
-      time.sleep(7);
-      os.system('java Signal localhost 2001 Kill');
-
-      time.sleep(5);
-
-#s1.send(0);
-#s2.send(0);
-#s3.send(0);
-#s4.send(0);
-#s5.send(0);
-#s6.send(0);
-#s7.send(0);
-#s8.send(0);
-#s9.send(0);
-#s10.send(0);
-#s11.send(0);
-#s12.send(0);
-#s13.send(0);
-#s14.send(0);
-#s15.send(0);
+        #time.sleep(5);
+        #os.system('java Signal localhost 2001 Count');
+        
+        #time.sleep(1);
+        #os.system('java Signal localhost 2001 Time');
+        
+        #time.sleep(7);
+        #os.system('java Signal localhost 2001 Kill');
+        
+        time.sleep(20);
+        s1.send('1');
+        
+        time.sleep(10);
