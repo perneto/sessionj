@@ -96,6 +96,9 @@ final class SelectingThread implements Runnable {
         if (coll.isEmpty()) {
             log.finer("Deregistering channel: " + sc);
             readyInputs.remove(sc);
+            interestedSelectors.remove(sc);
+            requestedOutputs.remove(sc);
+            deserializers.remove(sc);
             pendingChangeRequests.add(new ChangeRequest(sc, CANCEL, -1));
             selector.wakeup();
         }
