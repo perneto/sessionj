@@ -38,7 +38,7 @@ public class Server implements Runnable {
 	    final noalias SJSelector sel = SJRuntime.selectorFor(types);
 	    noalias SJServerSocket ss;
 	    noalias SJSocket s;
-	
+	    long t = System.nanoTime();
 	    try(ss) {
 	      //ss = SJServerSocket.create(serverSide, port);
 	    	ss = SJServerSocket.create(serverSide, port, params);
@@ -55,7 +55,7 @@ public class Server implements Runnable {
 	                      sel.registerInput(s);
 	                    case QUIT:
 	                      numClients--;
-                        System.out.println(numClients);
+ //                       System.out.println(numClients);
 	                  }
 	                }
 	              }
@@ -76,7 +76,9 @@ public class Server implements Runnable {
 	      catch(Exception e){e.printStackTrace();}
 	    }
 	    catch(Exception e){e.printStackTrace();}
-      System.out.println("Server finished");
+  //    System.out.println("Server finished");
+    t = System.nanoTime() - t;
+    System.out.println("Throughput Count: " + count + ". Time: " + t);
   }
 
   public static void sendKill() {
@@ -94,4 +96,5 @@ public class Server implements Runnable {
   public static void main(String [] args) {
     new Server(2000, 200).run();
   }
+
 }

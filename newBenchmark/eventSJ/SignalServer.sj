@@ -35,7 +35,7 @@ public class SignalServer implements Runnable {
       }
     }
     catch(Exception e){e.printStackTrace();}
-    System.out.println("Signal finished");
+    //System.out.println("Signal finished");
   }
 
   public static void main(String args[]) {
