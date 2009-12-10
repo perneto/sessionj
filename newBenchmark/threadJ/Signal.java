@@ -17,6 +17,7 @@ public class Signal {
   public static void main(String args[]) {
     if (args.length < 3) {
       System.out.println("Usage: java Sigal <host> <port> <signal1> [signal2] [signal3]");
+      return;
     }
 
     int signal = 0;

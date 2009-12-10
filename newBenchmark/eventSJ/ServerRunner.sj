@@ -5,8 +5,6 @@ import java.util.concurrent.*;
 
 public class ServerRunner {
 
-  private static ExecutorService exec = null;
-
   public static void main(String args[]) {
     if(args.length < 3) {
       System.out.println("Usage: sessionj ServerRunner <port> <clientNum> <msg size>");
@@ -15,12 +13,20 @@ public class ServerRunner {
 
     final int port = Integer.parseInt(args[0]);
     MyObject.DEFAULT_SIZE = Integer.parseInt(args[2]);
-    exec = Executors.newFixedThreadPool(2);
 
-    exec.execute(new Server(port, Integer.parseInt(args[1])));
-    exec.execute(new SignalServer(port + 1));
+    final int cn = Integer.parseInt(args[1]);
 
-    exec.shutdown();
-    
+    new Thread() {
+      public void run() {
+        new Server(port, cn).run();
+      }
+    }.start();
+
+    new Thread() {
+      public void run() {
+        new SignalServer(port + 1).run();
+      }
+    }.start();
+
   }
 }
