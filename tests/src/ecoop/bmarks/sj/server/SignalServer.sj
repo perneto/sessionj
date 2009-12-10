@@ -51,10 +51,10 @@ public class SignalServer
         	Server.counting = true;
         }
         
-        if ((x & MyObject.KILL_LOAD) != 0) 
+        if ((x & MyObject.KILL) != 0) 
         {
           //Server.sendKill();
-        	Server.signal |= MyObject.KILL_LOAD;
+        	Server.signal |= MyObject.KILL;
         	
           run = false;
         }

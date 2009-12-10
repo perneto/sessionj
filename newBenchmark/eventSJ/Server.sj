@@ -5,7 +5,7 @@ import sessionj.runtime.transport.*;
 //to run: sessionj -cp . -Dsessionj.transports.session=a Client // RAY: no need to specify transports anymore.
 //$ bin/sessionj -cp tests/classes/ Server
 
-public class Server implements Runnable {
+public class Server {
 
   protocol recSide rec X[?{QUIT: , REC: ?(int).!<MyObject>.#X}]
   protocol rcv ?(int).!<MyObject>.@(recSide)
@@ -16,6 +16,7 @@ public class Server implements Runnable {
   private int numClients;
   private long count = 0;
 
+  private static long t = 0;
   private static int signal = MyObject.NO_SIGNAL;
 
   private static boolean counting = false;
@@ -38,7 +39,7 @@ public class Server implements Runnable {
 	    final noalias SJSelector sel = SJRuntime.selectorFor(types);
 	    noalias SJServerSocket ss;
 	    noalias SJSocket s;
-	    long t = System.nanoTime();
+
 	    try(ss) {
 	      //ss = SJServerSocket.create(serverSide, port);
 	    	ss = SJServerSocket.create(serverSide, port, params);
@@ -94,6 +95,7 @@ public class Server implements Runnable {
   }
 
   public static void main(String [] args) {
+    t = System.nanoTime();
     new Server(2000, 200).run();
   }
 

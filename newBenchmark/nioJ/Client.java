@@ -1,6 +1,4 @@
 
-//package sessionj.newbencmark.nioJ;
-
 import java.nio.*;
 
 import java.nio.channels.*;
@@ -8,10 +6,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-
-//import sessionj.newbenchmark.base;
-
-// java Client
 
 public class Client {
 
@@ -69,6 +63,9 @@ public class Client {
 
       while (true) {
         if(!this.killLoad) {
+          if (this.beginTiming && this.timing && (i < iterations)) {
+            times[i] = System.nanoTime();
+          }
           b.clear();
           b.put(intToByteArray(Server.REC));
           b.flip();
@@ -87,7 +84,8 @@ public class Client {
        //   System.out.println(clientNum + ":" + killLoad + ":" + beginTiming);
 
           if (this.beginTiming && this.timing && (i < iterations)) {
-            times[i++] = System.nanoTime();
+            times[i] = System.nanoTime() - times[i];
+            i++;
           }
         }
         else {
@@ -111,30 +109,21 @@ public class Client {
   public static void main(String [] args) {
 
     if (args.length < 5) {
-      System.out.println("Usage: sessionj ClientRunner <host> <port> <Load Clients> <Timed Clients> <session length>");
+      System.out.println("Usage: sessionj ClientRunner <host> <port> <Timed Clients> <session length> <msg size>");
       return;
     }
 
     Client.host = args[0];
     Client.port = Integer.parseInt(args[1]);
 
-    int loadClients = Integer.parseInt(args[2]);
-    int timedClients = Integer.parseInt(args[3]);
-    final int iterations = Integer.parseInt(args[4]);
+    //int loadClients = Integer.parseInt(args[2]);
+    int timedClients = Integer.parseInt(args[2]);
+    final int iterations = Integer.parseInt(args[3]);
+    MyObject.DEFAULT_SIZE = Integer.parseInt(args[4]);
     
     int i;
 
-    for (i = 0; i < loadClients; i++)	{
-      final int j = i;
-      new Thread() {
-        public void run() {
-          new Client(j).client();
-         // System.out.println(j + " finished");
-        }
-      }.start();
-    }
-
-    for (; i < loadClients + timedClients; i++)	{
+    for (i = 0; i < timedClients; i++)	{
       final int j = i;
       new Thread() {
         public void run() {
@@ -143,6 +132,8 @@ public class Client {
         }
       }.start();
     }
+
   }
+
 
 }

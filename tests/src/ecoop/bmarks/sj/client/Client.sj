@@ -9,7 +9,7 @@ import sessionj.runtime.transport.*;
 import ecoop.bmarks.sj.common.*;
 import ecoop.bmarks.sj.server.Server;
 
-//@deprecated
+//@deprecated 
 public class Client 
 {
   //protocol pClient cbegin.rec X[!{QUIT: , REC: !<int>.?(MyObject).#X}]

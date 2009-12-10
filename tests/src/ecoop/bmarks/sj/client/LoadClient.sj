@@ -1,4 +1,4 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.client.LoadClient false localhost 8888 1234
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.client.LoadClient false localhost 8888 1234 100
 
 package ecoop.bmarks.sj.client;
 
@@ -18,15 +18,19 @@ public class LoadClient
 	
   private String host;
   private int port;
+  
   private int clientNum;
+  private int messageSize;
 
-  public LoadClient(boolean debug, String host, int port, int clientNum) 
+  public LoadClient(boolean debug, String host, int port, int clientNum, int messageSize) 
   {
   	LoadClient.debug = debug;
   	
   	this.host = host;
   	this.port = port;
-    this.clientNum = clientNum;
+    
+  	this.clientNum = clientNum;
+    this.messageSize = messageSize;
   }
 
   public void run() throws Exception
@@ -37,7 +41,7 @@ public class LoadClient
   	
     final noalias SJSocket s;
     
-    try(s) 
+    try (s) 
     {
       s = serv.request(params);
 
@@ -52,12 +56,13 @@ public class LoadClient
         {
           s.outbranch(REC) 
           {
-            s.send("Client (" + clientNum + ") iteration: " + iters++);
+            s.send(new ClientMessage(clientNum, Integer.toString(iters++), messageSize));
             
-            mo = (MyObject) s.receive();            
+            mo = (MyObject) s.receive();      
+            
             run = !mo.killSignal();
             
-            debugPrintln("[Client " + clientNum + "] Received: " + mo);
+            debugPrintln("[LoadClient " + clientNum + "] Received: " + mo);
 
             if (debug)
             {
@@ -71,7 +76,7 @@ public class LoadClient
         {
           s.outbranch(QUIT) 
           {
-            debugPrintln("[Client " + clientNum + "] Quitting.");
+            debugPrintln("[LoadClient " + clientNum + "] Quitting.");
           }
         }
       }
@@ -96,7 +101,8 @@ public class LoadClient
   	String host = args[1];
     int port = Integer.parseInt(args[2]);
     int clientNum = Integer.parseInt(args[3]);
+    int messageSize = Integer.parseInt(args[4]);
 
-    new LoadClient(debug, host, port, clientNum).run();
+    new LoadClient(debug, host, port, clientNum, messageSize).run();
   }
 }
