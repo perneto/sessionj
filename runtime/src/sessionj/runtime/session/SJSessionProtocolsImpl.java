@@ -126,7 +126,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 						}
 						catch (Exception ioe) // We are prematurely closing. 
 						{
-                            log.log(Level.WARNING, "Could not read close signal", ioe);
+                            log.log(Level.FINE, "Could not read close signal", ioe);
 							// E.g. could be a non-forwarded message due to failed delegation.
 						} finally {
                             // Not calling sel.close() to avoid closing the socket for this connection
