@@ -1,14 +1,13 @@
 package sessionj.types.sesstypes;
 
-import java.util.*;
-
-import polyglot.types.*;
-
-import sessionj.SJConstants;
-import sessionj.util.SJLabel;
-import sessionj.util.SJCompilerUtils;
-
+import polyglot.types.SemanticException;
+import polyglot.types.TypeSystem;
 import static sessionj.SJConstants.*;
+import sessionj.util.SJCompilerUtils;
+import sessionj.util.SJLabel;
+
+import java.util.HashMap;
+import java.util.Set;
 
 abstract public class SJBranchType_c extends SJSessionType_c implements SJBranchType
 {
