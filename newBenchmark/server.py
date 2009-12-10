@@ -62,8 +62,17 @@ for i in clients:
     s13.send('1');
     s14.send('1');
     s15.send('1');
+    
+    time.sleep(5);
+    os.system('java Signal localhost 2001 Count');
 
-    time.sleep(20);
+    time.sleep(1);
+    os.system('java Signal localhost 2001 Time');
+
+    time.sleep(7);
+    os.system('java Signal localhost 2001 Kill');
+
+    time.sleep(5);
 
 #s1.send(0);
 #s2.send(0);
