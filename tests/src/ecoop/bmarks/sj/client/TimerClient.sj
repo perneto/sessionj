@@ -9,6 +9,7 @@ import sessionj.runtime.transport.*;
 import ecoop.bmarks.sj.common.*;
 import ecoop.bmarks.sj.server.Server;
 
+// This counts as two clients (from the Server's view), due to the dummy run.
 public class TimerClient 
 {
   //protocol pClient cbegin.rec X[!{QUIT: , REC: !<int>.?(MyObject).#X}]

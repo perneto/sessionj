@@ -22,7 +22,7 @@ public class Server
 	protected static boolean counting = false;
 	
   private int port;
-  private int numClients;
+  private int numClients; // NB: a TimerClient counts as two clients.
   
   private long count = 0;  
 
