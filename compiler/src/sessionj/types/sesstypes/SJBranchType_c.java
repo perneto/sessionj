@@ -127,7 +127,14 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 	public SJSessionType nodeClone()
 	{
 		SJBranchType bt = skeleton(isDependentlyTyped);
-        ((SJBranchType_c) bt).cases.putAll(cases);
+		
+		/*// This copies the branch cases.
+		for (SJLabel lab : labelSet()) 
+		{
+			bt = bt.branchCase(lab, getBranchCase(lab)); // null or else cloned by setter method.
+		}*/
+		
+        ((SJBranchType_c) bt).cases.putAll(cases); // Safe not to copy the branch cases. This would be true for the child (for all SJSessionType) as well.
 		return bt;
 	}
 

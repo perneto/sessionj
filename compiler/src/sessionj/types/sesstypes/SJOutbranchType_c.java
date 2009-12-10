@@ -109,7 +109,7 @@ public class SJOutbranchType_c extends SJBranchType_c implements SJOutbranchType
 		throw new RuntimeException("[SJOutbranchType_c] Shouldn't get here: " + ourLabels + ' ' + op + ' ' + theirLabels);
 	}
 	
-	protected SJOutbranchType skeleton()
+	protected SJOutbranchType skeleton() // FIXME: finish refactoring against the isDependentlyType versions.
 	{
 		return typeSystem().SJOutbranchType();
 	}

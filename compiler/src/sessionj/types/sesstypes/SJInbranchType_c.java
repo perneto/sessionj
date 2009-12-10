@@ -100,7 +100,7 @@ public class SJInbranchType_c extends SJBranchType_c implements SJInbranchType
 		throw new RuntimeException("[SJInbranchType_c] Shouldn't get here: " + ourLabels + " " + op + " " + theirLabels);
 	}	
 	
-	protected SJInbranchType skeleton()
+	protected SJInbranchType skeleton() // FIXME: finish refactoring against the isDependentlyType versions.
 	{
 		return typeSystem().SJInbranchType();
 	}
