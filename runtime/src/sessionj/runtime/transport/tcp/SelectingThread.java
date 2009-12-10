@@ -1,7 +1,6 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJSocket;
 import sessionj.runtime.session.OngoingRead;
 import sessionj.runtime.session.SJDeserializer;
 import static sessionj.runtime.transport.tcp.SelectingThread.ChangeAction.*;
@@ -36,18 +35,11 @@ final class SelectingThread implements Runnable {
     SelectingThread() throws IOException {
         selector = SelectorProvider.provider().openSelector();
         pendingChangeRequests = new ConcurrentLinkedQueue<ChangeRequest>();
-
-
-        // TODO: use a WeakHashMap
         readyInputs = new ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>>();
         requestedOutputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
-        
         readyForSelect = new LinkedBlockingQueue<Object>();
-        
         accepted = new ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>>();
         deserializers = new HashMap<SocketChannel, SJDeserializer>();
-        
-        // TODO: use a WeakHashMap
         interestedSelectors = new ConcurrentHashMap<SocketChannel, Collection<AsyncManualTCPSelector>>();
         
         readBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
@@ -96,7 +88,9 @@ final class SelectingThread implements Runnable {
         if (coll.isEmpty()) {
             log.finer("Deregistering channel: " + sc);
             readyInputs.remove(sc);
-            interestedSelectors.remove(sc);
+            interestedSelectors.remove(sc); 
+            // Ideally, we'd only do interestedSelectors.get(sc).clear(), but that would be a memory leak.
+            // A WeakHashMap would do the trick, but the code might not be as easy to understand then.
             requestedOutputs.remove(sc);
             deserializers.remove(sc);
             pendingChangeRequests.add(new ChangeRequest(sc, CANCEL, -1));
@@ -171,6 +165,9 @@ final class SelectingThread implements Runnable {
             } else if (hasInterestedSelector(o)) {
                 readyForSelect.add(o);
             } else {
+                // FIXME: This might lose some channel-ready messages. But we can't keep putting
+                // them back in the queue, otherwise the SJ-level selectors would keep being
+                // woken up for nothing. (This loop would busy-wait for an interesting channel).
                 log.finer("Dropping from readyForSelect: " + o);
             }
         }
@@ -186,7 +183,10 @@ final class SelectingThread implements Runnable {
         if (!(o instanceof SocketChannel)) return true;
         else {
             SocketChannel chan = (SocketChannel) o;
-            return !interestedSelectors.get(chan).isEmpty();
+            Collection<AsyncManualTCPSelector> interested = interestedSelectors.get(chan);
+            if (log.isLoggable(Level.FINEST)) 
+                log.finest("interestedSelectors["+chan+"]: "+ interested);
+            return interested != null && !interested.isEmpty();
         }
     }
 
