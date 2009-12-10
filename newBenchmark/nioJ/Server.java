@@ -9,6 +9,7 @@ public class Server implements Runnable {
   private int port;
   private int numClients;
   private long count = 0;
+  private static long t = 0;
 
   private static int signal = MyObject.NO_SIGNAL;
 
@@ -73,12 +74,13 @@ public class Server implements Runnable {
 	          ro.numRead = sc.read(ro.b);
 
 	          if (ro.numRead == -1) {
+              numClients--;
 	  	        selKey.cancel();
 		          sc.close();
 	          }
-System.out.println("debug1 " + ro.numRead);
+//System.out.println("debug1 " + ro.numRead);
             if (ro.numRead == 4) {
-System.out.println("debug2");
+//System.out.println("debug2");
               ro.numRead = 0;
               ro.b.flip();
               ba = ro.b.array();
@@ -114,6 +116,8 @@ System.out.println("debug2");
         }
       } catch(Exception e) {e.printStackTrace();}
     }
+    t = System.nanoTime() - t;
+    System.out.println("Throughput Count: " + count + ". Time: " + t);
 
   }
 
@@ -126,6 +130,7 @@ System.out.println("debug2");
   }
 
   public static void sendCounting() {
+    t = System.nanoTime();
     counting = true;
   }
 

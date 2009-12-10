@@ -2,7 +2,7 @@
 import java.io.*;
 import java.net.*;
 
-public class SignalServer implements Runnable {
+public class SignalServer {
 
   //public static final int QUIT = 0x00000100;
 
@@ -35,7 +35,7 @@ public class SignalServer implements Runnable {
       }
     }
     catch(Exception e){e.printStackTrace();}
-    System.out.println("Signal finished");
+    //System.out.println("Signal finished");
   }
 
   public static void main(String args[]) {
