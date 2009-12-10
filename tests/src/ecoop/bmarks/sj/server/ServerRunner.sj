@@ -2,21 +2,22 @@
 
 package ecoop.bmarks.sj.server;
 
+// Spawns a pair of Server and SignalServer.
 public class ServerRunner 
 {
   public static void main(String args[]) 
   {
-    if (args.length < 2) 
+    /*if (args.length < 2) 
     {
       System.out.println("Usage: sessionj ServerRunner <port> <clientNum>");
       
       return;
-    }
+    }*/
 
     final boolean debug = Boolean.parseBoolean(args[0]);
     final int port = Integer.parseInt(args[1]);
     final int numClients = Integer.parseInt(args[2]);
-    final int messageSize = Integer.parseInt(args[3]);
+    //final int messageSize = Integer.parseInt(args[3]);
     
     new Thread()
     {
@@ -24,7 +25,7 @@ public class ServerRunner
     	{
     		try
     		{
-    			new Server(debug, port, numClients, messageSize).run();
+    			new Server(debug, port, numClients).run();
     		}
     		catch (Exception x)
     		{
