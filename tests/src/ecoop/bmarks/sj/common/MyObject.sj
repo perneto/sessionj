@@ -5,7 +5,7 @@ import java.io.*;
 public class MyObject implements Serializable 
 {
 	public static final int NO_SIGNAL = 0;	
-  public static final int KILL_LOAD = 1;
+  public static final int KILL = 1;
   public static final int BEGIN_TIMING = 2;
   public static final int BEGIN_COUNTING = 4;  
 	
@@ -29,7 +29,7 @@ public class MyObject implements Serializable
 
   public boolean killSignal() 
   {
-    return ((signal & KILL_LOAD) != 0);
+    return ((signal & KILL) != 0);
   }
   
   public boolean timeSignal() 

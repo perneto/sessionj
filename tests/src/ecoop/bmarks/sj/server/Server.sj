@@ -1,4 +1,4 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.server.Server false 8888 1 100
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.server.Server false 8888 1 
 
 package ecoop.bmarks.sj.server;
 
@@ -10,8 +10,8 @@ import ecoop.bmarks.sj.common.*;
 
 public class Server  
 {
-	public protocol pRecursion rec X [?{REC: ?(String).!<MyObject>.#X, QUIT: }]
-  public protocol pReceive ?(String).!<MyObject>.@(pRecursion) 
+	public protocol pRecursion rec X [?{REC: ?(ClientMessage).!<MyObject>.#X, QUIT: }]
+  public protocol pReceive ?(ClientMessage).!<MyObject>.@(pRecursion) 
   public protocol pServer sbegin.@(pRecursion)
   
   private protocol pSelector { @(pRecursion), @(pReceive) }
@@ -23,17 +23,15 @@ public class Server
 	
   private int port;
   private int numClients;
-  private int messageSize;
   
   private long count = 0;  
 
-  public Server(boolean debug, int port, int numClients, int messageSize) 
+  public Server(boolean debug, int port, int numClients) 
   {
   	Server.debug = debug;
   	
     this.port = port;
     this.numClients = numClients;
-    this.messageSize = messageSize;
   }
 
   public void run() throws Exception
@@ -90,17 +88,17 @@ public class Server
 		        }
 		        when(@(pReceive)) 
 		        {
-		          String m = (String) s.receive();
+		        	ClientMessage m = (ClientMessage) s.receive();
 		          
 		          debugPrintln("[Server] Received: " + m);
 		          
-		          s.send(new MyObject(signal, messageSize));
+		          s.send(new MyObject(signal, m.getSize()));
 		          
 		          if (counting) 
 		          {
 		            count++;
 		            
-		            debugPrintln("[Server] current count:" + count);
+		            debugPrintln("[Server] Current count:" + count);		            
 	            }
 		          
 	            sel.registerInput(s);
@@ -115,7 +113,10 @@ public class Server
 		}
 		finally
 		{
-			
+			if (counting)
+			{
+				System.out.println("[Server] Total count: " + count);
+			}
 		}
   }
 
@@ -147,8 +148,7 @@ public class Server
   	boolean debug = Boolean.parseBoolean(args[0]);
   	int port = Integer.parseInt(args[1]);
   	int numClients = Integer.parseInt(args[2]);
-  	int messageSize = Integer.parseInt(args[3]);
   	
-    new Server(debug, port, numClients, messageSize).run();
+    new Server(debug, port, numClients).run();
   }
 }
