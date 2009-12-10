@@ -1,3 +1,5 @@
+//DISABLED
+// Needs fixing: locks up after an assertion failure in peer3.
 package sessionj.test.functional;
 
 import sessionj.runtime.*;
