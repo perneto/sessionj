@@ -12,18 +12,13 @@ import static sessionj.SJConstants.*;
 
 abstract public class SJBranchType_c extends SJSessionType_c implements SJBranchType
 {
-	private static final long serialVersionUID = SJConstants.SJ_VERSION;
+	private static final long serialVersionUID = SJ_VERSION;
 	
-	private HashMap<SJLabel, SJSessionType> cases = new HashMap<SJLabel, SJSessionType>();
+	private final HashMap<SJLabel, SJSessionType> cases = new HashMap<SJLabel, SJSessionType>();
 
-	private boolean isDependentlyTyped;
-	
-	public SJBranchType_c(TypeSystem ts) // Probably redundant now.
-	{
-		this(ts, false);
-	}
+	private final boolean isDependentlyTyped;
 
-	public SJBranchType_c(TypeSystem ts, boolean isDependentlyTyped)
+    protected SJBranchType_c(TypeSystem ts, boolean isDependentlyTyped)
 	{
 		super(ts);
 		
