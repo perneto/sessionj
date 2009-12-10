@@ -10,6 +10,7 @@ public class Server implements Runnable {
 
   private static int signal = MyObject.NO_SIGNAL;
 
+  private static long t = 0;
   public static final int REC = 1;
   public static final int QUIT = 2;
 
@@ -79,14 +80,21 @@ public class Server implements Runnable {
     }
     catch (IOException e) {e.printStackTrace();}
     
-    // check for termination
-    boolean f = true;
-    while(f) {
+    // check for termination and count
+    for(boolean f = false; !f;) {
       f = true;
       for (int i = 0; i < clients; i++) {
         f = f && finished[i];
       }
     }
+
+    t = System.nanoTime() - t;
+
+    int totalCount;
+    for (int i = totalCount = 0; i < clients; i++) {
+      totalCount += count[i];
+    }
+    System.out.println("Throughput Count: " + totalCount + ". Time: " + t);
   }
 
   public static void sendKill() {
@@ -98,6 +106,7 @@ public class Server implements Runnable {
   }
 
   public static void sendCounting() {
+    t = System.nanoTime();
     counting = true;
   }
 
