@@ -26,8 +26,13 @@ public class SJInbranchType_c extends SJBranchType_c implements SJInbranchType
 	{
 		return (SJInbranchType) super.branchCase(lab, st);
 	}
-	
-	protected boolean eligibleForEquals(SJSessionType st)
+
+    @Override
+    protected SJBranchType skeleton(boolean dependentlyTyped) {
+        return typeSystem().SJInbranchType(dependentlyTyped);
+    }
+
+    protected boolean eligibleForEquals(SJSessionType st)
 	{
 		return st instanceof SJInbranchType && labelSet().equals(((SJBranchType) st).labelSet());
 	}

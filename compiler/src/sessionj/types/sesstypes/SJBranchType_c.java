@@ -51,7 +51,7 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 		return st == null ? null : st.copy();
 	}
 
-	public SJBranchType branchCase(SJLabel lab, SJSessionType st) // Used by copy/clone routines, so those cannot be used here, else mutual dependency (will loop forever).
+	public SJBranchType branchCase(SJLabel lab, SJSessionType st) 
 	{
 		SJBranchType bt = (SJBranchType) nodeClone(); // Defensive copy.
 		
@@ -72,7 +72,9 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 		return bt;  
 	}
 
-	public SJSessionType removeCase(SJLabel lab)
+    protected abstract SJBranchType skeleton(boolean dependentlyTyped);
+
+    public SJSessionType removeCase(SJLabel lab)
 	{
 		return cases.remove(lab); // No need to copy here.
 	}
@@ -124,13 +126,8 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 
 	public SJSessionType nodeClone()
 	{
-		SJBranchType bt = skeleton();
-
-		for (SJLabel lab : labelSet())
-		{
-			bt = bt.branchCase(lab, getBranchCase(lab)); // null or else cloned by setter method. 
-		}
-
+		SJBranchType bt = skeleton(isDependentlyTyped);
+        ((SJBranchType_c) bt).cases.putAll(cases);
 		return bt;
 	}
 

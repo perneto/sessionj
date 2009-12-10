@@ -26,8 +26,13 @@ public class SJOutbranchType_c extends SJBranchType_c implements SJOutbranchType
 	{
 		return (SJOutbranchType) super.branchCase(lab, st);
 	}
-	
-	protected boolean eligibleForEquals(SJSessionType st)
+
+    @Override
+    protected SJBranchType skeleton(boolean dependentlyTyped) {
+        return typeSystem().SJOutbranchType(dependentlyTyped);
+    }
+
+    protected boolean eligibleForEquals(SJSessionType st)
 	{
 		return st instanceof SJOutbranchType && labelSet().equals(((SJBranchType) st).labelSet());
 	}
