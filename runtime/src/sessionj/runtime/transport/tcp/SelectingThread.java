@@ -233,6 +233,11 @@ final class SelectingThread implements Runnable {
             it.remove();
 
             if (key.isValid()) {
+                // TODO: To support large numbers of clients (200+), we should only do the accepts
+                // in this thread, and do the reads and writes in a separate thread, with its own
+                // selector. See http://stackoverflow.com/questions/843283/asynchronous-channel-close-in-java-nio
+                // This is probably the cause of the SocketException: Connection reset that can be
+                // seen on the client side with large number of concurrent clients.
                 if (key.isAcceptable()) {
                     accept(key);
                 } else if (key.isReadable()) {
@@ -374,13 +379,13 @@ final class SelectingThread implements Runnable {
     
     private OngoingRead attachNewOngoingRead(SelectionKey key) throws SJIOException {
         try {
-        OngoingRead read = deserializers.get(
-            key.channel()
-        ).newOngoingRead();
-        key.attach(read);
+            OngoingRead read = deserializers.get(
+                key.channel()
+            ).newOngoingRead();
+            key.attach(read);
         return read;
         } catch (RuntimeException e) {
-            throw e;
+            throw e; // I use this for breakpoints
         }
     }
 
@@ -388,6 +393,7 @@ final class SelectingThread implements Runnable {
         ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
         SocketChannel socketChannel = ssc.accept();
         socketChannel.configureBlocking(false);
+        socketChannel.socket().setTcpNoDelay(SJStreamTCP.TCP_NO_DELAY);
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
         log.finer("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
         queue.add(socketChannel);
@@ -417,6 +423,8 @@ final class SelectingThread implements Runnable {
                 try {
                     log.finer("Registering chan: " + req.chan + ", ops: " + formatOps(req.interestOps));
                     req.chan.register(selector, req.interestOps);
+                } catch (CancelledKeyException e) {
+                    log.fine("Tried to register but key cancelled: " + req.chan);
                 } catch (ClosedChannelException e) {
                     // This can happen with the close-protocol selector. In this case,
                     // we're fine: it just means the reads are in the inputs queue already.
