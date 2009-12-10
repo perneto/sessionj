@@ -49,7 +49,7 @@ public class Server implements Runnable {
 	            s = sel.select();
 	            typecase(s) {
 	              when(@(recSide)) {
-	                s.recursion(X) {
+                  s.recursion(X) {
 	                  s.inbranch() {
 	                    case REC:
 	                      sel.registerInput(s);
@@ -64,7 +64,7 @@ public class Server implements Runnable {
 	                s.send(new MyObject(signal));
                   if (counting) {
 	                  count++;
-                    System.out.println("count:" + count);
+                    //System.out.println("count:" + count);
                   }
 	                sel.registerInput(s);
 	              }

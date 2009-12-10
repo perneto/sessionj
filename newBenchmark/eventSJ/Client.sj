@@ -3,8 +3,7 @@ import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
 
-// to run: sessionj -cp . -Dsessionj.transports.session=a Client // RAY: no need to specify transports anymore.
-//$ bin/sessionj -cp tests/classes/ Client
+//sessionj -cp tests/classes/ Client
 
 public class Client {
 
@@ -43,7 +42,7 @@ public class Client {
   }
 
   public void client() 
-  {  	
+  {
   	SJSessionParameters params = null;
   	
   	try
@@ -79,7 +78,9 @@ public class Client {
           }
         }
         else {
-          s.outbranch(QUIT) { System.out.println(clientNum + " finished");}
+          s.outbranch(QUIT) {
+ //           System.out.println(clientNum + " sends quit");
+          }
         }
       }
 
@@ -93,11 +94,42 @@ public class Client {
     
   }
 
-  public static void main(String []args) {
-    long [][]timing = new long[1][1];
-    port = 2000;
-    host = "";
-    new Client(0).client();
+  public static void main(String [] args) {
+
+    if (args.length < 5) {
+      System.out.println("Usage: sessionj ClientRunner <host> <port> <Load Clients> <Timed Clients> <session length>");
+      return;
+    }
+
+    Client.host = args[0];
+    Client.port = Integer.parseInt(args[1]);
+
+    int loadClients = Integer.parseInt(args[2]);
+    int timedClients = Integer.parseInt(args[3]);
+    final int iterations = Integer.parseInt(args[4]);
+    
+    int i;
+
+    for (i = 0; i < loadClients; i++)	{
+      final int j = i;			
+      new Thread() {
+        public void run() {
+          new Client(j).client();
+         // System.out.println(j + " finished");
+        }
+      }.start();
+    }
+
+    for (; i < loadClients + timedClients; i++)	{
+      final int j = i;
+      new Thread() {
+        public void run() {
+          new Client(j, iterations).client();
+         // System.out.println(j + " finished");
+        }
+      }.start();
+    }
+
   }
 
 }
