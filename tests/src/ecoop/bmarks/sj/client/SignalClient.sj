@@ -59,7 +59,7 @@ public class SignalClient
     	
       if (command.equals("KILL"))
       {
-        signal |= MyObject.KILL_LOAD;
+        signal |= MyObject.KILL;
       }
       else if (command.equals("TIME"))
       {
