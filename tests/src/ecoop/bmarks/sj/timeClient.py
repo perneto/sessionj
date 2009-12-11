@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys, socket
-import os
+import os, time
 
 #create an INET, STREAMing socket
 serversocket = socket.socket(
@@ -27,6 +27,7 @@ for i in clients:
     for j in sessionLength:
       for l in range(0, int(sys.argv[1])):
         data = s.recv(1024);
+        time.sleep(1);
         command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.client.TimerClient false camelot16 2000 -1 ' + k + ' ' + j + ' >> '+ hostname + '.' + i + '.' + k + '.' + j + '.' + sys.argv[1]
         os.system(command)
         
