@@ -64,8 +64,6 @@ for i in clients:
   for k in msgSizes:
     for j in sessionLengths:
       for l in range(0, repeats):
-        #if debug == 't':
-		      #print 'Running: clients=' + i + ',msgSize=' + k + ',sessionLength=' + j + ',repeats=' + l 
 
         command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner false ' + sport + ' ' + i + ' &'
 
