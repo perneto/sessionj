@@ -25,13 +25,10 @@ hostname = socket.gethostname()
 for i in clients:
   for k in msgSize:
     for j in sessionLength:
-      for l in range(0, sys.argv[1]):
+      for l in range(0, int(sys.argv[1])):
         data = s.recv(1024);
-        command = 'sessionj -cp tests/classes ecoop.bmarks.sj.client.TimeClient false camelot16 2000 -1 ' + k + ' ' + j ' >> '+ hostname + '.' + i + '.' + k + '.' + j + '.' + sys.argv[1]
+        command = 'sessionj -cp tests/classes ecoop.bmarks.sj.client.TimeClient false camelot16 2000 -1 ' + k + ' ' + j + ' >> '+ hostname + '.' + i + '.' + k + '.' + j + '.' + sys.argv[1]
         os.system(command)
         
-
-
-
 
 
