@@ -47,7 +47,7 @@ for i in clients:
 
         data = s.recv(1024);
 
-        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.client.ClientRunner false ' + host + ' ' + sports + ' ' + i + ' ' + k 
+        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.client.ClientRunner false ' + host + ' ' + sport + ' ' + i + ' ' + k 
 
         if debug == 't':
           print 'Runninng: ' + command
