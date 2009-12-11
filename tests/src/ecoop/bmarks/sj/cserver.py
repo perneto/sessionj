@@ -25,7 +25,7 @@ def send(sockets, value):
 def spawnThread(command):
 	os.system(command)
 	flag = 1
-  print 'Thread finished'
+	print 'Thread finished'
 
 
 # tests/src/ecoop/bmarks/sj/cserver.py <debug> <num_machines> <server_port> <client_port> <num_repeats>
