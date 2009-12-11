@@ -46,11 +46,11 @@ msgSizes = []
 sessionLengths = []
 
 if debug == 't':	
-	clients = ['12', '22']
+	clients = [str(2 + machines), str(2 + 2*machines)]
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = ['12', '102', '1002']
+	clients = [str(2 + machines), str(2 + 10*machines), str(2 + 100*machines)] 
 	msgSizes = ['10', '100', '1000', '10000']
 	sessionLengths = ['0', '1', '10', '100', '1000']
 
@@ -86,4 +86,4 @@ for i in clients:
 					thread1.join()
 
 					time.sleep(5)
-
+str(2 + machines), str(2 + 2*machines)
