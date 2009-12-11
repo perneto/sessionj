@@ -31,14 +31,15 @@ def spawnThread(command):
 # tests/src/ecoop/bmarks/sj/cserver.py f 10 2000 4321 100
 
 if len(sys.argv) < 6:
-  print 'Usage: cserver.py <debug> <num_machines> <server_port> <client_port> <num_repeats>'
-  sys.exit(1)
+	print 'Usage: cserver.py <debug> <num_machines> <server_port> <client_port> <num_repeats>'
+	sys.exit(1)
 
 debug = sys.argv[1]
 machines = int(sys.argv[2])
 sport = sys.argv[3]
 cport  = int(sys.argv[4])
 repeats = int(sys.argv[5])
+
 
 clients = []
 msgSizes = []
@@ -53,34 +54,36 @@ else:
 	msgSizes = ['10', '100', '1000', '10000']
 	sessionLengths = ['0', '1', '10', '100', '1000']
 
+
 sockets = connect(2, 2 + machines, cport)
 
 s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s1.connect(("camelot01", cport))
 	
+
 for i in clients:	
-  for k in msgSizes:
-    for j in sessionLengths:
-      for l in range(0, repeats):
+	for k in msgSizes:
+		for j in sessionLengths:
+			for l in range(0, repeats):
 
-        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner false ' + sport + ' ' + i
+				command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner false ' + sport + ' ' + i
 
-        if debug == 't':
-          print 'Running: ' + command
+				if debug == 't':
+					print 'Running: ' + command
 
-        #thread.start_new_thread(spawnThread,(command,))
-	thread1 = Thread(target=spawnThread, args=(command,))
-	thread1.start()
+					#thread.start_new_thread(spawnThread,(command,))
+					thread1 = Thread(target=spawnThread, args=(command,))
+					thread1.start()
 
-        time.sleep(5) # Make sure Server has started.
+					time.sleep(5) # Make sure Server has started.
+					
+					send(sockets, '1')
+					
+					time.sleep(10) # Make sure LoadClients are warmed up.
 
-      	send(sockets, '1')
-              
-        time.sleep(10) # Make sure LoadClients are warmed up.
+					s1.send('1')
+					
+					thread1.join()
 
-        s1.send('1')
-        
-       	thread1.join()
-
-      	time.sleep(5)
+					time.sleep(5)
 
