@@ -16,6 +16,9 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static java.util.logging.Level.FINEST;
+import static java.util.logging.Level.FINER;
+import static java.util.logging.Level.FINE;
 
 final class SelectingThread implements Runnable {
     private static final int BUFFER_SIZE = 16384;
@@ -60,7 +63,8 @@ final class SelectingThread implements Runnable {
 
     synchronized void registerInput(SocketChannel sc, SJDeserializer deserializer, AsyncManualTCPSelector sel) {
         if (!readyInputs.containsKey(sc)) {
-            log.finer("New registration for input: " + sc + ", deserializer: " + deserializer);
+            if (log.isLoggable(FINER))
+                log.finer("New registration for input: " + sc + ", deserializer: " + deserializer);
             readyInputs.put(sc, new LinkedBlockingQueue<ByteBuffer>());
             deserializers.put(sc, deserializer);
             Collection<AsyncManualTCPSelector> set = new HashSet<AsyncManualTCPSelector>();
@@ -76,7 +80,8 @@ final class SelectingThread implements Runnable {
         } else {
             // Not changing interest ops for now, to avoid losing/delaying writes. The interest ops
             // will be changed to OP_READ when everything has been written (see write() method).
-            log.finer("Asked for input registration, but channel already registered. Channel: " + sc);
+            if (log.isLoggable(FINER))
+                log.finer("Asked for input registration, but channel already registered. Channel: " + sc);
             interestedSelectors.get(sc).add(sel);
             selector.wakeup();
         }
@@ -86,7 +91,8 @@ final class SelectingThread implements Runnable {
         Collection<AsyncManualTCPSelector> coll = interestedSelectors.get(sc);
         coll.remove(sel);
         if (coll.isEmpty()) {
-            log.finer("Deregistering channel: " + sc);
+            if (log.isLoggable(FINER))
+                log.finer("Deregistering channel: " + sc);
             readyInputs.remove(sc);
             interestedSelectors.remove(sc); 
             // Ideally, we'd only do interestedSelectors.get(sc).clear(), but that would be a memory leak.
@@ -106,14 +112,15 @@ final class SelectingThread implements Runnable {
      * @throws java.util.NoSuchElementException if no message is ready for reading.
      */
     ByteBuffer dequeueFromInputQueue(SocketChannel sc) {
-        log.finer("Dequeueing input from: " + sc);
+        if (log.isLoggable(FINEST))
+            log.finest("Dequeueing input from: " + sc);
         return readyInputs.get(sc).remove();
     }
     
     ByteBuffer peekAtInputQueue(SocketChannel sc) {
-        log.finest("Peeking at inputs for: " + sc);
         ByteBuffer b = readyInputs.get(sc).peek();
-        log.finest("Found input for: " + sc + ", input: " + b);
+        if (log.isLoggable(FINEST))
+            log.finest("Peeked input for: " + sc + ", input: " + b);
         return b;
     }
 
@@ -124,7 +131,8 @@ final class SelectingThread implements Runnable {
             requestedOutputs.put(sc, outputsForChan);
         }
         outputsForChan.add(ByteBuffer.wrap(bs));
-        log.finer("Enqueued write on: " + sc + " of: " + bs.length + " bytes");
+        if (log.isLoggable(FINER))
+            log.finer("Enqueued write on: " + sc + " of: " + bs.length + " bytes");
         pendingChangeRequests.add(new ChangeRequest(sc, CHANGEOPS, OP_WRITE));
         selector.wakeup();
     }
@@ -143,7 +151,8 @@ final class SelectingThread implements Runnable {
         // ConcurrentHashMap and LinkedBlockingQueue, both thread-safe,
         // and no need for atomicity here
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
-        log.finer("Waiting for accept on server socket: " + ssc + " in queue: " + queue);
+        if (log.isLoggable(FINER))
+            log.finer("Waiting for accept on server socket: " + ssc + " in queue: " + queue);
         return queue.take();
     }
 
@@ -160,7 +169,8 @@ final class SelectingThread implements Runnable {
         while (true) {
             Object o = readyForSelect.take();
             if (contains(registeredChannels, o)) {
-                log.finest("Returning: " + o + ". readyForSelect queue: " + readyForSelect);
+                if (log.isLoggable(FINEST))
+                    log.finest("Returning: " + o + ". readyForSelect queue: " + readyForSelect);
                 return o;
             } else if (hasInterestedSelector(o)) {
                 readyForSelect.add(o);
@@ -168,7 +178,7 @@ final class SelectingThread implements Runnable {
                 // FIXME: This might lose some channel-ready messages. But we can't keep putting
                 // them back in the queue, otherwise the SJ-level selectors would keep being
                 // woken up for nothing. (This loop would busy-wait for an interesting channel).
-                log.finer("Dropping from readyForSelect: " + o);
+                log.info("Dropping from readyForSelect: " + o);
             }
         }
     }
@@ -184,7 +194,7 @@ final class SelectingThread implements Runnable {
         else {
             SocketChannel chan = (SocketChannel) o;
             Collection<AsyncManualTCPSelector> interested = interestedSelectors.get(chan);
-            if (log.isLoggable(Level.FINEST)) 
+            if (log.isLoggable(FINEST)) 
                 log.finest("interestedSelectors["+chan+"]: "+ interested);
             return interested != null && !interested.isEmpty();
         }
@@ -223,7 +233,7 @@ final class SelectingThread implements Runnable {
     }
 
     private void doSelect() throws IOException {
-        if (log.isLoggable(Level.FINEST)) {
+        if (log.isLoggable(FINEST)) {
             log.finest("NIO select, registered keys: \n" + dumpKeys(selector) 
                 + "\nRemaining outputs:\n" + dumpOutputs());
         }
@@ -285,7 +295,8 @@ final class SelectingThread implements Runnable {
         SocketChannel socketChannel = (SocketChannel) key.channel();
         Queue<ByteBuffer> queue = requestedOutputs.get(socketChannel);
 
-        log.finer("Writing data on: " + socketChannel);
+        if (log.isLoggable(FINER))
+            log.finer("Writing data on: " + socketChannel);
         boolean writtenInFull = true;
         // Write until there's no more data, or the socket's buffer fills up
         while (!queue.isEmpty() && writtenInFull) {
@@ -298,14 +309,16 @@ final class SelectingThread implements Runnable {
         if (writtenInFull) {
             // We wrote away all data, so we're no longer interested
             // in writing on this socket. Switch back to waiting for data.
-            log.finest("Finished writing, changing interest back to OP_READ on: " + socketChannel); 
+            if (log.isLoggable(FINEST))
+                log.finest("Finished writing, changing interest back to OP_READ on: " + socketChannel); 
             key.interestOps(OP_READ);
         }
     }
 
     private void read(SelectionKey key) throws IOException {
         SocketChannel socketChannel = (SocketChannel) key.channel();
-        log.finer("Reading on: " + socketChannel);
+        if(log.isLoggable(FINEST))
+            log.finest("Reading on: " + socketChannel);
         // Clear out our read buffer so it's ready for new data
         readBuffer.clear();
 
@@ -363,7 +376,8 @@ final class SelectingThread implements Runnable {
             {
                 ByteBuffer input = or.getCompleteInput();
 
-                log.finer("Received complete input on channel " + sc + ": " + input);
+                if (log.isLoggable(FINER))
+                    log.finer("Received complete input on channel " + sc + ": " + input);
 
                 if (readyInputs.containsKey(sc))
                 {
@@ -372,7 +386,8 @@ final class SelectingThread implements Runnable {
                 }
                 else
                 {
-                    log.finer("Dropping input received on deregistered channel: " + sc + ", input: " + input);
+                    if (log.isLoggable(FINE))
+                        log.fine("Dropping input received on deregistered channel: " + sc + ", input: " + input);
                 }
 
                 or = attachNewOngoingRead(key);
@@ -398,7 +413,8 @@ final class SelectingThread implements Runnable {
         socketChannel.configureBlocking(false);
         socketChannel.socket().setTcpNoDelay(SJStreamTCP.TCP_NO_DELAY);
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
-        log.finer("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
+        if (log.isLoggable(FINER))
+            log.finer("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
         queue.add(socketChannel);
     }
 
@@ -424,14 +440,17 @@ final class SelectingThread implements Runnable {
         REGISTER {
             boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws ClosedChannelException {
                 try {
-                    log.finer("Registering chan: " + req.chan + ", ops: " + formatOps(req.interestOps));
+                    if (log.isLoggable(FINER))
+                        log.finer("Registering chan: " + req.chan + ", ops: " + formatOps(req.interestOps));
                     req.chan.register(selector, req.interestOps);
                 } catch (CancelledKeyException e) {
-                    log.fine("Tried to register but key cancelled: " + req.chan);
+                    if (log.isLoggable(FINE))
+                        log.fine("Tried to register but key cancelled: " + req.chan);
                 } catch (ClosedChannelException e) {
                     // This can happen with the close-protocol selector. In this case,
                     // we're fine: it just means the reads are in the inputs queue already.
-                    log.fine("Tried to register but channel already closed: " + req.chan);
+                    if (log.isLoggable(FINE))
+                        log.fine("Tried to register but channel already closed: " + req.chan);
                 }
                 return true;
             }
@@ -440,8 +459,8 @@ final class SelectingThread implements Runnable {
                 SelectionKey key = req.chan.keyFor(selector);
                 if (key != null && key.isValid() && key.interestOps() != req.interestOps) {
                     if (!modified.contains(req.chan)){
-                        log.finer("Changing ops for: " + req.chan 
-                            + " to: " + formatOps(req.interestOps));
+                        if (log.isLoggable(FINER))
+                            log.finer("Changing ops for: " + req.chan + " to: " + formatOps(req.interestOps));
                         key.interestOps(req.interestOps);
                         modified.add(req.chan);
                         return true;
@@ -453,7 +472,8 @@ final class SelectingThread implements Runnable {
             }
         }, CLOSE {
             boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws IOException {
-                log.finer("Closing channel: " + req.chan);
+                if (log.isLoggable(FINER))
+                    log.finer("Closing channel: " + req.chan);
                 // Implicitly cancels all existing selection keys for that channel (see javadoc).
                 req.chan.close();
                 return true;
