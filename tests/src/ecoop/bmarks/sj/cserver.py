@@ -30,6 +30,10 @@ def spawnThread(command):
 # tests/src/ecoop/bmarks/sj/cserver.py <debug> <num_machines> <server_port> <client_port> <num_repeats>
 # tests/src/ecoop/bmarks/sj/cserver.py f 10 2000 4321 100
 
+if len(sys.argv) < 6:
+  print 'Usage: cserver.py <debug> <num_machines> <server_port> <client_port> <num_repeats>'
+  sys.exit(1)
+
 debug = sys.argv[1]
 machines = int(sys.argv[2])
 sport = int(sys.argv[3])
