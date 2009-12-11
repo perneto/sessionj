@@ -11,17 +11,14 @@ import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import static sessionj.SJConstants.*;
 import sessionj.ast.SJNodeFactory;
-import sessionj.ast.sessops.SJSessionOperation;
 import sessionj.ast.sessops.basicops.SJRecurse;
-import sessionj.ast.sessops.basicops.SJRecursionExit;
 import sessionj.ast.sessops.compoundops.*;
-import sessionj.ast.sessvars.SJSocketVariable;
 import sessionj.extension.sessops.SJSessionOperationExt;
+import sessionj.types.SJTypeSystem;
 import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
 import static sessionj.util.SJCompilerUtils.getSJSessionOperationExt;
 import sessionj.util.SJLabel;
 import sessionj.util.SJTypeEncoder;
-import sessionj.types.SJTypeSystem;
 
 import java.util.*;
 
@@ -44,78 +41,89 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 
 	private final Stack<SJCompoundOperation> compounds = new Stack<SJCompoundOperation>();
     // Actually, only SJInbranch and SJRecursion.
-	
-	public SJCompoundOperationTranslator(Job job, TypeSystem ts, NodeFactory nf)
+    private final Stack<Collection<ClassMember>> fieldsToAdd = new Stack<Collection<ClassMember>>();
+
+    public SJCompoundOperationTranslator(Job job, TypeSystem ts, NodeFactory nf)
 	{
 		super(job, ts, nf);
         sjts = (SJTypeSystem) ts;
-	}
+    }
 
-	/*protected*/ public NodeVisitor enterCall(Node parent, Node n) throws SemanticException // Made public for the convenience of test programs.
-	//protected NodeVisitor sjEnterCall(Node parent, Node n) throws SemanticException
+	protected NodeVisitor enterCall(Node parent, Node n) throws SemanticException 
 	{
 		if (n instanceof SJInbranch || n instanceof SJRecursion)
 		{
 			compounds.push((SJCompoundOperation) n);
-		}
+		} 
+        else if (n instanceof ClassBody)
+        {
+            fieldsToAdd.push(new LinkedList<ClassMember>());
+        }
 		
 		return this;
 	}
-	
-	/*protected*/ public Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
-	//protected Node sjLeaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
+    
+	// Made public for the convenience of test programs.
+	public Node leaveCall(Node parent, Node old, Node n, NodeVisitor v) throws SemanticException
 	{
 		Node newNode = n;
-    
-		if (n instanceof SJCompoundOperation) 
-		{
-			SJCompoundOperation so = (SJCompoundOperation) n;
 
-      if (so instanceof SJInbranch) 
-      {	
-				compounds.pop();
+        if (n instanceof SJCompoundOperation)
+        {
+            SJCompoundOperation so = (SJCompoundOperation) n;
+
+            if (so instanceof SJInbranch)
+            {
+                compounds.pop();
                 // We're only using this to tell if we're dealing with the
                 // outermost inbranch/recursion for type checking purposes.
-				
-				newNode = translateSJInbranch((SJInbranch) so, createQQ(so));
-			} 
-      else if (so instanceof SJRecursion) 
-      {
-				compounds.pop();
-				
-				newNode = translateSJRecursion((SJRecursion) so, createQQ(so));
-			} 
-			else if (so instanceof SJOutwhile) 
-			{
-        newNode = translateSJOutwhile((SJOutwhile) so, createQQ(so));
-      } 
-			else if (so instanceof SJInwhile) 
-      {
-        newNode = translateSJInwhile((SJInwhile) so, createQQ(so));
-      } 
-			else if (so instanceof SJOutInwhile) 
-			{
-        newNode = translateSJOutinwhile((SJOutInwhile) so, createQQ(so));
-      } 
-			else if (so instanceof SJTypecase) 
-			{
-                SJTypeEncoder sjte = new SJTypeEncoder(sjts);
-                newNode = ((SJTypecase) so).translate(createQQ(so), sjte);
-      }
-		} 
-		else if (n instanceof SJRecurse) 
-		{
-			newNode = translateSJRecurse(parent, (SJRecurse) n, createQQ(n));
-		}
-		
-    if (shouldBuildAndCheckTypes(n))
-		//if (shouldBuildAndCheckTypes(newNode)) // Don't use newNode here, because it can be translated into something different than n.
-    {
-      newNode = buildAndCheckTypes(this, newNode);
+
+                newNode = translateSJInbranch((SJInbranch) so, createQQ(so));
+            }
+            else if (so instanceof SJRecursion)
+            {
+                compounds.pop();
+
+                newNode = translateSJRecursion((SJRecursion) so, createQQ(so));
+            }
+            else if (so instanceof SJOutwhile)
+            {
+                newNode = translateSJOutwhile((SJOutwhile) so, createQQ(so));
+            }
+            else if (so instanceof SJInwhile)
+            {
+                newNode = translateSJInwhile((SJInwhile) so, createQQ(so));
+            }
+            else if (so instanceof SJOutInwhile)
+            {
+                newNode = translateSJOutinwhile((SJOutInwhile) so, createQQ(so));
+            }
+            else if (so instanceof SJTypecase)
+            {
+                newNode = ((SJTypecase) so).translate(createQQ(so), this, fieldsToAdd.peek());
+            }
+        }
+        else if (n instanceof SJRecurse)
+        {
+            newNode = translateSJRecurse(parent, (SJRecurse) n, createQQ(n));
+        }
+        else if (n instanceof ClassBody && !fieldsToAdd.isEmpty())
+        {
+            Collection<ClassMember> toAdd = fieldsToAdd.pop();
+            newNode = n;
+            for (ClassMember generatedField : toAdd) {
+                newNode = ((ClassBody) newNode).addMember(generatedField);
+            }
+        }
+
+        if (shouldBuildAndCheckTypes(n))
+        //if (shouldBuildAndCheckTypes(newNode)) // Don't use newNode here, because it can be translated into something different than n.
+        {
+            newNode = buildAndCheckTypes(this, newNode);
+        }
+
+        return newNode;
     }
-    
-		return newNode;
-	}
 
     private QQ createQQ(Node node) {
         return new QQ(sjts.extensionInfo(), node.position());
@@ -156,7 +164,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
         );
     }
 
-    private Node translateSJOutinwhile(SJOutInwhile outinwhile, QQ qq) throws SemanticException {
+    private Node translateSJOutinwhile(SJOutInwhile outinwhile, QQ qq) {
         Expr sourcesArray = buildNewArray(outinwhile.position(), outinwhile.insyncSources());
         Expr targetsArray = buildNewArray(outinwhile.position(), outinwhile.outsyncTargets());
         String loopCond = UniqueID.newID("loopCond");
@@ -248,7 +256,7 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 	}
 
 	//FIXME: does not integrate with recursive session method calls: recursionEnter/Exit and also recurse do not match the control flow of recursive calls, and hence runtime type monitoring does not work.
-    private Node translateSJRecursion(SJRecursion r, QQ qq) throws SemanticException
+    private Node translateSJRecursion(SJRecursion r, QQ qq)
     // recursionEnter inserted by node factory, but translation is finished here..
 	{
 		SJSessionOperationExt soe = getSJSessionOperationExt(r);

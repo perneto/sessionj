@@ -19,6 +19,7 @@ import sessionj.types.sesstypes.SJSessionType;
 import sessionj.types.sesstypes.SJSetType;
 import sessionj.util.SJCompilerUtils;
 import sessionj.util.SJTypeEncoder;
+import static sessionj.util.SJCompilerUtils.buildAndCheckTypes;
 import static sessionj.visit.SJSessionOperationTypeBuilder.getTargetNames;
 
 import java.util.*;
@@ -87,32 +88,41 @@ public class SJTypecase_c extends Stmt_c implements SJTypecase {
         return this;
     }
 
-    public Node translate(QQ qq, SJTypeEncoder sjte) throws SemanticException {
+    public Node translate(QQ qq, ContextVisitor visitor, Collection<ClassMember> fieldsToAdd) throws SemanticException {
         StringBuilder statement = new StringBuilder();
         List<Object> parameters = new LinkedList<Object>();
-        
+        SJTypeEncoder sjte = new SJTypeEncoder((SJTypeSystem) visitor.typeSystem());
+
         String tmpVar = UniqueID.newID(SJConstants.SJ_TMP_LOCAL);
-        statement.append("{ " 
-            + "sessionj.types.sesstypes.SJSessionType " + tmpVar + " = %s.remainingSessionType();");
+        statement.append("{ sessionj.types.sesstypes.SJSessionType ")
+            .append(tmpVar).append(" = %s.remainingSessionType();");
         parameters.add(socket.sjname());
 
         for (SJWhen when : whenStatements) {
-        		statement.append("if (%s.typeEquals(SJRuntime.decodeType(%E))) { %LS; } else ");
+            String fieldName = UniqueID.newID(SJConstants.SJ_TMP_TYPECASE);
+            
+            statement.append("if (%s.typeEquals(%s)) { %LS; } else ");
             parameters.add(tmpVar);
-            parameters.add(new StringLit_c(when.position(), sjte.encode(when.type())));
-            parameters.add(copyOfStatements(when)); // QQ tries to modify the list in some cases
+            parameters.add(fieldName);
+            // QQ tries to modify the list in some cases, hence the copy.
+            parameters.add(copyOfStatements(when)); 
+            
+            FieldDecl f = (FieldDecl) qq.parseMember(
+                "private static final sessionj.types.sesstypes.SJSessionType %s = SJRuntime.decodeType(%E);", 
+                    fieldName, 
+                    new StringLit_c(Position.compilerGenerated(), sjte.encode(when.type()))
+            );
+            f = (FieldDecl) buildAndCheckTypes(visitor, f);
+            fieldsToAdd.add(f);
         }
         // There's always at least one when branch (guaranteed by typing).
-        
-        /*statement.append(" { assert false : \"Typecase given an unexpected type:\"+ %s;}");
-        parameters.add(tmpVar);*/
-        
+
+        // statement.append(" { assert false : \"Typecase given an unexpected type:\"+ %s;}");
         statement.append("{ throw new sessionj.runtime.SJIOException(\"Typecase given an unexpected type: \" + %s); }"); // FIXME: factor out SJIOException constant.
-        //statement.append("{ System.out.println(%s); }");
         parameters.add(tmpVar);
 
-        statement.append("}");
-        
+        statement.append('}');
+
         return qq.parseStmt(statement.toString() , parameters);
 
     }
