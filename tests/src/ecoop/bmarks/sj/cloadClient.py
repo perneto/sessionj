@@ -42,7 +42,7 @@ serversocket.listen(5)
 
 for i in clients:
   for k in msgSizes:
-    for j in sessionLength:
+    for j in sessionLengths:
       for l in range(0, repeats):
 
         data = s.recv(1024);
