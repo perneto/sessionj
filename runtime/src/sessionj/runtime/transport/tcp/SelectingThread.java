@@ -38,7 +38,7 @@ final class SelectingThread implements Runnable {
     SelectingThread() throws IOException {
         selector = SelectorProvider.provider().openSelector();
         pendingChangeRequests = new ConcurrentLinkedQueue<ChangeRequest>();
-        readyInputs = new ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>>();
+        readyInputs = Collections.synchronizedMap(new WeakHashMap<SocketChannel, BlockingQueue<ByteBuffer>>());
         requestedOutputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
         readyForSelect = new LinkedBlockingQueue<Object>();
         accepted = new ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>>();
@@ -403,7 +403,8 @@ final class SelectingThread implements Runnable {
     
     // This is called on the selecting thread, before the select() call
     private void removeChannelKey(SelectableChannel sc) {
-        readyInputs.remove(sc);
+        // Not removing from readyInputs, as some AsyncConnection instance might still want
+        // to read from it later. readyInputs is a WeakHashMap, so this should not be a memory leak.
         interestedSelectors.remove(sc);
         // Ideally, we'd only do interestedSelectors.get(sc).clear(), but that would be a memory leak.
         // A WeakHashMap would do the trick, but the code might not be as easy to understand then.
