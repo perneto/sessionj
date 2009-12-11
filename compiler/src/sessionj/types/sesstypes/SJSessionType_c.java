@@ -34,7 +34,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 
 	public SJSessionType child()
 	{
-		return getChild(); 
+		return child;
 	}
 
 	public SJSessionType child(SJSessionType child) // Immutable.
@@ -43,7 +43,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 		
 		if (child != null)
 		{
-			((SJSessionType_c) st).setChild(child.copy()); // Clone the child.
+			((SJSessionType_c) st).setChild(child.copy()); // Clone the child. FIXME: Why?
 		}
 		
 		return st; 
@@ -101,32 +101,32 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	
 	public boolean treeEquals(SJSessionType tree)
 	{
-		SJSessionType ours = getChild();
-		SJSessionType theirs = ((SJSessionType_c) tree).getChild();
+        SJSessionType ours = child;
+        SJSessionType theirs = ((SJSessionType_c) tree).child;
 		
 		return nodeEquals(tree) && (ours == null ? theirs == null : ours.typeEquals(theirs));
 	}
 
 	public boolean treeSubtype(SJSessionType potentialSupertype)
 	{
-		SJSessionType ours = getChild();
-		SJSessionType theirs = ((SJSessionType_c) potentialSupertype).getChild();
+        SJSessionType ours = child;
+        SJSessionType theirs = ((SJSessionType_c) potentialSupertype).child;
 		
 		return nodeSubtype(potentialSupertype) && (ours == null ? theirs == null : ours.isSubtype(theirs));
 	}
 
 	public boolean treeDualtype(SJSessionType tree)
 	{
-		SJSessionType ours = getChild();
-		SJSessionType theirs = ((SJSessionType_c) tree).getChild();	
+        SJSessionType ours = child;
+        SJSessionType theirs = ((SJSessionType_c) tree).child;	
 		
 		return nodeDualtype(tree) && (ours == null ? theirs == null : ours.isDualtype(theirs));
 	}
 
 	public SJSessionType treeSubsume(SJSessionType tree) throws SemanticException
 	{
-		SJSessionType ours = getChild();
-		SJSessionType theirs = ((SJSessionType_c) tree).getChild();
+        SJSessionType ours = child;
+        SJSessionType theirs = ((SJSessionType_c) tree).child;
 
 		if (ours == null)
 		{
@@ -152,7 +152,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 			return false;
 		}
 
-		SJSessionType st = getChild();
+        SJSessionType st = child;
 		
 		return st == null || st.treeWellFormed();
 	}
@@ -200,7 +200,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 
     public SJSessionType treeClone()
 	{
-		SJSessionType st = getChild();
+        SJSessionType st = child;
 		
 		return st == null ? nodeClone() : nodeClone().child(st.treeClone());
 	}
@@ -222,7 +222,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 
 	public String treeToString()
 	{
-		SJSessionType st = getChild(); 
+        SJSessionType st = child; 
 		
 		return nodeToString() + (st == null ? "" : SJ_STRING_SEPARATOR + st.treeToString());
 	}
@@ -245,12 +245,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 		}
 	}
 
-	protected SJSessionType getChild()
-	{
-		return child;
-	}
-	
-	protected void setChild(SJSessionType st)
+    protected void setChild(SJSessionType st)
 	{
 		this.child = st;
 	}	

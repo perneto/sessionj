@@ -191,7 +191,7 @@ public class SJSetType_c extends SJSessionType_c implements SJSetType {
     }
 
     @Override
-    protected SJSessionType getChild() {
+    public SJSessionType child() {
         if (isSingleton()) return singletonMember().child();
         return null; // A set never has anything after it (enforced by grammar)
     }

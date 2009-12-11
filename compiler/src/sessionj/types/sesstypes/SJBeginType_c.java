@@ -19,7 +19,7 @@ abstract public class SJBeginType_c extends SJSessionType_c implements SJBeginTy
     @Override
     public boolean isWellFormed() {
         if (typeSystem().wellFormedRecursions(this)) {
-            SJSessionType st = getChild();
+            SJSessionType st = child();
             return st == null || st.treeWellFormed();
         }
         return false;
