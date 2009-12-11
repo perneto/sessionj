@@ -69,7 +69,7 @@ for i in clients:
           print 'Running: ' + command
 
         #thread.start_new_thread(spawnThread,(command,))
-	thread1 = Thread(spawnThread, command)
+	thread1 = Thread(target=spawnThread, args=(command,))
 	thread1.start()
 
         time.sleep(5) # Make sure Server has started.
