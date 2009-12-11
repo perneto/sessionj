@@ -18,7 +18,7 @@ def connect(first, last, port):
 		sockets.append(s)
 	return sockets
 
-def send(sockets, values):
+def send(sockets, value):
 	for s in sockets:
 		s.send(value)
 
