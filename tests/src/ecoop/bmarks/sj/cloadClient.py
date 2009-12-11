@@ -3,7 +3,7 @@ import sys, socket
 import os, time
 
 # tests/src/ecoop/bmarks/sj/cloadClient.py <debug> <host> <server_port> <client_port> <num_repeats>
-# tests/src/ecoop/bmarks/sj/cloadClient.py f camelot16 2000 4321 100
+# tests/src/ecoop/bmarks/sj/cloadClient.py f camelot16 2000 4321 100  
 
 if len(sys.argv) < 6:
   print 'Usage: cloadClient.py <debug> <host> <server_port> <client_port> <num_repeats>'
@@ -11,7 +11,7 @@ if len(sys.argv) < 6:
 
 debug = sys.argv[1]
 host = sys.argv[2]
-sport = int(sys.argv[3])
+sport = sys.argv[3]
 cport  = int(sys.argv[4])
 repeats = int(sys.argv[5])
 
