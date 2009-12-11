@@ -72,7 +72,7 @@ for i in clients:
 
         flag = 0
 
-        thread.start_new_thread(foo,(command,))
+        thread.start_new_thread(spawnThread,(command,))
 
         time.sleep(5) # Make sure Server has started.
 
