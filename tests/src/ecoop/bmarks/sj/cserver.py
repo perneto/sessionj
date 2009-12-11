@@ -12,9 +12,9 @@ def connect(first, last, port):
 		if i < 10:
 			host = '0' + str(i)
 		else:
-			host = i
+			host = str(i)
 		#now connect to the server
-		s.connect('camelot' + host, port)
+		s.connect(('camelot' + host, port))
 		sockets.append(s)
 	return sockets
 
