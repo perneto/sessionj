@@ -25,7 +25,7 @@ def send(sockets, value):
 def spawnThread(command):
 	os.system(command)
 	flag = 1
-  print "lalala"
+  print 'lalala'
 
 
 # tests/src/ecoop/bmarks/sj/cserver.py <debug> <num_machines> <server_port> <client_port> <num_repeats>
