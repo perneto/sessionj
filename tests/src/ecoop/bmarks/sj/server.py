@@ -50,7 +50,7 @@ for i in clients:
   for k in msgSize:
     for j in sessionLength:
       for l in range(0, int(sys.argv[1])):
-        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner 2000 ' + i + ' ' + j + ' >> camelot16.' + i + '.' + k + '.' + j + ' &'
+        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner false 2000 ' + i + ' ' + j + ' >> camelot16.' + i + '.' + k + '.' + j + ' &'
         os.system(command)
 
         #s1.send('1');
