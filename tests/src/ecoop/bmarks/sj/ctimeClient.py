@@ -45,6 +45,9 @@ serversocket.listen(5)
 for i in clients:
   for k in msgSizes:
     for j in sessionLengths:
+        
+			print 'Benchmark: clients=' + i + ', msgSize=' + k + ', sessionLength=' + j
+
       for l in range(0, repeats):
         
         data = s.recv(1024)
@@ -53,7 +56,7 @@ for i in clients:
         command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.client.TimerClient false ' + host + ' ' + sport + ' ' + ' -1 ' + k + ' ' + j
         
         #if debug == 't':
-        print 'Running: ' + command
-        
+        #print 'Running: ' + command
+
         os.system(command)
         
