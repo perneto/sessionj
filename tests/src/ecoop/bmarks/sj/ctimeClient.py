@@ -46,7 +46,7 @@ for i in clients:
   for k in msgSizes:
     for j in sessionLengths:
         
-			print 'Benchmark: clients=' + i + ', msgSize=' + k + ', sessionLength=' + j
+      print 'Benchmark: clients=' + i + ', msgSize=' + k + ', sessionLength=' + j
 
       for l in range(0, repeats):
         
