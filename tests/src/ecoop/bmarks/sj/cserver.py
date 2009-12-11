@@ -42,12 +42,6 @@ clients = []
 msgSizes = []
 sessionLengths = []
 
-sockets = connect(2, 2 + machines - 1, cport)
-
-s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s1.connect(("camelot01", cport))
-
-
 if debug == 't':	
 	clients = ['12', '22']
 	msgSizes = ['10', '100']
@@ -56,28 +50,34 @@ else:
 	clients = ['12', '102', '1002']
 	msgSizes = ['10', '100', '1000', '10000']
 	sessionLengths = ['0', '1', '10', '100', '1000']
+
+sockets = connect(2, 2 + machines - 1, cport)
+
+s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s1.connect(("camelot01", cport))
 	
 for i in clients:	
   for k in msgSize:
     for j in sessionLength:
       for l in range(0, repeats):
-	if debug == 't':
-		print 'Running: clients=' + i + ',msgSize=' + k + ',sessionLength=' + j + ',repeats=' + l 
+        if debug == 't':
+		      print 'Running: clients=' + i + ',msgSize=' + k + ',sessionLength=' + j + ',repeats=' + l 
 
         command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner false ' + sport + ' ' + i + ' &'
 
-	flag = 0
+        flag = 0
 
         thread.start_new_thread(foo,(command,))
 
         time.sleep(5) # Make sure Server has started.
 
-	send(sockets, '1')
+      	send(sockets, '1')
               
         time.sleep(10) # Make sure LoadClients are warmed up.
 
         s1.send('1')
         
- 	while flag == 0: pass
+       	while flag == 0: pass
 
-	time.sleep(5)
+      	time.sleep(5)
+

@@ -2,31 +2,51 @@
 import sys, socket
 import os, time
 
+# tests/src/ecoop/bmarks/sj/cserver.py <debug> <host> <server_port> <client_port> <num_repeats>
+# tests/src/ecoop/bmarks/sj/cserver.py f camelot16 2000 4321 100
+
+debug = sys.argv[1]
+host = sys.argv[2]
+sport = int(sys.argv[3])
+cport  = int(sys.argv[4])
+repeats = int(sys.argv[5])
+
+clients = []
+msgSizes = []
+sessionLengths = []
+
+if debug == 't':	
+	clients = ['1', '2']
+	msgSizes = ['10', '100']
+	sessionLengths = ['0', '1', '10']
+else:
+	clients = ['1', '10', '100']
+	msgSizes = ['10', '100', '1000', '10000']
+	sessionLengths = ['0', '1', '10', '100', '1000']
+
+
 #create an INET, STREAMing socket
-serversocket = socket.socket(
-socket.AF_INET, socket.SOCK_STREAM)
-#bind the socket to a public host and a well-known port
-serversocket.bind((socket.gethostname(), 4321))
-#become a server socket
+serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+serversocket.bind((socket.gethostname(), cport))
+
 serversocket.listen(5)
 
-#accept connections
+#accept connection
 (s, address) = serversocket.accept()
 
-clients = ['12', '22', '32', '42']
-sessionLength = ['0', '1', '10', '100', '1000']
-msgSize = ['10', '100', '1000', '10000']
-
-#clients = ['1', '10', '100', '1000']
-#sessionLength = ['0', '1', '10', '100', '1000']
-#msgSize = ['10', '100', '1000', '10000']
-#hostname = socket.gethostname()
 
 for i in clients:
   for k in msgSize:
     for j in sessionLength:
-      for l in range(0, int(sys.argv[1])):
+      for l in range(0, repeats):
+
         data = s.recv(1024);
-        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.client.ClientRunner false camelot16 2000 ' + i + ' ' + k 
+
+        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.client.ClientRunner false ' + host + ' ' + sports + ' ' + i + ' ' + k 
+
+        if debug == 't':
+          print 'Runninng: ' + command
+
         os.system(command)
         
