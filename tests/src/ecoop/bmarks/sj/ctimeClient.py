@@ -11,7 +11,7 @@ if len(sys.argv) < 6:
 
 debug = sys.argv[1]
 host = sys.argv[2]
-sport = int(sys.argv[3])
+sport = sys.argv[3]
 cport  = int(sys.argv[4])
 repeats = int(sys.argv[5])
 
