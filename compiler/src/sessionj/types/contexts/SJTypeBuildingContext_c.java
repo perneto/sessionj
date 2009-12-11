@@ -284,21 +284,21 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 	}
 	
 	// Can this be put back into the SJLoopType unfold routine? (That routine is currently unused.)
-	public static final SJSessionType substituteTypeVariables(SJSessionType st, Map<SJLabel, SJRecursionType> map) // Made public as a hack for SJStateManager_c.
+	public static SJSessionType substituteTypeVariables(SJSessionType st, Map<SJLabel, SJRecursionType> map) // Made public as a hack for SJStateManager_c.
 	{
 		if (st == null) // Cannot delegate finished sessions (remaining is null), but this is needed for e.g. empty branch cases and loop bodies. 
 		{
 			return null;
 		}
 		
-		SJTypeSystem sjts = (SJTypeSystem) st.typeSystem();
+		SJTypeSystem sjts = st.typeSystem();
 		
 		SJSessionType child = st.child();
 		
 		if (st instanceof SJBranchType)
 		{
 			SJBranchType bt = (SJBranchType) st;
-			SJBranchType nbt = (bt instanceof SJInbranchType) ? sjts.SJInbranchType() : sjts.SJOutbranchType(); 
+			SJBranchType nbt = bt instanceof SJInbranchType ? sjts.SJInbranchType() : sjts.SJOutbranchType(); 
 			
 			for (SJLabel lab : bt.labelSet())
 			{

@@ -19,8 +19,9 @@ public final class SJLabel implements Cloneable, Serializable // Serializable ha
 	
 	//private final String lab;
 	private final Object lab; // Can be any general object, but we make use of hashCode.
+    private final int hashCode;
 
-	//private final Id id;
+    //private final Id id;
 	
 	//public SJLabel(String lab)
 	public SJLabel(Object lab)
@@ -36,6 +37,7 @@ public final class SJLabel implements Cloneable, Serializable // Serializable ha
 		}
 		
 		this.lab = lab;		
+        hashCode = lab.hashCode();
 		//this.id = null;
 	}
 
@@ -78,7 +80,7 @@ public final class SJLabel implements Cloneable, Serializable // Serializable ha
 	public final int hashCode()
 	{
 		//return labelValue().hashCode();
-		return dependentLabelValue().hashCode();
+		return hashCode;
 	}
 
 	public final SJLabel clone()
