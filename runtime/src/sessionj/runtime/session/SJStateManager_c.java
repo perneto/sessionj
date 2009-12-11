@@ -6,6 +6,7 @@ import java.util.Stack;
 
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
+import polyglot.types.TypeSystem;
 
 import sessionj.types.*;
 import sessionj.types.contexts.SJTypeBuildingContext_c;
@@ -29,13 +30,14 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	private final SJSessionType protocolType; // The "original" type of the session.
 
 	private final Stack<SJRuntimeContextElement> contexts = new Stack<SJRuntimeContextElement>();
-	//private final SJSessionType lastResendState = null;
+    
+    private final TypeVariableScope recursionVariables = new TypeVariableScope();
 
 	public SJStateManager_c(SJTypeSystem sjts, SJSessionType protocolType)
 	{
 		//this.rsocket = null;
 		this.sjts = sjts;
-		this.protocolType = protocolType;//.treeClone();
+		this.protocolType = protocolType;
 		
 		debugPrintln("Protocol type: " + protocolType.toString());
 	}
@@ -63,7 +65,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		
 		if (st != null) // HACK: because recurse types are unrolled lazily.
 		{
-			st = SJTypeBuildingContext_c.substituteTypeVariables(st, getRecursions()); 
+			st = SJTypeBuildingContext_c.substituteTypeVariables(st, recursionVariables.inScope()); 
 		}
 		
 		return st;
@@ -136,31 +138,28 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			}
 		}
 
-		//synchronized (sjts)
-		{
-			if (sjsc instanceof SJOutwhileContext) // Not possible during a delegation.
-			{
-				current = sjts.SJOutwhileType().body(current);
-			}
-			else if (sjsc instanceof SJInwhileContext)
-			{
-				current = sjts.SJInwhileType().body(current);
-			}
-			else if (sjsc instanceof SJOutbranchContext)
-			{
-				current = sjts.SJOutbranchType().branchCase(((SJOutbranchContext) sjsc).label(), current);
-			}
-			else if (sjsc instanceof SJInbranchContext)
-			{
-				current = sjts.SJInbranchType().branchCase(((SJInbranchContext) sjsc).label(), current);
-			}
-			else if (sjsc instanceof SJRecursionContext)
-			{
-				current = sjts.SJRecursionType(((SJRecursionContext) sjsc).label()).body(current);
-			}
-		}
+        if (sjsc instanceof SJOutwhileContext) // Not possible during a delegation.
+        {
+            current = sjts.SJOutwhileType().body(current);
+        }
+        else if (sjsc instanceof SJInwhileContext)
+        {
+            current = sjts.SJInwhileType().body(current);
+        }
+        else if (sjsc instanceof SJOutbranchContext)
+        {
+            current = sjts.SJOutbranchType().branchCase(((SJOutbranchContext) sjsc).label(), current);
+        }
+        else if (sjsc instanceof SJInbranchContext)
+        {
+            current = sjts.SJInbranchType().branchCase(((SJInbranchContext) sjsc).label(), current);
+        }
+        else if (sjsc instanceof SJRecursionContext)
+        {
+            current = sjts.SJRecursionType(((SJRecursionContext) sjsc).label()).body(current);
+        }
 
-		return current;
+        return current;
 	}
 
 	public final SJSessionType expectedType()
@@ -170,28 +169,18 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final SJSessionType accept() throws SJIOException
 	{
-		SJBeginType sjbt = null;
-		
-		//synchronized (sjts)
-		{
-			sjbt = begin(sjts.SJSBeginType());
-		}
-				
-		debugPrintln("accept: " + sjbt);
+        SJBeginType sjbt = begin(sjts.SJSBeginType());
+
+        debugPrintln("accept: " + sjbt);
 		
 		return sjbt; 
 	}
 
 	public final SJSessionType request() throws SJIOException
 	{
-		SJBeginType sjbt = null;
-		
-		//synchronized (sjts)
-		{
-			sjbt = begin(sjts.SJCBeginType());	
-		}
-		
-		debugPrintln("request: " + sjbt);		
+        SJBeginType sjbt = begin(sjts.SJCBeginType());
+
+        debugPrintln("request: " + sjbt);		
 		
 		return sjbt;
 	}
@@ -261,26 +250,16 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final SJSessionType sendByte(byte v) throws SJIOException
 	{
-		Type t = null;
-	
-		//synchronized (sjts)
-		{
-			t = sjts.Byte();
-		}
-	
-		return sendAux(t);
+        Type t = sjts.Byte();
+
+        return sendAux(t);
 	}
 
 	public final SJSessionType sendDouble(double d) throws SJIOException
 	{
-		Type t = null;
-		
-		//synchronized (sjts)
-		{
-			t = sjts.Double();
-		}
-		
-		return sendAux(t);
+        Type t = sjts.Double();
+
+        return sendAux(t);
 	}
 	
 	public final SJSessionType sendSession(SJSessionType sjtype) throws SJIOException
@@ -306,11 +285,8 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		try
 		{
-			//synchronized (sjts)
-			{
-				sjst = sjts.SJSendType(mt);
-			}
-		}
+            sjst = sjts.SJSendType(mt);
+        }
 		catch (SemanticException se)
 		{
 			throw new SJIOException(se);
@@ -327,7 +303,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		debugPrintln("send: " + sjst);		
 		
-		return sjst;//.nodeClone());
+		return sjst;
 	}
 
 	public final SJSessionType receive(Object obj) throws SJIOException
@@ -336,11 +312,8 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		try
 		{
-			//synchronized (sjts)
-			{
-				mt = parseClassName(sjts, fullClassName(obj));
-			}			
-		}
+            mt = parseClassName(sjts, fullClassName(obj));
+        }
 		catch (SemanticException se) // Not possible.
 		{
 			throw new SJIOException(se);
@@ -351,50 +324,30 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final SJSessionType receiveBoolean(boolean v) throws SJIOException
 	{
-		Type t = null;
-		
-		//synchronized (sjts)
-		{
-			t = sjts.Boolean();
-		}
-		
-		return receiveAux(t);
+        Type t = sjts.Boolean();
+
+        return receiveAux(t);
 	}
 
 	public final SJSessionType receiveInt(int v) throws SJIOException
 	{
-		Type t = null;
-		
-		//synchronized (sjts)
-		{
-			t = sjts.Int();
-		}
-				
-		return receiveAux(t);
+        Type t = sjts.Int();
+
+        return receiveAux(t);
 	}
 
 	public final SJSessionType receiveByte(byte b) throws SJIOException
 	{
-		Type t = null;
-		
-		//synchronized (sjts)
-		{
-			t = sjts.Byte();
-		}			
-		
-		return receiveAux(t);
+        Type t = sjts.Byte();
+
+        return receiveAux(t);
 	}
 
 	public final SJSessionType receiveDouble(double d) throws SJIOException
 	{
-		Type t = null;
-		
-		//synchronized (sjts)
-		{
-			t = sjts.Double();
-		}				
-		
-		return receiveAux(t);
+        Type t = sjts.Double();
+
+        return receiveAux(t);
 	}
 	
 	public final SJSessionType receiveSession(SJSessionType sjtype) throws SJIOException 
@@ -414,15 +367,12 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	private SJSessionType receiveAux(Type mt) throws SJIOException
 	{
-		SJReceiveType sjrt = null;
+		SJReceiveType sjrt;
 
 		try
 		{
-			//synchronized (sjts)
-			{				
-				sjrt = sjts.SJReceiveType(mt);
-			}
-		}
+            sjrt = sjts.SJReceiveType(mt);
+        }
 		catch (SemanticException se) // Not possible.
 		{
 			throw new SJIOException(se);
@@ -442,9 +392,8 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return sjrt;//.nodeClone());
 	}
 	
-	public final void outbranch(SJLabel lab) throws SJIOException
-	{
-		SJSessionType active = activeType();//.nodeClone(); // Clone only needed to get expected type.
+	public final void outbranch(SJLabel lab) {
+		SJSessionType active = activeType();
 
 		/*if (!(active instanceof SJInbranchType)) // No point to check own actions.
 		{
@@ -458,7 +407,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final void inbranch(SJLabel lab) throws SJIOException // Expected message was a String, already implicitly checked (casting) by socket implementation. Move check into here?
 	{
-		SJSessionType active = activeType();//.nodeClone();
+		SJSessionType active = activeType();
 
 		/*if (!(active instanceof SJInbranchType))
 		{
@@ -477,9 +426,9 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		debugPrintln("Pushed inbranch: " + lab);
 	}
 
-	public final void outwhile(boolean bool)  throws SJIOException // Could return performed type on false.
+	public final void outwhile(boolean bool) // Could return performed type on false.
 	{
-		SJSessionType active = activeType();//.nodeClone();
+		SJSessionType active = activeType();
 
 		if (active instanceof SJUnknownType) // In the innermost iteration, and it has an empty body...
 		{
@@ -502,22 +451,16 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 		else
 		{
-			SJOutwhileType owt = null;
-			
-			//synchronized (sjts)
-			{
-				owt = sjts.SJOutwhileType().body(active); // Hacky? (The actual implemented type was lost when the context was popped by the last operation in the iteration, so have to use the expected type.)
-			}
+            SJOutwhileType owt = sjts.SJOutwhileType().body(active);
 
-			advanceContext(owt);
+            advanceContext(owt);
 			
 			debugPrintln("Finished outwhile: " + owt);
 		}
 	}
 
-	public final void inwhile(boolean bool) throws SJIOException
-	{
-		SJSessionType active = activeType();//.nodeClone();
+	public final void inwhile(boolean bool) {
+		SJSessionType active = activeType();
 
 		if (active instanceof SJUnknownType) // The innermost iteration has an empty body.
 		{
@@ -540,14 +483,9 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 		else
 		{
-			SJInwhileType iwt = null;
-			
-			//synchronized (sjts)
-			{
-				iwt = sjts.SJInwhileType().body(active);
-			}
+            SJInwhileType iwt = sjts.SJInwhileType().body(active);
 
-			advanceContext(iwt);
+            advanceContext(iwt);
 			
 			debugPrintln("Finished inwhile: " + iwt);
 		}
@@ -584,15 +522,10 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		if (activeType() instanceof SJRecurseType) // This may subsume the need to do SJRuntime.recurse. But it seems better to as much explicit as possible.
 		{
 			rt = findRecursionBinder(lab);
-			
-			SJRecurseType foo = null;
-			
-			//synchronized (sjts)
-			{
-				foo = sjts.SJRecurseType(lab);
-			}
-			
-			advanceContext(foo); // As done by recurse. Is this safe?	Need to use the well-formed check to prevent e.g. hacked protocol having two recurse types consecutively.		
+
+            SJRecurseType foo = sjts.SJRecurseType(lab);
+
+            advanceContext(foo); // As done by recurse. Is this safe?	Need to use the well-formed check to prevent e.g. hacked protocol having two recurse types consecutively.		
 		}
 		else
 		{
@@ -608,14 +541,9 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final SJSessionType recurse(SJLabel lab) throws SJIOException // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
 	{
-		SJRecurseType sjrt = null;
-		
-		//synchronized (sjts)
-		{
-			sjrt = sjts.SJRecurseType(lab);
-		}
+        SJRecurseType sjrt = sjts.SJRecurseType(lab);
 
-		advanceContext(sjrt);
+        advanceContext(sjrt);
 
 		debugPrintln("recurse: " + sjrt);
 		
@@ -644,7 +572,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		while (true)
 		{
 			SJRuntimeContextElement sjsc = currentContext();
-			SJSessionType completed = appendToImplemented(implemented);//.nodeClone()); // Implemented is the single operation just performed.
+			SJSessionType completed = appendToImplemented(implemented); // Implemented is the single operation just performed.
 			SJSessionType next = sjsc.activeType().child(); // Maybe end types should be (implicitly) reintroduced.
 
 			sjsc.activeType(next);
@@ -678,22 +606,19 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 						}
 						else // This recursion (including "nested mutual" scopes) has finished.
 						{
+                            SJLabel lab = ((SJRecursionContext) sjsc).label();
+                            recursionVariables.exitScope(lab);
 							popContext(); // sjsc popped.
 
-							SJLabel lab = ((SJRecursionContext) sjsc).label();
+                            implemented = sjts.SJRecursionType(lab).body(completed); // Only the branch type that quits the iteration is recorded.
 
-							//synchronized (sjts)
-							{
-								implemented = sjts.SJRecursionType(lab).body(completed); // Only the branch type that quits the iteration is recorded.
-							}
-
-							/*if (rsocket != null) // HACK: leaving recursion context.
-							{
-								if (!inIterationContext())
-								{
-									rsocket.pushSentMessage(SJRSocket.CACHE_MARKER);
-								}
-							}*/
+                            /*if (rsocket != null) // HACK: leaving recursion context.
+                                   {
+                                       if (!inIterationContext())
+                                       {
+                                           rsocket.pushSentMessage(SJRSocket.CACHE_MARKER);
+                                       }
+                                   }*/
 						}
 					}
 				}
@@ -703,20 +628,17 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 					SJLabel lab = ((SJBranchContext) sjsc).label();
 
-					//synchronized (sjts)
-					{
-						if (sjsc instanceof SJOutbranchContext)
-						{
-							//advanceContext(sjts.SJOutbranchType().branchCase(lab, completed));
-							implemented = sjts.SJOutbranchType().branchCase(lab, completed);
-						}
-						else //if (sjsc instanceof SJInbranchContext)
-						{
-							//advanceContext(sjts.SJInbranchType().branchCase(lab, completed));
-							implemented = sjts.SJInbranchType().branchCase(lab, completed);
-						}
-					}
-				}
+                    if (sjsc instanceof SJOutbranchContext)
+                    {
+                        //advanceContext(sjts.SJOutbranchType().branchCase(lab, completed));
+                        implemented = sjts.SJOutbranchType().branchCase(lab, completed);
+                    }
+                    else //if (sjsc instanceof SJInbranchContext)
+                    {
+                        //advanceContext(sjts.SJInbranchType().branchCase(lab, completed));
+                        implemented = sjts.SJInbranchType().branchCase(lab, completed);
+                    }
+                }
 			}
 			else
 			{
@@ -746,16 +668,13 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	public final void pushOutbranch(SJLabel lab, SJSessionType sjtype)
 	{
-		if (sjtype == null) // Possible mismatch between program execution and session execution if an exception is raised within the (empty) branch. Does it matter? // So all possible branch cases are recorded, not the ones that were actually taken.
+		if (sjtype == null) // Possible mismatch between program execution and session execution if 
+        // an exception is raised within the (empty) branch. Does it matter? 
+        // So all possible branch cases are recorded, not the ones that were actually taken.
 		{
-			SJOutbranchType obt = null;
-			
-			//synchronized (sjts)
-			{
-				obt = sjts.SJOutbranchType().branchCase(lab, null);
-			}
-			
-			advanceContext(obt);
+            SJOutbranchType obt = sjts.SJOutbranchType().branchCase(lab, null);
+
+            advanceContext(obt);
 		}
 		else
 		{
@@ -767,14 +686,9 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		if (sjtype == null)
 		{
-			SJInbranchType ibt = null;
-			
-			//synchronized (sjts)
-			{
-				ibt = sjts.SJInbranchType().branchCase(lab, null);
-			}
-			
-			advanceContext(ibt);
+            SJInbranchType ibt = sjts.SJInbranchType().branchCase(lab, null);
+
+            advanceContext(ibt);
 		}
 		else
 		{
@@ -786,14 +700,9 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		if (sjtype == null)
 		{
-			SJUnknownType ut = null;
-			
-			//synchronized (sjts)
-			{
-				ut = sjts.SJUnknownType();				
-			}
-			
-			pushContext(new SJOutwhileContext(ut)); // Hacky? To represent empty iteration.
+            SJUnknownType ut = sjts.SJUnknownType();
+
+            pushContext(new SJOutwhileContext(ut)); // Hacky? To represent empty iteration.
 		}
 		else
 		{
@@ -805,32 +714,15 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		if (sjtype == null)
 		{
-			SJUnknownType ut = null;
-			
-			//synchronized (sjts)
-			{
-				ut = sjts.SJUnknownType();				
-			}
-			
-			pushContext(new SJInwhileContext(ut));
+            SJUnknownType ut = sjts.SJUnknownType();
+
+            pushContext(new SJInwhileContext(ut));
 		}
 		else
 		{
 			pushContext(new SJInwhileContext(sjtype));
 		}
 	}
-
-	/*public final void pushRecursion(SJLabel lab, SJSessionType sjtype)
-	{
-		if (sjtype == null)
-		{
-			advanceContext(sjts.SJRecursionType(lab).body(null)); // Like branch: an empty recursion can't recurse because no recurse type in body.
-		}
-		else
-		{
-			pushContext(new SJRecursionContext(lab, sjtype));
-		}
-	}*/
 
 	public final void pushRecursion(SJRecursionType rt)
 	{
@@ -841,6 +733,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		else
 		{
 			pushContext(new SJRecursionContext(rt));
+            recursionVariables.enterScope(rt.label(), rt);
 		}
 	}
 	
@@ -890,11 +783,11 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 				System.out.println("Unrecognised array class signature: " + m);
 			}
 
-			for ( ; depth > 0; depth--)
-			{
-				m = m + "[]";
-			}
-		}
+            while (depth > 0) {
+                m += "[]";
+                depth--;
+            }
+        }
 		else
 		{
 
@@ -903,7 +796,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return m;
 	}
 	
-	private static Type parseClassName(SJTypeSystem sjts, String m) throws SemanticException // Move to SJRuntimeUtils?
+	private static Type parseClassName(TypeSystem sjts, String m) throws SemanticException // Move to SJRuntimeUtils?
 	{
 		Type mt; 
 		
@@ -911,48 +804,42 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		{
 			String n = m.substring(0, m.indexOf('['));
 	
-			Type messageType = null;
+			Type messageType;
 	
-			//synchronized (sjts)
-			{
-				if (n.equals("boolean")) // Factor out constants. // But shouldn't get in here? (Primitive-typed operations have been separated?)
-				{
-					messageType = sjts.Boolean();
-				}
-				else if (n.equals("int"))
-				{
-					messageType = sjts.Int();
-				}
-				else if (n.equals("byte"))
-				{
-					messageType = sjts.Byte();
-				}
-				else if (n.equals("double"))
-				{
-					messageType = sjts.Double();
-				}
-				else
-				{
-					messageType = sjts.typeForName(n);
-				}
-				
-				int dims = (m.length() - m.indexOf('[')) / "[]".length();
-				
-				mt = sjts.arrayOf(messageType, dims);
-			}	
-		}
+            if (n.equals("boolean")) // Factor out constants. // But shouldn't get in here? (Primitive-typed operations have been separated?)
+            {
+                messageType = sjts.Boolean();
+            }
+            else if (n.equals("int"))
+            {
+                messageType = sjts.Int();
+            }
+            else if (n.equals("byte"))
+            {
+                messageType = sjts.Byte();
+            }
+            else if (n.equals("double"))
+            {
+                messageType = sjts.Double();
+            }
+            else
+            {
+                messageType = sjts.typeForName(n);
+            }
+
+            int dims = (m.length() - m.indexOf('[')) / "[]".length();
+
+            mt = sjts.arrayOf(messageType, dims);
+        }
 		else
 		{
-			//synchronized (sjts)
-			{
-				mt = sjts.typeForName(m);
-			}
-		}
+            mt = sjts.typeForName(m);
+        }
 		
 		return mt;
 	}
 	
-	private /*static*/ void debugPrintln(String m)
+	private static void debugPrintln(String m)
 	{
 		if (DEBUG)
 		{
