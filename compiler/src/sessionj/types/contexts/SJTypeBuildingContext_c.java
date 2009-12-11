@@ -283,6 +283,7 @@ public class SJTypeBuildingContext_c extends SJContext_c implements SJTypeBuildi
 		return remaining;
 	}
 	
+    // CAREFUL: This function modifies its map argument. Make sure a copy is passed in.
 	// Can this be put back into the SJLoopType unfold routine? (That routine is currently unused.)
 	public static SJSessionType substituteTypeVariables(SJSessionType st, Map<SJLabel, SJRecursionType> map) // Made public as a hack for SJStateManager_c.
 	{

@@ -30,6 +30,8 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	private final SJSessionType protocolType; // The "original" type of the session.
 
 	private final Stack<SJRuntimeContextElement> contexts = new Stack<SJRuntimeContextElement>();
+    
+    private final TypeVariableScope recursionVariables = new TypeVariableScope();
 
 	public SJStateManager_c(SJTypeSystem sjts, SJSessionType protocolType)
 	{
@@ -63,7 +65,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		
 		if (st != null) // HACK: because recurse types are unrolled lazily.
 		{
-			st = SJTypeBuildingContext_c.substituteTypeVariables(st, getRecursions()); 
+			st = SJTypeBuildingContext_c.substituteTypeVariables(st, recursionVariables.inScope()); 
 		}
 		
 		return st;
@@ -570,7 +572,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		while (true)
 		{
 			SJRuntimeContextElement sjsc = currentContext();
-			SJSessionType completed = appendToImplemented(implemented);//.nodeClone()); // Implemented is the single operation just performed.
+			SJSessionType completed = appendToImplemented(implemented); // Implemented is the single operation just performed.
 			SJSessionType next = sjsc.activeType().child(); // Maybe end types should be (implicitly) reintroduced.
 
 			sjsc.activeType(next);
@@ -604,9 +606,9 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 						}
 						else // This recursion (including "nested mutual" scopes) has finished.
 						{
+                            SJLabel lab = ((SJRecursionContext) sjsc).label();
+                            recursionVariables.exitScope(lab);
 							popContext(); // sjsc popped.
-
-							SJLabel lab = ((SJRecursionContext) sjsc).label();
 
                             implemented = sjts.SJRecursionType(lab).body(completed); // Only the branch type that quits the iteration is recorded.
 
@@ -731,6 +733,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		else
 		{
 			pushContext(new SJRecursionContext(rt));
+            recursionVariables.enterScope(rt.label(), rt);
 		}
 	}
 	
