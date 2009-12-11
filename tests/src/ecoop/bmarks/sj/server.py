@@ -78,7 +78,7 @@ for i in clients:
         #time.sleep(7);
         #os.system('java Signal localhost 2001 Kill');
         
-        time.sleep(20);
+        time.sleep(40);
         s1.send('1');
         
-        time.sleep(10);
+        time.sleep(20);
