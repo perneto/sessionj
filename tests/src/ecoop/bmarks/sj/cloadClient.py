@@ -41,7 +41,7 @@ serversocket.listen(5)
 
 
 for i in clients:
-  for k in msgSize:
+  for k in msgSizes:
     for j in sessionLength:
       for l in range(0, repeats):
 
