@@ -52,6 +52,7 @@ for i in clients:
       for l in range(0, int(sys.argv[1])):
         command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner false 2000 ' + i + ' ' + j + ' >> camelot16.' + i + '.' + k + '.' + j + ' &'
         os.system(command)
+        time.sleep(2);
 
         #s1.send('1');
         s2.send('1');
