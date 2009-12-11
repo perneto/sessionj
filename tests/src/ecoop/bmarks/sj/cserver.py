@@ -66,7 +66,7 @@ for i in clients:
     for j in sessionLengths:
       for l in range(0, repeats):
 
-        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner false ' + sport + ' ' + i + ' &'
+        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner false ' + sport + ' ' + i
 
         if debug == 't':
           print 'Running: ' + command
