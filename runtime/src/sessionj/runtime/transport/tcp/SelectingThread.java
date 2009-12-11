@@ -62,7 +62,8 @@ final class SelectingThread implements Runnable {
     }
 
     synchronized void registerInput(SocketChannel sc, SJDeserializer deserializer, AsyncManualTCPSelector sel) {
-        if (!readyInputs.containsKey(sc)) {
+        // Could test on other maps as well but not readyInputs - we don't delete keys from there
+        if (!deserializers.containsKey(sc)) {
             if (log.isLoggable(FINER))
                 log.finer("New registration for input: " + sc + ", deserializer: " + deserializer);
             readyInputs.put(sc, new LinkedBlockingQueue<ByteBuffer>());
