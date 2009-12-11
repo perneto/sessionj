@@ -14,7 +14,7 @@ def connect(first, last, port):
 		else:
 			host = i
 		#now connect to the server
-		s.connect(("camelot" + host, port))
+		s.connect('camelot' + host, port)
 		sockets.append(s)
 	return sockets
 
@@ -61,7 +61,7 @@ s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s1.connect(("camelot01", cport))
 	
 for i in clients:	
-  for k in msgSize:
+  for k in msgSizes:
     for j in sessionLength:
       for l in range(0, repeats):
         if debug == 't':
