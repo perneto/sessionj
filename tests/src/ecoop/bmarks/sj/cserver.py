@@ -72,18 +72,18 @@ for i in clients:
 					print 'Running: ' + command
 
 					#thread.start_new_thread(spawnThread,(command,))
-					thread1 = Thread(target=spawnThread, args=(command,))
-					thread1.start()
+				thread1 = Thread(target=spawnThread, args=(command,))
+				thread1.start()
 
-					time.sleep(5) # Make sure Server has started.
+				time.sleep(5) # Make sure Server has started.
 					
-					send(sockets, '1')
+				send(sockets, '1')
 					
-					time.sleep(10) # Make sure LoadClients are warmed up.
+				time.sleep(10) # Make sure LoadClients are warmed up.
 
-					s1.send('1')
+				s1.send('1')
 					
-					thread1.join()
+				thread1.join()
 
-					time.sleep(5)
-str(2 + machines), str(2 + 2*machines)
+				time.sleep(5)
+
