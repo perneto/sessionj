@@ -27,7 +27,7 @@ final class SelectingThread implements Runnable {
 
     private final Queue<ChangeRequest> pendingChangeRequests;
 
-    private final ConcurrentHashMap<SocketChannel, BlockingQueue<ByteBuffer>> readyInputs;
+    private final Map<SocketChannel, BlockingQueue<ByteBuffer>> readyInputs;
     private final BlockingQueue<Object> readyForSelect;
     private final ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>> accepted;
     private final ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>> requestedOutputs;
@@ -42,7 +42,7 @@ final class SelectingThread implements Runnable {
         requestedOutputs = new ConcurrentHashMap<SocketChannel, Queue<ByteBuffer>>();
         readyForSelect = new LinkedBlockingQueue<Object>();
         accepted = new ConcurrentHashMap<ServerSocketChannel, BlockingQueue<SocketChannel>>();
-        deserializers = new HashMap<SocketChannel, SJDeserializer>();
+        deserializers = new ConcurrentHashMap<SocketChannel, SJDeserializer>();
         interestedSelectors = new ConcurrentHashMap<SocketChannel, Collection<AsyncManualTCPSelector>>();
         
         readBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
@@ -89,18 +89,12 @@ final class SelectingThread implements Runnable {
     
     synchronized void deregisterInput(SocketChannel sc, AsyncManualTCPSelector sel) {
         Collection<AsyncManualTCPSelector> coll = interestedSelectors.get(sc);
-        coll.remove(sel);
-        if (coll.isEmpty()) {
-            if (log.isLoggable(FINER))
-                log.finer("Deregistering channel: " + sc);
-            readyInputs.remove(sc);
-            interestedSelectors.remove(sc); 
-            // Ideally, we'd only do interestedSelectors.get(sc).clear(), but that would be a memory leak.
-            // A WeakHashMap would do the trick, but the code might not be as easy to understand then.
-            requestedOutputs.remove(sc);
-            deserializers.remove(sc);
-            pendingChangeRequests.add(new ChangeRequest(sc, CANCEL, -1));
-            selector.wakeup();
+        if (coll != null) {
+            coll.remove(sel);
+            if (coll.isEmpty()) {
+                pendingChangeRequests.add(new ChangeRequest(sc, CANCEL, -1));
+                selector.wakeup();
+            }
         }
     }
 
@@ -142,7 +136,6 @@ final class SelectingThread implements Runnable {
     }
 
     void close(SelectableChannel sc) {
-        
         // ConcurrentLinkedQueue - no synchronization needed
         pendingChangeRequests.add(new ChangeRequest(sc, CLOSE, -1));
     }
@@ -226,7 +219,7 @@ final class SelectingThread implements Runnable {
         Collection<ChangeRequest> postponed = new LinkedList<ChangeRequest>();
         while (!pendingChangeRequests.isEmpty()) {
             ChangeRequest req = pendingChangeRequests.remove();
-            boolean done = req.execute(selector, modified);
+            boolean done = req.execute(this, modified);
             if (!done) postponed.add(req);
         }
         pendingChangeRequests.addAll(postponed);
@@ -345,8 +338,8 @@ final class SelectingThread implements Runnable {
             				readBuffer,
                     numRead == -1 // -1 if and only if eof
             );
-        } catch (SJIOException e) {
-            log.log(Level.SEVERE, "Could not deserialize on channel: " + key.channel(), e);
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Could not deserialize on channel: " + key.channel(), e);
         }
 
         if (numRead == -1) {
@@ -354,57 +347,47 @@ final class SelectingThread implements Runnable {
             // same from our end and cancel the channel.
             key.cancel();
             socketChannel.close();
+            removeChannelKey(socketChannel);
         }
 
     }
 
-    private void consumeBytesRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) throws SJIOException
+    private void consumeBytesRead(SelectionKey key, SocketChannel sc, ByteBuffer bytes, boolean eof) 
+        throws SJIOException
     {
     	OngoingRead or = (OngoingRead) key.attachment();
     		
-    	if (or == null)
-    	{
+    	if (or == null) {
             // For custom message formatting mode, this does *not* create a new OngoingRead: it returns a singleton. 
     		or = attachNewOngoingRead(key); 
     	}
     	
-    	while (bytes.remaining() > 0) 
-    	{
+    	while (bytes.remaining() > 0)  {
             or.updatePendingInput(bytes, eof);
 
-            if (or.finished())
-            {
+            if (or.finished()) {
                 ByteBuffer input = or.getCompleteInput();
 
                 if (log.isLoggable(FINER))
                     log.finer("Received complete input on channel " + sc + ": " + input);
 
-                if (readyInputs.containsKey(sc))
-                {
+                if (readyInputs.containsKey(sc)) {
                     readyInputs.get(sc).add(input);
                     readyForSelect.add(sc); // order is important here: adding to readyForSelect makes the read visible to select
-                }
-                else
-                {
-                    if (log.isLoggable(FINE))
-                        log.fine("Dropping input received on deregistered channel: " + sc + ", input: " + input);
+                    or = attachNewOngoingRead(key);
+                } else {
+                    throw new SJIOException("Dropping input received on deregistered channel: " + sc + ", input: " + input);
                 }
 
-                or = attachNewOngoingRead(key);
             }
     	}
     }
     
     private OngoingRead attachNewOngoingRead(SelectionKey key) throws SJIOException {
-        try {
-            OngoingRead read = deserializers.get(
-                key.channel()
-            ).newOngoingRead();
-            key.attach(read);
+        SJDeserializer deserializer = deserializers.get(key.channel());
+        OngoingRead read = deserializer.newOngoingRead();
+        key.attach(read);
         return read;
-        } catch (RuntimeException e) {
-            throw e; // I use this for breakpoints
-        }
     }
 
     private void accept(SelectionKey key) throws IOException {
@@ -416,6 +399,16 @@ final class SelectingThread implements Runnable {
         if (log.isLoggable(FINER))
             log.finer("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);
         queue.add(socketChannel);
+    }
+    
+    // This is called on the selecting thread, before the select() call
+    private void removeChannelKey(SelectableChannel sc) {
+        readyInputs.remove(sc);
+        interestedSelectors.remove(sc);
+        // Ideally, we'd only do interestedSelectors.get(sc).clear(), but that would be a memory leak.
+        // A WeakHashMap would do the trick, but the code might not be as easy to understand then.
+        requestedOutputs.remove(sc);
+        deserializers.remove(sc);
     }
 
     private static class ChangeRequest {
@@ -431,18 +424,18 @@ final class SelectingThread implements Runnable {
             this.interestOps = interestOps;
         }
 
-        boolean execute(Selector selector, Set<SelectableChannel> modified) throws IOException {
-            return changeAction.execute(selector, this, modified);
+        boolean execute(SelectingThread thread, Set<SelectableChannel> modified) throws IOException {
+            return changeAction.execute(thread, this, modified);
         }
     }
 
     enum ChangeAction {
         REGISTER {
-            boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws ClosedChannelException {
+            boolean execute(SelectingThread thread, ChangeRequest req, Set<SelectableChannel> modified) throws ClosedChannelException {
                 try {
                     if (log.isLoggable(FINER))
                         log.finer("Registering chan: " + req.chan + ", ops: " + formatOps(req.interestOps));
-                    req.chan.register(selector, req.interestOps);
+                    req.chan.register(thread.selector, req.interestOps);
                 } catch (CancelledKeyException e) {
                     if (log.isLoggable(FINE))
                         log.fine("Tried to register but key cancelled: " + req.chan);
@@ -455,8 +448,8 @@ final class SelectingThread implements Runnable {
                 return true;
             }
         }, CHANGEOPS {
-            boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) {
-                SelectionKey key = req.chan.keyFor(selector);
+            boolean execute(SelectingThread thread, ChangeRequest req, Set<SelectableChannel> modified) {
+                SelectionKey key = req.chan.keyFor(thread.selector);
                 if (key != null && key.isValid() && key.interestOps() != req.interestOps) {
                     if (!modified.contains(req.chan)){
                         if (log.isLoggable(FINER))
@@ -471,21 +464,25 @@ final class SelectingThread implements Runnable {
                 return true;
             }
         }, CLOSE {
-            boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws IOException {
+            boolean execute(SelectingThread thread, ChangeRequest req, Set<SelectableChannel> modified) throws IOException {
                 if (log.isLoggable(FINER))
                     log.finer("Closing channel: " + req.chan);
                 // Implicitly cancels all existing selection keys for that channel (see javadoc).
                 req.chan.close();
+                thread.removeChannelKey(req.chan);
                 return true;
             }
         }, CANCEL {
-            boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) {
-                SelectionKey key = req.chan.keyFor(selector);
+            boolean execute(SelectingThread thread, ChangeRequest req, Set<SelectableChannel> modified) {
+                if (log.isLoggable(FINER))
+                    log.finer("Deregistering channel: " + req.chan);
+                SelectionKey key = req.chan.keyFor(thread.selector);
                 if (key != null) key.cancel();
+                thread.removeChannelKey(req.chan);
                 return true;
             }};
 
-        abstract boolean execute(Selector selector, ChangeRequest req, Set<SelectableChannel> modified) throws IOException;
+        abstract boolean execute(SelectingThread thread, ChangeRequest req, Set<SelectableChannel> modified) throws IOException;
     }
 
     private static String formatKey(SelectionKey key) {
