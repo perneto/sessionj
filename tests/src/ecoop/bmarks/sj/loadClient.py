@@ -27,6 +27,6 @@ for i in clients:
     for j in sessionLength:
       for l in range(0, int(sys.argv[1])):
         data = s.recv(1024);
-        command = 'csessionj -cp tests/classes ecoop.bmarks.sj.client.ClientRunner false camelot16 2000 ' + i + ' ' + k 
+        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.client.ClientRunner false camelot16 2000 ' + i + ' ' + k 
         os.system(command)
         
