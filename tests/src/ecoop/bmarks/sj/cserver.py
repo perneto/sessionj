@@ -2,7 +2,7 @@
 import sys, socket
 import os
 import time
-import thread
+from threading import Thread
 
 def connect(first, last, port):
 	sockets = []
@@ -24,7 +24,6 @@ def send(sockets, value):
 
 def spawnThread(command):
 	os.system(command)
-	flag = 1
 	print 'Thread finished'
 
 
@@ -40,8 +39,6 @@ machines = int(sys.argv[2])
 sport = sys.argv[3]
 cport  = int(sys.argv[4])
 repeats = int(sys.argv[5])
-
-flag = 0
 
 clients = []
 msgSizes = []
@@ -71,9 +68,9 @@ for i in clients:
         if debug == 't':
           print 'Running: ' + command
 
-        flag = 0
-
-        thread.start_new_thread(spawnThread,(command,))
+        #thread.start_new_thread(spawnThread,(command,))
+	thread1 = Thread(spawnThread, (command,))
+	thread1.start()
 
         time.sleep(5) # Make sure Server has started.
 
@@ -83,7 +80,7 @@ for i in clients:
 
         s1.send('1')
         
-       	while flag == 0: pass
+       	thread1.join()
 
       	time.sleep(5)
 
