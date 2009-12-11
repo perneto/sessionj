@@ -18,7 +18,7 @@ def connect(first, last, port):
 		sockets.append(s)
 	return sockets
 
-def send(sockets, values):
+def send(sockets, value):
 	for s in sockets:
 		s.send(value)
 
@@ -36,7 +36,7 @@ if len(sys.argv) < 6:
 
 debug = sys.argv[1]
 machines = int(sys.argv[2])
-sport = int(sys.argv[3])
+sport = sys.argv[3]
 cport  = int(sys.argv[4])
 repeats = int(sys.argv[5])
 
@@ -55,7 +55,7 @@ else:
 	msgSizes = ['10', '100', '1000', '10000']
 	sessionLengths = ['0', '1', '10', '100', '1000']
 
-sockets = connect(2, 2 + machines - 1, cport)
+sockets = connect(2, 2 + machines, cport)
 
 s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s1.connect(("camelot01", cport))
@@ -64,14 +64,15 @@ for i in clients:
   for k in msgSizes:
     for j in sessionLengths:
       for l in range(0, repeats):
-        if debug == 't':
-		      print 'Running: clients=' + i + ',msgSize=' + k + ',sessionLength=' + j + ',repeats=' + l 
 
         command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner false ' + sport + ' ' + i + ' &'
 
+        if debug == 't':
+          print 'Running: ' + command
+
         flag = 0
 
-        thread.start_new_thread(foo,(command,))
+        thread.start_new_thread(spawnThread,(command,))
 
         time.sleep(5) # Make sure Server has started.
 

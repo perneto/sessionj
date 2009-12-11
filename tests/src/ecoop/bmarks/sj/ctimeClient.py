@@ -3,7 +3,7 @@ import sys, socket
 import os, time
 
 # tests/src/ecoop/bmarks/sj/ctimeClient.py <debug> <host> <server_port> <client_port> <num_repeats>
-# tests/src/ecoop/bmarks/sj/ctimeClient.py f camelot16 2000 4321 100
+# tests/src/ecoop/bmarks/sj/ctimeClient.py f camelot16 2000 4321 100  
 
 if len(sys.argv) < 6:
   print 'Usage: ctimeClient.py <debug> <host> <server_port> <client_port> <num_repeats>'
@@ -11,13 +11,14 @@ if len(sys.argv) < 6:
 
 debug = sys.argv[1]
 host = sys.argv[2]
-sport = int(sys.argv[3])
+sport = sys.argv[3]
 cport  = int(sys.argv[4])
 repeats = int(sys.argv[5])
 
 clients = []
 msgSizes = []
 sessionLengths = []
+hostname = socket.gethostname()
 
 if debug == 't':	
 	clients = ['1', '2']
@@ -32,7 +33,7 @@ else:
 #create an INET, STREAMing socket
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-serversocket.bind((socket.gethostname(), cport))
+serversocket.bind((hostname, cport))
 
 serversocket.listen(5)
 
