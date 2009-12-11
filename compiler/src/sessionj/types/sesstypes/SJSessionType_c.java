@@ -34,9 +34,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 
 	public SJSessionType child()
 	{
-		SJSessionType st = getChild(); 
-		
-		return st == null ? null : st.copy();
+		return getChild(); 
 	}
 
 	public SJSessionType child(SJSessionType child) // Immutable.
