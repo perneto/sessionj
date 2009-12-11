@@ -47,7 +47,7 @@ for i in clients:
     for j in sessionLengths:
         
       print 'Benchmark: clients=' + i + ', msgSize=' + k + ', sessionLength=' + j
-			sys.stdout.flush()
+      sys.stdout.flush()
 
       for l in range(0, repeats):
         
