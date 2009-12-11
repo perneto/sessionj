@@ -62,7 +62,7 @@ s1.connect(("camelot01", cport))
 	
 for i in clients:	
   for k in msgSizes:
-    for j in sessionLength:
+    for j in sessionLengths:
       for l in range(0, repeats):
         if debug == 't':
 		      print 'Running: clients=' + i + ',msgSize=' + k + ',sessionLength=' + j + ',repeats=' + l 
