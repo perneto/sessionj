@@ -1128,11 +1128,15 @@ public class SJRuntime
 		return sjts;
 	}
 	
-	public static SJSessionType decodeType(String encoded) throws SJIOException { 
+	public static SJSessionType decodeType(String encoded) { 
 		synchronized (sjte) // FIXME: temporary work around, examine properly later.
 		{
-			return sjte.decode(encoded);
-		}
+            try {
+                return sjte.decode(encoded);
+            } catch (SJIOException e) {
+                throw new SJRuntimeException(e);
+            }
+        }
 	}
 
   public static String encode(SJSessionType st) throws SJIOException {

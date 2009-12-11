@@ -16,11 +16,7 @@ public class SJProtocol implements Serializable
 
     public SJProtocol(String encoded) {
 		this.encoded = encoded;
-        try {
-            canonicalForm = SJRuntime.decodeType(encoded).getCanonicalForm();
-        } catch (SJIOException e) {
-            throw new RuntimeException(e);
-        }
+        canonicalForm = SJRuntime.decodeType(encoded).getCanonicalForm();
     }
 
 	public String encoded()
@@ -39,7 +35,7 @@ public class SJProtocol implements Serializable
 		{
 			return SJRuntime.decodeType(encoded).toString();
 		}
-		catch (SJIOException ioe)
+		catch (SJRuntimeException ioe)
 		{
 			return ioe.getMessage();
 		}

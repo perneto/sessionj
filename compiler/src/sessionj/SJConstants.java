@@ -166,6 +166,7 @@ public class SJConstants
 	public static final String SJ_THREAD_THIS = "_sjthis";
 	
 	public static final String SJ_TMP_LOCAL = "_sjtmp";
+    public static final String SJ_TMP_TYPECASE = "_sjtypecase";
 	
 	public static Type SJ_CHANNEL_SOCKET_HACK_TYPE;
 	public static final String SJ_CHANNEL_SOCKET_HACK_CLASS = "sessionj.runtime.net.SJServiceSocketHack";
