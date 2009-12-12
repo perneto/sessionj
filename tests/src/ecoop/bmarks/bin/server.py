@@ -80,7 +80,7 @@ for i in clients:
 					else:
 						transport = ' '
 	
-					command = 'bin/csessionj' + transports + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
+					command = 'bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
 	
 					if debug == 't':
 						print 'Running: ' + command
