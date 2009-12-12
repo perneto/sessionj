@@ -44,15 +44,15 @@ serversocket.bind((hostname, cport))
 
 serversocket.listen(5)
 
- print 'baba'
- sys.stdout.flush()
+print 'baba'
+sys.stdout.flush()
 	
 
 # Accept connection.
 (s, address) = serversocket.accept()
 
- print 'basdba'
- sys.stdout.flush()
+print 'basdba'
+sys.stdout.flush()
 
 for v in versions:
 	for i in clients:
