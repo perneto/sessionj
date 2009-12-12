@@ -28,8 +28,8 @@ def spawnThread(command):
 	print 'Thread finished'
 
 
-# tests/src/ecoop/bmarks/sj/server.py <debug> <num_machines> <server_port> <client_port> <version> <num_repeats>
-# tests/src/ecoop/bmarks/sj/server.py f 10 2000 4321 JT 100
+# tests/src/ecoop/bmarks/bin/server.py <debug> <num_machines> <server_port> <client_port> <version> <num_repeats>
+# tests/src/ecoop/bmarks/bin/server.py f 10 2000 4321 JT 100
 
 if len(sys.argv) < 7:
 	print 'Usage: server.py <debug> <num_machines> <server_port> <client_port> <version> <num_repeats>'
@@ -75,7 +75,7 @@ for v in versions:
 			for k in sessionLengths:
 				for l in range(0, repeats):
 	
-					command = 'bin/sessionj -cp tests/classes ecoop.bmarks.sj.server.ServerRunner false ' + sport + ' ' + i + ' ' + v
+					command = 'bin/csessionj -cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
 	
 					if debug == 't':
 						print 'Running: ' + command
