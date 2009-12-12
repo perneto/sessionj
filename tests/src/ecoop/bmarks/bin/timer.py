@@ -33,7 +33,7 @@ if debug == 't':
   msgSizes = ['10', '100']
   sessionLengths = ['0', '1', '10']
 else:
-  clients = ['1', '10', '100']
+  clients = ['1', '5', '10', '50', '100']
   msgSizes = ['100', '1000', '10000']
   sessionLengths = ['1', '10', '100', '1000']
 
@@ -68,9 +68,14 @@ for i in clients:
           elif v == 'JE':
             subpackage = 'java.event'
           else: #elif v == 'ST' || v == 'SE':
-            subpackage = 'sj'	
+            subpackage = 'sj'
+
+          if v == 'SE':
+            transport = ' -Dsessionj.transports.session=a '
+          else:
+            transport = ' '
 	        
-          command = 'bin/csessionj -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' ' + ' -1 ' + j + ' ' + k
+          command = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' ' + ' -1 ' + j + ' ' + k
 	        
           if debug == 't':
             print 'Running: ' + command
