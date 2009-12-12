@@ -9,9 +9,10 @@ import ecoop.bmarks.*;
 
 public class SignalClient 
 {
+	// Not really a good place for these constants. Should make a separate constants class. Could also put e.g. common close routines in there.
 	public static final int SIGNAL_SERVER_PORT_OFFSET = 1000;	
 	
-	public static final String JAVA_THREAD = "JT"; // Not really a good place for these. Should make a separate constants class. Could also put e.g. common close routines in there.
+	public static final String JAVA_THREAD = "JT"; 
 	public static final String JAVA_EVENT = "JE";
 	public static final String SJ_THREAD = "ST";
 	public static final String SJ_EVENT = "SE";	

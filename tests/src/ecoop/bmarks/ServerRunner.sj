@@ -13,7 +13,7 @@ public class ServerRunner
   {
     final boolean debug = Boolean.parseBoolean(args[0]);
     final int port = Integer.parseInt(args[1]);
-    final int numClients = Integer.parseInt(args[2]);
+    final int numClients = Integer.parseInt(args[2]); // NB: TimerClients count as two clients.
     final String server = args[3];
     
   	if (!(server.equals(SignalClient.JAVA_THREAD) || server.equals(SignalClient.JAVA_EVENT) || server.equals(SignalClient.SJ_THREAD) || server.equals(SignalClient.SJ_EVENT)))
