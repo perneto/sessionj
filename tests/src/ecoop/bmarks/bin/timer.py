@@ -51,7 +51,10 @@ sys.stdout.flush()
 # Accept connection.
 (s, address) = serversocket.accept()
 
-print 'basdba'
+print versions[0]
+sys.stdout.flush()
+
+print versions
 sys.stdout.flush()
 
 for v in versions:
