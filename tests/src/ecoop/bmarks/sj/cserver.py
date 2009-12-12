@@ -50,7 +50,8 @@ if debug == 't':
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = [str(2 + machines), str(2 + 10*machines), str(2 + 100*machines)] 
+#	clients = [str(2 + machines), str(2 + 10*machines), str(2 + 100*machines)] 
+	clients = [str(2 + 10*machines), str(2 + 100*machines)] 
 	msgSizes = ['10', '100', '1000', '10000']
 	sessionLengths = ['0', '1', '10', '100', '1000']
 
@@ -75,7 +76,7 @@ for i in clients:
 				thread1 = Thread(target=spawnThread, args=(command,))
 				thread1.start()
 
-				time.sleep(5) # Make sure Server has started.
+				time.sleep(3) # Make sure Server has started.
 					
 				send(sockets, '1')
 					
@@ -85,5 +86,5 @@ for i in clients:
 					
 				thread1.join()
 
-				time.sleep(5)
+				time.sleep(3)
 
