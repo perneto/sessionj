@@ -8,6 +8,7 @@ import sessionj.runtime.util.SJRuntimeUtils;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class AsyncConnection extends AbstractSJConnection
 {
@@ -51,7 +52,8 @@ public class AsyncConnection extends AbstractSJConnection
             throw new SJIOException("No available inputs on connection: " + this);
         }
         
-        log.finest("Returning input: " + input);
+        if (log.isLoggable(Level.FINEST))
+            log.finest("Returning input: " + input);
 
         if (input.remaining() == remaining)
             thread.dequeueFromInputQueue(sc);
