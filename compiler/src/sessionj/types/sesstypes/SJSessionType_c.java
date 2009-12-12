@@ -294,15 +294,18 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
     
   final public SJSessionType getCanonicalForm()  
   {
+      /* Causing stack overflow at compilation, during serialization of types.
       if (canonicalForm == null) {
           canonicalForm = treeCanonicalForm();
       }
       return canonicalForm;
+       */
+      return treeCanonicalForm();
   }
   
   public SJSessionType nodeCanonicalForm() // FIXME: still need to override in most types, e.g. branch types. Currently only overridden by SJSetType_c and SJMessageCommunication_c.
   {
-  	return nodeClone();
+  	return this;
   }
     
 	final public SJSessionType treeCanonicalForm()
