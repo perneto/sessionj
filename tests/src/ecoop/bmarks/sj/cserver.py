@@ -76,7 +76,7 @@ for i in clients:
 				thread1 = Thread(target=spawnThread, args=(command,))
 				thread1.start()
 
-				time.sleep(5) # Make sure Server has started.
+				time.sleep(3) # Make sure Server has started.
 					
 				send(sockets, '1')
 					
@@ -86,5 +86,5 @@ for i in clients:
 					
 				thread1.join()
 
-				time.sleep(5)
+				time.sleep(3)
 
