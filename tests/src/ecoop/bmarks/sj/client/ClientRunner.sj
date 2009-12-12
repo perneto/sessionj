@@ -2,6 +2,7 @@
 
 package ecoop.bmarks.sj.client;
 
+//@deprecated
 //Spawns LoadClients.
 public class ClientRunner 
 {

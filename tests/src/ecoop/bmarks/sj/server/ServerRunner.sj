@@ -2,6 +2,7 @@
 
 package ecoop.bmarks.sj.server;
 
+//@deprecated
 // Spawns a pair of Server and SignalServer.
 public class ServerRunner 
 {

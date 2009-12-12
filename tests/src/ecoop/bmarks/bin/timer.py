@@ -52,24 +52,22 @@ for v in versions:
 	  for j in msgSizes:
 	    for k in sessionLengths:
 	        
-	      print 'Benchmark: clients=' + i + ', msgSize=' + j + ', sessionLength=' + k
+	      print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j + ', sessionLength=' + k
 	
 	      for l in range(0, repeats):
 	        
 	        data = s.recv(1024)
 	        
-	        vv = ''
+	        subpackage = ''
 	        
 	        if v == 'JT':
-	        	vv = java.thread
+	        	subpackage = java.thread
 	        elif v == 'JE':
-	        	vv = java.event
-	        elif v == 'ST':
-	        	vv = sj.thread
-	        else: #elif v == 'SE':
-	        	vv = sj.event	
+	        	subpackage = java.event
+	        else: #elif v == 'ST' || v == 'SE':
+	        	subpackage = sj	
 	        
-	        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.' + vv + '.client.TimerClient false ' + host + ' ' + sport + ' ' + ' -1 ' + j + ' ' + k
+	        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' ' + ' -1 ' + j + ' ' + k
 	        
 	        #if debug == 't':
 	        #print 'Running: ' + command

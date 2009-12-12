@@ -9,6 +9,7 @@ import ecoop.bmarks.*;
 //to run: sessionj -cp . -Dsessionj.transports.session=a Client // RAY: no need to specify transports anymore.
 //$ bin/sessionj -cp tests/classes/ Server
 
+//@deprecated
 public class Server {
 
 		protocol recSide rec X[?{QUIT: , REC: ?(int).!<MyObject>.#X}]

@@ -4,7 +4,8 @@ package ecoop.bmarks;
 
 import ecoop.bmarks.java.thread.server.*;
 import ecoop.bmarks.java.event.server.*;
-import ecoop.bmarks.sj.event.server.*;
+import ecoop.bmarks.sj.server.thread.*;
+import ecoop.bmarks.sj.server.event.*;
 
 // Spawns a pair of Server and SignalClient.
 public class ServerRunner 
@@ -36,10 +37,14 @@ public class ServerRunner
     			else if (server.equals(SignalClient.JAVA_EVENT))
     			{
     				new ecoop.bmarks.java.event.server.Server(debug, port, numClients).run();
-    			} 
+    			}
+    			else if (server.equals(SignalClient.SJ_THREAD))
+    			{
+    				new ecoop.bmarks.sj.server.thread.Server(debug, port, numClients).run();
+    			}
     			else if (server.equals(SignalClient.SJ_EVENT))
     			{
-    				new ecoop.bmarks.sj.event.server.Server(debug, port, numClients).run();
+    				new ecoop.bmarks.sj.server.event.Server(debug, port, numClients).run();
     			}
       		else
       		{

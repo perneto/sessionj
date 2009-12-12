@@ -2,6 +2,7 @@ package ecoop.bmarks.sj.common;
 
 import java.io.*;
 
+//@deprecated
 public class ClientMessage implements Serializable 
 {
 	private int clientNum;

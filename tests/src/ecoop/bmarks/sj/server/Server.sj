@@ -8,6 +8,7 @@ import sessionj.runtime.transport.*;
 
 import ecoop.bmarks.sj.common.*;
 
+//@deprecated
 public class Server  
 {
 	public protocol pRecursion rec X [?{REC: ?(ClientMessage).!<MyObject>.#X, QUIT: }]

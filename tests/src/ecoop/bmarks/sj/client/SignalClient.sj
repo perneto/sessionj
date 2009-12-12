@@ -8,6 +8,7 @@ import java.net.*;
 import ecoop.bmarks.sj.common.*;
 import ecoop.bmarks.sj.server.SignalServer;
 
+//@deprecated
 public class SignalClient 
 {
   public static void sendSignal(String host, int port, int signal) throws Exception
