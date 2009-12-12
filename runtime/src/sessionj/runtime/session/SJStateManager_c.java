@@ -301,7 +301,8 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		advanceContext(sjst);
 
-		debugPrintln("send: " + sjst);		
+        if (DEBUG) // avoids expensive toString and string concat - this is a hot spot.
+            debugPrintln("send: " + sjst);		
 		
 		return sjst;
 	}
@@ -387,9 +388,10 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		advanceContext(sjrt);
 
-		debugPrintln("receive: " + sjrt);
+        if (DEBUG) // expensive toString call
+            debugPrintln("receive: " + sjrt);
 		
-		return sjrt;//.nodeClone());
+		return sjrt;
 	}
 	
 	public final void outbranch(SJLabel lab) {
@@ -535,8 +537,12 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		//pushRecursion(lab, ((SJRecursionType) activeType()).body()); // body returns a defensive copy.
 		pushRecursion(rt); // Changed (now different to e.g. in/outwhile routines) because we want to keep the whole type as information.
+        //FIXME: A new context gets pushed every time we enter the recursion, so the context stack grows
+        // very big. Do we really need a new instance, or could we reuse the existing one if
+        // we're in a recursion context already?
 		
-		debugPrintln("Entered recursion for: " + lab);
+        if (DEBUG)
+            debugPrintln("Entered recursion for: " + lab);
 	}
 
 	public final SJSessionType recurse(SJLabel lab) throws SJIOException // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
