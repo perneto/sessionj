@@ -1,4 +1,5 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.server.event.Server false 8888 1 
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.server.event.Server false 8888 1
+//$ bin/sessionj -Dsessionj.transports.session=a -cp tests/classes/ ecoop.bmarks.sj.server.event.Server false 8888 1
 
 package ecoop.bmarks.sj.server.event;
 
@@ -36,7 +37,7 @@ public class Server
 
   public void run() throws Exception
   {
-		SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "a");
+		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "a");
 			
 		final noalias SJSelector sel = SJRuntime.selectorFor(pSelector);
 		
@@ -46,7 +47,8 @@ public class Server
 			
 			try (ss) 
 			{
-				ss = SJServerSocket.create(pServer, port, params);
+				//ss = SJServerSocket.create(pServer, port, params);
+				ss = SJServerSocket.create(pServer, port);
 				
 				debugPrintln("[Server] Listening on: " + port);
 				

@@ -1,4 +1,5 @@
 //$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.client.TimerClient false localhost 8888 -1 100 10
+//$ bin/sessionj -Dsessionj.transports.session=a -cp tests/classes/ ecoop.bmarks.sj.client.TimerClient false localhost 8888 -1 100 10
 
 package ecoop.bmarks.sj.client;
 
@@ -56,15 +57,16 @@ public class TimerClient
 
   public void run(boolean time) throws Exception
   {
-  	SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "sa");
+  	//SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "sa");
   	
-	  final noalias SJService serv = SJService.create(pClient, host, port);
+	  final noalias SJService c = SJService.create(pClient, host, port);
 		
 	  final noalias SJSocket s;
 	  	  
 	  try (s) 
 	  {
-	    s = serv.request(params);
+	    //s = serv.request(params);
+	  	s = c.request();
 	
 	    long start = System.nanoTime();
 	    
