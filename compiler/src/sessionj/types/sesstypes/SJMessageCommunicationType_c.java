@@ -88,13 +88,12 @@ abstract public class SJMessageCommunicationType_c extends SJSessionType_c imple
 	
   public SJSessionType nodeCanonicalForm()  
   {
-  	SJMessageCommunicationType mct = (SJMessageCommunicationType) nodeClone();
-  	
-  	Type mt = mct.messageType();
+
+      Type mt = messageType();
   	
   	try
   	{
-  		return (mt instanceof SJSessionType) ? mct.messageType(((SJSessionType) mt).getCanonicalForm()) : mct;
+  		return mt instanceof SJSessionType ? messageType(((SJSessionType) mt).getCanonicalForm()) : this;
   	}
   	catch (SemanticException se)
   	{
