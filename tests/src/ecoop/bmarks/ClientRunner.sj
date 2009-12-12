@@ -5,7 +5,7 @@ package ecoop.bmarks;
 import ecoop.bmarks.java.thread.client.*;
 import ecoop.bmarks.sj.event.client.*;
 
-//Spawns LoadClients.
+// Spawns LoadClients.
 public class ClientRunner 
 {
   public static void main(String [] args) 

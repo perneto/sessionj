@@ -1,4 +1,4 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.java.thread.client.TimerClient false localhost 8888 -1 100 10
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.java.thread.client.TimerClient false localhost 8888 -1 100 5
 
 package ecoop.bmarks.java.thread.client;
 
