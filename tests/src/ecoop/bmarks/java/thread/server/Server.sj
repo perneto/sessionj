@@ -47,6 +47,8 @@ public class Server
   		
   		try
   		{
+  			s.setTcpNoDelay(true);
+  			
   			ois = new ObjectInputStream(s.getInputStream());
   			oos = new ObjectOutputStream(s.getOutputStream());
   			
@@ -56,11 +58,11 @@ public class Server
 	  			
 	  			if (i == REC)
 	  			{
-	  				ClientMessage m = (ClientMessage) ois.readObject();
+	  				ClientMessage cm = (ClientMessage) ois.readObject();
 	          
-	          debugPrintln("[Server] Received: " + m);
+	          debugPrintln("[Server] Received: " + cm);
 	          
-	          oos.writeObject(new MyObject(signal, m.getSize()));
+	          oos.writeObject(new MyObject(signal, cm.getSize()));
 	          
 	          if (counting) 
 	          {
@@ -120,6 +122,8 @@ public class Server
 		try 
 		{
 			ss = new ServerSocket(port);
+			
+			debugPrintln("[Server] Listening on: " + port);
 			
 			List threads = new LinkedList();
 			

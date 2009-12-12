@@ -88,11 +88,11 @@ public class Server
 		        }
 		        when(@(pReceive)) 
 		        {
-		        	ClientMessage m = (ClientMessage) s.receive();
+		        	ClientMessage cm = (ClientMessage) s.receive();
 		          
-		          debugPrintln("[Server] Received: " + m);
+		          debugPrintln("[Server] Received: " + cm);
 		          
-		          s.send(new MyObject(signal, m.getSize()));
+		          s.send(new MyObject(signal, cm.getSize()));
 		          
 		          if (counting) 
 		          {

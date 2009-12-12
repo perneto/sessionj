@@ -82,6 +82,25 @@ then
 	done
 fi
 
+if [ "$je" == "true" ];
+then	
+	path=tests/src/ecoop/bmarks/java/event/server
+	
+	for f in Server; do
+	  echo Compiling $path/$f.sj
+	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
+	  if [ $? -ne 0 ]; then exit 1; else echo; fi
+	done
+	
+	path=tests/src/ecoop/bmarks/java/event/client
+	
+	for f in LoadClient TimerClient; do
+	  echo Compiling $path/$f.sj
+	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
+	  if [ $? -ne 0 ]; then exit 1; else echo; fi
+	done
+fi
+
 if [ "$se" == "true" ];
 then	
 	path=tests/src/ecoop/bmarks/sj/event/server

@@ -48,7 +48,7 @@ public class TimerClient
   	}
   	finally
   	{
-	  	debugPrintln("Sending KILL.");
+	  	debugPrintln("[TimerClient] Sending KILL.");
 	  	
 	  	new SignalClient().sendSignal(host, port, MyObject.KILL);  		
   	}
@@ -82,7 +82,7 @@ public class TimerClient
 	          
 	          mo = (MyObject) s.receive();            
 	          
-	          debugPrintln("[Client " + clientNum + "] Received: " + mo);
+	          debugPrintln("[TimerClient " + clientNum + "] Received: " + mo);
 	
 	          if (debug)
 	          {
@@ -96,7 +96,7 @@ public class TimerClient
 	      {
 	        s.outbranch(QUIT) 
 	        {
-	          debugPrintln("[Client " + clientNum + "] Quitting.");
+	          debugPrintln("[TimerClient " + clientNum + "] Quitting.");
 	        }
 	      }
 	      

@@ -3,7 +3,7 @@
 package ecoop.bmarks;
 
 import ecoop.bmarks.java.thread.server.*;
-//import ecoop.bmarks.java.event.Server;
+import ecoop.bmarks.java.event.server.*;
 import ecoop.bmarks.sj.event.server.*;
 
 // Spawns a pair of Server and SignalClient.
@@ -33,15 +33,24 @@ public class ServerRunner
     			{
     				new ecoop.bmarks.java.thread.server.Server(debug, port, numClients).run();
     			}  
+    			else if (server.equals(SignalClient.JAVA_EVENT))
+    			{
+    				new ecoop.bmarks.java.event.server.Server(debug, port, numClients).run();
+    			} 
     			else if (server.equals(SignalClient.SJ_EVENT))
     			{
     				new ecoop.bmarks.sj.event.server.Server(debug, port, numClients).run();
     			}
+      		else
+      		{
+      			System.out.println("[ServerRunner] Unrecognised flag: " + server);
+      			System.exit(0);
+      		}
     		}
     		catch (Exception x)
     		{
     			throw new RuntimeException(x);
-    		}
+    		}    		
     	}
     }.start();
     

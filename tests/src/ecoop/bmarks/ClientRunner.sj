@@ -3,6 +3,7 @@
 package ecoop.bmarks;
 
 import ecoop.bmarks.java.thread.client.*;
+import ecoop.bmarks.java.event.client.*;
 import ecoop.bmarks.sj.event.client.*;
 
 // Spawns LoadClients.
@@ -42,9 +43,18 @@ public class ClientRunner
         		{
         			new ecoop.bmarks.java.thread.client.LoadClient(debug, host, port, cn, messageSize).run();
         		}
+        		else if (server.equals(SignalClient.JAVA_EVENT))
+        		{
+        			new ecoop.bmarks.java.event.client.LoadClient(debug, host, port, cn, messageSize).run();
+        		}
         		else if (server.equals(SignalClient.SJ_EVENT))
         		{
         			new ecoop.bmarks.sj.event.client.LoadClient(debug, host, port, cn, messageSize).run();
+        		}
+        		else
+        		{
+        			System.out.println("[ClientRunner] Unrecognised flag: " + server);
+        			System.exit(0);
         		}
         	}
         	catch (Exception x)

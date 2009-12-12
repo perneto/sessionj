@@ -61,6 +61,8 @@ public class TimerClient
 		{
 			s = new Socket(host, port);
 			
+			s.setTcpNoDelay(true);
+			
 			oos = new ObjectOutputStream(s.getOutputStream());
 			ois = new ObjectInputStream(s.getInputStream());
 	
@@ -77,7 +79,7 @@ public class TimerClient
             
         mo = (MyObject) ois.readObject();      
             
-	      debugPrintln("[LoadClient " + clientNum + "] Received: " + mo);
+	      debugPrintln("[TimerClient " + clientNum + "] Received: " + mo);
 	
 	      if (debug)
 	      {
@@ -88,7 +90,7 @@ public class TimerClient
       oos.writeInt(Server.QUIT);
 			oos.flush();
 			
-      debugPrintln("[LoadClient " + clientNum + "] Quitting.");
+      debugPrintln("[TimerClient " + clientNum + "] Quitting.");
 	    	    
 	    long finish = System.nanoTime();
 	    

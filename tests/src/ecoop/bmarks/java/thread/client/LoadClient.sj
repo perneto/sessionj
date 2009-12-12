@@ -40,6 +40,8 @@ public class LoadClient
 		{
 			s = new Socket(host, port);
 			
+			s.setTcpNoDelay(true);
+			
 			oos = new ObjectOutputStream(s.getOutputStream());
 			ois = new ObjectInputStream(s.getInputStream());
 			

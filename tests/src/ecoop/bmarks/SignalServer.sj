@@ -5,7 +5,7 @@ import java.net.*;
 
 import ecoop.bmarks.*;
 import ecoop.bmarks.java.thread.server.*;
-//import ecoop.bmarks.java.event.Server;
+import ecoop.bmarks.java.event.server.*;
 import ecoop.bmarks.sj.event.server.*;
 
 public class SignalServer 
@@ -49,6 +49,10 @@ public class SignalServer
         	{
         		ecoop.bmarks.java.thread.server.Server.signal |= MyObject.BEGIN_TIMING;
         	}
+        	else if (server.equals(SignalClient.JAVA_EVENT))
+        	{
+        		ecoop.bmarks.java.event.server.Server.signal |= MyObject.BEGIN_TIMING;
+        	}
         	else if (server.equals(SignalClient.SJ_EVENT))
         	{
         		ecoop.bmarks.sj.event.server.Server.signal |= MyObject.BEGIN_TIMING;
@@ -61,6 +65,10 @@ public class SignalServer
         	{
         		ecoop.bmarks.java.thread.server.Server.counting = true;
         	}
+        	else if (server.equals(SignalClient.JAVA_EVENT))
+        	{
+        		ecoop.bmarks.java.event.server.Server.counting = true;
+        	}
         	else if (server.equals(SignalClient.SJ_EVENT))
         	{
         		ecoop.bmarks.sj.event.server.Server.counting = true;
@@ -72,6 +80,10 @@ public class SignalServer
         	if (server.equals(SignalClient.JAVA_THREAD))
         	{
         		ecoop.bmarks.java.thread.server.Server.signal |= MyObject.KILL;
+        	}
+        	else if (server.equals(SignalClient.JAVA_EVENT))
+        	{
+        		ecoop.bmarks.java.event.server.Server.signal |= MyObject.KILL;
         	}
         	else if (server.equals(SignalClient.SJ_EVENT))
         	{
