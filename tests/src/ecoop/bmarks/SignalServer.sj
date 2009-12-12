@@ -14,6 +14,9 @@ public class SignalServer
   private int port;
   private String server;
 
+  private long start;
+  private long finish;
+  
   public SignalServer(int port, String server) 
   {
     this.port = port;
@@ -44,7 +47,8 @@ public class SignalServer
 
         //System.out.println("[SignalServer] Read: " + x);
         
-        if ((x & MyObject.BEGIN_TIMING) != 0)
+        // Not currently used.
+        if ((x & MyObject.BEGIN_TIMING) != 0) // Not currently used.
         {
         	if (server.equals(SignalClient.JAVA_THREAD))
         	{
@@ -69,6 +73,7 @@ public class SignalServer
         	if (server.equals(SignalClient.JAVA_THREAD))
         	{
         		ecoop.bmarks.java.thread.server.Server.counting = true;
+        		ecoop.bmarks.java.thread.server.Server.counted = true;
         	}
         	else if (server.equals(SignalClient.JAVA_EVENT))
         	{
@@ -77,11 +82,38 @@ public class SignalServer
         	else if (server.equals(SignalClient.SJ_THREAD))
         	{
         		ecoop.bmarks.sj.server.thread.Server.counting = true;
+        		ecoop.bmarks.sj.server.thread.Server.counted = true;
         	}
         	else if (server.equals(SignalClient.SJ_EVENT))
         	{
         		ecoop.bmarks.sj.server.event.Server.counting = true;
         	}
+        	
+        	start = System.nanoTime();
+        }
+        
+        if ((x & MyObject.STOP_COUNTING) != 0)
+        {        	
+        	if (server.equals(SignalClient.JAVA_THREAD))
+        	{
+        		ecoop.bmarks.java.thread.server.Server.counting = false;
+        	}
+        	else if (server.equals(SignalClient.JAVA_EVENT))
+        	{
+        		ecoop.bmarks.java.event.server.Server.counting = false;
+        	}
+        	else if (server.equals(SignalClient.SJ_THREAD))
+        	{
+        		ecoop.bmarks.sj.server.thread.Server.counting = false;
+        	}
+        	else if (server.equals(SignalClient.SJ_EVENT))
+        	{
+        		ecoop.bmarks.sj.server.event.Server.counting = false;
+        	}
+        	
+        	finish = System.nanoTime();
+        	
+        	System.out.println("[SignalServer] Counting time: " + (finish - start) + " nanos");        	
         }
         
         if ((x & MyObject.KILL) != 0) 
@@ -104,7 +136,7 @@ public class SignalServer
         	}
         	
           run = false;
-        }
+        }        
       }
     }
     finally

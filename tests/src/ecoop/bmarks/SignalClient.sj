@@ -20,6 +20,7 @@ public class SignalClient
 	public static final String KILL = "KILL";
 	public static final String TIME = "TIME";
 	public static final String COUNT = "COUNT";	
+	public static final String STOP = "STOP";	
 	
   public static void sendSignal(String host, int port, int signal) throws Exception
   {
@@ -75,6 +76,10 @@ public class SignalClient
       else if (command.equals(COUNT))
       {
         signal |= MyObject.BEGIN_COUNTING;
+      }
+      else if (command.equals(STOP))
+      {
+        signal |= MyObject.STOP_COUNTING;
       }
       else
       {

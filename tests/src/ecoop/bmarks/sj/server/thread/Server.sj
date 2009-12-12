@@ -18,13 +18,17 @@ public class Server
 
 	public static int signal = MyObject.NO_SIGNAL;
 	public static boolean counting = false;
+	public static boolean counted = false;
 	
 	private static boolean debug;
 		
   private int port;
   private int numClients; // NB: a TimerClient counts as two clients.
   
-  private long count = 0;  
+  private boolean[] halt; // Initialises to false.
+  
+  //private long count = 0;
+  private int[] counts;
 
   private int active; 
   
@@ -40,10 +44,13 @@ public class Server
 
   class ServerThread extends SJThread
   {  	
+  	private int tid;
+  	
   	private Server server;
   	
-  	public ServerThread(Server server)
+  	public ServerThread(int tid, Server server)
   	{
+  		this.tid = tid;
   		this.server = server;	
   	}
   	
@@ -65,16 +72,19 @@ public class Server
 							
 							if (counting) 
 							{
-								count++;
+								//count++;
+								counts[tid]++;
 								
-								debugPrintln("[Server] Current count:" + count);
+								debugPrintln("[Server] Current count:" + counts[tid]);
 							}
 								
 							s.recurse(X);
 						}
 						case QUIT:
 						{
-							numClients--;
+							numClients--; // This is not thread safe, but we'll leave it because numClients isn't used for anything important (we're joining for termination).
+							
+							halt[tid] = true;
 							
 							debugPrintln("[Server] Clients remaning: " + numClients);
 						}
@@ -111,13 +121,16 @@ public class Server
 			
 			debugPrintln("[Server] Listening on: " + port);
 			
+			counts = new int[numClients];
+			halt = new boolean[numClients];
+			
 			for (int i = 0; i < numClients; i++) 
 			{
 				try (s) 
 				{
 					s = ss.accept();
 					
-	    		<s>.spawn(new ServerThread(this));
+	    		<s>.spawn(new ServerThread(i, this));
 				} 				
     		finally 
     		{
@@ -125,26 +138,36 @@ public class Server
     		}
 			}
 			
-			while (this.active > 0)
+			for (int i = 0; i < halt.length; i++)
 			{
-				try
+				while (!halt[i])
 				{
-					synchronized (this)
+					try
 					{
-						this.wait();
+						synchronized (this)
+						{
+							this.wait();
+						}
 					}
-				}
-				catch (InterruptedException ie)
-				{
-					throw new RuntimeException(ie);
+					catch (InterruptedException ie)
+					{
+						throw new RuntimeException(ie);
+					}
 				}
 			}
  		} 
    	finally 
    	{
-   		if (counting)
+   		if (counted)
 			{
-				System.out.println("[Server] Total count: " + count);
+   			int total = 0;
+   			
+   			for (int i = 0; i < counts.length; i++)
+   			{
+   				total += counts[i];
+   			}
+   			
+				System.out.println("[Server] Total count: " + total);
 			}	
    	}
   }
