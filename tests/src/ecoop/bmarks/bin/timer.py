@@ -2,11 +2,11 @@
 import sys, socket
 import os, time
 
-# tests/src/ecoop/bmarks/sj/ctimeClient.py <debug> <host> <server_port> <client_port> <version> <num_repeats>
-# tests/src/ecoop/bmarks/sj/ctimeClient.py f camelot16 2000 4321 JT 100  
+# tests/src/ecoop/bmarks/timer.py <debug> <host> <server_port> <client_port> <version> <num_repeats>
+# tests/src/ecoop/bmarks/timer.py f camelot16 2000 4321 JT 100  
 
 if len(sys.argv) < 7:
-  print 'Usage: ctimeClient.py <debug> <host> <server_port> <client_port> <version> <num_repeats>'
+  print 'Usage: timer.py <debug> <host> <server_port> <client_port> <version> <num_repeats>'
   sys.exit(1)
   
 debug = sys.argv[1]

@@ -2,11 +2,11 @@
 import sys, socket
 import os, time
 
-# tests/src/ecoop/bmarks/sj/cloadClient.py <debug> <host> <server_port> <client_port> <version> <num_repeats>
-# tests/src/ecoop/bmarks/sj/cloadClient.py f camelot16 2000 4321 JT 100  
+# tests/src/ecoop/bmarks/load.py <debug> <host> <server_port> <client_port> <version> <num_repeats>
+# tests/src/ecoop/bmarks/load.py f camelot16 2000 4321 JT 100  
 
 if len(sys.argv) < 7:
-  print 'Usage: cloadClient.py <debug> <host> <server_port> <client_port> <version> <num_repeats>'
+  print 'Usage: load.py <debug> <host> <server_port> <client_port> <version> <num_repeats>'
   sys.exit(1)
   
 debug = sys.argv[1]
@@ -55,7 +55,7 @@ for v in versions:
 	        
 	        data = s.recv(1024);
 	        
-	        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.sj.client.ClientRunner false ' + host + ' ' + sport + ' ' + i + ' ' + j + ' ' + v 
+	        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.ClientRunner false ' + host + ' ' + sport + ' ' + i + ' ' + j + ' ' + v 
 	        
 	        if debug == 't':
 	          print 'Running: ' + command
