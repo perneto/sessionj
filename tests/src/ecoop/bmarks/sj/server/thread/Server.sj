@@ -98,7 +98,7 @@ public class Server
   
   public void run() throws Exception
   {		
-  	SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "s");
+  	//SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "s");
   	
   	final noalias SJServerSocket ss;
 
@@ -106,7 +106,8 @@ public class Server
 
 		try (ss) 
 		{
-			ss = SJServerSocket.create(pServer, port, params);
+			//ss = SJServerSocket.create(pServer, port, params);
+			ss = SJServerSocket.create(pServer, port);
 			
 			debugPrintln("[Server] Listening on: " + port);
 			

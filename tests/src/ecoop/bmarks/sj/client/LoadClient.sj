@@ -1,4 +1,5 @@
 //$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.client.LoadClient false localhost 8888 1234 100
+//$ bin/sessionj -Dsessionj.transports.session=a -cp tests/classes/ ecoop.bmarks.sj.client.LoadClient false localhost 8888 1234 100
 
 package ecoop.bmarks.sj.client;
 
@@ -35,15 +36,16 @@ public class LoadClient
 
   public void run() throws Exception
   {
-  	SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "sa");  	
+  	//SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "sa");  	
   	
-  	final noalias SJService serv = SJService.create(pClient, host, port);
+  	final noalias SJService c = SJService.create(pClient, host, port);
   	
     final noalias SJSocket s;
     
     try (s) 
     {
-      s = serv.request(params);
+      //s = serv.request(params);
+    	s = c.request();
 
       MyObject mo;
       
