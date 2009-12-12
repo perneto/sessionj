@@ -53,6 +53,7 @@ for v in versions:
 	    for k in sessionLengths:
 	        
 	      print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j + ', sessionLength=' + k
+              sys.stdout.flush()
 	
 	      for l in range(0, repeats):
 	        
@@ -69,7 +70,8 @@ for v in versions:
 	        
 	        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' ' + ' -1 ' + j + ' ' + k
 	        
-	        #if debug == 't':
-	        #print 'Running: ' + command
+	        if debug == 't':
+                  print 'Running: ' + command
+                  sys.stdout.flush()
 	
 	        os.system(command)        
