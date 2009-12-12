@@ -44,19 +44,10 @@ serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serversocket.bind((hostname, cport))
 
 serversocket.listen(5)
-
-print 'baba'
-sys.stdout.flush()
 	
 
 # Accept connection.
 (s, address) = serversocket.accept()
-
-print versions[0]
-sys.stdout.flush()
-
-print versions
-sys.stdout.flush()
 
 for v in versions:
 	for i in clients:
@@ -73,9 +64,9 @@ for v in versions:
 	        subpackage = ''
 	        
 	        if v == 'JT':
-	        	subpackage = java.thread
+	        	subpackage = 'java.thread'
 	        elif v == 'JE':
-	        	subpackage = java.event
+	        	subpackage = 'java.event'
 	        else: #elif v == 'ST' || v == 'SE':
 	        	subpackage = sj	
 	        
