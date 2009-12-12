@@ -23,9 +23,7 @@ msgSizes = []
 sessionLengths = []
 
 if version == 'ALL':
-	#versions = ['JT', 'JE', 'ST', 'SE']
-  versions = ['ST', 'SE']
-
+  versions = ['JT', 'JE', 'ST', 'SE']
 else:
   versions = [version]
 
@@ -35,9 +33,8 @@ if debug == 't':
   sessionLengths = ['0', '1', '10']
 else:
   clients = ['1', '10', '100']
-  msgSizes = ['10', '100', '1000', '10000']
-  sessionLengths = ['0', '1', '10', '100', '1000']
-
+  msgSizes = ['100', '1000', '10000']
+  sessionLengths = ['1', '10', '100', '1000']
 
 # Create an INET, STREAMing socket.
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,18 +46,18 @@ serversocket.listen(5)
 # Accept connection.
 (s, address) = serversocket.accept()
 
-for v in versions:
-	for i in clients:
-	  for j in msgSizes:
-	    for k in sessionLengths:
-	      for l in range(0, repeats):
+for i in clients:
+  for v in versions:
+    for j in msgSizes:
+      for k in sessionLengths:
+        for l in range(0, repeats):
+          
+          data = s.recv(1024);
+          
+          command = 'bin/csessionj -cp tests/classes ecoop.bmarks.ClientRunner false ' + host + ' ' + sport + ' ' + i + ' ' + j + ' ' + v 
 	        
-	        data = s.recv(1024);
-	        
-	        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.ClientRunner false ' + host + ' ' + sport + ' ' + i + ' ' + j + ' ' + v 
-	        
-	        if debug == 't':
-	          print 'Running: ' + command
+          if debug == 't':
+            print 'Running: ' + command
 	          
-	        os.system(command)
+          os.system(command)
           

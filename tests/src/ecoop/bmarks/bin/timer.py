@@ -24,9 +24,7 @@ sessionLengths = []
 hostname = socket.gethostname()
 
 if version == 'ALL':
-#versions = ['JT', 'JE', 'ST', 'SE']
-  versions = ['ST', 'SE']
-
+  versions = ['JT', 'JE', 'ST', 'SE']
 else:
   versions = [version]
 
@@ -36,8 +34,8 @@ if debug == 't':
   sessionLengths = ['0', '1', '10']
 else:
   clients = ['1', '10', '100']
-  msgSizes = ['10', '100', '1000', '10000']
-  sessionLengths = ['0', '1', '10', '100', '1000']
+  msgSizes = ['100', '1000', '10000']
+  sessionLengths = ['1', '10', '100', '1000']
 
 
 # Create an INET, STREAMing socket.
@@ -51,31 +49,31 @@ serversocket.listen(5)
 # Accept connection.
 (s, address) = serversocket.accept()
 
-for v in versions:
-	for i in clients:
-	  for j in msgSizes:
-	    for k in sessionLengths:
-	        
-	      print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j + ', sessionLength=' + k
-              sys.stdout.flush()
+for i in clients:
+  for v in versions:
+    for j in msgSizes:
+      for k in sessionLengths:
+        
+        print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j + ', sessionLength=' + k
+        sys.stdout.flush()
 	
-	      for l in range(0, repeats):
+        for l in range(0, repeats):
 	        
-	        data = s.recv(1024)
+          data = s.recv(1024)
 	        
-	        subpackage = ''
+          subpackage = ''
 	        
-	        if v == 'JT':
-	        	subpackage = 'java.thread'
-	        elif v == 'JE':
-	        	subpackage = 'java.event'
-	        else: #elif v == 'ST' || v == 'SE':
-	        	subpackage = 'sj'	
+          if v == 'JT':
+            subpackage = 'java.thread'
+          elif v == 'JE':
+            subpackage = 'java.event'
+          else: #elif v == 'ST' || v == 'SE':
+            subpackage = 'sj'	
 	        
-	        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' ' + ' -1 ' + j + ' ' + k
+          command = 'bin/csessionj -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' ' + ' -1 ' + j + ' ' + k
 	        
-	        if debug == 't':
-                  print 'Running: ' + command
-                  sys.stdout.flush()
+          if debug == 't':
+            print 'Running: ' + command
+            sys.stdout.flush()
 	
-	        os.system(command)        
+          os.system(command)        

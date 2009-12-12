@@ -49,8 +49,7 @@ msgSizes = []
 sessionLengths = []
 
 if version == 'ALL':
-	#versions = ['JT', 'JE', 'ST', 'SE']
-	versions = ['ST', 'SE']
+	versions = ['JT', 'JE', 'ST', 'SE']
 else:
 	versions = [version]
 
@@ -60,8 +59,8 @@ if debug == 't':
 	sessionLengths = ['0', '1', '10']
 else:
 	clients = [str(2 + machines), str(2 + 10*machines), str(2 + 100*machines)]
-	msgSizes = ['10', '100', '1000', '10000']
-	sessionLengths = ['0', '1', '10', '100', '1000']
+	msgSizes = ['100', '1000', '10000']
+	sessionLengths = ['1', '10', '100', '1000']
 
 
 sockets = connect(2, 2 + machines, cport)
@@ -70,8 +69,8 @@ s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s1.connect(("camelot01", cport))
 	
 
-for v in versions:
-	for i in clients:	
+for i in clients:
+	for v in versions:
 		for j in msgSizes:
 			for k in sessionLengths:
 				for l in range(0, repeats):
@@ -85,7 +84,7 @@ for v in versions:
 					thread1 = Thread(target=spawnThread, args=(command,))
 					thread1.start()
 	
-					time.sleep(5) # Make sure Server has started.
+					time.sleep(4) # Make sure Server has started.
 						
 					send(sockets, '1')
 						
@@ -95,4 +94,4 @@ for v in versions:
 						
 					thread1.join()
 	
-					time.sleep(5)
+					time.sleep(4)
