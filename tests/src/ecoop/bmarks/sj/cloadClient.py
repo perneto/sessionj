@@ -5,6 +5,7 @@ import os, time
 # tests/src/ecoop/bmarks/sj/cloadClient.py <debug> <host> <server_port> <client_port> <num_repeats>
 # tests/src/ecoop/bmarks/sj/cloadClient.py f camelot16 2000 4321 100  
 
+
 if len(sys.argv) < 6:
   print 'Usage: cloadClient.py <debug> <host> <server_port> <client_port> <num_repeats>'
   sys.exit(1)
