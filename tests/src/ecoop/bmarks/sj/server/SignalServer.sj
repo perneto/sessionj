@@ -5,6 +5,7 @@ import java.net.*;
 
 import ecoop.bmarks.sj.common.*;
 
+//@deprecated
 public class SignalServer 
 {
 	public static final int SIGNAL_SERVER_PORT_OFFSET = 1000;

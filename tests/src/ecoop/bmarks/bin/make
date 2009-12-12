@@ -101,17 +101,31 @@ then
 	done
 fi
 
-if [ "$se" == "true" ];
+if [ "$st" == "true" ];
 then	
-	path=tests/src/ecoop/bmarks/sj/event/server
+	path=tests/src/ecoop/bmarks/sj/server/thread
 	
 	for f in Server; do
 	  echo Compiling $path/$f.sj
 	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
 	done
+fi
+
+if [ "$se" == "true" ];
+then	
+	path=tests/src/ecoop/bmarks/sj/server/event
 	
-	path=tests/src/ecoop/bmarks/sj/event/client
+	for f in Server; do
+	  echo Compiling $path/$f.sj
+	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
+	  if [ $? -ne 0 ]; then exit 1; else echo; fi
+	done
+fi
+
+if [ "$st" == "true" -o "$se" == "true" ];
+then
+	path=tests/src/ecoop/bmarks/sj/client
 	
 	for f in LoadClient TimerClient; do
 	  echo Compiling $path/$f.sj

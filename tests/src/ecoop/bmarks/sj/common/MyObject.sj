@@ -2,6 +2,7 @@ package ecoop.bmarks.sj.common;
 
 import java.io.*;
 
+//@deprecated
 public class MyObject implements Serializable 
 {
 	public static final int NO_SIGNAL = 0;	

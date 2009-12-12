@@ -4,7 +4,7 @@ package ecoop.bmarks;
 
 import ecoop.bmarks.java.thread.client.*;
 import ecoop.bmarks.java.event.client.*;
-import ecoop.bmarks.sj.event.client.*;
+import ecoop.bmarks.sj.client.*;
 
 // Spawns LoadClients.
 public class ClientRunner 
@@ -47,9 +47,9 @@ public class ClientRunner
         		{
         			new ecoop.bmarks.java.event.client.LoadClient(debug, host, port, cn, messageSize).run();
         		}
-        		else if (server.equals(SignalClient.SJ_EVENT))
+        		else if (server.equals(SignalClient.SJ_THREAD) || server.equals(SignalClient.SJ_EVENT))
         		{
-        			new ecoop.bmarks.sj.event.client.LoadClient(debug, host, port, cn, messageSize).run();
+        			new ecoop.bmarks.sj.client.LoadClient(debug, host, port, cn, messageSize).run();
         		}
         		else
         		{

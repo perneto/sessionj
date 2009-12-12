@@ -6,7 +6,8 @@ import java.net.*;
 import ecoop.bmarks.*;
 import ecoop.bmarks.java.thread.server.*;
 import ecoop.bmarks.java.event.server.*;
-import ecoop.bmarks.sj.event.server.*;
+import ecoop.bmarks.sj.server.thread.*;
+import ecoop.bmarks.sj.server.event.*;
 
 public class SignalServer 
 {
@@ -53,9 +54,13 @@ public class SignalServer
         	{
         		ecoop.bmarks.java.event.server.Server.signal |= MyObject.BEGIN_TIMING;
         	}
+        	else if (server.equals(SignalClient.SJ_THREAD))
+        	{
+        		ecoop.bmarks.sj.server.thread.Server.signal |= MyObject.BEGIN_TIMING;
+        	}        	
         	else if (server.equals(SignalClient.SJ_EVENT))
         	{
-        		ecoop.bmarks.sj.event.server.Server.signal |= MyObject.BEGIN_TIMING;
+        		ecoop.bmarks.sj.server.event.Server.signal |= MyObject.BEGIN_TIMING;
         	}
         }
         
@@ -69,9 +74,13 @@ public class SignalServer
         	{
         		ecoop.bmarks.java.event.server.Server.counting = true;
         	}
+        	else if (server.equals(SignalClient.SJ_THREAD))
+        	{
+        		ecoop.bmarks.sj.server.thread.Server.counting = true;
+        	}
         	else if (server.equals(SignalClient.SJ_EVENT))
         	{
-        		ecoop.bmarks.sj.event.server.Server.counting = true;
+        		ecoop.bmarks.sj.server.event.Server.counting = true;
         	}
         }
         
@@ -85,9 +94,13 @@ public class SignalServer
         	{
         		ecoop.bmarks.java.event.server.Server.signal |= MyObject.KILL;
         	}
+        	else if (server.equals(SignalClient.SJ_THREAD))
+        	{
+        		ecoop.bmarks.sj.server.thread.Server.signal |= MyObject.KILL;
+        	}
         	else if (server.equals(SignalClient.SJ_EVENT))
         	{
-        		ecoop.bmarks.sj.event.server.Server.signal |= MyObject.KILL;
+        		ecoop.bmarks.sj.server.event.Server.signal |= MyObject.KILL;
         	}
         	
           run = false;
