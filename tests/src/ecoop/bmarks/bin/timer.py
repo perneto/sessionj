@@ -24,9 +24,11 @@ sessionLengths = []
 hostname = socket.gethostname()
 
 if version == 'ALL':
-	versions = ['JT', 'JE', 'ST', 'SE']
+#versions = ['JT', 'JE', 'ST', 'SE']
+  versions = ['ST', 'SE']
+
 else:
-	versions = [version]
+  versions = [version]
 
 if debug == 't':	
   clients = ['1', '2']
@@ -68,7 +70,7 @@ for v in versions:
 	        elif v == 'JE':
 	        	subpackage = 'java.event'
 	        else: #elif v == 'ST' || v == 'SE':
-	        	subpackage = sj	
+	        	subpackage = 'sj'	
 	        
 	        command = 'bin/csessionj -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' ' + ' -1 ' + j + ' ' + k
 	        
