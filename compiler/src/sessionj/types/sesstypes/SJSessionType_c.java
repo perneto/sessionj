@@ -26,7 +26,8 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	private static final long serialVersionUID = SJ_VERSION;
 
 	private SJSessionType child;   
-
+    private SJSessionType canonicalForm = null;
+    
 	protected SJSessionType_c(TypeSystem ts)
 	{
 		super(ts);
@@ -43,7 +44,8 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 		
 		if (child != null)
 		{
-			((SJSessionType_c) st).setChild(child.copy()); // Clone the child. FIXME: Why?
+			//((SJSessionType_c) st).setChild(child.copy()); // Clone the child. FIXME: Why?
+            ((SJSessionType_c) st).setChild(child);
 		}
 		
 		return st; 
@@ -292,7 +294,10 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
     
   final public SJSessionType getCanonicalForm()  
   {
-  	return treeCanonicalForm();
+      if (canonicalForm == null) {
+          canonicalForm = treeCanonicalForm();
+      }
+      return canonicalForm;
   }
   
   public SJSessionType nodeCanonicalForm() // FIXME: still need to override in most types, e.g. branch types. Currently only overridden by SJSetType_c and SJMessageCommunication_c.
