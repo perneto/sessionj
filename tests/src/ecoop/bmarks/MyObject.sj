@@ -8,6 +8,7 @@ public class MyObject implements Serializable
   public static final int KILL = 1;
   public static final int BEGIN_TIMING = 2;
   public static final int BEGIN_COUNTING = 4;  
+  public static final int STOP_COUNTING = 8;
 	
 	private byte[] byteArray;
   	
@@ -32,10 +33,10 @@ public class MyObject implements Serializable
     return ((signal & KILL) != 0);
   }
   
-  public boolean timeSignal() 
+  /*public boolean timeSignal() 
   {
     return ((signal & BEGIN_TIMING) != 0);
-  }
+  }*/
   
   public String toString()
   {

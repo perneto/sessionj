@@ -15,13 +15,16 @@ public class Server
 
 	public static int signal = MyObject.NO_SIGNAL;
 	public static boolean counting = false;
+	public static boolean counted = false;
 	
 	private static boolean debug;
 		
   private int port;
   private int numClients; // NB: a TimerClient counts as two clients.
+  //private boolean[] join; 
   
-  private long count = 0;  
+  //private long count = 0;  
+  private int[] counts;
 
   public Server(boolean debug, int port, int numClients) 
   {
@@ -33,10 +36,13 @@ public class Server
 
   class ServerThread extends Thread
   {
+  	private int tid;
+  	
   	private Socket s;
   	
-  	public ServerThread(Socket s)
+  	public ServerThread(int tid, Socket s)
   	{
+  		this.tid = tid;
   		this.s = s;
   	}
   	
@@ -66,14 +72,14 @@ public class Server
 	          
 	          if (counting) 
 	          {
-	            count++;
+	            counts[tid]++;
 	            
-	            debugPrintln("[Server] Current count:" + count);		            
+	            debugPrintln("[Server] Current count:" + counts[tid]);		            
 	          }				
 	  			}
 	  			else //if (i == QUIT)
 	  			{
-	  				numClients--;
+	  				numClients--; // This is not thread safe, but we'll leave it because numClients isn't used for anything important (we're joining for termination).
 	  				
 	  				debugPrintln("[Server] Clients remaning: " + numClients);
 	  				
@@ -124,12 +130,14 @@ public class Server
 			ss = new ServerSocket(port);
 			
 			debugPrintln("[Server] Listening on: " + port);
+
+			counts = new int[numClients];
 			
-			List threads = new LinkedList();
+			List threads = new LinkedList();			
 			
 			for (int i = 0; i < numClients; i++)
 			{
-				ServerThread st = new ServerThread(ss.accept());
+				ServerThread st = new ServerThread(i, ss.accept());
 				
 				st.start();
 				
@@ -143,9 +151,16 @@ public class Server
 		}
 		finally
 		{
-			if (counting)
+			if (counted)
 			{
-				System.out.println("[Server] Total count: " + count);
+				long total = 0;
+				
+				for (int i = 0; i < counts.length; i++)
+				{
+					total += counts[i];
+				}
+				
+				System.out.println("[Server] Total count: " + total);
 			}
 			
 			if (ss != null)
