@@ -1,25 +1,36 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.client.SignalClient localhost 8888 KILL
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.SignalClient localhost 8888 KILL
 
-package ecoop.bmarks.sj.client;
+package ecoop.bmarks;
 
 import java.io.*;
 import java.net.*;
 
-import ecoop.bmarks.sj.common.*;
-import ecoop.bmarks.sj.server.SignalServer;
+import ecoop.bmarks.*;
 
 public class SignalClient 
 {
+	public static final int SIGNAL_SERVER_PORT_OFFSET = 1000;	
+	
+	public static final String JAVA_THREAD = "JT"; // Not really a good place for these. Should make a separate constants class. Could also put e.g. common close routines in there.
+	public static final String JAVA_EVENT = "JE";
+	public static final String SJ_THREAD = "ST";
+	public static final String SJ_EVENT = "SE";	
+	
+	public static final String KILL = "KILL";
+	public static final String TIME = "TIME";
+	public static final String COUNT = "COUNT";	
+	
   public static void sendSignal(String host, int port, int signal) throws Exception
   {
   	Socket s = null; 
+  	
   	ObjectOutputStream os = null;
   	
     try 
     {
       //System.out.println("[SignalClient] Connecting to: " + host + ":" + (port + SignalServer.SIGNAL_SERVER_PORT_OFFSET)); 
     	
-    	s = new Socket(host, port + SignalServer.SIGNAL_SERVER_PORT_OFFSET);
+    	s = new Socket(host, port + SIGNAL_SERVER_PORT_OFFSET);
       
       os = new ObjectOutputStream(s.getOutputStream());
       
@@ -43,11 +54,6 @@ public class SignalClient
 
   public static void main(String args[]) throws Exception
   {
-    if (args.length < 3) 
-    {
-      System.out.println("Usage: java SignalClient <host> <port> <Command1> [Command2] [Command3]");
-    }
-
     String host = args[0];
     int port = Integer.parseInt(args[1]);
     
@@ -57,15 +63,15 @@ public class SignalClient
     {
     	String command = args[i].toUpperCase();
     	
-      if (command.equals("KILL"))
+      if (command.equals(KILL))
       {
         signal |= MyObject.KILL;
       }
-      else if (command.equals("TIME"))
+      else if (command.equals(TIME))
       {
         signal |= MyObject.BEGIN_TIMING;
       }
-      else if (command.equals("COUNT"))
+      else if (command.equals(COUNT))
       {
         signal |= MyObject.BEGIN_COUNTING;
       }

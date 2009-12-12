@@ -1,12 +1,12 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.server.Server false 8888 1 
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.event.server.Server false 8888 1 
 
-package ecoop.bmarks.sj.server;
+package ecoop.bmarks.sj.event.server;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
 
-import ecoop.bmarks.sj.common.*;
+import ecoop.bmarks.*;
 
 public class Server  
 {
@@ -16,11 +16,11 @@ public class Server
   
   private protocol pSelector { @(pRecursion), @(pReceive) }
 
+	public static int signal = MyObject.NO_SIGNAL;
+	public static boolean counting = false;
+	
 	private static boolean debug;
-	
-	protected static int signal = MyObject.NO_SIGNAL;
-	protected static boolean counting = false;
-	
+		
   private int port;
   private int numClients; // NB: a TimerClient counts as two clients.
   
@@ -127,21 +127,6 @@ public class Server
   		System.out.println(m);
   	}
   }
-  
-  /*public static void sendKill() 
-  {
-    signal |= MyObject.KILL_LOAD;
-  }
-
-  public static void sendTiming() 
-  {
-    signal |= MyObject.BEGIN_TIMING;
-  }
-
-  public static void sendCounting() 
-  {
-    counting = true;
-  }*/
 
   public static void main(String [] args) throws Exception 
   {

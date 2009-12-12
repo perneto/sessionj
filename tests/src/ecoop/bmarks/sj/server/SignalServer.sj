@@ -62,19 +62,19 @@ public class SignalServer
     }
     finally
     {
-    	if (ss != null)
+    	if (is != null)
     	{
-    		ss.close();
-    	}
+    		is.close();
+    	}    	
     	
     	if (s != null)
     	{
     		s.close();
-    	}
+    	}  
     	
-    	if (is != null)
+    	if (ss != null)
     	{
-    		is.close();
+    		ss.close();
     	}
     }
     

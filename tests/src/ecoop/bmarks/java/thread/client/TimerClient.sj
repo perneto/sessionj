@@ -1,20 +1,16 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.client.TimerClient false localhost 8888 -1 100 10
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.java.thread.client.TimerClient false localhost 8888 -1 100 10
 
-package ecoop.bmarks.sj.client;
+package ecoop.bmarks.java.thread.client;
 
-import sessionj.runtime.*;
-import sessionj.runtime.net.*;
-import sessionj.runtime.transport.*;
+import java.io.*;
+import java.net.*;
 
-import ecoop.bmarks.sj.common.*;
-import ecoop.bmarks.sj.server.Server;
+import ecoop.bmarks.*;
+import ecoop.bmarks.java.thread.server.Server;
 
 // This counts as two clients (from the Server's view), due to the dummy run.
 public class TimerClient 
 {
-  //protocol pClient cbegin.rec X[!{QUIT: , REC: !<int>.?(MyObject).#X}]
-	protocol pClient ^(Server.pServer)
-
 	private static boolean debug;
 	
   private String host;
@@ -56,52 +52,43 @@ public class TimerClient
 
   public void run(boolean time) throws Exception
   {
-  	SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "a");
-  	
-	  final noalias SJService serv = SJService.create(pClient, host, port);
+		Socket s = null;
 		
-	  final noalias SJSocket s;
-	  	  
-	  try (s) 
-	  {
-	    s = serv.request(params);
+		ObjectOutputStream oos = null;
+		ObjectInputStream ois = null;
+		
+		try
+		{
+			s = new Socket(host, port);
+			
+			oos = new ObjectOutputStream(s.getOutputStream());
+			ois = new ObjectInputStream(s.getInputStream());
 	
 	    long start = System.nanoTime();
 	    
 	    MyObject mo;
 	     
-	    int iters = 0;
-	    
-	    s.recursion(X) 
-	    {
-	      if (iters < sessionLength) 
-	      {
-	        s.outbranch(REC) 
-	        {
-	        	s.send(new ClientMessage(clientNum, Integer.toString(iters), messageSize));
-	          
-	          mo = (MyObject) s.receive();            
-	          
-	          debugPrintln("[Client " + clientNum + "] Received: " + mo);
+	    for (int iters = 0; iters < sessionLength; iters++) 
+      {
+  			oos.writeInt(Server.REC);
+  			oos.flush();
+  			
+        oos.writeObject(new ClientMessage(clientNum, Integer.toString(iters), messageSize));
+            
+        mo = (MyObject) ois.readObject();      
+            
+	      debugPrintln("[LoadClient " + clientNum + "] Received: " + mo);
 	
-	          if (debug)
-	          {
-	          	Thread.sleep(1000);
-	          }
-	          
-	          s.recurse(X);
-	        }
-	      }
-	      else 
+	      if (debug)
 	      {
-	        s.outbranch(QUIT) 
-	        {
-	          debugPrintln("[Client " + clientNum + "] Quitting.");
-	        }
+	      	Thread.sleep(1000);
 	      }
-	      
-	      iters++;
-	    }
+      }
+      
+      oos.writeInt(Server.QUIT);
+			oos.flush();
+			
+      debugPrintln("[LoadClient " + clientNum + "] Quitting.");
 	    	    
 	    long finish = System.nanoTime();
 	    

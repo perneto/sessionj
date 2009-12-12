@@ -1,4 +1,4 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.server.ServerRunner false 8888 1 100
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.server.ServerRunner false 8888 1 
 
 package ecoop.bmarks.sj.server;
 

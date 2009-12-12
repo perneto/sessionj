@@ -1,13 +1,13 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.client.TimerClient false localhost 8888 -1 100 10
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.sj.event.client.TimerClient false localhost 8888 -1 100 10
 
-package ecoop.bmarks.sj.client;
+package ecoop.bmarks.sj.event.client;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
 
-import ecoop.bmarks.sj.common.*;
-import ecoop.bmarks.sj.server.Server;
+import ecoop.bmarks.*;
+import ecoop.bmarks.sj.event.server.Server;
 
 // This counts as two clients (from the Server's view), due to the dummy run.
 public class TimerClient 
