@@ -16,16 +16,17 @@ cport = int(sys.argv[4])
 version = sys.argv[5]
 repeats = int(sys.argv[6])
 
-if version == 'ALL':
-	versions = ['JT', 'JE', 'ST', 'SE']
-else:
-	versions = [version]
 
 versions = []
 clients = []
 msgSizes = []
 sessionLengths = []
 hostname = socket.gethostname()
+
+if version == 'ALL':
+	versions = ['JT', 'JE', 'ST', 'SE']
+else:
+	versions = [version]
 
 if debug == 't':	
   clients = ['1', '2']
