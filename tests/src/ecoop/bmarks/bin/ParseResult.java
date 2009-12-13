@@ -51,16 +51,21 @@ public class ParseResult {
 					int ind = line.indexOf(",", 19);
 					String s1 = line.substring(19,ind);
 
-					ind += 10;
+					ind += 9;
       				int ind2 = line.indexOf(",", ind);
 
 					String s2 = line.substring(ind, ind2);
 
-					ind2 += 16;
+					ind2 += 10;
 
-					String s3 = line.substring(ind2);
+					ind = line.indexOf(",",ind2);
 
-					head[++count] = "c" + s1 + "ms" + s2 + "sl" + s3;
+					String s3 = line.substring(ind2, ind);
+
+					ind += 16;
+					String s4 = line.substring(ind);
+
+					head[++count] = "v:" + s1 + "c:" + s2 + "ms:" + s3 + "sl:" + s4;
 
       				if (count != 0)
 						avg[count - 1] = avg[count - 1] / reps;
