@@ -1,6 +1,6 @@
 package sessionj.runtime.transport;
 
-import sessionj.runtime.net.SJSelectorInternal;
+import sessionj.runtime.net.TransportSelector;
 
 public abstract class AbstractSJTransport implements SJTransport {
     @Override
@@ -18,7 +18,7 @@ public abstract class AbstractSJTransport implements SJTransport {
      * Default implementation if async mode is unsupported.
      * @return null, always
      */
-    public SJSelectorInternal transportSelector() {
+    public TransportSelector transportSelector() {
         return null;
     }
 

@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 
 /**
  */
-class AsyncManualTCPSelector implements SJSelectorInternal {
+class AsyncManualTCPSelector implements TransportSelector {
     private static final Logger log = SJRuntimeUtils.getLogger(AsyncManualTCPSelector.class);
     
     private final SelectingThread thread;

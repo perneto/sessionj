@@ -10,5 +10,7 @@ public interface SJSelector extends SJSelectorBase {
 
     // Select may throw SJIncompatibleSessionException when finishing accept actions.
     // But this is a bit inconvenient when we are not using a selector in this way.      
+    // Will be removed when compiler is updated to allow returning SJServerSockets too;
+    // then, the accept() call will be done in the user code.
     SJSocket select() throws SJIOException, SJIncompatibleSessionException;
 }

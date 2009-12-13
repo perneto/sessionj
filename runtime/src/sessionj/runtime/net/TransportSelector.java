@@ -2,7 +2,7 @@ package sessionj.runtime.net;
 
 import sessionj.runtime.SJIOException;
 
-public interface SJSelectorInternal extends SJSelectorBase {
+public interface TransportSelector extends SJSelectorBase {
     boolean registerAccept(SJServerSocket ss) throws Exception;
     boolean registerInput(SJSocket s) throws Exception;
 

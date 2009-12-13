@@ -2,7 +2,7 @@ package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.util.SJRuntimeUtils;
-import sessionj.runtime.net.SJSelectorInternal;
+import sessionj.runtime.net.TransportSelector;
 import sessionj.runtime.transport.*;
 
 import java.io.IOException;
@@ -69,7 +69,7 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
         }
 	}
 
-    public SJSelectorInternal transportSelector() {
+    public TransportSelector transportSelector() {
         return new AsyncManualTCPSelector(thread, this);
     }
 
