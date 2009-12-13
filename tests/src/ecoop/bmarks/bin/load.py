@@ -32,7 +32,8 @@ if debug == 't':
   msgSizes = ['10', '100']
   sessionLengths = ['0', '1', '10']
 else:
-  clients = ['50', '10']
+  #clients = ['10', '50']
+  clients = ['10']
   msgSizes = ['100', '1000']
   sessionLengths = ['1', '10', '100']
 
@@ -46,8 +47,8 @@ serversocket.listen(5)
 # Accept connection.
 (s, address) = serversocket.accept()
 
-for i in clients:
-  for v in versions:
+for v in versions:
+  for i in clients:
     for j in msgSizes:
       for k in sessionLengths:
         for l in range(0, repeats):

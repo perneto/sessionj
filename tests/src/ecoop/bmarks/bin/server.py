@@ -58,7 +58,8 @@ if debug == 't':
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = [str(2 + 50*machines), str(2 + 10*machines)]
+	#clients = [str(2 + 10*machines), str(2 + 50*machines)]
+	clients = [str(2 + 10*machines)]
 	msgSizes = ['100', '1000']
 	sessionLengths = ['1', '10', '100']
 
@@ -69,8 +70,9 @@ s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s1.connect(("camelot01", cport))
 	
 
-for i in clients:
-	for v in versions:
+
+for v in versions:
+	for i in clients:
 		for j in msgSizes:
 			for k in sessionLengths:
 				for l in range(0, repeats):
