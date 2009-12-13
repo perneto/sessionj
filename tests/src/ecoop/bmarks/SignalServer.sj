@@ -78,6 +78,7 @@ public class SignalServer
         	else if (server.equals(SignalClient.JAVA_EVENT))
         	{
         		ecoop.bmarks.java.event.server.Server.counting = true;
+        		ecoop.bmarks.java.event.server.Server.counted = true;
         	}
         	else if (server.equals(SignalClient.SJ_THREAD))
         	{
@@ -87,6 +88,7 @@ public class SignalServer
         	else if (server.equals(SignalClient.SJ_EVENT))
         	{
         		ecoop.bmarks.sj.server.event.Server.counting = true;
+        		ecoop.bmarks.sj.server.event.Server.counted = true;
         	}
         	
         	start = System.nanoTime();

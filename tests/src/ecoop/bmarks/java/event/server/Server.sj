@@ -17,6 +17,7 @@ public class Server
 
 	public static int signal = MyObject.NO_SIGNAL;
 	public static boolean counting = false;
+	public static boolean counted = false;
 	
 	private static boolean debug;
 		
@@ -57,7 +58,7 @@ public class Server
     } 
     finally
     {
-    	if (counting)
+    	if (counted)
 			{
 				System.out.println("[Server] Total count: " + count);
 			}    	
