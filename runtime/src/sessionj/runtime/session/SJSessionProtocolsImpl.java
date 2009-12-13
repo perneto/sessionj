@@ -105,7 +105,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 				{				
 					if (ser.getConnection() != null) // FIXME: need a isClosed.
 					{
-                        SJSelectorInternal sel;
+                        TransportSelector sel;
                         //noinspection EmptyFinallyBlock
                         try
 						{
