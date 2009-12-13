@@ -98,6 +98,8 @@ public class Server
 				{
 					if (--server.active == 0)
 					{
+						System.out.println("end of thread: tid=" + tid + ", active=" + server.active);
+						
 						server.lock.notify();
 					}
 				}					
@@ -142,7 +144,11 @@ public class Server
 				{
 					try
 					{
+						System.out.println("server waiting: active=" + active);
+						
 						lock.wait();
+						
+						System.out.println("server woke up: active=" + active);
 					}
 					catch (InterruptedException ie)
 					{
