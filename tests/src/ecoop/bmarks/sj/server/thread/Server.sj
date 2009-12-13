@@ -132,6 +132,8 @@ public class Server
 				{
 					s = ss.accept();
 					
+					System.out.println("server spawning thread for: tid=" + i);
+					
 	    		<s>.spawn(new ServerThread(i, this));
 				} 				
     		finally 
