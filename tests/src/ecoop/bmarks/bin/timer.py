@@ -33,9 +33,10 @@ if debug == 't':
   msgSizes = ['10', '100']
   sessionLengths = ['0', '1', '10']
 else:
-  clients = ['1', '5', '10', '50', '100']
-  msgSizes = ['100', '1000', '10000']
-  sessionLengths = ['1', '10', '100', '1000']
+  clients = ['10', '50']
+  #clients = ['10']
+  msgSizes = ['100', '1000']
+  sessionLengths = ['1', '10', '100']
 
 
 # Create an INET, STREAMing socket.
@@ -49,8 +50,8 @@ serversocket.listen(5)
 # Accept connection.
 (s, address) = serversocket.accept()
 
-for i in clients:
-  for v in versions:
+for v in versions:
+  for i in clients:
     for j in msgSizes:
       for k in sessionLengths:
         

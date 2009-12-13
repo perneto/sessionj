@@ -58,9 +58,10 @@ if debug == 't':
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = [str(2 + machines), str(2 + 5*machines), str(2 + 10*machines), str(2 + 50*machines), str(2 + 100*machines)]
-	msgSizes = ['100', '1000', '10000']
-	sessionLengths = ['1', '10', '100', '1000']
+	clients = [str(2 + 10*machines), str(2 + 50*machines)]
+#	clients = [str(2 + 10*machines)]
+	msgSizes = ['100', '1000']
+	sessionLengths = ['1', '10', '100']
 
 
 sockets = connect(2, 2 + machines, cport)
@@ -69,8 +70,9 @@ s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s1.connect(("camelot01", cport))
 	
 
-for i in clients:
-	for v in versions:
+
+for v in versions:
+	for i in clients:
 		for j in msgSizes:
 			for k in sessionLengths:
 				for l in range(0, repeats):
@@ -80,7 +82,7 @@ for i in clients:
 					else:
 						transport = ' '
 	
-					command = 'bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
+					command = 'bin/csessionj -XX:-UseGCOverheadLimit' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
 	
 					if debug == 't':
 						print 'Running: ' + command
