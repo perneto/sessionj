@@ -58,7 +58,7 @@ if debug == 't':
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = [str(2 + machines), str(2 + 5*machines), str(2 + 10*machines), str(2 + 50*machines), str(2 + 100*machines)]
+	clients = [str(2 + 50*machines), str(2 + 100*machines)]
 	msgSizes = ['100', '1000', '10000']
 	sessionLengths = ['1', '10', '100', '1000']
 
@@ -80,7 +80,7 @@ for i in clients:
 					else:
 						transport = ' '
 	
-					command = 'bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
+					command = 'bin/csessionj -Xms256m -Xmx512m' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
 	
 					if debug == 't':
 						print 'Running: ' + command
