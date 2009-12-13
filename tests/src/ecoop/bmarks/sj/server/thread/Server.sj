@@ -144,13 +144,13 @@ public class Server
 					{
 						lock.wait();
 					}
-				}
-				catch (InterruptedException ie)
-				{
-					throw new RuntimeException(ie);
+					catch (InterruptedException ie)
+					{
+						throw new RuntimeException(ie);
+					} 
 				}
 			}
- 		} 
+		}
    	finally 
    	{
    		if (counted)
