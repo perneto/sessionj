@@ -1,6 +1,4 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/messages/ServerGreeting.sj -d tests/classes/ 
-
-package esmtp.sj.messages;
+package ecoop.bmarks.smtp.messages;
 
 public class ServerGreeting extends SmtpMessage 
 {

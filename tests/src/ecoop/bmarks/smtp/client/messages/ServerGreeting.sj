@@ -1,6 +1,4 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/messages/ServerGreeting.sj -d tests/classes/ 
-
-package esmtp.sj.client.messages;
+package ecoop.bmarks.smtp.client.messages;
 
 public class ServerGreeting implements SmtpParseable // Actually, the server greeting starts with a "220"; so this message can be made an SmtpAck.
 {

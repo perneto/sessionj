@@ -1,6 +1,4 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/SmtpClientFormatter.sj -d tests/classes/ 
-
-package esmtp.sj.client;
+package ecoop.bmarks.smtp.client;
 
 import java.io.IOException;
 import java.nio.*;
@@ -15,7 +13,7 @@ import sessionj.runtime.transport.tcp.*;
 import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 
-import esmtp.sj.client.messages.*;
+import ecoop.bmarks.smtp.client.messages.*;
 
 /*
  * Message formatters are like a localised version of the protocol: the messages received by writeMessage should follow the dual protocol to the messages returned by readNextMessage. But the formatter is an object: need object-based session types to control this.
@@ -90,15 +88,9 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 	
 	public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
 	{
-		/*if (bb.limit() == 0)
-		{
-			return null;
-		}*/
-		
 		try
 		{
 			String m = decodeFromUtf8(bb);
-			
 			String mm = m;
 			String consumed = "";
 			
@@ -422,21 +414,19 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 			{
 				if (MESSAGE_BODY_ACK.isParseable(m))
 				{
-					state = QUIT_ACK;
-					
-					//return MESSAGE_BODY_ACK.parse(m);
+					state = MAIL_ACK_FIRST_DIGIT;
 					o = MESSAGE_BODY_ACK.parse(m);
 					consumed = m;
 				}
 			}
 
+            // FIXME: never getting to this state now (infinite loop)
 			else if (state == QUIT_ACK)
 			{
 				//System.out.println("1: " + m + ", " Arrays.toString(m.getBytes()));
 				
 				if (QUIT_ACK.isParseable(m))
 				{
-					//return QUIT_ACK.parse(m);
 					o = QUIT_ACK.parse(m);
 					consumed = m;
 				}
@@ -447,338 +437,13 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 				throw new SJIOException("[SJSmptFormatter] Invalid state: " + state);
 			}
 			
-			//putBackRemainderReadyForReading(bb, "");
-			//bb.clear();
-			
-			//System.out.println("p " + bb.position() + ", l " + bb.limit() + ", c" + bb.capacity());
-			
-			//foo(o, bb, consumed);
 			if (o != null && consumed.length() > 0)
 			{
 				restoreReadButUnusedData(bb, consumed.getBytes().length); // FIXME: should specify the charset.
 			}
 			
-			//bb.compact();
-			
-			//return null;
 			return o;
 			
-			/*if (state == GREETING)
-			{
-				String greeting = decodeFromUtf8(bb);
-								
-				if (greeting.endsWith(LINE_FEED))
-				{
-					state = HELO_ACK;
-					
-					return new ServerGreeting(greeting.substring(0, greeting.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == HELO_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = MAIL_ACK_FIRST;
-					
-					return new HeloAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			/*else if (state == MAIL_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = RCPT_OR_DATA_ACK;
-					
-					return new MailAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}*
-			else if (state == MAIL_ACK_FIRST)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.equals("2"))
-				{
-					state = MAIL_TWO_ACK_REST;								
-					
-					return ack;
-				}
-				else if (ack.equals("5"))
-				{
-					state = MAIL_FIVE_ACK_REST;
-					
-					return ack;
-				}
-				else
-				{
-					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + ack);
-				}
-			}
-			else if (state == MAIL_TWO_ACK_REST)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.length() == 2)
-				{
-					state = MAIL_TWO_ACK_CONTINUE;
-					
-					return new MailAckTwoDigits(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}			
-			
-			else if (state == MAIL_TWO_ACK_CONTINUE)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.equals("-"))
-				{
-					state = MAIL_TWO_ACK_MORE;
-					
-					return HYPHEN;
-				}
-				else if (ack.equals(" "))
-				{
-					state = MAIL_TWO_ACK_END;
-					
-					return SPACE;
-				}
-				else
-				{
-					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + ack);
-				}
-			}		
-			else if (state == MAIL_TWO_ACK_MORE)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = MAIL_ACK_FIRST;
-					
-					return new MailTwoAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == MAIL_TWO_ACK_END)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = RCPT_OR_DATA_ACK;
-					
-					return new MailTwoAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			/*else if (state == MAIL_FIVE_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = MAIL_ACK_FIRST;
-					
-					return new MailFiveAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}*
-			else if (state == MAIL_FIVE_ACK_REST)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.length() == 2)
-				{
-					state = MAIL_FIVE_ACK_CONTINUE;
-					
-					return new MailAckTwoDigits(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}			
-			else if (state == MAIL_FIVE_ACK_CONTINUE)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.equals("-"))
-				{
-					state = MAIL_FIVE_ACK_MORE;
-					
-					return HYPHEN;
-				}
-				else if (ack.equals(" "))
-				{
-					state = MAIL_FIVE_ACK_END;
-					
-					return SPACE;
-				}
-				else
-				{
-					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + ack);
-				}
-			}		
-			else if (state == MAIL_FIVE_ACK_MORE)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = MAIL_ACK_FIRST;
-					
-					return new MailFiveAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == MAIL_FIVE_ACK_END)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = MAIL_ACK_FIRST;
-					
-					return new MailFiveAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == RCPT_OR_DATA_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.equals("2"))
-				{
-					state = RCPT2_ACK;								
-					
-					return ack;
-				}
-				else if (ack.equals("5"))
-				{
-					state = RCPT5_ACK;
-					
-					return ack;
-				}
-				else
-				{
-					//throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + ack);
-
-					state = DATA_ACK;
-					
-					return null; // Keep reading for DataAck. This assumes ack is not "\n" already.
-				}
-			}
-			else if (state == RCPT2_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = RCPT_OR_DATA_ACK;
-
-					return new RcptTwoAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == RCPT5_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = QUIT_ACK;
-					
-					return new RcptFiveAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == DATA_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = MESSAGEBODY_ACK;
-					
-					return new DataAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == MESSAGEBODY_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = QUIT_ACK;
-					
-					return new MessageBodyAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}	
-			else if (state == QUIT_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED)) // Or is it just EOF directly?
-				{
-					return new QuitAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else 
-			{
-				throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here.");
-			}*/
 		}
 		catch (CharacterCodingException cce)
 		{
@@ -786,190 +451,4 @@ public class SmtpClientFormatter extends SJUtf8Formatter
 		}
 	}
 	
-	/*public Object parseMessage(ByteBuffer bb, boolean eof) throws SJIOException // bb is read-only and already flipped (from SJCustomeMessageFormatter).
-	{
-		try
-		{
-			if (eof && state != QUIT_ACK) 
-			{
-				String m = decodeFromUtf8(bb);
-				//String m = decodeFromUtf8(bs);
-				
-				throw new SJIOException("[SmtpClientFormatter] Unexpected EOF: " + m);
-			}				
-	
-			//byte[] bs = copyByteBufferContents(bb);	
-			//String m = decodeFromUtf8(bs);
-			
-			if (state == GREETING)
-			{
-				String greeting = decodeFromUtf8(bb);
-				//String greeting = decodeFromUtf8(bs);
-								
-				if (greeting.endsWith(LINE_FEED))
-				{
-					state = HELO_ACK;
-					
-					return new ServerGreeting(greeting.substring(0, greeting.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == HELO_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				//String ack = decodeFromUtf8(bs);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = MAIL_ACK;
-					
-					return new HeloAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == MAIL_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = RCPT_BRANCH;
-					
-					return new MailAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == RCPT_BRANCH)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.equals("2"))
-				{
-					state = RCPT2_ACK;								
-					
-					return ack;
-				}
-				else if (ack.equals("5"))
-				{
-					state = RCPT5_ACK;
-					
-					return ack;
-				}
-				else
-				{
-					throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here: " + ack);
-				}
-			}
-			/*else if (state == RCPT_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					/*recipients++;
-				
-					if (recipients == 4)*
-					{
-						state = DATA_ACK;
-					}
-					
-					return new RcptAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}*
-			else if (state == RCPT2_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = DATA_ACK;
-
-					return new RcptTwoAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == RCPT5_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = QUIT_ACK;
-					
-					return new Rcpt5Ack(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == DATA_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = MESSAGEBODY_ACK;
-					
-					return new DataAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else if (state == MESSAGEBODY_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED))
-				{
-					state = QUIT_ACK;
-					
-					return new MessageBodyAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}	
-			else if (state == QUIT_ACK)
-			{
-				String ack = decodeFromUtf8(bb);
-				
-				if (ack.endsWith(LINE_FEED)) // Or is it just EOF directly?
-				{
-					return new QuitAck(ack.substring(0, ack.length() - LINE_FEED.length()));
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else 
-			{
-				throw new SJIOException("[SmtpClientFormatter] Shouldn't get in here.");
-			}
-		}
-		catch (CharacterCodingException cce)
-		{
-			throw new SJIOException(cce);
-		}
-	}*/		
 }

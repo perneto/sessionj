@@ -1,6 +1,6 @@
 //$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/messages/Ehlo.sj -d tests/classes/ 
 
-package esmtp.sj.messages;
+package ecoop.bmarks.smtp.messages;
 
 public class Ehlo extends SmtpMessage
 {

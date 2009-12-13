@@ -1,6 +1,4 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/messages/MessageBodyAck.sj -d tests/classes/ 
-
-package esmtp.sj.messages;
+package ecoop.bmarks.smtp.messages;
 
 public class MessageBodyAck extends SmtpMessage
 {

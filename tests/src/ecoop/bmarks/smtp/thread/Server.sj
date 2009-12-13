@@ -1,8 +1,4 @@
-//$ bin/sessionjc -sourcepath tests/src/esmtp/sj/messages/';'tests/src/esmtp/sj/server/ tests/src/esmtp/sj/server/Server3.sj -d tests/classes/
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/server/Server3.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ esmtp.sj.server.Server3 false 2525 s 
-
-package esmtp.sj.server;
+package ecoop.bmarks.smtp.thread;
 
 import java.util.*;
 
@@ -15,10 +11,10 @@ import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 import sessionj.runtime.session.*;
 
-//import esmtp.sj.SJSmtpFormatter;
-import esmtp.sj.messages.*;
+import ecoop.bmarks.smtp.messages.*;
+import ecoop.bmarks.smtp.SmtpServerFormatter;
 
-public class Server3
+public class Server
 {			
 	static protocol smtp_server_mail
 	{
@@ -120,9 +116,10 @@ public class Server3
 			{
 				//220 smtp1.cc.ic.ac.uk ESMTP Exim 4.69 Sun, 22 Nov 2009 14:36:55 +0000
 				ServerGreeting greeting = new ServerGreeting("localhost ESMTP blah blah blah");
-				System.out.print("Sending: " + greeting);			
+				//System.out.print("Sending: " + greeting);			
 				s.send(greeting);			
-				System.out.print("Received: " + (Ehlo) s.receive());
+				Ehlo ehlo = (Ehlo) s.receive();
+				//System.out.print("Received: " + ehlo);
 	
 				/*250-smtp1.cc.ic.ac.uk Hello tui.doc.ic.ac.uk [146.169.2.83]
 				250-SIZE 26214400
@@ -130,7 +127,7 @@ public class Server3
 				250-STARTTLS
 				250 HELP*/
 				EhloAck ehloAck = new EhloAck("250 Hello foobar [1.2.3.4]");
-				System.out.print("Sending: " + ehloAck);			
+				//System.out.print("Sending: " + ehloAck);			
 				s.send(ehloAck);			
 				
 				doMainLoop(s);			
@@ -176,26 +173,28 @@ public class Server3
 	
 	private static final void doMailFrom(final noalias @(smtp_server_mail) s) throws SJIOException, ClassNotFoundException
 	{
-		System.out.print("Received: " + (EmailAddress) s.receive());
+        EmailAddress email = (EmailAddress) s.receive();
+		//System.out.print("Received: " + email);
 		
 		//250 OK
 		s.outbranch($250)
 		{
 			MailAckBody mailAckBody = new MailAckBody(SmtpMessage.SPACE_SEPARATOR + "OK"); // "Ack bodies" need the space/hyphen separator. 
-			System.out.print("Sending: " + mailAckBody);			
+			//System.out.print("Sending: " + mailAckBody);			
 			s.send(mailAckBody);
 		}
 	}
 	
 	private static final void doRcptTo(final noalias @(smtp_server_rcpt) s) throws SJIOException, ClassNotFoundException
 	{
-		System.out.print("Received: " + (EmailAddress) s.receive());
+	    EmailAddress email = (EmailAddress) s.receive();
+		//System.out.print("Received: " + email);
 		
 		//250 Accepted
 		s.outbranch($250)
 		{
 			RcptAckBody rcptAckBody = new RcptAckBody(SmtpMessage.SPACE_SEPARATOR + "Accepted");
-			System.out.print("Sending: " + rcptAckBody);			
+			//System.out.print("Sending: " + rcptAckBody);			
 			s.send(rcptAckBody);
 		}
 	}
@@ -204,14 +203,15 @@ public class Server3
 	{	
 		//354 Enter message, ending with "." on a line by itself
 		DataAck dataAck = new DataAck("Enter message, ending with \".\" on a line by itself"); // Unlike the "ack bodies", already prefixes the reply code.
-		System.out.print("Sending: " + dataAck);			
+		//System.out.print("Sending: " + dataAck);			
 		s.send(dataAck);	
 				
-		System.out.print("Received: " + (MessageBody) s.receive());
+		MessageBody body = (MessageBody) s.receive();
+		//System.out.print("Received: " + body);
 		
 		//250 OK id=1NCDaj-0001P0-V7
 		MessageBodyAck messageBodyAck = new MessageBodyAck("OK id=1ABCde-2345F6-G7");
-		System.out.print("Sending: " + messageBodyAck);			
+		//System.out.print("Sending: " + messageBodyAck);			
 		s.send(messageBodyAck);
 	}
 		
@@ -223,6 +223,6 @@ public class Server3
 		String setups = args[2];
 		//String transports = args[3];			
 		
-		new Server3().run(debug, port, setups);
+		new Server().run(debug, port, setups);
 	}
 }

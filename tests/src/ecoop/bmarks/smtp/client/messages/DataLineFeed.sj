@@ -1,6 +1,4 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/messages/DataLineFeed.sj -d tests/classes/ 
-
-package esmtp.sj.client.messages;
+package ecoop.bmarks.smtp.client.messages;
 
 public class DataLineFeed extends SmtpCommand
 {	
