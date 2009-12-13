@@ -80,7 +80,7 @@ for i in clients:
 					else:
 						transport = ' '
 	
-					command = 'bin/csessionj -Xms256m -Xmx512m' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
+					command = 'bin/csessionj -XX:-UseGCOverheadLimit' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
 	
 					if debug == 't':
 						print 'Running: ' + command
