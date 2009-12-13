@@ -60,25 +60,20 @@ for i in clients:
         for l in range(0, repeats):
 	        
           data = s.recv(1024)
+	        	      
+	        signalClient = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient false ' + host + ' ' + sport	      
+	        	        
+          count = signalClient + ' COUNT'
+          stop = signalClient + ' STOP'
+          kill = signalClient + ' KILL'
 	        
-          subpackage = ''
-	        
-          if v == 'JT':
-            subpackage = 'java.thread'
-          elif v == 'JE':
-            subpackage = 'java.event'
-          else: #elif v == 'ST' || v == 'SE':
-            subpackage = 'sj'
-
-          if v == 'SE':
-            transport = ' -Dsessionj.transports.session=a '
-          else:
-            transport = ' '
-	        
-          command = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' -1 ' + j + ' ' + k
-	        
-          if debug == 't':
-            print 'Running: ' + command
-            sys.stdout.flush()
+          #if debug == 't':
+          #  print 'Running: ' + command
+          #  sys.stdout.flush()
 	
-          os.system(command)        
+          os.system(count)      
+          
+          time.sleep(30) 
+          
+          os.system(count)
+          os.system(kill)

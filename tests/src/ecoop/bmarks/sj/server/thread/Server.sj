@@ -25,11 +25,10 @@ public class Server
   private int port;
   private int numClients; // NB: a TimerClient counts as two clients.
   
-  private boolean[] halt; // Initialises to false.
-  
   //private long count = 0;
   private int[] counts;
 
+  private Object lock = new Object();
   private int active; 
   
   public Server(boolean debug, int port, int numClients) 
@@ -84,8 +83,6 @@ public class Server
 						{
 							numClients--; // This is not thread safe, but we'll leave it because numClients isn't used for anything important (we're joining for termination).
 							
-							halt[tid] = true;
-							
 							debugPrintln("[Server] Clients remaning: " + numClients);
 						}
 					}
@@ -97,10 +94,12 @@ public class Server
 			}
 			finally
 			{
-				synchronized (server)
+				synchronized (server.lock)
 				{
-					server.active--;				
-					server.notify();
+					if (--server.active == 0)
+					{
+						server.lock.notify();
+					}
 				}					
 			}
 		}
@@ -122,7 +121,6 @@ public class Server
 			debugPrintln("[Server] Listening on: " + port);
 			
 			counts = new int[numClients];
-			halt = new boolean[numClients];
 			
 			for (int i = 0; i < numClients; i++) 
 			{
@@ -138,21 +136,18 @@ public class Server
     		}
 			}
 			
-			for (int i = 0; i < halt.length; i++)
+			while (active > 0)
 			{
-				while (!halt[i])
+				try
 				{
-					try
+					synchronized (lock)
 					{
-						synchronized (this)
-						{
-							this.wait();
-						}
+						lock.wait();
 					}
-					catch (InterruptedException ie)
-					{
-						throw new RuntimeException(ie);
-					}
+				}
+				catch (InterruptedException ie)
+				{
+					throw new RuntimeException(ie);
 				}
 			}
  		} 

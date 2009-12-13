@@ -19,13 +19,14 @@ public class Server
 
 	public static int signal = MyObject.NO_SIGNAL;
 	public static boolean counting = false;
+	public static boolean counted = false;
 	
 	private static boolean debug;
 		
   private int port;
   private int numClients; // NB: a TimerClient counts as two clients.
   
-  private long count = 0;  
+  private long count = 0;
 
   public Server(boolean debug, int port, int numClients) 
   {
@@ -63,7 +64,7 @@ public class Server
 	    
 		  try (s) 
 		  {
-		    while(numClients != 0) 
+		    while (numClients > 0) 
 		    {
 		      s = sel.select();
 		      
@@ -115,7 +116,7 @@ public class Server
 		}
 		finally
 		{
-			if (counting)
+			if (counted)
 			{
 				System.out.println("[Server] Total count: " + count);
 			}
