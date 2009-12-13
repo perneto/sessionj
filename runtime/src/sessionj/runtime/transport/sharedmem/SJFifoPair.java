@@ -2,7 +2,7 @@ package sessionj.runtime.transport.sharedmem;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.util.SJRuntimeUtils;
-import sessionj.runtime.net.SJSelectorInternal;
+import sessionj.runtime.net.TransportSelector;
 import sessionj.runtime.transport.*;
 
 import java.io.File;
@@ -465,7 +465,7 @@ public class SJFifoPair extends AbstractSJTransport
 		return ourConn;
 	}
 
-    public SJSelectorInternal transportSelector() {
+    public TransportSelector transportSelector() {
         return null; 
     }
 
