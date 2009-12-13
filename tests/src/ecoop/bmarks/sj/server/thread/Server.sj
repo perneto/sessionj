@@ -136,11 +136,11 @@ public class Server
     		}
 			}
 			
-			while (active > 0)
+			synchronized (lock)
 			{
-				try
+				while (active > 0)
 				{
-					synchronized (lock)
+					try
 					{
 						lock.wait();
 					}
