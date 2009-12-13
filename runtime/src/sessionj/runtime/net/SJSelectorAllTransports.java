@@ -1,6 +1,7 @@
 package sessionj.runtime.net;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.runtime.util.ValueLatch;
@@ -26,6 +27,8 @@ class SJSelectorAllTransports implements SJSelector {
             TransportSelector trSel = t.transportSelector();
             if (trSel != null) transportSelectors.add(trSel);
         }
+        if (transportSelectors.size() < 1) throw new SJRuntimeException
+                ("None of the transports support non-blocking mode. Transports: " + transports);
         executor = Executors.newFixedThreadPool(transportSelectors.size());
     }
 
