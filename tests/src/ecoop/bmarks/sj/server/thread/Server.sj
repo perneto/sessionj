@@ -57,6 +57,8 @@ public class Server
   	{
 			try (s) 
 			{				
+				System.out.println("start of thread: tid=" + tid + ", active=" + server.active);
+				
 				s.recursion(X) 
 				{
 					s.inbranch() 
@@ -96,8 +98,10 @@ public class Server
 			{
 				synchronized (server.lock)
 				{
+					System.out.println("end of thread: tid=" + tid + ", active=" + server.active);
+					
 					if (--server.active == 0)
-					{
+					{						
 						server.lock.notify();
 					}
 				}					
@@ -128,6 +132,8 @@ public class Server
 				{
 					s = ss.accept();
 					
+					System.out.println("server spawning thread for: tid=" + i);
+					
 	    		<s>.spawn(new ServerThread(i, this));
 				} 				
     		finally 
@@ -136,21 +142,25 @@ public class Server
     		}
 			}
 			
-			while (active > 0)
+			synchronized (lock)
 			{
-				try
+				while (active > 0)
 				{
-					synchronized (lock)
+					try
 					{
+						System.out.println("server waiting: active=" + active);
+						
 						lock.wait();
+						
+						System.out.println("server woke up: active=" + active);
 					}
-				}
-				catch (InterruptedException ie)
-				{
-					throw new RuntimeException(ie);
+					catch (InterruptedException ie)
+					{
+						throw new RuntimeException(ie);
+					} 
 				}
 			}
- 		} 
+		}
    	finally 
    	{
    		if (counted)
