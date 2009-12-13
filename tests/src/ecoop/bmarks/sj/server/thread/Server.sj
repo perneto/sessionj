@@ -57,6 +57,8 @@ public class Server
   	{
 			try (s) 
 			{				
+				System.out.println("start of thread: tid=" + tid + ", active=" + server.active);
+				
 				s.recursion(X) 
 				{
 					s.inbranch() 
