@@ -61,7 +61,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	private SJSessionType activeType()
 	{
-		SJSessionType st = (contexts.isEmpty()) ? null : currentContext().activeType();
+		SJSessionType st = contexts.isEmpty() ? null : currentContext().activeType();
 		
 		if (st != null) // HACK: because recurse types are unrolled lazily.
 		{
@@ -531,7 +531,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 		else
 		{
-			rt = (SJRecursionType) activeType().nodeClone(); // Create a defensive copy like body does. 			
+			rt = (SJRecursionType) activeType();
 		}
 		//YAR
 

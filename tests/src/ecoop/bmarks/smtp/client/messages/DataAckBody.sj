@@ -1,6 +1,4 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/messages/DataAckBody.sj -d tests/classes/ 
-
-package esmtp.sj.client.messages;
+package ecoop.bmarks.smtp.client.messages;
 
 // Not currently used. We didn't check whether the DATA ack is good or bad yet (e.g. if no valid RCPT TO has been given earlier).
 public class DataAckBody implements SmtpParseable

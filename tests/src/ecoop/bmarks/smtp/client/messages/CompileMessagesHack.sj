@@ -1,6 +1,4 @@
-//$ bin/sessionjc -sourcepath tests/src/esmtp/sj/client/messages tests/src/esmtp/sj/client/messages/CompileMessagesHack.sj -d tests/classes/ 
-
-package esmtp.sj.client.messages;
+package ecoop.bmarks.smtp.client.messages;
 
 // Convenience hack to get around a compiler bug for compiling multiple classes in subpackages. 
 public class CompileMessagesHack

@@ -1,9 +1,4 @@
-//$ bin/sessionjc -sourcepath tests/src/esmtp/sj/client/messages/';'tests/src/esmtp/sj/client/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
-//$ bin/sessionjc -cp tests/classes/ tests/src/esmtp/sj/client/Client.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ esmtp.sj.client.Client false localhost 2525 sa 
-//$ bin/sessionj -Djava.util.logging.config.file=logging.properties -cp tests/classes/ esmtp.sj.client.Client false localhost 2525 sa
-
-package esmtp.sj.client;
+package ecoop.bmarks.smtp.client;
 
 import java.net.InetAddress;
 import java.util.*;
@@ -17,13 +12,12 @@ import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 import sessionj.runtime.session.*;
 
-//import esmtp.sj.SJSmtpFormatter; // Doesn't work when specifying -sourcepath (without -cp).
-//import esmtp.sj.*;
-import esmtp.sj.client.messages.*;
-//import esmtp.sj.server.Server;
+import ecoop.bmarks.smtp.client.messages.*;
 
 /*
- * FIXME: redo this Client with three-digit branch labels instead of one-digit (where appropriate - but for "wild carded" digits, we won't be able to see their values), and use sent-message history in the parser to help parsing. Also factor the main code chunk into sub-chunks (like doQuit). 
+ * FIXME: redo this Client with three-digit branch labels instead of one-digit (where appropriate - 
+ but for "wild carded" digits, we won't be able to see their values), and use sent-message history 
+ in the parser to help parsing. Also factor the main code chunk into sub-chunks (like doQuit). 
  */
 public class Client
 {			
@@ -49,72 +43,52 @@ public class Client
 			}		
 		]
 		
-		.rec MAIL // We should be able to repeatedly send emails.
-		[
-		  !<Mail>
-		  .rec MAIL_ACK 
-		  [
-		    ?{
-		    	$2:
-		    		?(ReplyCodeSecondAndThirdDigits)
-		    		.?{
-		    		_HYPHEN: // Actually, is this needed for the "2 case"?
-		    			?(MailAckBody)
-		    			.#MAIL_ACK,  
-		    		_SPACE: 
-		    			?(MailAckBody)
-		    		},
-		    	$5:
-		    		?(ReplyCodeSecondAndThirdDigits)
-		    		.?{
-		    			_HYPHEN: 
-		    				?(MailAckBody)
-		    				.#MAIL_ACK,  
-		    			_SPACE: 
-		    				?(MailAckBody)
-		    				.#MAIL
-		    		}
-		    }
-		  ]		  
-		]
-		
-		.rec RCPT 
-		[
-			!{
-				RCPT:
-					!<RcptTo>
-					.?{
-						$2: 
-							?(ReplyCodeSecondAndThirdDigits)
-							.?(RcptAckBody) // Unlike MailAck, the " " part of the prefix is contained in here (we don't bother to check for "-").
-							.#RCPT,
-						$5:	
-							?(ReplyCodeSecondAndThirdDigits)
-							.?(RcptAckBody)
-							.#RCPT
-					},
-					
-			  DATA: // We shouldn't be allowed to do this if no valid recipients were specified.
-					!<DataLineFeed>.?(DataAck) // Luckily, DataAck will start with a "3", which distinguishes it from the above RcptAcks.
-					.!<MessageBody>.?(MessageBodyAck)
-							
-				/*QUIT: // We should have this here in case none of the recipients were accepted. But we'd need to differentiate the QuitAck reply code from RcptAck reply codes (and can't be bothered to that right now). (And then we don't want the final Quit at the end either.) Instead, it may be easier to check for an error code after DATA command (and maybe just quit after that). But the problem with this is that we need to distinguish the "5" prefixed error codes between RcptAck and DataAck, i.e. "550" vs. "503".
-					!<Quit>.?(QuitAck)*/
-			}
-		]
+		.rec SENDLOOP [
+            !<Mail>.rec MAIL_ACK [
+                ?{
+                    $2:
+                        ?(ReplyCodeSecondAndThirdDigits)
+                        .?{
+                        _HYPHEN: // Actually, is this needed for the "2 case"?
+                            ?(MailAckBody)
+                            .#MAIL_ACK,  
+                        _SPACE: 
+                            ?(MailAckBody)
+                        }
+                }
+            ]		  
+            .!{ RCPT:
+                !<RcptTo>.
+                ?{
+                    $2: 
+                        ?(ReplyCodeSecondAndThirdDigits)
+                        .?(RcptAckBody) // Unlike MailAck, the " " part of the prefix is contained in here (we don't bother to check for "-").
+                }
+            }
+            .!{ DATA: // We shouldn't be allowed to do this if no valid recipients were specified.
+                        !<DataLineFeed>.?(DataAck) // Luckily, DataAck will start with a "3", which distinguishes it from the above RcptAcks.
+                        .!<MessageBody>.?(MessageBodyAck)
+                                
+                    /*QUIT: // We should have this here in case none of the recipients were accepted. 
+                    But we'd need to differentiate the QuitAck reply code from RcptAck reply codes (and can't be 
+                    bothered to that right now). (And then we don't want the final Quit at the end either.) 
+                    Instead, it may be easier to check for an error code after DATA command (and maybe just 
+                    quit after that). But the problem with this is that we need to distinguish the "5" prefixed 
+                    error codes between RcptAck and DataAck, i.e. "550" vs. "503".
+                        !<Quit>.?(QuitAck)*/
+            }
+            .#SENDLOOP
+        ]
 		
 		.!<Quit>.?(QuitAck)	// In principle, we should be able to QUIT at any time in the protocol, not just at the end.
 	}
 	
-	public void run(boolean debug, String setups, String server, int port) throws Exception
+	public void run(boolean debug, String setups, String server, int port, int msgSize) throws Exception
 	{
-		Scanner sc = new Scanner(System.in);
-		
 		final String fqdn = InetAddress.getLocalHost().getHostName().toString(); //getCanonicalHostName().toString();
 		
 		System.out.println("fqdn: " + fqdn);
 		
-		//SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, setups, transports, SmtpClientFormatter.class);
 		SJSessionParameters sparams = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, setups, setups, SmtpClientFormatter.class);
 		
 		final noalias SJSocket s;	
@@ -128,7 +102,7 @@ public class Client
 			System.out.println((ServerGreeting) s.receive());
 			
 			Ehlo ehlo = new Ehlo(fqdn);
-			System.out.print("Sending: " + ehlo);			
+			//System.out.print("Sending: " + ehlo);			
 			s.send(ehlo);			
 			
 			s.recursion(EHLO_ACK)
@@ -143,188 +117,204 @@ public class Client
 						{
 							case _HYPHEN:
 							{
-								System.out.println("Received: " + "2" + code + "-" + (EhloAckBody) s.receive());									
+							    EhloAckBody ack = (EhloAckBody) s.receive();
+								//System.out.println("Received: " + "2" + code + "-" + ack);									
 								
 								s.recurse(EHLO_ACK);
 							}
 							case _SPACE:
 							{
-								System.out.println("Received: " + "2" + code + " " + (EhloAckBody) s.receive());
+							    EhloAckBody ack = (EhloAckBody) s.receive();
+								//System.out.println("Received: " + "2" + code + " " + ack);									
 							}
 						}
 					}
 				}
 			}
 			
-			/*System.out.print("Sender's address? (e.g. sender@domain.com): ");			
-			Mail mail = new Mail(readUserInput(sc));
-			System.out.print("Sending: " + mail);
-			s.send(mail);
-			System.out.println("Received: " + (MailAck) s.receive());*/
-									
-			s.recursion(MAIL)
-			{
-				System.out.print("Sender's address? (e.g. sender@domain.com): ");			
-				Mail mail = new Mail(readUserInput(sc));
-				System.out.print("Sending: " + mail);
-				s.send(mail);
-				
-				s.recursion(MAIL_ACK)
-				{
-					s.inbranch()
-					{						
-						case $2:
-						{
-							String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();							
-							
-							s.inbranch()
-							{
-								case _HYPHEN:
-								{
-									System.out.println("Received: " + "2" + code + "-" + (MailAckBody) s.receive());									
-									
-									s.recurse(MAIL_ACK);
-								}
-								case _SPACE:
-								{
-									System.out.println("Received: " + "2" + code + " " + (MailAckBody) s.receive());
-								}
-							}
-						}
-						case $5:
-						{
-							String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();							
-							
-							s.inbranch()
-							{
-								case _HYPHEN:
-								{
-									System.out.println("Received: " + "5" + code + "-" + (MailAckBody) s.receive());									
-									
-									s.recurse(MAIL_ACK);
-								}
-								case _SPACE:
-								{
-									System.out.println("Received: " + "5" + code + " " + (MailAckBody) s.receive());
-									
-									s.recurse(MAIL);
-								}
-							}
-						}
-					}
-				}
+			s.recursion(SENDLOOP) {
+                Mail mail = new Mail("foo@bar.com");
+                //System.out.print("Sending: " + mail);
+                // This maps to the Server's ?{ MAIL_FROM: ?(Address)...
+                s.send(mail);
+                    
+                s.recursion(MAIL_ACK) {
+                    s.inbranch() {						
+                        case $2:
+                        {
+                            String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();							
+                            
+                            s.inbranch()
+                            {
+                                case _HYPHEN:
+                                {
+                                    MailAckBody ack = (MailAckBody) s.receive();
+                                    //System.out.println("Received: " + "2" + code + "-" + ack);									
+                                    
+                                    s.recurse(MAIL_ACK);
+                                }
+                                case _SPACE:
+                                {
+                                    MailAckBody ack = (MailAckBody) s.receive();
+                                    //System.out.println("Received: " + "2" + code + " " + ack);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                s.outbranch(RCPT)
+                {
+                    RcptTo rcptTo = new RcptTo("quux@bar.com");
+                    //System.out.print("Sending: RCPT" + rcptTo); // Need to re-add the "RCPT" that was sent by the outbranch.
+                    s.send(rcptTo);									
+                    
+                    s.inbranch()
+                    {
+                        case $2:
+                        {
+                            String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();
+                            
+                            RcptAckBody ack = (RcptAckBody) s.receive();
+                            //System.out.println("Received: " + "2" + code + ack); // Need to re-add the "2" that was already consumed by the inbranch.
+                        }
+                    }					
+                }
+                s.outbranch(DATA) {
+                    DataLineFeed dataLF = new DataLineFeed();
+                    //System.out.print("Sending: DATA" + dataLF); 
+                    s.send(dataLF);					
+                    DataAck ack = (DataAck) s.receive();							
+                    //System.out.print("Received: " + ack); // SmtpAcks already include a terminal line feed.
+                    
+                    String subject = "Test subject\n";
+                    String text = generateText(msgSize);
+                    
+                    MessageBody body = new MessageBody("SUBJECT:" + subject + "\n\n" + text);				
+                    //System.out.print("Sending: " + body);
+                    s.send(body);
+                    MessageBodyAck mAck = (MessageBodyAck) s.receive();
+                    //System.out.print("Received: " + mAck);
+                }
+                
+                s.recurse(SENDLOOP);
 			}
-			
-			boolean firstIteration = true;
-			boolean anotherRecipient = true;
-			
-			int recipients = 0;			
-			
-			s.recursion(RCPT)
-			{
-				if (firstIteration)
-				{
-					firstIteration = false;
-				}
-				else
-				{				
-					System.out.print("Another recipient? [y/n]: ");
-					
-					String reply = readUserInput(sc);
-					
-					if (reply.equals("y"))
-					{
-						anotherRecipient = true;
-					}
-				}
-							
-				if (anotherRecipient)
-				{
-					s.outbranch(RCPT)
-					{
-						System.out.print("Recipient's address?: ");
-						RcptTo rcptTo = new RcptTo(readUserInput(sc));
-						System.out.print("Sending: RCPT" + rcptTo); // Need to re-add the "RCPT" that was sent by the outbranch.
-						s.send(rcptTo);									
-						
-						s.inbranch()
-						{
-							case $2:
-							{
-								String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();
-								
-								System.out.println("Received: " + "2" + code + (RcptAckBody) s.receive()); // Need to re-add the "2" that was already consumed by the inbranch.
-								
-								recipients++;
-								
-								s.recurse(RCPT);								
-							}
-							case $5:
-							{
-								String code = ((ReplyCodeSecondAndThirdDigits) s.receive()).toString();
-								
-								System.out.println("Received: " + "5" + code + (RcptAckBody) s.receive());
-								
-								//doQuit(s); // Currently, delegation within loop contexts completely forbidden, even though this branch does not loop.
-								
-								s.recurse(RCPT);
-							}
-						}					
-					}
-					
-					anotherRecipient = false;
-				}
-				else //if (recipients > 0)
-				{
-					if (recipients == 0) // HACK: we should send a QUIT here (would need to modify session type and parser to differentiate QuitAck from RctAck).
-					{
-						throw new RuntimeException("No valid recipients given.");
-					}
-					
-					s.outbranch(DATA)
-					{
-						DataLineFeed dataLF = new DataLineFeed();
-						System.out.print("Sending: DATA" + dataLF); 
-						s.send(dataLF);												
-						System.out.print("Received: " + (DataAck) s.receive()); // SmtpAcks already include a terminal line feed.
-						
-						System.out.print("Message subject?: ");
-						String subject = readUserInput(sc);
-						
-						System.out.print("Message body? (Enter ends the message.): ");
-						String text = readUserInput(sc);
-						
-						MessageBody body = new MessageBody("SUBJECT:" + subject + "\n\n" + text);				
-						System.out.print("Sending: " + body);
-						s.send(body);
-						System.out.print("Received: " + (MessageBodyAck) s.receive());
-						
-						//doQuit(s);					
-					}
-				}
-				/*else
-				{
-					throw new RuntimeException("foo");
-				}*/
-			}
-			
 			doQuit(s);
 		}
 		finally
 		{
-			
 		}
 	}
 	
-	private static String readUserInput(Scanner sc)
+	private static final String text = // static initializers not supported by polyglot. 10240 chars
+	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++	    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+	    
+	private static String generateText(int msgSize)
 	{
-		String m = sc.nextLine();
-		
-		//return m.substring(0, m.length() - "\n".length()); // FIXME: "\n" not supported as a call target.
-		//return m.substring(0, m.length() - 1);
-		
-		return m;
-	}
+	    return text.substring(0, msgSize);
+    }
 	
 	private static void doQuit(final noalias !<Quit>.?(QuitAck) s) throws SJIOException, ClassNotFoundException
 	{
@@ -342,8 +332,10 @@ public class Client
 		int port = Integer.parseInt(args[2]);
 		
 		String setups = args[3];
-		//String transports = args[2];		
+		int msgSize = Integer.parseInt(args[4]);
+		if (msgSize > text.length()) 
+		    throw new IllegalArgumentException("msgSize too big - max: " + text.length());
 		
-		new Client().run(debug, setups, server, port);
+		new Client().run(debug, setups, server, port, msgSize);
 	}
 }
