@@ -9,6 +9,7 @@ import sessionj.runtime.transport.*;
 import ecoop.bmarks.*;
 import ecoop.bmarks.sj.event.server.Server;
 
+//@deprecated
 // This counts as two clients (from the Server's view), due to the dummy run.
 public class TimerClient 
 {

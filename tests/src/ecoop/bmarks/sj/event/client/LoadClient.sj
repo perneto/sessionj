@@ -9,6 +9,7 @@ import sessionj.runtime.transport.*;
 import ecoop.bmarks.*;
 import ecoop.bmarks.sj.event.server.Server;
 
+//@deprecated
 public class LoadClient 
 {
   //protocol pClient cbegin.rec X[!{QUIT: , REC: !<int>.?(MyObject).#X}]
