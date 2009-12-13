@@ -14,16 +14,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class SJSelectorAllTransports implements SJSelector {
-    private final Collection<SJSelectorInternal> transportSelectors;
+    private final Collection<TransportSelector> transportSelectors;
     private static final String UNSUPPORTED = "None of the transports support non-blocking mode";
     private static final Logger log = SJRuntimeUtils.getLogger(SJSelectorAllTransports.class);
     private final ExecutorService executor;
 
     SJSelectorAllTransports(Iterable<SJTransport> transports) {
-        transportSelectors = new LinkedList<SJSelectorInternal>();
+        transportSelectors = new LinkedList<TransportSelector>();
         
         for (SJTransport t : transports) {
-            SJSelectorInternal trSel = t.transportSelector();
+            TransportSelector trSel = t.transportSelector();
             if (trSel != null) transportSelectors.add(trSel);
         }
         executor = Executors.newFixedThreadPool(transportSelectors.size());
@@ -33,7 +33,7 @@ class SJSelectorAllTransports implements SJSelector {
     public void registerAccept(SJServerSocket ss) throws SJIOException {
         Collection<Boolean> results = new HashSet<Boolean>();
       	
-        for (SJSelectorInternal sel : transportSelectors)
+        for (TransportSelector sel : transportSelectors)
             try {
                 results.add(sel.registerAccept(ss));
             } catch (Exception e) {
@@ -44,7 +44,7 @@ class SJSelectorAllTransports implements SJSelector {
 
     public void registerInput(SJSocket s) throws SJIOException {
         Collection<Boolean> results = new HashSet<Boolean>();
-        for (SJSelectorInternal sel : transportSelectors)
+        for (TransportSelector sel : transportSelectors)
             try {
                 results.add(sel.registerInput(s));
             } catch (Exception e) {
@@ -60,7 +60,7 @@ class SJSelectorAllTransports implements SJSelector {
     public SJSocket select() throws SJIOException {
         final ValueLatch<SJSocket> latch = new ValueLatch<SJSocket>();
         
-        for (final SJSelectorInternal sel : transportSelectors) {
+        for (final TransportSelector sel : transportSelectors) {
             executor.submit(new Runnable() {
                 public void run() {
                     try {
@@ -85,7 +85,7 @@ class SJSelectorAllTransports implements SJSelector {
     }
 
     public void close() throws SJIOException {
-        for (SJSelectorInternal sel : transportSelectors) sel.close();
+        for (TransportSelector sel : transportSelectors) sel.close();
         executor.shutdownNow();
     }
 }
