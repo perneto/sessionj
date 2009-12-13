@@ -58,7 +58,7 @@ if debug == 't':
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = [str(2 + 50*machines), str(2 + 100*machines)]
+	clients = [str(2 + 50*machines)]
 	msgSizes = ['100', '1000', '10000']
 	sessionLengths = ['1', '10', '100', '1000']
 
