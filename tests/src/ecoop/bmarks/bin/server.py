@@ -49,7 +49,7 @@ msgSizes = []
 sessionLengths = []
 
 if version == 'ALL':
-	versions = ['JT', 'JE', 'SE', 'ST']
+	versions = ['SE', 'ST']
 else:
 	versions = [version]
 
