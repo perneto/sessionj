@@ -92,7 +92,7 @@ for v in versions:
 				       
 				       send(sockets, '1')
 				       
-				       if client == '500':
+				       if i == '500':
 					       time.sleep(25) # Make sure LoadClients are warmed up.
 				       else:
 					       time.sleep(10)
