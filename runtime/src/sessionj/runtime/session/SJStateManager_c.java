@@ -1,8 +1,6 @@
 package sessionj.runtime.session;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
@@ -39,7 +37,8 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		this.sjts = sjts;
 		this.protocolType = protocolType;
 		
-		debugPrintln("Protocol type: " + protocolType.toString());
+        if (DEBUG)
+            debugPrintln("Protocol type: " + protocolType.toString());
 	}
 
 	/*public SJStateManager_c(SJRSocket rsocket, SJSessionType protocolType)
@@ -71,28 +70,6 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		return st;
 	}
 
-	private Map<SJLabel, SJRecursionType> getRecursions() // FIXME: should instead build this information as we go along (i.e. scopes entered/left).  
-	{
-		Map<SJLabel, SJRecursionType> map = new HashMap<SJLabel, SJRecursionType>(); 
-
-		for (int i = contexts.size() - 1; i >= 0; i--)
-		{
-			SJRuntimeContextElement rce = contexts.get(i);
-			
-			if (rce instanceof SJRecursionContext)
-			{
-				SJRecursionContext rc = (SJRecursionContext) rce;
-				
-				SJLabel lab = rc.label();
-				SJRecursionType rt = rc.originalType();
-								
-				map.put(lab, rt); // Will overwrite types from outer scopes if necessary.
-			}
-		}
-		
-		return map;
-	}
-	
 	private SJSessionType implementedType()
 	{
 		return currentContext().implementedType();
@@ -516,7 +493,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	
 	// This is called by recursionEnter; currently, nothing is done on recursionExit (this seems to be convenient for e.g. registration of sessions with a SJSelector - and delegation within recursion scopes in general?).
 	// FIXME: a better way to do this is to unfold the recursive type every time we come here. That would be "eager" compared to the "lazy" unfolding we do now.
-	public final void recursion(SJLabel lab) throws SJIOException // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
+	public final void recursion(SJLabel lab)  // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
 	{
 		//RAY: to handle recursive sessions done through method calls. 
 		SJRecursionType rt;
@@ -545,15 +522,16 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
             debugPrintln("Entered recursion for: " + lab);
 	}
 
-	public final SJSessionType recurse(SJLabel lab) throws SJIOException // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
+	public final SJSessionType recurse(SJLabel lab)  // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
 	{
         SJRecurseType sjrt = sjts.SJRecurseType(lab);
 
         advanceContext(sjrt);
 
-		debugPrintln("recurse: " + sjrt);
+        if (DEBUG)
+            debugPrintln("recurse: " + sjrt);
 		
-		return sjrt;//.nodeClone());
+		return sjrt;
 	}
 	
 	public final void close() 
@@ -570,7 +548,26 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		contexts.removeAllElements();
 	}
 
-	private void advanceContext(SJSessionType sjtype)
+    public void delegation(SJSessionType st) {
+        if (st instanceof SJRecursionType) {
+            SJRecursionType rt = (SJRecursionType) st;
+            SJLabel label = rt.label();
+            if (recursionVariables.alreadyEntered(label)) {
+                popUntil(label);
+                recursionVariables.exitScope(label);
+            }
+        }
+    }
+
+    private void popUntil(SJLabel lab) {
+        SJRuntimeContextElement top;
+        do {
+             top = contexts.pop();
+        } while (!(top instanceof SJRecursionContext 
+            && ((SJRecursionContext) top).hasLabel(lab)));
+    }
+
+    private void advanceContext(SJSessionType sjtype)
 	{
 		SJSessionType implemented = sjtype;
 
@@ -672,7 +669,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		pushContext(new SJTopLevelContext(sjtype));
 	}
 
-	public final void pushOutbranch(SJLabel lab, SJSessionType sjtype)
+	private void pushOutbranch(SJLabel lab, SJSessionType sjtype)
 	{
 		if (sjtype == null) // Possible mismatch between program execution and session execution if 
         // an exception is raised within the (empty) branch. Does it matter? 
@@ -688,7 +685,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 	}
 
-	public final void pushInbranch(SJLabel lab, SJSessionType sjtype)
+	private void pushInbranch(SJLabel lab, SJSessionType sjtype)
 	{
 		if (sjtype == null)
 		{
@@ -702,7 +699,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 	}
 
-	public final void pushOutwhile(SJSessionType sjtype)
+	private void pushOutwhile(SJSessionType sjtype)
 	{
 		if (sjtype == null)
 		{
@@ -716,7 +713,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 	}
 
-	public final void pushInwhile(SJSessionType sjtype)
+	private void pushInwhile(SJSessionType sjtype)
 	{
 		if (sjtype == null)
 		{
@@ -730,7 +727,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		}
 	}
 
-	public final void pushRecursion(SJRecursionType rt)
+	private void pushRecursion(SJRecursionType rt)
 	{
 		if (rt.body() == null)
 		{

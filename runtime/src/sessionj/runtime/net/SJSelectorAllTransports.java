@@ -54,6 +54,7 @@ class SJSelectorAllTransports implements SJSelector {
                 throw new SJIOException(e);
             }
         checkResults(results);
+        s.registerInputCallback();
     }
 
     private void checkResults(Collection<Boolean> results) throws SJIOException {
