@@ -84,8 +84,8 @@ for v in versions:
 	
 					command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj ' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
 	
-					if debug == 't':
-						print 'Running: ' + command
+					#if debug == 't':
+					print 'Running: ' + command
 	
 					#thread.start_new_thread(spawnThread,(command,))
 					thread1 = Thread(target=spawnThread, args=(command,))
