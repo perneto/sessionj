@@ -58,9 +58,9 @@ if debug == 't':
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = [str(machines), str(5*machines), str(10*machines), str(50*machines)]
-	msgSizes = ['100', '1000', '10000']
-	sessionLengths = ['1', '10', '100', '1000']
+	clients = [str(machines), str(10*machines), str(50*machines)]
+	msgSizes = ['100', '1000']
+	#sessionLengths = ['1', '10', '100', '1000']
 
 
 sockets = connect(2, 2 + machines, cport)
@@ -69,34 +69,33 @@ s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s1.connect(("camelot01", cport))
 	
 
-for i in clients:
-	for v in versions:
+for v in versions:
+	for i in clients:
 		for j in msgSizes:
-			for k in sessionLengths:
-				for l in range(0, repeats):
-
-					if v == 'SE':
-						transport = ' -Dsessionj.transports.session=a '
-					else:
-						transport = ' '
+			for l in range(0, repeats):
+				       
+				       if v == 'SE':
+					       transport = ' -Dsessionj.transports.session=a '
+				       else:
+					       transport = ' '
+				       
+				       command = 'bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
+				       
+				       if debug == 't':
+					       print 'Running: ' + command
+				       
+				       #thread.start_new_thread(spawnThread,(command,))
+				       thread1 = Thread(target=spawnThread, args=(command,))
+				       thread1.start()
+				       
+				       time.sleep(4) # Make sure Server has started.
+				       
+				       send(sockets, '1')
+				       
+				       time.sleep(10) # Make sure LoadClients are warmed up.
+				       
+				       s1.send('1')
+				       
+				       thread1.join()
 	
-					command = 'bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
-	
-					if debug == 't':
-						print 'Running: ' + command
-	
-					#thread.start_new_thread(spawnThread,(command,))
-					thread1 = Thread(target=spawnThread, args=(command,))
-					thread1.start()
-	
-					time.sleep(4) # Make sure Server has started.
-						
-					send(sockets, '1')
-						
-					time.sleep(10) # Make sure LoadClients are warmed up.
-	
-					s1.send('1')
-						
-					thread1.join()
-	
-					time.sleep(4)
+				       time.sleep(4)

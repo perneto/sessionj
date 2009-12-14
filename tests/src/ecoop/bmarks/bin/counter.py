@@ -24,7 +24,7 @@ sessionLengths = []
 hostname = socket.gethostname()
 
 if version == 'ALL':
-  versions = ['JT', 'JE', 'ST', 'SE']
+  versions = ['JT', 'JE', 'SE', 'ST']
 else:
   versions = [version]
 
@@ -33,9 +33,9 @@ if debug == 't':
   msgSizes = ['10', '100']
   sessionLengths = ['0', '1', '10']
 else:
-  clients = ['1', '5', '10', '50']
-  msgSizes = ['100', '1000', '10000']
-  sessionLengths = ['1', '10', '100', '1000']
+  clients = ['1', '10', '50']
+  msgSizes = ['100', '1000']
+#  sessionLengths = ['1', '10', '100', '1000']
 
 
 # Create an INET, STREAMing socket.
@@ -49,19 +49,22 @@ serversocket.listen(5)
 # Accept connection.
 (s, address) = serversocket.accept()
 
-for i in clients:
-  for v in versions:
+for v in versions:
+  for i in clients:
     for j in msgSizes:
-      for k in sessionLengths:
         
-        print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j + ', sessionLength=' + k
+        print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j
         sys.stdout.flush()
 	
         for l in range(0, repeats):
 	        
           data = s.recv(1024)
+          if v == 'SE':
+            transport = ' -Dsessionj.transports.session=a '
+          else:
+            transport = ' '
 	        	      
-	        signalClient = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient false ' + host + ' ' + sport	      
+          signalClient = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient ' + host + ' ' + sport	      
 	        	        
           count = signalClient + ' COUNT'
           stop = signalClient + ' STOP'
@@ -73,7 +76,7 @@ for i in clients:
 	
           os.system(count)      
           
-          time.sleep(30) 
+          time.sleep(30)
           
-          os.system(count)
+          os.system(stop)
           os.system(kill)
