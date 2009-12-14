@@ -97,7 +97,7 @@ for v in versions:
 					if i == '500':
 						time.sleep(10) # Make sure LoadClients are warmed up.
 					else:
-						time.slepp(25)
+						time.sleep(25)
 	
 					s1.send('1')
 						
