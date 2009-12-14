@@ -28,11 +28,11 @@ def spawnThread(command):
 	print 'Thread finished'
 
 
-# tests/src/ecoop/bmarks/bin/server.py <debug> <num_machines> <timer_clients> <server_port> <client_port> <version> <num_repeats>
-# tests/src/ecoop/bmarks/bin/server.py f 10 5 2000 4321 JT 100
+# tests/src/ecoop/bmarks/bin/server.py <debug> <num_machines> <timer_clients> <server_port> <client_port> <version> 
+# tests/src/ecoop/bmarks/bin/server.py f 10 5 2000 4321 JT 
 
 if len(sys.argv) < 7:
-	print 'Usage: server.py <debug> <num_machines> <timer_clients> <server_port> <client_port> <version> <num_repeats>'
+	print 'Usage: server.py <debug> <num_machines> <timer_clients> <server_port> <client_port> <version>'
 	sys.exit(1)
 
 debug = sys.argv[1]
@@ -41,7 +41,6 @@ timers = int(sys.argv[3])
 sport = sys.argv[4]
 cport = int(sys.argv[5])
 version = sys.argv[6]
-repeats = int(sys.argv[7])
 
 
 versions = []
@@ -76,33 +75,31 @@ for v in versions:
 	for i in clients:
 		for j in msgSizes:
 			for k in sessionLengths:
-				for l in range(0, repeats):
+				if v == 'SE':
+					transport = ' -Dsessionj.transports.session=a '
+				else:
+					transport = ' '
 
-					if v == 'SE':
-						transport = ' -Dsessionj.transports.session=a '
-					else:
-						transport = ' '
-	
-					command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj ' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
-	
-					#if debug == 't':
-					#print 'Running: ' + command
-					#sys.stdout.flush()
-	
-					#thread.start_new_thread(spawnThread,(command,))
-					thread1 = Thread(target=spawnThread, args=(command,))
-					thread1.start()
-	
-					time.sleep(4) # Make sure Server has started.
-						
-					send(sockets, '1')
-					if i == '500':
-						time.sleep(25) # Make sure LoadClients are warmed up.
-					else:
-						time.sleep(10)
-	
-					s1.send('1')
-						
-					thread1.join()
-	
-					time.sleep(4)
+				command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj ' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
+
+				#if debug == 't':
+				#print 'Running: ' + command
+				#sys.stdout.flush()
+
+				#thread.start_new_thread(spawnThread,(command,))
+				thread1 = Thread(target=spawnThread, args=(command,))
+				thread1.start()
+
+				time.sleep(4) # Make sure Server has started.
+					
+				send(sockets, '1')
+				if i == '500':
+					time.sleep(25) # Make sure LoadClients are warmed up.
+				else:
+					time.sleep(10)
+
+				s1.send('1')
+					
+				thread1.join()
+
+				time.sleep(4)

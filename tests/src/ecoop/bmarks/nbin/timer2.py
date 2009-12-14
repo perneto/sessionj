@@ -53,33 +53,30 @@ serversocket.listen(5)
 for v in versions:
   for i in clients:
     for j in msgSizes:
-      for k in sessionLengths:
-        
+      for k in sessionLengths:        
         print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j + ', sessionLength=' + k
         sys.stdout.flush()
 	
-        #for l in range(0, repeats):
-	        
-          data = s.recv(1024)
-	        
-          subpackage = ''
-	        
-          if v == 'JT':
-            subpackage = 'java.thread'
-          elif v == 'JE':
-            subpackage = 'java.event'
-          else: #elif v == 'ST' || v == 'SE':
-            subpackage = 'sj'
+        data = s.recv(1024)
+        
+        subpackage = ''
+        
+        if v == 'JT':
+          subpackage = 'java.thread'
+        elif v == 'JE':
+          subpackage = 'java.event'
+        else: #elif v == 'ST' || v == 'SE':
+          subpackage = 'sj'
 
-          if v == 'SE':
-            transport = ' -Dsessionj.transports.session=a '
-          else:
-            transport = ' '
-	        
-          command = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' -1 ' + j + ' ' + k + ' ' + repeats
-	        
-          if debug == 't':
-            print 'Running: ' + command
-            sys.stdout.flush()
-	
-          os.system(command)        
+        if v == 'SE':
+          transport = ' -Dsessionj.transports.session=a '
+        else:
+          transport = ' '
+        
+        command = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' -1 ' + j + ' ' + k + ' ' + repeats
+        
+        if debug == 't':
+          print 'Running: ' + command
+          sys.stdout.flush()
+
+        os.system(command)        
