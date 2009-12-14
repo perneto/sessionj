@@ -24,7 +24,7 @@ sessionLengths = []
 hostname = socket.gethostname()
 
 if version == 'ALL':
-  versions = ['SE', 'ST']
+  versions = ['SE', 'JE']
 else:
   versions = [version]
 
