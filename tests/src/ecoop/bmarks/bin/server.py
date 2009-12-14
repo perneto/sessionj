@@ -95,7 +95,7 @@ for v in versions:
 						
 					send(sockets, '1')
 						
-					time.sleep(20) # Make sure LoadClients are warmed up.
+					time.sleep(30) # Make sure LoadClients are warmed up.
 	
 					s1.send('1')
 						
