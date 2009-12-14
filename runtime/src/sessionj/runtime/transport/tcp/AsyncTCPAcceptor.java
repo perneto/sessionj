@@ -58,7 +58,7 @@ class AsyncTCPAcceptor implements SJConnectionAcceptor {
 
 
     private SJConnection createSJConnection(SocketChannel socketChannel) throws IOException {
-        socketChannel.socket().setTcpNoDelay(SJStreamTCP.TCP_NO_DELAY);
+        socketChannel.socket().setTcpNoDelay(SJManualTCP.TCP_NO_DELAY);
         thread.notifyAccepted(ssc, socketChannel);
         return new AsyncConnection(thread, socketChannel, transport);
     }

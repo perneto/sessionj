@@ -175,6 +175,9 @@ public class MultiPartyInsyncTest {
             return null;
         }
 
+        public void registerInputCallback() {
+        }
+
         public boolean recurse(String lab) throws SJIOException {
             // TODO Auto-generated method stub
             return false;

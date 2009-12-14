@@ -34,40 +34,18 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 		return labelSet().contains(lab);
 	}
 
-	protected SJSessionType getBranchCase(SJLabel lab)
+    public SJSessionType branchCase(SJLabel lab)
 	{
-		return cases.get(lab);
-	}
-	
-	protected void setBranchCase(SJLabel lab, SJSessionType st)
-	{
-		cases.put(lab, st);
-	}
-	
-	public SJSessionType branchCase(SJLabel lab)
-	{
-		SJSessionType st = getBranchCase(lab);
-
-		return st == null ? null : st.copy();
-	}
+        return cases.get(lab);
+    }
 
 	public SJBranchType branchCase(SJLabel lab, SJSessionType st) 
 	{
-		SJBranchType bt = (SJBranchType) nodeClone(); // Defensive copy.
-		
-		if (st != null)
-		{
-			st = st.copy();
-		}
+		SJBranchType_c bt = (SJBranchType_c) nodeClone(); // Defensive copy.
 
-		((SJBranchType_c) bt).setBranchCase(lab, st); // Defensive copy.
-		
-		SJSessionType child = child(); // Returns a defensive copy.
-		
-		if (child != null)
-		{
-			((SJSessionType_c) bt).setChild(child);
-		}
+        bt.cases.put(lab, st);
+
+        bt.setChild(child());
 		
 		return bt;  
 	}
@@ -88,8 +66,8 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
         // counterpart is found. Hence, the loops won't go through all labels.
         for (SJLabel lab : selectComparsionLabelSet(labelSet(), theirLabels, op))
 		{
-			SJSessionType case1 = getBranchCase(lab);
-			SJSessionType case2 = them.getBranchCase(lab);
+            SJSessionType case1 = cases.get(lab);
+            SJSessionType case2 = them.cases.get(lab);
 	
 			if (case1 == null)
 			{
@@ -113,7 +91,7 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 
 		for (SJLabel lab : labelSet())
 		{
-			SJSessionType st = getBranchCase(lab);
+            SJSessionType st = cases.get(lab);
 
 			if (st != null && !st.treeWellFormed())
 			{
@@ -144,7 +122,7 @@ abstract public class SJBranchType_c extends SJSessionType_c implements SJBranch
 		StringBuilder s = new StringBuilder(branchConstructorOpen());
 
         for (SJLabel lab : labelSet()) {
-            SJSessionType branchCase = getBranchCase(lab);
+            SJSessionType branchCase = cases.get(lab);
 
             s.append(lab).append(SJ_STRING_LABEL);
             s.append(branchCase == null ? " " : branchCase.toString());
