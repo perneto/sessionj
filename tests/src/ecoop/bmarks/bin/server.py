@@ -86,6 +86,7 @@ for v in versions:
 	
 					#if debug == 't':
 					print 'Running: ' + command
+					sys.stdout.flush()
 	
 					#thread.start_new_thread(spawnThread,(command,))
 					thread1 = Thread(target=spawnThread, args=(command,))
