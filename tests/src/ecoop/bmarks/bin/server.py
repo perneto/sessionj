@@ -49,7 +49,7 @@ msgSizes = []
 sessionLengths = []
 
 if version == 'ALL':
-	versions = ['SE', 'ST']
+	versions = ['SE', 'ST', 'JE', 'JT']
 else:
 	versions = [version]
 
@@ -58,7 +58,7 @@ if debug == 't':
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = [str(2 + machines), str(2 + 10*machines), str(2 + 50*machines)]
+	clients = [str(2 + 10*machines), str(2 + 50*machines)]
 #	clients = [str(2 + 50*machines)]
 	msgSizes = ['100', '1000']
 	sessionLengths = ['1', '10', '100']
@@ -82,7 +82,7 @@ for v in versions:
 					else:
 						transport = ' '
 	
-					command = 'bin/csessionj -XX:-UseGCOverheadLimit' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
+					command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj ' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
 	
 					if debug == 't':
 						print 'Running: ' + command
