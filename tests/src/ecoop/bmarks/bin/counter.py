@@ -33,9 +33,9 @@ if debug == 't':
   msgSizes = ['10', '100']
   sessionLengths = ['0', '1', '10']
 else:
-  clients = ['1', '5', '10', '50']
-  msgSizes = ['100', '1000', '10000']
-  sessionLengths = ['1', '10', '100', '1000']
+  clients = ['1', '10', '50']
+  msgSizes = ['100', '1000']
+#  sessionLengths = ['1', '10', '100', '1000']
 
 
 # Create an INET, STREAMing socket.
@@ -52,7 +52,6 @@ serversocket.listen(5)
 for i in clients:
   for v in versions:
     for j in msgSizes:
-      for k in sessionLengths:
         
         print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j + ', sessionLength=' + k
         sys.stdout.flush()
@@ -61,7 +60,7 @@ for i in clients:
 	        
           data = s.recv(1024)
 	        	      
-	        signalClient = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient false ' + host + ' ' + sport	      
+          signalClient = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient false ' + host + ' ' + sport	      
 	        	        
           count = signalClient + ' COUNT'
           stop = signalClient + ' STOP'
@@ -73,7 +72,7 @@ for i in clients:
 	
           os.system(count)      
           
-          time.sleep(30) 
+          time.sleep(30)
           
-          os.system(count)
+          os.system(stop)
           os.system(kill)
