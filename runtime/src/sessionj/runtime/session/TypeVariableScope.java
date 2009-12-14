@@ -1,13 +1,16 @@
 package sessionj.runtime.session;
 
-import sessionj.util.SJLabel;
 import sessionj.types.sesstypes.SJRecursionType;
+import sessionj.util.SJLabel;
 
-import java.util.Stack;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
 
 public class TypeVariableScope {
+    /**
+     * Invariant: labels.containsKey(X) ==> !labels.get(X).isEmpty()
+     */
     private final Map<SJLabel, Stack<SJRecursionType>> labels = new HashMap<SJLabel, Stack<SJRecursionType>>();
 
     public Map<SJLabel, SJRecursionType> inScope() {
@@ -28,7 +31,12 @@ public class TypeVariableScope {
     }
 
     public void exitScope(SJLabel lab) {
-        labels.get(lab).pop();
-        // not removing to keep enterScope quick; might be a memory leak
+        Stack<SJRecursionType> stack = labels.get(lab);
+        stack.pop();
+        if (stack.isEmpty()) labels.remove(lab);
+    }
+
+    public boolean alreadyEntered(SJLabel label) {
+        return labels.get(label) != null;
     }
 }

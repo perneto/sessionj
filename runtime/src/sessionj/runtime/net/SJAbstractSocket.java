@@ -6,7 +6,6 @@ import java.net.UnknownHostException;
 import sessionj.runtime.*;
 import sessionj.runtime.session.*;
 import sessionj.runtime.transport.*;
-import sessionj.types.sesstypes.SJSetType;
 import sessionj.types.sesstypes.SJSessionType;
 
 abstract public class SJAbstractSocket implements SJSocket
@@ -358,6 +357,10 @@ abstract public class SJAbstractSocket implements SJSocket
 
     public SJSessionType getInitialRuntimeType() throws SJIOException {
         return receivedRuntimeType == null ? protocol.type() : receivedRuntimeType;
+    }
+
+    public void registerInputCallback() {
+        sm.delegation(remainingSessionType());
     }
 
     @Override

@@ -215,8 +215,9 @@ final class SelectingThread implements Runnable {
         }
     }
 
+    private final Set<SelectableChannel> modified = new HashSet<SelectableChannel>();
     private void updateRegistrations() throws IOException {
-        Set<SelectableChannel> modified = new HashSet<SelectableChannel>();
+        modified.clear();
         Collection<ChangeRequest> postponed = new LinkedList<ChangeRequest>();
         while (!pendingChangeRequests.isEmpty()) {
             ChangeRequest req = pendingChangeRequests.remove();
@@ -395,7 +396,7 @@ final class SelectingThread implements Runnable {
         ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
         SocketChannel socketChannel = ssc.accept();
         socketChannel.configureBlocking(false);
-        socketChannel.socket().setTcpNoDelay(SJStreamTCP.TCP_NO_DELAY);
+        socketChannel.socket().setTcpNoDelay(SJManualTCP.TCP_NO_DELAY);
         BlockingQueue<SocketChannel> queue = accepted.get(ssc);
         if (log.isLoggable(FINER))
             log.finer("Enqueuing accepted socket for server socket: " + ssc + " in queue: " + queue);

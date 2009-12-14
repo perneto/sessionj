@@ -57,24 +57,10 @@ public interface SJStateManager // Analogous to SJContext. But only tracks the s
 	
 	public void recursion(SJLabel lab) throws SJIOException; // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
 	public SJSessionType recurse(SJLabel lab) throws SJIOException; // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
-	
+
+    void delegation(SJSessionType st);
+    
 	public void close();
 	public void reset();
-
-	//private void advanceContext(SJSessionType sjtype);
-	
-	//private SJSessionType appendToImplemented(SJSessionType sjtype);
-
-	public void pushTopLevel(SJSessionType sjtype);
-	public void pushOutbranch(SJLabel lab, SJSessionType sjtype);
-	public void pushInbranch(SJLabel lab, SJSessionType sjtype);
-	public void pushOutwhile(SJSessionType sjtype);
-	public void pushInwhile(SJSessionType sjtype);
-	//public void pushRecursion(SJLabel lab, SJSessionType sjtype);
-	public void pushRecursion(SJRecursionType rt);
-
-	//private void pushContext(SJRuntimeContextElement sjsc);
-	//private void popContext();
-	//private String fullClassName(Object obj); // Move to SJRuntimeUtils?
 
 }

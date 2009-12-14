@@ -1,30 +1,20 @@
 package sessionj.runtime.session.contexts;
 
 import sessionj.types.sesstypes.SJRecursionType;
-import sessionj.types.sesstypes.SJSessionType;
 import sessionj.util.SJLabel;
 
 public class SJRecursionContext extends SJLoopContext // Analogous to the compiler contexts.
 {
-	private SJLabel lab;
+	private final SJLabel lab;
 
-	private SJRecursionType original;
-	
-	/*public SJRecursionContext(SJLabel lab, SJSessionType active)
-	{
-		super(active);
-
-		System.out.println("d: " + active);
-		
-		this.lab = lab;
-	}*/
+	private final SJRecursionType original;
 
 	public SJRecursionContext(SJRecursionType rt)
 	{
 		super(rt.body());
 
-		this.lab = rt.label();
-		this.original = rt;
+        lab = rt.label();
+        original = rt;
 	}
 	
 	public SJLabel label()
@@ -36,9 +26,8 @@ public class SJRecursionContext extends SJLoopContext // Analogous to the compil
 	{
 		return original;
 	}
-	
-	/*public final boolean isRecursionContext()
-	{
-		return true;
-	}*/
+
+    public boolean hasLabel(SJLabel lab) {
+        return lab.equals(this.lab);
+    }
 }
