@@ -53,7 +53,7 @@ for v in versions:
   for i in clients:
     for j in msgSizes:
         
-        print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j + ', sessionLength=' + k
+        print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j
         sys.stdout.flush()
 	
         for l in range(0, repeats):
