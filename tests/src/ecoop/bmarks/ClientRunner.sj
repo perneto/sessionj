@@ -9,7 +9,7 @@ import ecoop.bmarks.sj.client.*;
 // Spawns LoadClients.
 public class ClientRunner 
 {
-  public static void main(String [] args) 
+  public static void main(String [] args) throws Exception
   {
     final boolean debug = Boolean.parseBoolean(args[0]);
     final String host = args[1];
@@ -64,7 +64,14 @@ public class ClientRunner
         }
       }.start();
       
-      Thread.sleep(50);
+      try
+      {
+      	Thread.sleep(50);
+      }
+      finally
+      {
+      	
+      }
     }
   }
 }
