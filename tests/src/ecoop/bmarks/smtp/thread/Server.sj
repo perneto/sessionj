@@ -1,4 +1,4 @@
-//$ bin/sessionj -cp tests/classes ecoop.bmarks.smtp.thread.Server false 8888 s
+//$ bin/sessionj -cp tests/classes ecoop.bmarks.smtp.thread.Server false 2525 s
 
 package ecoop.bmarks.smtp.thread;
 
