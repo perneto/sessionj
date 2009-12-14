@@ -9,6 +9,7 @@ import sessionj.runtime.SJRuntimeException;
 import java.nio.ByteBuffer;
 import static java.lang.Math.min;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * TODO Reduce duplication between this and {@link SJManualSerializer}
@@ -91,7 +92,8 @@ public class OngoingReadImpl implements OngoingRead {
         System.arraycopy(data, 0, completed, lengthRead+1, data.length);
         
         ByteBuffer wrapped = ByteBuffer.wrap(completed);
-        log.finer("completed input: " + wrapped);
+        if (log.isLoggable(Level.FINER))
+            log.finer("completed input: " + wrapped);
         return wrapped;
     }
 }

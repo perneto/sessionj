@@ -12,6 +12,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  */
@@ -20,15 +21,12 @@ class AsyncManualTCPSelector implements TransportSelector {
     
     private final SelectingThread thread;
     private final SJTransport transport;
-    private final Map<SocketChannel, InputState> registeredInputs;
-    private final Map<ServerSocketChannel, SJServerSocket> registeredAccepts;
-
+    private final ChannelRegistrations registrations;
 
     AsyncManualTCPSelector(SelectingThread thread, SJTransport transport) {
         this.thread = thread;
         this.transport = transport;
-        registeredInputs = new HashMap<SocketChannel, InputState>();
-        registeredAccepts = new HashMap<ServerSocketChannel, SJServerSocket>();
+        registrations = new ChannelRegistrations();
     }
 
     @SuppressWarnings({"MethodParameterOfConcreteClass"})
@@ -40,7 +38,7 @@ class AsyncManualTCPSelector implements TransportSelector {
             // this is done by the acceptor, ahead of time.
             // If done twice, a race condition (occasional deadlocks) happens.
             
-            registeredAccepts.put(ssc, ss);
+            registrations.accept(ssc, ss);
             return true;
         }
         return false;
@@ -49,9 +47,10 @@ class AsyncManualTCPSelector implements TransportSelector {
     public boolean registerInput(SJSocket s) throws SJIOException {
         SocketChannel sc = retrieveSocketChannel(s);
         if (sc != null) {
-            log.finer("Registering: " + sc);
+            if (log.isLoggable(Level.FINER))
+                log.finer("Registering: " + sc);
             thread.registerInput(sc, s.getParameters().createDeserializer(), this);
-            registeredInputs.put(sc, new DirectlyToUser(s));
+            registrations.input(sc, new DirectlyToUser(s));
             return true;
         }
         return false;
@@ -61,25 +60,25 @@ class AsyncManualTCPSelector implements TransportSelector {
         while (true) {
             Object chan;
             try {
-                log.fine("Blocking dequeue...");
-                chan = thread.dequeueChannelForSelect(registeredChannels()); // blocking dequeue
-                log.fine("Channel selected: " + chan);
+                log.finer("Blocking dequeue...");
+                chan = thread.dequeueChannelForSelect(registrations.registeredChannels()); // blocking dequeue
+                if (log.isLoggable(Level.FINE)) log.fine("Channel selected: " + chan);
             } catch (InterruptedException e) {
                 throw new SJIOException(e);
             }
             if (chan instanceof SocketChannel) {
                 SocketChannel sc = (SocketChannel) chan;
-                assert registeredInputs.containsKey(sc);
 
-                InputState state = registeredInputs.get(sc);
+                InputState state = registrations.getInput(sc);
                 InputState newState = state.receivedInput();
-                registeredInputs.put(sc, newState);
+                registrations.input(sc, newState);
                 SJSocket s = newState.sjSocket();
                 if (s == null) {
                     log.finest("Read: InputState not complete: looping in select");
                 } else if (considerSessionType && s.remainingSessionType() == null) {
                     // User-level inputs all done - this must be from the close protocol
-                    log.finer("remainingSessionType is null: looping in select and deregistering socket " + s);
+                    if (log.isLoggable(Level.FINER))
+                        log.finer("remainingSessionType is null: looping in select and deregistering socket " + s);
                     thread.enqueueChannelForSelect(sc);
                     deregister(sc);
                 } else {
@@ -88,12 +87,11 @@ class AsyncManualTCPSelector implements TransportSelector {
             } else {
                 Pair<ServerSocketChannel, SocketChannel> p = (Pair<ServerSocketChannel, SocketChannel>) chan;
                 ServerSocketChannel ssc = p.first;
-                assert registeredAccepts.containsKey(ssc);
 
-                SJServerSocket sjss = registeredAccepts.get(ssc);
+                SJServerSocket sjss = registrations.getAccept(ssc);
                 registerOngoingAccept(sjss, p.second);
 
-                InputState initialState = registeredInputs.get(p.second);
+                InputState initialState = registrations.getInput(p.second);
                 SJSocket s = initialState.sjSocket();
                 if (s == null) {
                     log.finest("Accept: InputState not complete: looping in select");
@@ -104,19 +102,12 @@ class AsyncManualTCPSelector implements TransportSelector {
         }
     }
 
-    private Collection<SelectableChannel> registeredChannels() {
-        Collection<SelectableChannel> chans = new 
-            LinkedList<SelectableChannel>(registeredInputs.keySet());
-        chans.addAll(registeredAccepts.keySet());
-        return chans;
-    }
-
     private void deregister(SocketChannel sc) {
         // Does not really cancel the selection key, unless no
         // other instance of this class is interested.
         thread.deregisterInput(sc, this); 
         
-        registeredInputs.remove(sc);
+        registrations.removeInput(sc);
     }
 
     private void registerOngoingAccept(SJServerSocket sjss, SocketChannel sc) throws SJIOException, SJIncompatibleSessionException {
@@ -125,15 +116,12 @@ class AsyncManualTCPSelector implements TransportSelector {
         // everything is written.
         log.finest("sjss: " + sjss + ", sc: " + sc);
         thread.registerInput(sc, sjss.getParameters().createDeserializer(), this);
-        registeredInputs.put(sc, sjss.getParameters().getAcceptProtocol().initialAcceptState(sjss, sc));
+        registrations.input(sc, sjss.getParameters().getAcceptProtocol().initialAcceptState(sjss, sc));
     }
 
     public void close() throws SJIOException {
         log.finer("Closing selector");
-        Collection<SelectableChannel> channels = new LinkedList<SelectableChannel>();
-        channels.addAll(registeredAccepts.keySet());
-        channels.addAll(registeredInputs.keySet());
-        for (SelectableChannel chan : channels) {
+        for (SelectableChannel chan : registrations.registeredChannels()) {
             thread.close(chan);
         }
     }
