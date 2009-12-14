@@ -72,6 +72,9 @@ s1.connect(("camelot01", cport))
 for v in versions:
 	for i in clients:
 		for j in msgSizes:
+			        
+			print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j
+			sys.stdout.flush()
 			for l in range(0, repeats):
 				       
 				       if v == 'SE':
@@ -79,7 +82,7 @@ for v in versions:
 				       else:
 					       transport = ' '
 				       
-				       command = 'bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
+				       command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
 				       
 				       if debug == 't':
 					       print 'Running: ' + command

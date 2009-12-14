@@ -52,31 +52,27 @@ serversocket.listen(5)
 for v in versions:
   for i in clients:
     for j in msgSizes:
-        
-        print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j
-        sys.stdout.flush()
-	
-        for l in range(0, repeats):
+      for l in range(0, repeats):
 	        
-          data = s.recv(1024)
-          if v == 'SE':
-            transport = ' -Dsessionj.transports.session=a '
-          else:
-            transport = ' '
-	        	      
-          signalClient = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient ' + host + ' ' + sport	      
+        data = s.recv(1024)
+        if v == 'SE':
+          transport = ' -Dsessionj.transports.session=a '
+        else:
+          transport = ' '
+          
+        signalClient = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient ' + host + ' ' + sport	      
 	        	        
-          count = signalClient + ' COUNT'
-          stop = signalClient + ' STOP'
-          kill = signalClient + ' KILL'
+        count = signalClient + ' COUNT'
+        stop = signalClient + ' STOP'
+        kill = signalClient + ' KILL'
 	        
           #if debug == 't':
           #  print 'Running: ' + command
           #  sys.stdout.flush()
 	
-          os.system(count)      
-          
-          time.sleep(30)
-          
-          os.system(stop)
-          os.system(kill)
+        os.system(count)      
+        
+        time.sleep(30)
+        
+        os.system(stop)
+        os.system(kill)
