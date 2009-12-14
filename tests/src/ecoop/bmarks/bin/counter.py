@@ -24,7 +24,7 @@ sessionLengths = []
 hostname = socket.gethostname()
 
 if version == 'ALL':
-  versions = ['JT', 'JE', 'ST', 'SE']
+  versions = ['JT', 'JE', 'SE', 'ST']
 else:
   versions = [version]
 
@@ -49,8 +49,8 @@ serversocket.listen(5)
 # Accept connection.
 (s, address) = serversocket.accept()
 
-for i in clients:
-  for v in versions:
+for v in versions:
+  for i in clients:
     for j in msgSizes:
         
         print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j + ', sessionLength=' + k

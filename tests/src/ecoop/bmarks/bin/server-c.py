@@ -69,8 +69,8 @@ s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s1.connect(("camelot01", cport))
 	
 
-for i in clients:
-	for v in versions:
+for v in versions:
+	for i in clients:
 		for j in msgSizes:
 			for l in range(0, repeats):
 				       
