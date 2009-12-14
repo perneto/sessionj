@@ -58,8 +58,8 @@ if debug == 't':
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-#	clients = [str(2 + machines), str(2 + 10*machines), str(2 + 50*machines)]
-	clients = [str(2 + 50*machines)]
+	clients = [str(2 + machines), str(2 + 10*machines), str(2 + 50*machines)]
+#	clients = [str(2 + 50*machines)]
 	msgSizes = ['100', '1000']
 	sessionLengths = ['1', '10', '100']
 
@@ -94,8 +94,10 @@ for v in versions:
 					time.sleep(4) # Make sure Server has started.
 						
 					send(sockets, '1')
-						
-					time.sleep(20) # Make sure LoadClients are warmed up.
+					if i == '500':
+						time.sleep(10) # Make sure LoadClients are warmed up.
+					else:
+						time.slepp(25)
 	
 					s1.send('1')
 						
