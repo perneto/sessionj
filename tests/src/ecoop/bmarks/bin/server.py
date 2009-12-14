@@ -54,7 +54,7 @@ else:
 	versions = [version]
 
 if debug == 't':	
-	clients = [str(2 + machines), str(2 + 2*machines)]
+	clients = [str(machines), str(2*machines)]
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
