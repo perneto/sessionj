@@ -72,7 +72,7 @@ s1.connect(("camelot01", cport))
 for i in clients:
 	for v in versions:
 		for j in msgSizes:
-			for l in range(0, repeats
+			for l in range(0, repeats):
 				       
 				       if v == 'SE':
 					       transport = ' -Dsessionj.transports.session=a '
@@ -97,5 +97,5 @@ for i in clients:
 				       s1.send('1')
 				       
 				       thread1.join()
-				       
+	
 				       time.sleep(4)
