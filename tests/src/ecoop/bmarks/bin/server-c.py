@@ -49,7 +49,7 @@ msgSizes = []
 sessionLengths = []
 
 if version == 'ALL':
-	versions = ['SE', 'ST']
+	versions = ['SE', 'JE']
 else:
 	versions = [version]
 
@@ -92,7 +92,10 @@ for v in versions:
 				       
 				       send(sockets, '1')
 				       
-				       time.sleep(10) # Make sure LoadClients are warmed up.
+				       if client == '500':
+					       time.sleep(25) # Make sure LoadClients are warmed up.
+				       else:
+					       time.sleep(10)
 				       
 				       s1.send('1')
 				       
