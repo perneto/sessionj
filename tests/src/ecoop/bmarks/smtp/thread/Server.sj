@@ -1,3 +1,5 @@
+//$ bin/sessionj -cp tests/classes ecoop.bmarks.smtp.thread.Server false 8888 s
+
 package ecoop.bmarks.smtp.thread;
 
 import java.util.*;

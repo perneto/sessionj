@@ -66,7 +66,7 @@ public class ClientRunner
       
       try
       {
-      	Thread.sleep(50);
+      	Thread.sleep(100);
       }
       finally
       {
