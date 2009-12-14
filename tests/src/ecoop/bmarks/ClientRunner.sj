@@ -63,6 +63,8 @@ public class ClientRunner
         	}
         }
       }.start();
+      
+      Thread.sleep(50);
     }
   }
 }
