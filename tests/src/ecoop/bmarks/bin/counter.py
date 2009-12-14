@@ -59,6 +59,10 @@ for v in versions:
         for l in range(0, repeats):
 	        
           data = s.recv(1024)
+          if v == 'SE':
+            transport = ' -Dsessionj.transports.session=a '
+          else:
+            transport = ' '
 	        	      
           signalClient = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient false ' + host + ' ' + sport	      
 	        	        
