@@ -54,12 +54,12 @@ else:
 	versions = [version]
 
 if debug == 't':	
-	clients = [str(2 + machines), str(2 + 2*machines)]
+	clients = [str(machines), str(2*machines)]
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = [str(2 + 10*machines), str(2 + 50*machines)]
-#	clients = [str(2 + 10*machines)]
+#	clients = [str(2 + 10*machines), str(2 + 50*machines)]
+	clients = [str(2 + 50*machines)]
 	msgSizes = ['100', '1000']
 	sessionLengths = ['1', '10', '100']
 
@@ -95,7 +95,7 @@ for v in versions:
 						
 					send(sockets, '1')
 						
-					time.sleep(10) # Make sure LoadClients are warmed up.
+					time.sleep(30) # Make sure LoadClients are warmed up.
 	
 					s1.send('1')
 						
