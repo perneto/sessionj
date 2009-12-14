@@ -73,7 +73,7 @@ for v in versions:
         else:
           transport = ' '
         
-        command = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient false ' + host + ' ' + sport + ' -1 ' + j + ' ' + k + ' ' + repeats
+        command = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.' + subpackage + '.client.TimerClient2 false ' + host + ' ' + sport + ' -1 ' + j + ' ' + k + ' ' + repeats
         
         if debug == 't':
           print 'Running: ' + command
