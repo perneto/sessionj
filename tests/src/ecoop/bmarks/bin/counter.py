@@ -64,7 +64,7 @@ for v in versions:
           else:
             transport = ' '
 	        	      
-          signalClient = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient false ' + host + ' ' + sport	      
+          signalClient = 'bin/csessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient ' + host + ' ' + sport	      
 	        	        
           count = signalClient + ' COUNT'
           stop = signalClient + ' STOP'
