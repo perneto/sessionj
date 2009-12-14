@@ -27,12 +27,13 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 
 	private SJSessionType child;   
     // Important: serialization will loop if not transient
-    private transient SJSessionType canonicalForm = null;
+    @SuppressWarnings({"InstanceVariableMayNotBeInitialized"})
+    private transient SJSessionType canonicalForm;
     
 	protected SJSessionType_c(TypeSystem ts)
 	{
 		super(ts);
-	}
+    }
 
 	public SJSessionType child()
 	{
@@ -45,7 +46,6 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 		
 		if (child != null)
 		{
-			//((SJSessionType_c) st).setChild(child.copy()); // Clone the child. FIXME: Why?
             ((SJSessionType_c) st).setChild(child);
 		}
 		
