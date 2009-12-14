@@ -1,4 +1,5 @@
 //$ bin/sessionj -cp tests/classes/ ecoop.bmarks.ServerRunner false 8888 1 JT
+//$ bin/sessionj -Dsessionj.transports.session=a -cp tests/classes/ ecoop.bmarks.ServerRunner false 8888 1 SE
 
 package ecoop.bmarks;
 

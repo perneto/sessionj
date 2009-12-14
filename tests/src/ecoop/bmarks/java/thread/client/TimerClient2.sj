@@ -1,4 +1,4 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.java.thread.client.TimerClient2 false localhost 8888 -1 100 10 5
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.java.thread.client.TimerClient false localhost 8888 -1 100 5
 
 package ecoop.bmarks.java.thread.client;
 
@@ -9,7 +9,7 @@ import ecoop.bmarks.*;
 import ecoop.bmarks.java.thread.server.Server;
 
 // This counts as two clients (from the Server's view), due to the dummy run.
-public class TimerClient2 
+public class TimerClient 
 {
 	private static boolean debug;
 	
@@ -19,35 +19,28 @@ public class TimerClient2
   private int clientNum;
   private int messageSize;
   private int sessionLength;
-  private int repeats;
 
-  public TimerClient2(boolean debug, String host, int port, int clientNum, int messageSize, int sessionLength, int repeats) 
+  public TimerClient(boolean debug, String host, int port, int clientNum, int messageSize, int sessionLength) 
   {
-  	TimerClient2.debug = debug;
+  	TimerClient.debug = debug;
   	
   	this.host = host;
   	this.port = port;
     
   	this.clientNum = clientNum;
     this.messageSize = messageSize;
-    this.sessionLength = sessionLength;
-    this.repeats = repeats;
+    this.sessionLength = sessionLength;    
   }
 
   public void run() throws Exception
   {
   	try
   	{
-  		for (int i = 0; i < repeats; i++)
-  		{
-  			debugPrintln("[TimerClient2] Run: " + (i + 1) + "/" + repeats);
-  			
-		  	run(false); // Dummy run for warm up.
-		  	
-		  	debugPrintln("[TimerClient2] Finished dummy run, now taking measurements.");
-		  	
-		  	run(true);
-  		}
+	  	run(false); // Dummy run for warm up.
+	  	
+	  	debugPrintln("[TimerClient] Finished dummy run, now taking measurements.");
+	  	
+	  	run(true);
   	}
   	finally
   	{
@@ -86,7 +79,7 @@ public class TimerClient2
             
         mo = (MyObject) ois.readObject();      
             
-	      debugPrintln("[TimerClient2 " + clientNum + "] Received: " + mo);
+	      debugPrintln("[TimerClient " + clientNum + "] Received: " + mo);
 	
 	      if (debug)
 	      {
@@ -97,13 +90,13 @@ public class TimerClient2
       oos.writeInt(Server.QUIT);
 			oos.flush();
 			
-      debugPrintln("[TimerClient2 " + clientNum + "] Quitting.");
+      debugPrintln("[TimerClient " + clientNum + "] Quitting.");
 	    	    
 	    long finish = System.nanoTime();
 	    
 	    if (time)
 	    {
-	    	System.out.println("[TimerClient2] Session duration: " + (finish - start) + " nanos");
+	    	System.out.println("[TimerClient] Session duration: " + (finish - start) + " nanos");
 	    }
 	  }
 	  finally
@@ -128,8 +121,7 @@ public class TimerClient2
     int clientNum = Integer.parseInt(args[3]);
     int messageSize = Integer.parseInt(args[4]);
     int sessionLength = Integer.parseInt(args[5]);
-    int repeats = Integer.parseInt(args[6]);
 
-    new TimerClient2(debug, host, port, clientNum, messageSize, sessionLength, repeats).run();
+    new TimerClient(debug, host, port, clientNum, messageSize, sessionLength).run();
   }
 }
