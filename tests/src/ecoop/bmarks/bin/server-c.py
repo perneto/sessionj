@@ -49,7 +49,7 @@ msgSizes = []
 sessionLengths = []
 
 if version == 'ALL':
-	versions = ['SE', 'JE']
+	versions = ['SE', 'JE', 'JT', 'ST']
 else:
 	versions = [version]
 
@@ -58,7 +58,7 @@ if debug == 't':
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = [str(machines), str(10*machines), str(50*machines), str(100*machines)]
+	clients = [str(machines), str(10*machines), str(50*machines)]
 	msgSizes = ['100', '1000']
 	#sessionLengths = ['1', '10', '100', '1000']
 
