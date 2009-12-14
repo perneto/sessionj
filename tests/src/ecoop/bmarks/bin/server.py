@@ -95,9 +95,9 @@ for v in versions:
 						
 					send(sockets, '1')
 					if i == '500':
-						time.sleep(10) # Make sure LoadClients are warmed up.
+						time.sleep(25) # Make sure LoadClients are warmed up.
 					else:
-						time.sleep(25)
+						time.sleep(10)
 	
 					s1.send('1')
 						
