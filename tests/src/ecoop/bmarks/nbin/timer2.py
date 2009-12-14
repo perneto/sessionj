@@ -14,7 +14,7 @@ host = sys.argv[2]
 sport = sys.argv[3]
 cport = int(sys.argv[4])
 version = sys.argv[5]
-repeats = int(sys.argv[6])
+repeats = sys.argv[6]
 
 
 versions = []
