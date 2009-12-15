@@ -83,7 +83,10 @@ public class DummyClient
 	            ack = dis.readLine();
 	            debugPrintln("Message data ack: " + ack);
        
- 				//Thread.sleep(100);
+	       if (debug)
+	       {
+	      	 Thread.sleep(1000);
+	       }
 			}		
 		}
 		finally
