@@ -1,3 +1,4 @@
+//$ bin/sessionjc -cp tests/classes tests/src/ecoop/bmarks/smtp/thread/Server.sj -d tests/classes
 //$ bin/sessionj -cp tests/classes ecoop.bmarks.smtp.thread.Server false 2525 s
 
 package ecoop.bmarks.smtp.thread;
