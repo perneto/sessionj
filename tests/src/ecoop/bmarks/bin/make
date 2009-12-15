@@ -9,6 +9,7 @@ jt=false # Java threads.
 je=false # Java events (NIO).
 st=false # SJ threads.
 se=false # SJ events.
+smtp=false
 
 
 while true;
@@ -45,6 +46,10 @@ do
       se=true
       shift
       ;;     
+    smtp)
+    	smtp=true
+      shift
+      ;;
     *)
       shift
       ;;
@@ -144,4 +149,39 @@ then
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
 	done
 fi
+	
+if [ "$smtp" == "true" ];
+then	
+	path=tests/src/ecoop/bmarks/smtp
+	
+	for f in SmtpSignalServer SmtpServerRunner SmtpClientRunner; do
+	  echo Compiling $path/$f.sj
+	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
+	  if [ $? -ne 0 ]; then exit 1; else echo; fi
+	done
+	
+	path=tests/src/ecoop/bmarks/smtp/event
+	
+	for f in Server; do
+	  echo Compiling $path/$f.sj
+	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
+	  if [ $? -ne 0 ]; then exit 1; else echo; fi
+	done	
+	
+	path=tests/src/ecoop/bmarks/smtp/thread
+	
+	for f in Server; do
+	  echo Compiling $path/$f.sj
+	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
+	  if [ $? -ne 0 ]; then exit 1; else echo; fi
+	done
+	
+	path=tests/src/ecoop/bmarks/smtp/client
+	
+	for f in DummyClient Client; do
+	  echo Compiling $path/$f.sj
+	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
+	  if [ $? -ne 0 ]; then exit 1; else echo; fi
+	done
+fi	
 	
