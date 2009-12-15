@@ -18,6 +18,9 @@ import ecoop.bmarks.smtp.SmtpServerFormatter;
 
 public class Server
 {			
+	public static boolean counting = false;
+	public static int count = 0;
+	
 	static protocol smtp_server_mail
 	{
 		?(EmailAddress)
@@ -175,7 +178,7 @@ public class Server
 	
 	private static final void doMailFrom(final noalias @(smtp_server_mail) s) throws SJIOException, ClassNotFoundException
 	{
-        EmailAddress email = (EmailAddress) s.receive();
+    EmailAddress email = (EmailAddress) s.receive();
 		//System.out.print("Received: " + email);
 		
 		//250 OK
@@ -215,6 +218,8 @@ public class Server
 		MessageBodyAck messageBodyAck = new MessageBodyAck("OK id=1ABCde-2345F6-G7");
 		//System.out.print("Sending: " + messageBodyAck);			
 		s.send(messageBodyAck);
+		
+		Server.count++;
 	}
 		
 	public static void main(String[] args) throws Exception
