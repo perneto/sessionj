@@ -12,7 +12,7 @@ import os, time
 #debug = sys.argv[1]
 
 host = sys.argv[1]
-port = int(sys.argv[2])
+port = sys.argv[2]
 repeats = int(sys.argv[3])
 
 signalClient = 'bin/sessionj -cp tests/classes ecoop.bmarks.SignalClient ' + host + ' ' + port	      
