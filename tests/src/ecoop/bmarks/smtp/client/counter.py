@@ -3,7 +3,7 @@ import sys, socket
 import os, time
 
 # tests/src/ecoop/bmarks/timer.py <debug> <host> <server_port> <client_port> <version> <num_repeats>
-# tests/src/ecoop/bmarks/smtp/client/counter.py vector22 2525 100  
+# tests/src/ecoop/bmarks/smtp/client/counter.py vector22 2525 10  
 
 #if len(sys.argv) < 7:
 #  print 'Usage: timer.py <debug> <host> <server_port> <client_port> <version> <num_repeats>'
@@ -26,11 +26,12 @@ kill = signalClient + ' KILL'
 #  sys.stdout.flush()
 
 for l in range(0, repeats):	
+	print l
 	sys.stdout.flush()
 
 	os.system(count)      
   
-	time.sleep(20)
+	time.sleep(15)
   
 	os.system(stop)
 	
