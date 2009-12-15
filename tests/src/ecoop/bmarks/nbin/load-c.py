@@ -5,7 +5,7 @@ import os, time
 # tests/src/ecoop/bmarks/load.py <debug> <host> <server_port> <client_port> <version> 
 # tests/src/ecoop/bmarks/load.py f camelot16 2000 4321 JT 
 
-if len(sys.argv) < 5:
+if len(sys.argv) < 6:
   print 'Usage: load.py <debug> <host> <server_port> <client_port> <version>'
   sys.exit(1)
   
