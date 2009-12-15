@@ -152,14 +152,6 @@ fi
 	
 if [ "$smtp" == "true" ];
 then	
-	path=tests/src/ecoop/bmarks/smtp
-	
-	for f in SmtpSignalServer SmtpServerRunner SmtpClientRunner; do
-	  echo Compiling $path/$f.sj
-	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
-	  if [ $? -ne 0 ]; then exit 1; else echo; fi
-	done
-	
 	path=tests/src/ecoop/bmarks/smtp/event
 	
 	for f in Server; do
@@ -183,5 +175,13 @@ then
 	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
 	done
+	
+	path=tests/src/ecoop/bmarks/smtp
+	
+	for f in SmtpSignalServer SmtpServerRunner SmtpClientRunner; do
+	  echo Compiling $path/$f.sj
+	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
+	  if [ $? -ne 0 ]; then exit 1; else echo; fi
+	done	
 fi	
 	
