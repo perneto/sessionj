@@ -152,6 +152,16 @@ fi
 	
 if [ "$smtp" == "true" ];
 then	
+	bin/sessionjc -cp tests/classes tests/src/ecoop/bmarks/smtp/messages/CompileMessagesHack.sj -d tests/classes
+
+	path=tests/src/ecoop/bmarks/smtp
+
+	for f in SmtpServerFormatter; do
+	  echo Compiling $path/$f.sj
+	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
+	  if [ $? -ne 0 ]; then exit 1; else echo; fi
+	done
+
 	path=tests/src/ecoop/bmarks/smtp/event
 	
 	for f in Server; do
@@ -170,7 +180,7 @@ then
 	
 	path=tests/src/ecoop/bmarks/smtp/client
 	
-	for f in DummyClient Client; do
+	for f in DummyClient; do
 	  echo Compiling $path/$f.sj
 	  bin/sessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
