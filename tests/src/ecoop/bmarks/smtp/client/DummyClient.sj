@@ -48,32 +48,36 @@ public class DummyClient
 			for (boolean run = true; run; )			
 			{
 				m = "MAIL FROM:<foo@bar.com>\r\n";
-				System.out.print("Sending: " + m);
+				//System.out.print("Sending: " + m);
 				dos.write(m.getBytes());
 				dos.flush();
        
-				System.out.println("MAIL ack: " + dis.readLine());
+                String ack = dis.readLine();
+				//System.out.println("MAIL ack: " + dis.readLine());
        
 				m = "RCPT TO:<quux@bar.com>\r\n";
-				System.out.print("Sending: " + m);
+				//System.out.print("Sending: " + m);
 				dos.write(m.getBytes());
 				dos.flush();
-       
-	      System.out.println("RCPT ack: " + dis.readLine());
+            
+                ack = dis.readLine();
+	            //System.out.println("RCPT ack: " + ack);
 	       
-	     	m = "DATA\r\n";
-	     	System.out.print("Sending: " + m);
-	     	dos.write(m.getBytes());
-	      dos.flush();
+                m = "DATA\r\n";
+                //System.out.print("Sending: " + m);
+                dos.write(m.getBytes());
+                dos.flush();
 	       
-	      System.out.println("DATA ack: " + dis.readLine());
+	            ack = dis.readLine();
+	            //System.out.println("DATA ack: " + dis.readLine());
 	       
-	      m = generateText(msgSize) + "\r\n.\r\n";
-	      System.out.print("Sending: " + m);
-	      dos.write(m.getBytes());
-	      dos.flush();
+                m = generateText(msgSize) + "\r\n.\r\n";
+                //System.out.print("Sending: " + m);
+                dos.write(m.getBytes());
+                dos.flush();
 	       
-	      System.out.println("Message data ack: " + dis.readLine());
+	            ack = dis.readLine();
+	            //System.out.println("Message data ack: " + ack);
        
  				Thread.sleep(100);
 			}		

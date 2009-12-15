@@ -150,17 +150,17 @@ public class Server
 				case MAIL_FROM:
 				{
 					doMailFrom(s);								
-					doMainLoop(s);													
+					s.recurse(LOOP);													
 				}
 				case RCPT_TO:
 				{
 					doRcptTo(s);
-					doMainLoop(s);
+					s.recurse(LOOP);													
 				}
 				case DATA:
 				{
 					doData(s);	
-					doMainLoop(s);
+					s.recurse(LOOP);													
 				}
 				case QUIT:
 				{
