@@ -3,7 +3,7 @@ import sys, socket
 import os, time
 
 # tests/src/ecoop/bmarks/timer.py <debug> <host> <server_port> <client_port> <version> <num_repeats>
-# tests/src/ecoop/bmarks/timer.py f camelot16 2000 4321 JT 100  
+# tests/src/ecoop/bmarks/smtp/client/counter.py vector22 2525 100  
 
 #if len(sys.argv) < 7:
 #  print 'Usage: timer.py <debug> <host> <server_port> <client_port> <version> <num_repeats>'
@@ -11,9 +11,11 @@ import os, time
   
 #debug = sys.argv[1]
 
-repeats = int(sys.argv[1])
+host = sys.argv[1]
+port = sys.argv[2]
+repeats = int(sys.argv[3])
 
-signalClient = 'bin/sessionj' + transport + ' -cp tests/classes ecoop.bmarks.SignalClient ' + host + ' ' + sport	      
+signalClient = 'bin/sessionj -cp tests/classes ecoop.bmarks.SignalClient ' + host + ' ' + port	      
   	        
 count = signalClient + ' COUNT'
 stop = signalClient + ' STOP'

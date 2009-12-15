@@ -1,3 +1,5 @@
+//$ bin/sessionjc -cp tests/classes tests/src/ecoop/bmarks/smtp/SmtpServerFormatter.sj -d tests/classes
+
 package ecoop.bmarks.smtp;
 
 import java.io.IOException;
