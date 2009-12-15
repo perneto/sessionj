@@ -68,13 +68,13 @@ for v in versions:
       #  print 'Running: ' + command
       #  sys.stdout.flush()
 
-			for l in range(0, repeats):	
-				os.system(count)      
+      for l in range(0, repeats):	
+        os.system(count)      
         
-				time.sleep(20)
+        time.sleep(20)
         
-				os.system(stop)
+        os.system(stop)
 				
-				time.sleep(2)	       	       	 
+        time.sleep(2)	       	       	 
         
-			os.system(kill)
+        os.system(kill)
