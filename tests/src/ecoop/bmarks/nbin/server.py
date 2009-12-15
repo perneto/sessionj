@@ -59,9 +59,11 @@ if debug == 't':
 	sessionLengths = ['0', '1', '10']
 else:
 #	clients = [str(2*timers + 10*machines), str(2*timers + 50*machines)]
-	clients = [str(2 + 30*machines)]
-	msgSizes = ['100', '1000']
-	sessionLengths = ['1', '10', '100']
+	clients = [str(2 + 10*machines)]
+#	msgSizes = ['100', '1000']
+#	sessionLengths = ['1', '10', '100']
+	msgSizes = ['1000']
+	sessionLengths = ['100']
 
 
 sockets = connect(2, 2 + machines, cport)
