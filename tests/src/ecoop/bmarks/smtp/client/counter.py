@@ -26,6 +26,8 @@ kill = signalClient + ' KILL'
 #  sys.stdout.flush()
 
 for l in range(0, repeats):	
+	sys.stdout.flush()
+
 	os.system(count)      
   
 	time.sleep(20)
