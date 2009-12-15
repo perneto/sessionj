@@ -10,8 +10,11 @@ import sessionj.runtime.*;
  */
 abstract public class SJUtf8Formatter extends SJCustomMessageFormatter
 {			
-	private static final Charset cs = Charset.forName("UTF8");
-	private static final CharsetDecoder cd = cs.newDecoder();
+	/*private static final Charset cs = Charset.forName("UTF8");
+	private static final CharsetDecoder cd = cs.newDecoder();*/
+	
+	private final Charset cs = Charset.forName("UTF8");
+	private final CharsetDecoder cd = cs.newDecoder();
 	
 	/*abstract public Object parseMessage(byte[] bs, boolean eof);
 	

@@ -13,11 +13,14 @@ import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 import sessionj.runtime.session.*;
 
+import ecoop.bmarks.*;
 import ecoop.bmarks.smtp.messages.*;
 import ecoop.bmarks.smtp.SmtpServerFormatter;
 
 public class Server
 {			
+	public static int signal = MyObject.NO_SIGNAL;
+	
 	public static boolean counting = false;
 	public static int count = 0;
 	
@@ -80,8 +83,14 @@ public class Server
 		.@(smtp_server_body)
 	}
 		
+	private static boolean debug = false;
+	
+	int clients = 0;
+	
 	public void run(boolean debug, int port, String setups) throws Exception
 	{
+		Server.debug = debug;
+		
 		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, setups, transports, SmtpServerFormatter.class);
 		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, setups, setups, SmtpServerFormatter.class);
 		
@@ -98,7 +107,9 @@ public class Server
 				try (s)
 				{
 					s = ss.accept();
-
+					
+					//System.out.println("Clients: " + ++clients);
+					
 					s.spawn(new Server3Thread());
 				}
 				catch (SJIOException ioe)
@@ -121,10 +132,10 @@ public class Server
 			{
 				//220 smtp1.cc.ic.ac.uk ESMTP Exim 4.69 Sun, 22 Nov 2009 14:36:55 +0000
 				ServerGreeting greeting = new ServerGreeting("localhost ESMTP blah blah blah");
-				//System.out.print("Sending: " + greeting);			
+				debugPrintln("Sending: " + greeting);			
 				s.send(greeting);			
 				Ehlo ehlo = (Ehlo) s.receive();
-				//System.out.print("Received: " + ehlo);
+				debugPrintln("Received: " + ehlo);
 	
 				/*250-smtp1.cc.ic.ac.uk Hello tui.doc.ic.ac.uk [146.169.2.83]
 				250-SIZE 26214400
@@ -132,7 +143,7 @@ public class Server
 				250-STARTTLS
 				250 HELP*/
 				EhloAck ehloAck = new EhloAck("250 Hello foobar [1.2.3.4]");
-				//System.out.print("Sending: " + ehloAck);			
+				debugPrintln("Sending: " + ehloAck);			
 				s.send(ehloAck);			
 				
 				doMainLoop(s);			
@@ -179,13 +190,13 @@ public class Server
 	private static final void doMailFrom(final noalias @(smtp_server_mail) s) throws SJIOException, ClassNotFoundException
 	{
     EmailAddress email = (EmailAddress) s.receive();
-		//System.out.print("Received: " + email);
+		debugPrintln("Received: " + email);
 		
 		//250 OK
 		s.outbranch($250)
 		{
 			MailAckBody mailAckBody = new MailAckBody(SmtpMessage.SPACE_SEPARATOR + "OK"); // "Ack bodies" need the space/hyphen separator. 
-			//System.out.print("Sending: " + mailAckBody);			
+			debugPrintln("Sending: " + mailAckBody);			
 			s.send(mailAckBody);
 		}
 	}
@@ -193,13 +204,13 @@ public class Server
 	private static final void doRcptTo(final noalias @(smtp_server_rcpt) s) throws SJIOException, ClassNotFoundException
 	{
 	    EmailAddress email = (EmailAddress) s.receive();
-		//System.out.print("Received: " + email);
+		debugPrintln("Received: " + email);
 		
 		//250 Accepted
 		s.outbranch($250)
 		{
 			RcptAckBody rcptAckBody = new RcptAckBody(SmtpMessage.SPACE_SEPARATOR + "Accepted");
-			//System.out.print("Sending: " + rcptAckBody);			
+			debugPrintln("Sending: " + rcptAckBody);			
 			s.send(rcptAckBody);
 		}
 	}
@@ -208,20 +219,28 @@ public class Server
 	{	
 		//354 Enter message, ending with "." on a line by itself
 		DataAck dataAck = new DataAck("Enter message, ending with \".\" on a line by itself"); // Unlike the "ack bodies", already prefixes the reply code.
-		//System.out.print("Sending: " + dataAck);			
+		debugPrintln("Sending: " + dataAck);			
 		s.send(dataAck);	
 				
 		MessageBody body = (MessageBody) s.receive();
-		//System.out.print("Received: " + body);
+		debugPrintln("Received: " + body);
 		
 		//250 OK id=1NCDaj-0001P0-V7
 		MessageBodyAck messageBodyAck = new MessageBodyAck("OK id=1ABCde-2345F6-G7");
-		//System.out.print("Sending: " + messageBodyAck);			
+		debugPrintln("Sending: " + messageBodyAck);			
 		s.send(messageBodyAck);
 		
 		Server.count++;
 	}
 		
+	private static final void debugPrintln(String m)
+	{
+		if (debug)
+		{
+			System.out.println(m);
+		}
+	}
+	
 	public static void main(String[] args) throws Exception
 	{
 		boolean debug = Boolean.parseBoolean(args[0]);
