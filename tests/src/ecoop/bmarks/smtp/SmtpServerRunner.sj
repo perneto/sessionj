@@ -1,5 +1,5 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.smtp.SmtpServerRunner false 2525 SMTPT
-//$ bin/sessionj -Dsessionj.transports.session=a -cp tests/classes/ ecoop.bmarks.smtp.SmtpServerRunner false 2525 SMTPE
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.smtp.SmtpServerRunner false 2525 SMTPT 10
+//$ bin/sessionj -Dsessionj.transports.session=a -cp tests/classes/ ecoop.bmarks.smtp.SmtpServerRunner false 2525 SMTPE 10
 //$ localhost 2525 1 100
 
 package ecoop.bmarks.smtp;
@@ -14,9 +14,9 @@ public class SmtpServerRunner
   public static void main(String args[]) 
   {
     final boolean debug = Boolean.parseBoolean(args[0]);
-    final int port = Integer.parseInt(args[1]);
-    //final int numClients = Integer.parseInt(args[2]); 
+    final int port = Integer.parseInt(args[1]); 
     final String server = args[2];
+    final int numClients = Integer.parseInt(args[3]);
     
   	if (!(server.equals(SignalClient.SMTP_THREAD) || server.equals(SignalClient.SMTP_EVENT)))
 		{
@@ -33,7 +33,7 @@ public class SmtpServerRunner
     		{
     			if (server.equals(SignalClient.SMTP_THREAD))
     			{
-    				new ecoop.bmarks.smtp.thread.Server().run(debug, port, "s");
+    				new ecoop.bmarks.smtp.thread.Server().run(debug, port, "s", numClients);
     			}  
     			else if (server.equals(SignalClient.SMTP_EVENT))
     			{
