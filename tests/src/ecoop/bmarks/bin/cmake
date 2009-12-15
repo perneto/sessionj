@@ -67,7 +67,7 @@ if [ "$jt" == "true" ];
 then	
 	path=tests/src/ecoop/bmarks/java/thread/server
 	
-	for f in Server; do
+	for f in Server Server2; do
 	  echo Compiling $path/$f.sj
 	  bin/csessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
@@ -86,7 +86,7 @@ if [ "$je" == "true" ];
 then	
 	path=tests/src/ecoop/bmarks/java/event/server
 	
-	for f in Server; do
+	for f in Server Server2; do
 	  echo Compiling $path/$f.sj
 	  bin/csessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
@@ -105,7 +105,7 @@ if [ "$st" == "true" ];
 then	
 	path=tests/src/ecoop/bmarks/sj/server/thread
 	
-	for f in Server; do
+	for f in Server Server2; do
 	  echo Compiling $path/$f.sj
 	  bin/csessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
@@ -116,7 +116,7 @@ if [ "$se" == "true" ];
 then	
 	path=tests/src/ecoop/bmarks/sj/server/event
 	
-	for f in Server; do
+	for f in Server Server2; do
 	  echo Compiling $path/$f.sj
 	  bin/csessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
@@ -138,7 +138,7 @@ if [ "$c" == "true" ];
 then	
 	path=tests/src/ecoop/bmarks
 	
-	for f in SignalServer ServerRunner ClientRunner; do
+	for f in SignalServer SignalServer2 ServerRunner ServerRunner2 ClientRunner; do
 	  echo Compiling $path/$f.sj
 	  bin/csessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
