@@ -31,12 +31,12 @@ if debug == 't':
   msgSizes = ['10', '100']
   sessionLengths = ['0', '1', '10']
 else:
-  clients = ['10']
-  #clients = ['50']
-  #msgSizes = ['100', '1000']
-  msgSizes = ['1000']
-  sessionLengths = ['100']
-#  sessionLengths = ['1', '10', '100']
+  #clients = ['10']
+  clients = ['50']
+  msgSizes = ['100', '1000']
+#  msgSizes = ['1000']
+#  sessionLengths = ['100']
+  sessionLengths = ['1', '10', '100']
 
 # Create an INET, STREAMing socket.
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
