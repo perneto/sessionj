@@ -1,5 +1,6 @@
 //$ bin/sessionj -cp tests/classes/ ecoop.bmarks.smtp.SmtpServerRunner false 2525 SMTPT
 //$ bin/sessionj -Dsessionj.transports.session=a -cp tests/classes/ ecoop.bmarks.smtp.SmtpServerRunner false 2525 SMTPE
+//$ localhost 2525 1 100
 
 package ecoop.bmarks.smtp;
 

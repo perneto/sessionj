@@ -1,3 +1,5 @@
+//$ bin/sessionjc -cp tests/classes tests/src/ecoop/bmarks/smtp/client/messages/CompileMessagesHack.sj -d tests/classes
+
 package ecoop.bmarks.smtp.client.messages;
 
 // Convenience hack to get around a compiler bug for compiling multiple classes in subpackages. 
