@@ -5,7 +5,7 @@ import os, time
 # tests/src/ecoop/bmarks/load.py <debug> <host> <server_port> <client_port> <version> 
 # tests/src/ecoop/bmarks/load.py f camelot16 2000 4321 JT 
 
-if len(sys.argv) < 7:
+if len(sys.argv) < 6:
   print 'Usage: load.py <debug> <host> <server_port> <client_port> <version>'
   sys.exit(1)
   
@@ -14,7 +14,7 @@ host = sys.argv[2]
 sport = sys.argv[3]
 cport = int(sys.argv[4])
 version = sys.argv[5]
-repeats = int(sys.argv[6])
+#repeats = int(sys.argv[6])
 
 
 versions = []
@@ -32,7 +32,7 @@ if debug == 't':
   msgSizes = ['10', '100']
   sessionLengths = ['0', '1', '10']
 else:
-  clients = ['10', '50']
+  clients = ['70']
   #clients = ['1', '10', '50']
   msgSizes = ['100', '1000']
 #  sessionLengths = ['1', '10', '100']
