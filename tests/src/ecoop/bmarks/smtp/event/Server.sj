@@ -1,3 +1,5 @@
+//$ bin/sessionj -Dsessionj.transports.negotiation=a -Dsessionj.transports.session=a -cp tests/classes ecoop.bmarks.smtp.event.Server false 2525 a
+
 package ecoop.bmarks.smtp.event;
 
 import java.util.*;
@@ -11,11 +13,14 @@ import sessionj.runtime.transport.sharedmem.*;
 import sessionj.runtime.transport.httpservlet.*;
 import sessionj.runtime.session.*;
 
+import ecoop.bmarks.*;
 import ecoop.bmarks.smtp.messages.*;
 import ecoop.bmarks.smtp.SmtpServerFormatter;
 
 public class Server
 {			
+	public static int signal = MyObject.NO_SIGNAL;
+	
 	public static boolean counting = false;
 	public static int count = 0;	
 	

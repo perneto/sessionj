@@ -17,6 +17,9 @@ public class SignalClient
 	public static final String SJ_THREAD = "ST";
 	public static final String SJ_EVENT = "SE";	
 	
+	public static final String SMTP_THREAD = "SMTPT";
+	public static final String SMTP_EVENT = "SMTPE"; 
+	
 	public static final String KILL = "KILL";
 	public static final String TIME = "TIME";
 	public static final String COUNT = "COUNT";	
