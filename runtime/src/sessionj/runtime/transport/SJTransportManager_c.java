@@ -424,7 +424,7 @@ public class SJTransportManager_c extends SJTransportManager
 			}
 			catch (SJIOException ioe)
 			{
-                log.finer(t.getTransportName() + " setup failed: " + ioe.getMessage());
+                log.log(Level.WARNING, t.getTransportName() + " setup failed: " + ioe.getMessage(), ioe);
             }		
 		}						
 		
