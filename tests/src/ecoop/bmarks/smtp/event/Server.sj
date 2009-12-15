@@ -268,7 +268,15 @@ public class Server
 								//System.out.print("Sending: " + messageBodyAck);			
 								s.send(messageBodyAck);
 								
-								Server.count++;
+								if (counting)
+								{								
+									Server.count++;
+									
+									if (debug)
+									{
+										System.out.println(count);
+									}
+								}								
 								
 								s.recursion(LOOP)
 								{
