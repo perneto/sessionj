@@ -71,35 +71,35 @@ s1.connect(("camelot01", cport))
 for v in versions:
 	for i in clients:
 		for j in msgSizes:
-			        
+			
 			print 'Benchmark: version=' + v + ', clients=' + i + ', msgSize=' + j
 			sys.stdout.flush()
 
-       if v == 'SE':
-	       transport = ' -Dsessionj.transports.session=a '
-       else:
-	       transport = ' '
+			if v == 'SE':
+				transport = ' -Dsessionj.transports.session=a '
+			else:
+				transport = ' '
        
-       command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
+			command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
        
-       if debug == 't':
-	       print 'Running: ' + command
+			if debug == 't':
+				print 'Running: ' + command
        
        #thread.start_new_thread(spawnThread,(command,))
-       thread1 = Thread(target=spawnThread, args=(command,))
-       thread1.start()
+			thread1 = Thread(target=spawnThread, args=(command,))
+			thread1.start()
        
-       time.sleep(4) # Make sure Server has started.
+			time.sleep(4) # Make sure Server has started.
        
-       send(sockets, '1')
+			send(sockets, '1')
        
-       if i == '500':
-	       time.sleep(25) # Make sure LoadClients are warmed up.
-       else:
-	       time.sleep(10)
+			if i == '500':
+				time.sleep(25) # Make sure LoadClients are warmed up.
+			else:
+				time.sleep(10)
        
-       s1.send('1')
+			s1.send('1')
        
-       thread1.join()
+			thread1.join()
 
-       time.sleep(4)
+			time.sleep(4)
