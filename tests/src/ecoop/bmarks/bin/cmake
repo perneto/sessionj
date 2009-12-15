@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run from the sessionj root directory:
-# tests/src/ecoop/bmarks/bin/make all 
+# tests/src/ecoop/bmarks/bin/cmake all 
 
 
 c=false  # Core/common.
@@ -75,7 +75,7 @@ then
 	
 	path=tests/src/ecoop/bmarks/java/thread/client
 	
-	for f in LoadClient TimerClient; do
+	for f in LoadClient TimerClient TimerClient2; do
 	  echo Compiling $path/$f.sj
 	  bin/csessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
@@ -94,7 +94,7 @@ then
 	
 	path=tests/src/ecoop/bmarks/java/event/client
 	
-	for f in LoadClient TimerClient; do
+	for f in LoadClient TimerClient TimerClient2; do
 	  echo Compiling $path/$f.sj
 	  bin/csessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi
@@ -127,7 +127,7 @@ if [ "$st" == "true" -o "$se" == "true" ];
 then
 	path=tests/src/ecoop/bmarks/sj/client
 	
-	for f in LoadClient TimerClient; do
+	for f in LoadClient TimerClient TimerClient2; do
 	  echo Compiling $path/$f.sj
 	  bin/csessionjc -cp tests/classes $path/$f.sj -d tests/classes
 	  if [ $? -ne 0 ]; then exit 1; else echo; fi

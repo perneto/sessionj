@@ -90,7 +90,7 @@ public class Server
 					}
 				} 	   
 			}
-			catch(Exception x)
+			catch (Exception x)
 			{
 				throw new RuntimeException(x);
 			}
@@ -98,7 +98,7 @@ public class Server
 			{
 				synchronized (server.lock)
 				{
-					//System.out.println("end of thread: tid=" + tid + ", active=" + server.active);
+					System.out.println("end of thread: tid=" + tid + ", active=" + server.active);
 					
 					if (--server.active == 0)
 					{						
@@ -126,7 +126,9 @@ public class Server
 			
 			counts = new int[numClients];
 			
-			for (int i = 0; i < numClients; i++) 
+			int nc = numClients;
+			
+			for (int i = 0; i < nc; i++) 
 			{
 				try (s) 
 				{
