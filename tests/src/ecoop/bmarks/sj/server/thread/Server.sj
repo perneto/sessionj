@@ -98,8 +98,6 @@ public class Server
 			{
 				synchronized (server.lock)
 				{
-					System.out.println("end of thread: tid=" + tid + ", active=" + server.active);
-					
 					if (--server.active == 0)
 					{						
 						server.lock.notify();
