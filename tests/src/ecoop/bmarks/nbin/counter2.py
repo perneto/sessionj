@@ -77,4 +77,4 @@ for v in versions:
 				
         time.sleep(2)	       	       	 
         
-        os.system(kill)
+      os.system(kill)
