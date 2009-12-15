@@ -1,4 +1,4 @@
-//$ bin/sessionj -cp tests/classes ecoop.bmarks.smtp.client.DummyClient false locahost 2525 s 1024
+//$ bin/sessionj -cp tests/classes ecoop.bmarks.smtp.client.DummyClient false localhost 2525 s 1024
 
 package ecoop.bmarks.smtp.client;
 
@@ -14,11 +14,15 @@ import java.util.*;
  */
 public class DummyClient
 {			
+	private boolean debug = false;
+	
 	public void run(boolean debug, String setups, String server, int port, int msgSize) throws Exception
 	{
+		this.debug = debug;
+		
 		final String fqdn = InetAddress.getLocalHost().getHostName().toString(); //getCanonicalHostName().toString();
 		
-		System.out.println("fqdn: " + fqdn);
+		debugPrintln("fqdn: " + fqdn);
 		
 		Socket s;
 		
@@ -27,64 +31,72 @@ public class DummyClient
 		
 		try
 		{		
-			System.out.println("Requesting SMTP session with: " + server + ":" + port);
+			debugPrintln("Requesting SMTP session with: " + server + ":" + port);
 			
 			s = new Socket(server, port);
 							
 			dos = new DataOutputStream(s.getOutputStream());
 			dis = new DataInputStream(s.getInputStream());
 			
-			System.out.println("Server greeting: " + dis.readLine());
+			debugPrintln("Server greeting: " + dis.readLine());
 			
 			String m;
 			
 			m = "EHLO " + fqdn + "\r\n";
-			System.out.print("Sending: " + "EHLO " + fqdn + "\r\n");			
+			debugPrintln("Sending: " + "EHLO " + fqdn + "\r\n");			
 			dos.write(m.getBytes());
 			dos.flush();
 			
-			System.out.println("EHLO ack: " + dis.readLine());
+			debugPrintln("EHLO ack: " + dis.readLine());
 			
 			for (boolean run = true; run; )			
 			{
 				m = "MAIL FROM:<foo@bar.com>\r\n";
-				//System.out.print("Sending: " + m);
+				debugPrintln("Sending: " + m);
 				dos.write(m.getBytes());
 				dos.flush();
        
                 String ack = dis.readLine();
-				//System.out.println("MAIL ack: " + dis.readLine());
+				debugPrintln("MAIL ack: " + ack);
        
 				m = "RCPT TO:<quux@bar.com>\r\n";
-				//System.out.print("Sending: " + m);
+				debugPrintln("Sending: " + m);
 				dos.write(m.getBytes());
 				dos.flush();
             
                 ack = dis.readLine();
-	            //System.out.println("RCPT ack: " + ack);
+	            debugPrintln("RCPT ack: " + ack);
 	       
                 m = "DATA\r\n";
-                //System.out.print("Sending: " + m);
+                debugPrintln("Sending: " + m);
                 dos.write(m.getBytes());
                 dos.flush();
 	       
 	            ack = dis.readLine();
-	            //System.out.println("DATA ack: " + dis.readLine());
+	            debugPrintln("DATA ack: " + ack);
 	       
                 m = generateText(msgSize) + "\r\n.\r\n";
-                //System.out.print("Sending: " + m);
+                debugPrintln("Sending: " + m);
                 dos.write(m.getBytes());
                 dos.flush();
 	       
 	            ack = dis.readLine();
-	            //System.out.println("Message data ack: " + ack);
+	            debugPrintln("Message data ack: " + ack);
        
- 				Thread.sleep(100);
+ 				//Thread.sleep(100);
 			}		
 		}
 		finally
 		{
 			
+		}
+	}
+	
+	private final void debugPrintln(String m)
+	{
+		if (debug)
+		{
+			System.out.println(m);
 		}
 	}
 	
