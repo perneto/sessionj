@@ -73,9 +73,16 @@ public class SmtpSignalServer
         	{
         		ecoop.bmarks.smtp.thread.Server.counting = false;
         		    			
-        		System.out.println("[SmtpSignalServer] Total count: " + ecoop.bmarks.smtp.thread.Server.count);
+        		int total = 0;
+        		
+        		for (int i = 0; i < ecoop.bmarks.smtp.thread.Server.counts.length; i++)
+        		{
+        			total += ecoop.bmarks.smtp.thread.Server.counts[i];
+        		}
+        		
+        		System.out.println("[SmtpSignalServer] Total count: " + total);
     				
-    				ecoop.bmarks.smtp.thread.Server.count = 0;
+    				ecoop.bmarks.smtp.thread.Server.counts = new int[ecoop.bmarks.smtp.thread.Server.counts.length];
         	}
         	else if (server.equals(SignalClient.SMTP_EVENT))
         	{
