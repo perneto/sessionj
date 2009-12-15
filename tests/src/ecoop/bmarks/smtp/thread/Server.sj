@@ -22,9 +22,9 @@ public class Server
 {			
 	public static int signal = MyObject.NO_SIGNAL;
 	
-	public static boolean counting = false;
+	volatile public static boolean counting = false;
 	//public static int count = 0;
-	public static int[] counts;
+	volatile public static int[] counts;
 	
 	static protocol smtp_server_mail
 	{
