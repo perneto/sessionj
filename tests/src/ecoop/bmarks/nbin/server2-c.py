@@ -57,7 +57,7 @@ if debug == 't':
 	msgSizes = ['10', '100']
 	sessionLengths = ['0', '1', '10']
 else:
-	clients = [str(10*machines), str(50*machines)]
+	clients = [str(70*machines)]
 	msgSizes = ['100', '1000']
 	#sessionLengths = ['1', '10', '100', '1000']
 
@@ -80,7 +80,7 @@ for v in versions:
 			else:
 				transport = ' '
        
-			command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + i + ' ' + v
+			command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj' + transport + '-cp tests/classes ecoop.bmarks.ServerRunner2 false ' + sport + ' ' + i + ' ' + v
        
 			if debug == 't':
 				print 'Running: ' + command
