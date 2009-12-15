@@ -1,12 +1,12 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.java.thread.client.TimerClient2 false localhost 8888 -1 100 10 5
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks.java.event.client.TimerClient2 false localhost 8888 -1 100 10 5
 
-package ecoop.bmarks.java.thread.client;
+package ecoop.bmarks.java.event.client;
 
 import java.io.*;
 import java.net.*;
 
 import ecoop.bmarks.*;
-import ecoop.bmarks.java.thread.server.Server;
+import ecoop.bmarks.java.event.server.Server;
 
 // This counts as two clients (from the Server's view), due to the dummy run.
 public class TimerClient2 
@@ -30,7 +30,7 @@ public class TimerClient2
     
   	this.clientNum = clientNum;
     this.messageSize = messageSize;
-    this.sessionLength = sessionLength;
+    this.sessionLength = sessionLength;    
     this.repeats = repeats;
   }
 
@@ -61,8 +61,8 @@ public class TimerClient2
   {
 		Socket s = null;
 		
-		ObjectOutputStream oos = null;
-		ObjectInputStream ois = null;
+		DataOutputStream dos = null;
+		DataInputStream dis = null;
 		
 		try
 		{
@@ -70,8 +70,8 @@ public class TimerClient2
 			
 			s.setTcpNoDelay(true);
 			
-			oos = new ObjectOutputStream(s.getOutputStream());
-			ois = new ObjectInputStream(s.getInputStream());
+			dos = new DataOutputStream(s.getOutputStream());
+			dis = new DataInputStream(s.getInputStream());
 	
 	    long start = System.nanoTime();
 	    
@@ -79,23 +79,35 @@ public class TimerClient2
 	     
 	    for (int iters = 0; iters < sessionLength; iters++) 
       {
-  			oos.writeInt(Server.REC);
-  			oos.flush();
+	    	dos.write(Server.intToByteArray(Server.REC));
+  			dos.flush();
   			
-        oos.writeObject(new ClientMessage(clientNum, Integer.toString(iters), messageSize));
+  			byte[] bs = Server.serializeObject(new ClientMessage(clientNum, Integer.toString(iters), messageSize));
             
-        mo = (MyObject) ois.readObject();      
-            
-	      debugPrintln("[TimerClient2 " + clientNum + "] Received: " + mo);
-	
+  			dos.write(Server.intToByteArray(bs.length));
+        dos.write(bs);
+        dos.flush();
+  			
+	      bs = new byte[4];
+        
+        dis.readFully(bs);
+        
+        bs = new byte[Server.byteArrayToInt(bs)];
+        
+        dis.readFully(bs);
+        
+        mo = (MyObject) Server.deserializeObject(bs);      
+        
+        debugPrintln("[TimerClient2 " + clientNum + "] Received: " + mo);
+	      
 	      if (debug)
 	      {
 	      	Thread.sleep(1000);
 	      }
       }
       
-      oos.writeInt(Server.QUIT);
-			oos.flush();
+      dos.writeInt(Server.QUIT);
+			dos.flush();
 			
       debugPrintln("[TimerClient2 " + clientNum + "] Quitting.");
 	    	    

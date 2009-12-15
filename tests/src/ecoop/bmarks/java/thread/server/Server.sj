@@ -135,7 +135,9 @@ public class Server
 			
 			List threads = new LinkedList();			
 			
-			for (int i = 0; i < numClients; i++)
+			int nc = numClients;
+			
+			for (int i = 0; i < nc; i++)
 			{
 				ServerThread st = new ServerThread(i, ss.accept());
 				
