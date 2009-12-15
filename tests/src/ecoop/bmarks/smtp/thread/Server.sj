@@ -23,7 +23,8 @@ public class Server
 	public static int signal = MyObject.NO_SIGNAL;
 	
 	public static boolean counting = false;
-	public static int count = 0;
+	//public static int count = 0;
+	public static int[] counts;
 	
 	static protocol smtp_server_mail
 	{
@@ -88,8 +89,10 @@ public class Server
 	
 	int clients = 0;
 	
-	public void run(boolean debug, int port, String setups) throws Exception
+	public void run(boolean debug, int port, String setups, int numClients) throws Exception
 	{
+		this.counts = new int[numClients];
+		
 		Server.debug = debug;
 		
 		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters(SJCompatibilityMode.CUSTOM, setups, transports, SmtpServerFormatter.class);
@@ -111,7 +114,7 @@ public class Server
 					
 					//System.out.println("Clients: " + ++clients);
 					
-					s.spawn(new Server3Thread());
+					s.spawn(new Server3Thread(clients++));
 				}
 				catch (SJIOException ioe)
 				{
@@ -127,6 +130,13 @@ public class Server
 
 	private class Server3Thread extends SJThread
 	{
+		private int tid;
+		
+		public Server3Thread(int tid)
+		{
+			this.tid = tid;
+		}
+		
 		public void srun(noalias @(smtp_server_body) s)
 		{
 			try (s)
@@ -147,7 +157,7 @@ public class Server
 				debugPrintln("Sending: " + ehloAck);			
 				s.send(ehloAck);			
 				
-				doMainLoop(s);			
+				doMainLoop(s, tid);			
 			}
 			catch (Exception x)
 			{
@@ -156,7 +166,7 @@ public class Server
 		}		
 	}
 	
-	private static final void doMainLoop(final noalias @(smtp_server_loop) s) throws SJIOException, ClassNotFoundException
+	private static final void doMainLoop(final noalias @(smtp_server_loop) s, int tid) throws SJIOException, ClassNotFoundException
 	{
 		s.recursion(LOOP)
 		{
@@ -174,7 +184,7 @@ public class Server
 				}
 				case DATA:
 				{
-					doData(s);	
+					doData(s, tid);	
 					s.recurse(LOOP);													
 				}
 				case QUIT:
@@ -216,7 +226,7 @@ public class Server
 		}
 	}
 	
-	private static final void doData(final noalias @(smtp_server_data) s) throws SJIOException, ClassNotFoundException
+	private static final void doData(final noalias @(smtp_server_data) s, int tid) throws SJIOException, ClassNotFoundException
 	{	
 		//354 Enter message, ending with "." on a line by itself
 		DataAck dataAck = new DataAck("Enter message, ending with \".\" on a line by itself"); // Unlike the "ack bodies", already prefixes the reply code.
@@ -231,12 +241,21 @@ public class Server
 		debugPrintln("Sending: " + messageBodyAck);			
 		s.send(messageBodyAck);
 		
-		Server.count++;
+		if (counting)
+		{
+			Server.counts[tid]++;
+			
+			if (debug)
+			{
+				System.out.println(tid + ": " + Server.counts[tid]);
+			}
+		}
 	}
 		
 	private static final void debugPrintln(String m)
 	{
-		if (debug)
+		//if (debug)
+		if (false)
 		{
 			System.out.println(m);
 		}
@@ -250,6 +269,8 @@ public class Server
 		String setups = args[2];
 		//String transports = args[3];			
 		
-		new Server().run(debug, port, setups);
+		int numClients = Integer.parseInt(args[3]);
+		
+		new Server().run(debug, port, setups, numClients);
 	}
 }
