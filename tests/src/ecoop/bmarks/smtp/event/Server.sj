@@ -217,7 +217,7 @@ public class Server
 									{
 										//221 smtp1.cc.ic.ac.uk closing connection
 										QuitAck quitAck = new QuitAck("localhost closing connection"); // Unlike the "ack bodies", already prefixes the reply code.
-										System.out.print("Sending: " + quitAck);			
+										//System.out.print("Sending: " + quitAck);			
 										s.send(quitAck);	
 									}
 								}								

@@ -11,6 +11,7 @@ import ecoop.bmarks.*;
 //import ecoop.bmarks.sj.event.server.Server;
 
 // This counts as two clients (from the Server's view), due to the dummy run.
+// The difference with TimerClient is that we can run many Client sessions (not hardcodede to two).
 public class TimerClient2 
 {
 	protocol pClient cbegin.rec X [!{REC: !<ClientMessage>.?(MyObject).#X, QUIT: }]
