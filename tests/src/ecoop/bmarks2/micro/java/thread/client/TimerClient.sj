@@ -1,0 +1,114 @@
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.micro.java.thread.client.TimerClient false localhost 8888 -1 10 2 1
+
+package ecoop.bmarks2.micro.java.thread.client;
+
+import java.io.*;
+import java.net.*;
+
+import ecoop.bmarks2.micro.*;
+
+public class TimerClient extends ecoop.bmarks2.micro.TimerClient
+{
+	private int repeats;
+	
+  public TimerClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, int repeats) 
+  {
+  	super(debug, host, port, cid, serverMessageSize, sessionLength);
+  	
+  	this.repeats = repeats;
+  }
+
+  public void run() throws Exception
+  {
+  	try
+  	{
+  		for (int i = 0; i < repeats; i++)
+  		{
+		  	run(false); // Dummy run for warm up.
+		  	
+		  	debugPrintln("[TimerClient] Finished dummy run, now taking measurements.");
+		  	
+		  	run(true);
+  		}
+  	}
+  	finally
+  	{
+	  	/*debugPrintln("[TimerClient] Sending KILL.");
+	  	
+	  	new SignalClient().sendSignal(host, port, MyObject.KILL);*/  		
+  	}
+  }
+
+  public void run(boolean timer) throws Exception
+  {
+		Socket s = null;
+		
+		ObjectOutputStream oos = null;
+		ObjectInputStream ois = null;
+		
+		try
+		{
+			s = new Socket(getHost(), getPort());
+			
+			s.setTcpNoDelay(true);
+			
+			oos = new ObjectOutputStream(s.getOutputStream());
+			ois = new ObjectInputStream(s.getInputStream());
+	
+			boolean debug = isDebug();
+			int cid = getCid();
+			int serverMessageSize = getServerMessageSize();
+	    int sessionLength = getSessionLength();
+			
+	    long start = System.nanoTime();
+	    
+	    ServerMessage sm;	     
+	    
+	    for (int iters = 0; iters < sessionLength; iters++) 
+      {
+  			oos.writeInt(Common.REC);
+  			oos.flush();
+  			
+        oos.writeObject(new ClientMessage(cid, Integer.toString(iters), serverMessageSize));
+            
+        sm = (ServerMessage) ois.readObject();      
+            
+	      debugPrintln("[TimerClient " + cid + "] Received: " + sm);
+	
+	      if (debug)
+	      {
+	      	Thread.sleep(1000);
+	      }
+      }
+      
+      oos.writeInt(Common.QUIT);
+			oos.flush();
+			
+      debugPrintln("[TimerClient " + cid + "] Quitting.");
+	    	    
+	    long finish = System.nanoTime();
+	    
+	    if (timer)
+	    {
+	    	System.out.println("[TimerClient] Session duration: " + (finish - start) + " nanos");
+	    }
+	  }
+	  finally
+	  {
+
+	  }
+	}
+  
+  public static void main(String [] args) throws Exception
+  {
+  	boolean debug = Boolean.parseBoolean(args[0]);
+  	String host = args[1];
+    int port = Integer.parseInt(args[2]);
+    int cid = Integer.parseInt(args[3]);
+    int serverMessageSize = Integer.parseInt(args[4]);
+    int sessionLength = Integer.parseInt(args[5]);
+    int repeats = Integer.parseInt(args[6]);
+
+    new TimerClient(debug, host, port, cid, serverMessageSize, sessionLength, repeats).run();
+  }
+}

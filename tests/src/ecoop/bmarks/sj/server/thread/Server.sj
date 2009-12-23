@@ -8,6 +8,7 @@ import sessionj.runtime.transport.*;
 
 import ecoop.bmarks.*;
 
+// The difference with Server is that we don't print the count on exit. 
 public class Server 
 {
 	public protocol pBody rec X [?{REC: ?(ClientMessage).!<MyObject>.#X, QUIT: }]
