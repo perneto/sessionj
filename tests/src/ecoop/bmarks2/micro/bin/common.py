@@ -15,7 +15,7 @@ versions = ['JT', 'JE', 'ST', 'SE']
 #messageSizes = ['100', '1024', '10240']
 #sessionLengths = ['0', '1', '10', '100']
 numClients = ['10', '100', '500', '1000']
-messageSizes = ['100', '10240']
+messageSizes = ['100', '1024']
 sessionLengths = ['0', '10']
 
 debugNumClients = ['2', '4']	
