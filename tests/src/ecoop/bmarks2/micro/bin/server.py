@@ -56,33 +56,37 @@ repeats = int(sys.argv[7]) # "Outer repeats", i.e. how many times we will recrea
 
 # Benchmark configuration parameters.
 
-if env == 'localhost':
-	client = common.getLocalhostClient() 
-	workers = common.getLocalhostWorkers() 
-elif env == 'camelot':
-	client = common.getCamelotClient() # The Timer/Counter Client machine.
-	workers = common.getCamelotWorkers() # The Worker machines.
-else:
-	common.printAndFlush('Unknown environment: ' + env)
-	sys.exit(1)
-
 if version == 'ALL':
 	versions = common.versions				
 else:
 	versions = [version]
 
-if debug or env == 'localhost':
-	(numClients, messageSizes, sessionLengths) = common.getDebugParameters()
+if env == 'localhost':
+	client = common.getLocalhostClient() 
+	workers = common.getLocalhostWorkers() 
+	
+	(numClients, messageSizes, sessionLengths) = common.getLocalhostParameters()
+elif env == 'camelot':
+	client = common.getCamelotClient() 
+		
+	if debug:
+		workers = common.getCamelotDebugWorkers() 
+		(numClients, messageSizes, sessionLengths) = common.getDebugParameters()
+	else:
+		workers = common.getCamelotWorkers() 
+		(numClients, messageSizes, sessionLengths) = common.getParameters()	
 else:
-	(numClients, messageSizes, sessionLengths) = common.getParameters()
+	common.printAndFlush('Unknown environment: ' + env)
+	sys.exit(1)
 
 #serverWarmup = 
 #loadClientsWarmup =
 
-common.debugPrint(debug, 'Global: versions=' + str(versions) + ', numClients=' + str(numClients) + ', messageSizes=' + str(messageSizes) + ', sessionLengths=' + str(sessionLengths))
-
 
 # Main.
+
+common.printAndFlush('Configuration: server=' + socket.gethostname() + ', workers=' + str(workers) + ', client=' + client)
+common.printAndFlush('Global: versions=' + str(versions) + ', numClients=' + str(numClients) + ', messageSizes=' + str(messageSizes) + ', sessionLengths=' + str(sessionLengths))
 
 loadClients = connectToWorkers(debug, workers, wport)
 
@@ -101,11 +105,11 @@ for v in versions:
 					common.printAndFlush('Parameters: version=' + v + ', size=' + size + ' length=' + length + ', trial=' + str(i))
 				
 					if v == 'SE':
-						transport = '-Dsessionj.transports.session=a'
+						transport = '-Dsessionj.transports.session=a '
 					else:
 						transport = ''
 			
-					command = 'bin/sessionj ' + transport + ' -cp tests/classes ecoop.bmarks2.micro.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v
+					command = 'bin/sessionj ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v
 					#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj ' + transport + ' -cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + str(i) + ' ' + v
 			
 					common.debugPrint(debug, 'Command: ' + command)
