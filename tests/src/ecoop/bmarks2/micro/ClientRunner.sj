@@ -11,7 +11,7 @@ public class ClientRunner
 {
   public static void main(String [] args) throws Exception
   {
-    final boolean debug = Boolean.parseBoolean(args[0]);
+    final boolean debug = Boolean.parseBoolean(args[0].toLowerCase());
     final String host = args[1];
     final int port = Integer.parseInt(args[2]);
 

@@ -82,7 +82,7 @@ public class Server extends ecoop.bmarks2.micro.Server
   
   public static void main(String [] args) throws Exception 
   {
-  	boolean debug = Boolean.parseBoolean(args[0]);
+  	boolean debug = Boolean.parseBoolean(args[0].toLowerCase());
   	int port = Integer.parseInt(args[1]);
     
   	new Server(debug, port).run();
@@ -130,8 +130,10 @@ class ServerThread extends Thread
           {
           	server.debugPrintln("[ServerThread] Received: " + cm);
           }
-          
+                    
           oos.writeObject(new ServerMessage(cm.getServerMessageSize(), server.kill)); // Not synchronized, but shouldn't matter overall (Client may end up doing an extra iteration).
+          oos.flush();
+          oos.reset();
           
           if (server.isCounting()) 
           {

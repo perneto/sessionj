@@ -41,10 +41,12 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
       for (boolean run = true; run; ) 
       {
   			oos.writeInt(Common.REC);
-  			oos.flush();
+  			//oos.flush();
   			
         oos.writeObject(new ClientMessage(cid, Integer.toString(iters++), serverMessageSize));
-            
+        oos.flush();
+      	oos.reset();
+        
         sm = (ServerMessage) ois.readObject();      
         
         run = !sm.isKill();
@@ -57,10 +59,12 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 	      }
       }
       
-      oos.writeInt(Common.QUIT);
-			oos.flush();
-			
       debugPrintln("[LoadClient " + cid + "] Quitting.");
+      
+      oos.writeInt(Common.QUIT);
+			oos.flush();		
+      
+      Thread.sleep(100);
 		}
 		finally
 		{
@@ -72,7 +76,7 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 	
   public static void main(String [] args) throws Exception 
   {
-  	boolean debug = Boolean.parseBoolean(args[0]);
+  	boolean debug = Boolean.parseBoolean(args[0].toLowerCase());
   	String host = args[1];
     int port = Integer.parseInt(args[2]);
     int cid = Integer.parseInt(args[3]);

@@ -5,7 +5,7 @@ package ecoop.bmarks2.micro;
 import java.io.*;
 import java.net.*;
 
-import ecoop.bmarks.*;
+import ecoop.bmarks2.micro.*;
 
 public class SignalClient 
 {	
