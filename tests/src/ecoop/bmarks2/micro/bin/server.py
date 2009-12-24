@@ -62,11 +62,15 @@ else:
 	versions = [version]
 
 if env == 'localhost':
+	renv = bin/sessionj
+
 	client = common.getLocalhostClient() 
 	workers = common.getLocalhostWorkers() 
 	
 	(numClients, messageSizes, sessionLengths) = common.getLocalhostParameters()
 elif env == 'camelot':
+	renv = bin/csessionj
+
 	client = common.getCamelotClient() 
 		
 	if debug:

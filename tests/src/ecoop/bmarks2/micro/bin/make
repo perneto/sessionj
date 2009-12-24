@@ -1,13 +1,13 @@
 #!/bin/bash
 #
 # Run from the sessionj root directory:
-# tests/src/ecoop/bmarks2/micro/bin/make all 
+# tests/src/ecoop/bmarks2/micro/bin/make localhost all 
 
 
 # Script configuration parameters.
 
-compiler=bin/sessionjc    # Compiler.
-classpath=tests/classes   # Classpath.
+#compiler=bin/sessionjc # Compiler.
+classpath=tests/classes # Classpath.
 destination=tests/classes # Output directory.
 
 
@@ -23,11 +23,26 @@ compile()
 
 # Command line arguments.
 
-c=false  # Core/common.
+c=false # Core/common.
 jt=false # Java threads.
 je=false # Java events (NIO).
 st=false # SJ threads.
 se=false # SJ events.
+
+if [ "$1" == "localhost" ];
+then
+  compiler=bin/sessionjc
+else 
+  if [ "$1" == "camelot" ];
+  then
+    compiler=bin/csessionjc
+  else
+    echo Invalid environment: $1
+  exit 1
+  fi
+fi
+
+shift
 
 while true;
 do
