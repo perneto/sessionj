@@ -31,12 +31,16 @@ else:
 	versions = [version]
 
 if env == 'localhost':
+	renv = 'bin/sessionj'
+
 	hostname = 'localhost'	  
 	client = common.getLocalhostClient() 
 	workers = common.getLocalhostWorkers() 
 	
 	(numClients, messageSizes, sessionLengths) = common.getLocalhostParameters()
 elif env == 'camelot':
+	renv = 'bin/csessionj'
+
 	hostname = socket.gethostname()
 	client = common.getCamelotClient() 
 		
@@ -88,11 +92,11 @@ for v in versions:
 					else:
 						transport = ''
 					
-					command = 'bin/sessionj ' + transport + '-cp tests/classes ecoop.bmarks2.micro.' + subpackage + '.client.TimerClient ' + str(debug) + ' ' + serverName + ' ' + sport + ' -1 ' + size + ' ' + length + ' ' + inners					
+					command = renv + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.' + subpackage + '.client.TimerClient ' + str(debug) + ' ' + serverName + ' ' + sport + ' -1 ' + size + ' ' + length + ' ' + inners					
 					common.debugPrint(debug, 'Command: ' + command)	
 					os.system(command)				
 
-					command = 'bin/sessionj -cp tests/classes ecoop.bmarks2.micro.SignalClient ' + serverName + ' ' + sport + ' KILL'				
+					command = renv + ' -cp tests/classes ecoop.bmarks2.micro.SignalClient ' + serverName + ' ' + sport + ' KILL'				
 					common.debugPrint(debug, 'Command: ' + command)	
 					os.system(command)
 					
