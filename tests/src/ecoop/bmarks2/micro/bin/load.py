@@ -26,32 +26,38 @@ repeats = int(sys.argv[7])
 
 # Benchmark configuration parameters.
 
-if env == 'localhost':
-	hostname = 'localhost'  
-	numWorkers = 1
-elif env == 'camelot':
-	hostname = socket.gethostname()
-	numWorkers = len(common.workers)
-else:
-	common.printAndFlush('Unknown environment: ' + env)
-	sys.exit(1)
-
 if version == 'ALL':
 	versions = common.versions				
 else:
 	versions = [version]
 
-if debug or env == 'localhost':
-	(numClients, messageSizes, sessionLengths) = common.getDebugParameters()
+if env == 'localhost':
+	hostname = 'localhost'	  
+	client = common.getLocalhostClient() 
+	workers = common.getLocalhostWorkers() 
+	
+	(numClients, messageSizes, sessionLengths) = common.getLocalhostParameters()
+elif env == 'camelot':
+	hostname = socket.gethostname()
+	client = common.getCamelotClient() 
+		
+	if debug:
+		workers = common.getCamelotDebugWorkers() 
+		(numClients, messageSizes, sessionLengths) = common.getDebugParameters()
+	else:
+		workers = common.getCamelotWorkers() 
+		(numClients, messageSizes, sessionLengths) = common.getParameters()	
 else:
-	(numClients, messageSizes, sessionLengths) = common.getParameters()
+	common.printAndFlush('Unknown environment: ' + env)
+	sys.exit(1)
 
 delay = '20'
 
-common.debugPrint(debug, 'Global: versions=' + str(versions) + ', numClients=' + str(numClients) + ', messageSizes=' + str(messageSizes) + ', sessionLengths=' + str(sessionLengths))
-
 
 # Main.
+
+common.printAndFlush('Configuration: server=' + serverName + ', worker=' + hostname)
+common.printAndFlush('Global: versions=' + str(versions) + ', numClients=' + str(numClients) + ', messageSizes=' + str(messageSizes) + ', sessionLengths=' + str(sessionLengths))
 
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -66,7 +72,7 @@ common.debugPrint(debug, 'Server script connected, starting main loop...')
 
 for v in versions:
 	for clients in numClients:
-		clients = str(int(clients) / numWorkers)
+		clients = str(int(clients) / len(workers))
 			 
 		for size in messageSizes:
 			for length in sessionLengths:

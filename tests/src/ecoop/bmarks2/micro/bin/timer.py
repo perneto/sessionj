@@ -25,28 +25,36 @@ outers = int(sys.argv[8]) # This is the parameter called "repeats" in the other 
 
 # Benchmark configuration parameters.
 
-if env == 'localhost':
-	hostname = 'localhost'  
-elif env == 'camelot':
-	hostname = socket.gethostname()
-else:
-	common.printAndFlush('Unknown environment: ' + env)
-	sys.exit(1)
-
 if version == 'ALL':
 	versions = common.versions				
 else:
 	versions = [version]
 
-if debug or env == 'localhost':
-	(numClients, messageSizes, sessionLengths) = common.getDebugParameters()
+if env == 'localhost':
+	hostname = 'localhost'	  
+	client = common.getLocalhostClient() 
+	workers = common.getLocalhostWorkers() 
+	
+	(numClients, messageSizes, sessionLengths) = common.getLocalhostParameters()
+elif env == 'camelot':
+	hostname = socket.gethostname()
+	client = common.getCamelotClient() 
+		
+	if debug:
+		workers = common.getCamelotDebugWorkers() 
+		(numClients, messageSizes, sessionLengths) = common.getDebugParameters()
+	else:
+		workers = common.getCamelotWorkers() 
+		(numClients, messageSizes, sessionLengths) = common.getParameters()	
 else:
-	(numClients, messageSizes, sessionLengths) = common.getParameters()
-
-common.debugPrint(debug, 'Global: versions=' + str(versions) + ', numClients=' + str(numClients) + ', messageSizes=' + str(messageSizes) + ', sessionLengths=' + str(sessionLengths))
+	common.printAndFlush('Unknown environment: ' + env)
+	sys.exit(1)
 
 
 # Main.
+
+common.printAndFlush('Configuration: server=' + serverName + ', client=' + hostname)
+common.printAndFlush('Global: versions=' + str(versions) + ', numClients=' + str(numClients) + ', messageSizes=' + str(messageSizes) + ', sessionLengths=' + str(sessionLengths))
 
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
