@@ -62,14 +62,14 @@ else:
 	versions = [version]
 
 if env == 'localhost':
-	renv = bin/sessionj
+	renv = 'bin/sessionj'
 
 	client = common.getLocalhostClient() 
 	workers = common.getLocalhostWorkers() 
 	
 	(numClients, messageSizes, sessionLengths) = common.getLocalhostParameters()
 elif env == 'camelot':
-	renv = bin/csessionj
+	renv = 'bin/csessionj'
 
 	client = common.getCamelotClient() 
 		
@@ -113,7 +113,7 @@ for v in versions:
 					else:
 						transport = ''
 			
-					command = 'bin/sessionj ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v
+					command = renv + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v
 					#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj ' + transport + ' -cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + str(i) + ' ' + v
 			
 					common.debugPrint(debug, 'Command: ' + command)

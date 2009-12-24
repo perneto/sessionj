@@ -32,12 +32,16 @@ else:
 	versions = [version]
 
 if env == 'localhost':
+	renv = 'bin/sessionj'
+
 	hostname = 'localhost'	  
 	client = common.getLocalhostClient() 
 	workers = common.getLocalhostWorkers() 
 	
 	(numClients, messageSizes, sessionLengths) = common.getLocalhostParameters()
 elif env == 'camelot':
+	renv = 'bin/csessionj'
+
 	hostname = socket.gethostname()
 	client = common.getCamelotClient() 
 		
@@ -86,6 +90,6 @@ for v in versions:
 					else: 
 						transport = ''	
 					
-					command = 'bin/sessionj ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ClientRunner ' + str(debug) + ' ' + serverName + ' ' + sport + ' ' + delay + ' ' + clients + ' ' + size + ' ' + v 					
+					command = renv + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ClientRunner ' + str(debug) + ' ' + serverName + ' ' + sport + ' ' + delay + ' ' + clients + ' ' + size + ' ' + v 					
 					common.debugPrint(debug, 'Command: ' + command)						
 					os.system(command)
