@@ -1,0 +1,111 @@
+#!/bin/bash
+#
+# Run from the sessionj root directory:
+# tests/src/ecoop/bmarks2/micro/bin/make all 
+
+
+# Script configuration parameters.
+
+compiler=bin/sessionjc    # Compiler.
+classpath=tests/classes   # Classpath.
+destination=tests/classes # Output directory.
+
+
+# Functions.
+
+compile()
+{
+  echo Compiling: $1
+  $compiler -cp $classpath $1 -d $destination
+  if [ $? -ne 0 ]; then exit 1; fi
+}
+
+
+# Command line arguments.
+
+c=false  # Core/common.
+jt=false # Java threads.
+je=false # Java events (NIO).
+st=false # SJ threads.
+se=false # SJ events.
+
+while true;
+do
+  case $1 in
+    "")
+      break
+      ;;
+    all) 
+      c=true
+      jt=true
+      je=true
+      st=true
+      se=true
+      break
+      ;;
+    c)
+      c=true
+      shift
+      ;;       
+    jt) 
+      jt=true
+      shift
+      ;;      
+    je)
+      je=true
+      shift
+      ;;
+    st)
+      st=true
+      shift
+      ;;
+    se)
+      se=true
+      shift
+      ;;     
+    *)
+      shift
+      ;;
+  esac
+done
+
+
+# Main.
+
+echo Parameters: compiler=$compiler, classpath=$classpath, destination=$destination 
+
+
+if [ "$c" == "true" ];
+then  
+  path=tests/src/ecoop/bmarks2/micro
+  
+  for f in Common ClientMessage ServerMessage Server Client LoadClient TimerClient SignalServer SignalClient; do
+    compile $path/$f.sj
+  done
+fi
+
+if [ "$jt" == "true" ];
+then  
+  path=tests/src/ecoop/bmarks2/micro/java/thread/server
+  
+  for f in Server; do
+    compile $path/$f.sj
+  done
+  
+  path=tests/src/ecoop/bmarks2/micro/java/thread/client
+  
+  for f in LoadClient TimerClient; do
+    compile $path/$f.sj
+  done
+fi
+
+
+if [ "$c" == "true" ];
+then  
+  path=tests/src/ecoop/bmarks2/micro
+  
+  for f in ServerRunner ClientRunner; do
+    compile $path/$f.sj
+  done
+fi  
+  

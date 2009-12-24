@@ -9,7 +9,7 @@ import ecoop.bmarks2.micro.*;
 
 public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 {
-	private int repeats;
+	private int repeats; // This means "inner repeats", i.e. the number of measurements to take per Server instance.
 	
   public TimerClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, int repeats) 
   {
@@ -22,12 +22,12 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
   {
   	try
   	{
+	  	run(false); // Dummy run for warm up.
+	  	
+	  	debugPrintln("[TimerClient] Finished dummy run, now taking measurements.");
+  		
   		for (int i = 0; i < repeats; i++)
-  		{
-		  	run(false); // Dummy run for warm up.
-		  	
-		  	debugPrintln("[TimerClient] Finished dummy run, now taking measurements.");
-		  	
+  		{		  	
 		  	run(true);
   		}
   	}
@@ -67,10 +67,12 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 	    for (int iters = 0; iters < sessionLength; iters++) 
       {
   			oos.writeInt(Common.REC);
-  			oos.flush();
+  			//oos.flush();
   			
         oos.writeObject(new ClientMessage(cid, Integer.toString(iters), serverMessageSize));
-            
+        oos.flush();
+        oos.reset();    
+        
         sm = (ServerMessage) ois.readObject();      
             
 	      debugPrintln("[TimerClient " + cid + "] Received: " + sm);
@@ -81,27 +83,31 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 	      }
       }
       
+      debugPrintln("[TimerClient " + cid + "] Quitting.");
+	    
       oos.writeInt(Common.QUIT);
 			oos.flush();
-			
-      debugPrintln("[TimerClient " + cid + "] Quitting.");
-	    	    
+				    	    
 	    long finish = System.nanoTime();
 	    
 	    if (timer)
 	    {
 	    	System.out.println("[TimerClient] Session duration: " + (finish - start) + " nanos");
 	    }
+	    
+	    Thread.sleep(100);
 	  }
 	  finally
 	  {
-
+			Common.closeOutputStream(oos);
+			Common.closeInputStream(ois);
+			Common.closeSocket(s);
 	  }
 	}
   
   public static void main(String [] args) throws Exception
   {
-  	boolean debug = Boolean.parseBoolean(args[0]);
+  	boolean debug = Boolean.parseBoolean(args[0].toLowerCase());
   	String host = args[1];
     int port = Integer.parseInt(args[2]);
     int cid = Integer.parseInt(args[3]);
