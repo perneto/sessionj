@@ -121,15 +121,15 @@ for v in versions:
 					st = ServerThread(command)
 					st.start()
 			
-					time.sleep(3) # Make sure Server has started.
+					time.sleep(5) # Make sure Server has started.
 						
 					#sendToAll(loadClients, '1')
 					for s in loadClients:
 						s.send('1')
-						time.sleep(5) # Make sure LoadClients are properly connected and warmed up.
+						time.sleep(10) # Make sure LoadClients are properly connected and warmed up.
 								
 					timerClient.send('1')
 						
 					st.join()
 			
-					time.sleep(3) # Make sure everything has been shut down and the server port has become free again. 
+					time.sleep(5) # Make sure everything has been shut down and the server port has become free again. 
