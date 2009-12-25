@@ -3,7 +3,6 @@
 #tests/src/ecoop/bmarks2/micro/bin/load.py <debug> <env> <server_host> <server_port> <worker_port> <version> <repeats>
 #tests/src/ecoop/bmarks2/micro/bin/load.py f localhost localhost 8888 7777 JT 2	
 
-import os
 import socket
 import sys
 
@@ -20,7 +19,7 @@ debug = common.parseBoolean(sys.argv[1])
 env = sys.argv[2] # e.g. 'localhost' or 'camelot'
 serverName = sys.argv[3]
 sport = sys.argv[4]
-wport = int(sys.argv[5])
+wport = sys.argv[5]
 version = sys.argv[6]
 repeats = int(sys.argv[7])
 
@@ -65,10 +64,10 @@ common.printAndFlush('Global: versions=' + str(versions) + ', numClients=' + str
 
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-serverSocket.bind((hostname, wport))
+serverSocket.bind((hostname, int(wport)))
 serverSocket.listen(5) # 5 seems to be a kind of default.
 
-common.debugPrint(debug, 'Listening on port: ' + str(wport))
+common.debugPrint(debug, 'Listening on port: ' + wport)
 
 (s, address) = serverSocket.accept()
 
@@ -83,13 +82,23 @@ for v in versions:
 				for i in range(0, repeats): 
 					common.printAndFlush('Parameters: version=' + v + ', clients=' + clients + ', size=' + size + ', length=' + length + ', trial=' + str(i))
 								 
-					data = s.recv(1024);
+					s.recv(1024);
 
 					if v == 'SE':
 						transport = '-Dsessionj.transports.session=a '
 					else: 
 						transport = ''	
 					
-					command = renv + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ClientRunner ' + str(debug) + ' ' + serverName + ' ' + sport + ' ' + delay + ' ' + clients + ' ' + size + ' ' + v 					
+					command = renv + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ClientRunner ' + str(debug) + ' ' + serverName + ' ' + sport + ' ' + wport + ' ' + delay + ' ' + clients + ' ' + size + ' ' + v 					
 					common.debugPrint(debug, 'Command: ' + command)						
-					os.system(command)
+					
+					ct = common.CommandThread(command)
+					ct.start();
+
+					(s1, address) = serverSocket.accept() # Get signal from ClientRunner that all threads have been started.					
+					#s1.recv(1024);
+					
+					s.send('2');					
+					
+					ct.join()
+					
