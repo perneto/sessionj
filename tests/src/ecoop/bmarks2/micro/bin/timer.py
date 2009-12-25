@@ -76,7 +76,7 @@ for v in versions:
 		for size in messageSizes:
 			for length in sessionLengths:
 				for i in range(0, outers):
-					common.printAndFlush('Parameters: version=' + v + ', clients=' + clients + ', size=' + size + ' length=' + length + ', trial=' + str(i))
+					common.printAndFlush('Parameters: version=' + v + ', clients=' + clients + ', size=' + size + ', length=' + length + ', trial=' + str(i))
 		
 					data = s.recv(1024)
 					

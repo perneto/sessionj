@@ -83,6 +83,7 @@ else:
 	common.printAndFlush('Unknown environment: ' + env)
 	sys.exit(1)
 
+# Seconds.
 serverWarmup = 3 
 workerWarmup = 8
 coolDown = 3
@@ -107,7 +108,7 @@ for v in versions:
 		for size in messageSizes:
 			for length in sessionLengths:
 				for i in range(0, repeats):
-					common.printAndFlush('Parameters: version=' + v + ', size=' + size + ' length=' + length + ', trial=' + str(i))
+					common.printAndFlush('Parameters: version=' + v + ', size=' + size + ', length=' + length + ', trial=' + str(i))
 									
 					command = renv
 					
