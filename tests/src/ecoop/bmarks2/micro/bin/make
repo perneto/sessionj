@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Run from the sessionj root directory:
-# tests/src/ecoop/bmarks2/micro/bin/make localhost all 
+#Run from the sessionj root directory:
+#tests/src/ecoop/bmarks2/micro/bin/make localhost all 
 
 
 # Script configuration parameters.
