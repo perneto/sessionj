@@ -99,8 +99,8 @@ for v in versions:
 					command = renv
 					
 					if env == 'camelot':
-						command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command
-						#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command + ' -Xmx512m'
+						#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command
+						command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command + ' -Xmx256m'
 				
 					if v == 'SE':
 						transport = '-Dsessionj.transports.session=a '
