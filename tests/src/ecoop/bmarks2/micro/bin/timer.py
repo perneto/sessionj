@@ -79,7 +79,7 @@ for v in versions:
 				for i in range(0, outers):
 					common.printAndFlush('Parameters: version=' + v + ', clients=' + clients + ', size=' + size + ', length=' + length + ', trial=' + str(i))
 		
-					data = s.recv(1024)
+					s.recv(1024)
 					
 					if v == 'JT':
 						subpackage = 'java.thread'

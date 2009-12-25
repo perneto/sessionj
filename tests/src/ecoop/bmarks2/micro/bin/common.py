@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
+import os
 import sys
+from threading import Thread
 
 
 # Benchmark configuration parameters.
@@ -68,3 +70,15 @@ def debugPrint(debug, msg):
 	if debug:
 		printAndFlush(msg)
 		
+
+# Class declarations.
+
+class CommandThread(Thread):
+	def __init__(self, command):
+		Thread.__init__(self)
+		self.command = command
+
+	def run(self):
+		os.system(self.command)
+		#common.printAndFlush('ServerThread finished.')
+				

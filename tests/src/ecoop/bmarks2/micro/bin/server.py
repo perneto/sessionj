@@ -3,25 +3,11 @@
 #tests/src/ecoop/bmarks2/micro/bin/server.py <debug> <env> <server_port> <worker_port> <client_port> <version> <repeats>
 #tests/src/ecoop/bmarks2/micro/bin/server.py f localhost 8888 7777 6666 JT 2
 
-import os
 import socket
 import sys
 import time
-from threading import Thread
 
 import common 
-
-
-# Class declarations.
-
-class ServerThread(Thread):
-	def __init__(self, command):
-		Thread.__init__(self)
-		self.command = command
-
-	def run(self):
-		os.system(self.command)
-		#common.printAndFlush('ServerThread finished.')
 
 
 # Function declarations.
@@ -85,7 +71,7 @@ else:
 
 # Seconds.
 serverWarmup = 3 
-workerWarmup = 15
+workerWarmup = 5
 coolDown = 3
 
 
@@ -125,18 +111,19 @@ for v in versions:
 			
 					common.debugPrint(debug, 'Command: ' + command)
 					
-					st = ServerThread(command)
-					st.start()
+					ct = common.CommandThread(command)
+					ct.start()
 			
 					time.sleep(serverWarmup) # Make sure Server has started.
 						
 					#sendToAll(loadClients, '1')
 					for s in loadClients:
 						s.send('1')
+						s.recv(1024); # Why 1024? 4 too small? Should match system network buffer size?
 						time.sleep(workerWarmup) # Make sure LoadClients are properly connected and warmed up.
 								
 					timerClient.send('1')
 						
-					st.join()
+					ct.join()
 			
 					time.sleep(coolDown) # Make sure everything has been shut down and the server port has become free again. 
