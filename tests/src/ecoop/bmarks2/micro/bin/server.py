@@ -62,7 +62,7 @@ else:
 	versions = [version]
 
 if env == 'localhost':
-	renv = 'bin/sessionj'
+	renv = 'bin/sessionj' # Runtime environment.
 
 	client = common.getLocalhostClient() 
 	workers = common.getLocalhostWorkers() 
@@ -83,8 +83,9 @@ else:
 	common.printAndFlush('Unknown environment: ' + env)
 	sys.exit(1)
 
-#serverWarmup = 
-#loadClientsWarmup =
+serverWarmup = 3 
+workerWarmup = 5
+coolDown = 3
 
 
 # Main.
@@ -111,25 +112,28 @@ for v in versions:
 					if v == 'SE':
 						transport = '-Dsessionj.transports.session=a '
 					else:
-						transport = ''
-			
-					command = renv + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v
-					#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 bin/csessionj ' + transport + ' -cp tests/classes ecoop.bmarks.ServerRunner false ' + sport + ' ' + str(i) + ' ' + v
+						transport = ''			
+					
+					if env == 'camelot':
+						command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + renv + ' ' + command
+						#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + renv + ' -Xmx512m ' + command
+					else:
+						command = renv + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v
 			
 					common.debugPrint(debug, 'Command: ' + command)
 					
 					st = ServerThread(command)
 					st.start()
 			
-					time.sleep(5) # Make sure Server has started.
+					time.sleep(serverWarmup) # Make sure Server has started.
 						
 					#sendToAll(loadClients, '1')
 					for s in loadClients:
 						s.send('1')
-						time.sleep(10) # Make sure LoadClients are properly connected and warmed up.
+						time.sleep(workerWarmup) # Make sure LoadClients are properly connected and warmed up.
 								
 					timerClient.send('1')
 						
 					st.join()
 			
-					time.sleep(5) # Make sure everything has been shut down and the server port has become free again. 
+					time.sleep(coolDown) # Make sure everything has been shut down and the server port has become free again. 

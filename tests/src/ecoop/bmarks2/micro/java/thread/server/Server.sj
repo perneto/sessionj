@@ -46,9 +46,8 @@ public class Server extends ecoop.bmarks2.micro.Server
 				
 				st.start();
 				
-				this.threads.add(st);
-				
-				addClient();
+				this.threads.add(st);				
+				addClient(); // So getNumClients should be the same as this.threads.size. 
 			}			
 		}
 		catch (SocketException se) // Server socket was closed (hopefully by us).
@@ -65,19 +64,22 @@ public class Server extends ecoop.bmarks2.micro.Server
 
   public void kill() throws Exception
   {
+  	//int numClients = getNumClients();
+  	int numClients = this.threads.size(); // Should be the same as getNumClients.
+  	
   	this.run = false;
   	this.kill = true;
   	
-		for (Iterator i = threads.iterator(); i.hasNext(); )
+		for (Iterator i = this.threads.iterator(); i.hasNext(); )
 		{
-			((ServerThread) i.next()).join();				
+			((ServerThread) i.next()).join();	// This includes all the (already finished) TimerClient threads.			
 		} 	
 		
   	Common.closeServerSocket(ss); // Break the accepting loop.
 		
 		while (!this.finished);
   	
-  	debugPrintln("[Server] Finished running (all Clients killed).");
+  	debugPrintln("[Server] Finished running (" + numClients + " Clients joined).");
   }
   
   public static void main(String [] args) throws Exception 
