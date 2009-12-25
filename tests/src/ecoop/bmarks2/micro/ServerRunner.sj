@@ -4,9 +4,9 @@
 package ecoop.bmarks2.micro;
 
 import ecoop.bmarks2.micro.java.thread.server.*;
-//import ecoop.bmarks.java.event.flag.*;
-//import ecoop.bmarks.sj.flag.thread.*;
-//import ecoop.bmarks.sj.flag.event.*;
+//import ecoop.bmarks2.micro.java.event.flag.*;
+import ecoop.bmarks2.micro.sj.thread.server.*;
+//import ecoop.bmarks2.micro.sj.event.server.*;
 
 // Spawns a pair of Server and SignalClient.
 public class ServerRunner 
@@ -36,17 +36,17 @@ public class ServerRunner
 		{
 			server = new ecoop.bmarks2.micro.java.thread.server.Server(debug, port);
 		}  
-		/*else if (flag.equals(SignalClient.JAVA_EVENT))
+		/*else if (flag.equals(JAVA_EVENT))
 		{
-			new ecoop.bmarks.java.event.flag.Server2(debug, port, numClients).run();
+			server = new ecoop.bmarks2.micro.java.event.flag.Server(debug, port);
+		}*/
+		else if (flag.equals(SJ_THREAD))
+		{
+			server = new ecoop.bmarks2.micro.sj.thread.server.Server(debug, port);
 		}
-		else if (flag.equals(SignalClient.SJ_THREAD))
+		/*else if (flag.equals(SJ_EVENT))
 		{
-			new ecoop.bmarks.sj.flag.thread.Server2(debug, port, numClients).run();
-		}
-		else if (flag.equals(SignalClient.SJ_EVENT))
-		{
-			new ecoop.bmarks.sj.flag.event.Server2(debug, port, numClients).run();
+			server = new ecoop.bmarks2.micro.sj.event.server.Server(debug, port);
 		}*/
   	else
   	{

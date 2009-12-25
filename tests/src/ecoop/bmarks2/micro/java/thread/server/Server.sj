@@ -52,7 +52,7 @@ public class Server extends ecoop.bmarks2.micro.Server
 		}
 		catch (SocketException se) // Server socket was closed (hopefully by us).
 		{
-			//se.printStackTrace();
+			//se.printStackTrace(); // Could try to check it's a "server socket closed whilst waiting for connection" exception.
 		}
 		finally
 		{
