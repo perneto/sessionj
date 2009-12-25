@@ -15,13 +15,23 @@ abstract public class Client
   private int cid;
   private int serverMessageSize;
 
-  public Client(boolean debug, String host, int port, int cid, int serverMessageSize) 
+  private boolean[] ack;
+
+  // For LoadClients.
+  public Client(boolean debug, String host, int port, int cid, int serverMessageSize, boolean[] ack) 
   {
   	this.debug = debug;  	
   	this.host = host;
   	this.port = port;    
   	this.cid = cid;
-    this.serverMessageSize = serverMessageSize;
+    this.serverMessageSize = serverMessageSize;  	
+  	this.ack = ack;
+  }
+
+  // For TimerClients.
+  public Client(boolean debug, String host, int port, int cid, int serverMessageSize) 
+  {
+  	this(debug, host, port, cid, serverMessageSize, null);
   }
   
   public String getHost()
@@ -49,6 +59,20 @@ abstract public class Client
   public final boolean isDebug()
   {
   	return debug;
+  }
+  
+  public boolean shouldSendAck()
+  {
+  	return ack != null;
+  }
+  
+  public final void sendAck()
+  {
+  	synchronized (this.ack)
+  	{
+  		this.ack[0] = true;
+  		this.ack.notify();
+  	}
   }
   
   public void debugPrintln(String m)
