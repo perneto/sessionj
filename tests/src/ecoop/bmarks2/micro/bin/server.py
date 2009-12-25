@@ -108,17 +108,19 @@ for v in versions:
 			for length in sessionLengths:
 				for i in range(0, repeats):
 					common.printAndFlush('Parameters: version=' + v + ', size=' + size + ' length=' + length + ', trial=' + str(i))
+									
+					command = renv
+					
+					if env == 'camelot':
+						command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command
+						#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command + ' -Xmx512m'
 				
 					if v == 'SE':
 						transport = '-Dsessionj.transports.session=a '
 					else:
-						transport = ''			
+						transport = ''							
 					
-					if env == 'camelot':
-						command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + renv + ' ' + command
-						#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + renv + ' -Xmx512m ' + command
-					else:
-						command = renv + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v
+					command = command + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v
 			
 					common.debugPrint(debug, 'Command: ' + command)
 					
