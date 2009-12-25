@@ -2,13 +2,12 @@
 
 package ecoop.bmarks2.micro;
 
-import java.io.DataOutputStream;
-import java.net.InetAddress;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 
 import ecoop.bmarks2.micro.java.thread.client.*;
-//import ecoop.bmarks.java.event.client.*;
-//import ecoop.bmarks.sj.client.*;
+//import ecoop.bmarks2.micro.java.event.client.*;
+import ecoop.bmarks2.micro.sj.client.*;
 
 // Spawns LoadClients.
 public class ClientRunner 
@@ -45,25 +44,25 @@ public class ClientRunner
         {
         	try
         	{
-        		boolean[] foo = null;
+        		boolean[] possibleAck = null;
         		
         		if (cid == numClients - 1)
         		{
-        			foo = ack;
+        			possibleAck = ack;
         		}
         		
         		if (flag.equals(ServerRunner.JAVA_THREAD))
         		{
-        			new ecoop.bmarks2.micro.java.thread.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, foo).run();
+        			new ecoop.bmarks2.micro.java.thread.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, possibleAck).run();
         		}
         		/*else if (flag.equals(ServerRunner.JAVA_EVENT))
         		{
-        			new ecoop.bmarks.java.event.client.LoadClient(debug, host, serverPort, cid, serverMessageSize).run();
-        		}
+        			new ecoop.bmarks2.micro.java.event.client.LoadClient(debug, host, serverPort, cid, serverMessageSize).run();
+        		}*/
         		else if (flag.equals(ServerRunner.SJ_THREAD) || flag.equals(ServerRunner.SJ_EVENT))
         		{
-        			new ecoop.bmarks.sj.client.LoadClient(debug, host, serverPort, cid, serverMessageSize).run();
-        		}*/
+        			new ecoop.bmarks2.micro.sj.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, possibleAck).run();
+        		}
         		else
         		{
         			System.out.println("[ClientRunner] Unrecognised flag: " + flag);

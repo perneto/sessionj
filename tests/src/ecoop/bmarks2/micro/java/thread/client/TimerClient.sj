@@ -9,34 +9,9 @@ import ecoop.bmarks2.micro.*;
 
 public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 {
-	private int repeats; // This means "inner repeats", i.e. the number of measurements to take per Server instance.
-	
   public TimerClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, int repeats) 
   {
-  	super(debug, host, port, cid, serverMessageSize, sessionLength);
-  	
-  	this.repeats = repeats;
-  }
-
-  public void run() throws Exception
-  {
-  	try
-  	{
-	  	run(false); // Dummy run for warm up.
-	  	
-	  	debugPrintln("[TimerClient] Finished dummy run, now taking measurements.");
-  		
-  		for (int i = 0; i < repeats; i++)
-  		{		  	
-		  	run(true);
-  		}
-  	}
-  	finally
-  	{
-	  	/*debugPrintln("[TimerClient] Sending KILL.");
-	  	
-	  	new SignalClient().sendSignal(host, port, MyObject.KILL);*/  		
-  	}
+  	super(debug, host, port, cid, serverMessageSize, sessionLength, repeats);
   }
 
   public void run(boolean timer) throws Exception

@@ -40,11 +40,11 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 				sendAck();
 			}
 			
-      boolean debug = isDebug();
-      int cid = getCid();
-      int serverMessageSize = getServerMessageSize();
+			boolean debug = isDebug();
+			int cid = getCid();
+			int serverMessageSize = getServerMessageSize();
       
-			ServerMessage sm;
+			ServerMessage sm; // Some reports say that moving this inside the loop gives better performance.
       
       int iters = 0;
       

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #tests/src/ecoop/bmarks2/micro/bin/timer.py <debug> <env> <serverName> <server_port> <client_port> <version> <inners> <outers>
 #tests/src/ecoop/bmarks2/micro/bin/timer.py f localhost localhost 8888 6666 JT 3 2
-#nohup tests/src/ecoop/bmarks2/micro/bin/timer.py f camelot camelot16 8888 6666 JT 3 2 < /dev/null 1>foo.txt 2>bar.txt	
+#nohup tests/src/ecoop/bmarks2/micro/bin/timer.py f camelot camelot16 8888 6666 JT 3 2 < /dev/null 1>foo.txt 2>bar.txt &	
 
 import os
 import socket
