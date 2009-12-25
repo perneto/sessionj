@@ -18,7 +18,7 @@ numClients = ['700']
 messageSizes = ['100', '1024']
 sessionLengths = ['0', '10']
 
-debugNumClients = ['2', '4']	
+debugNumClients = ['2', '4']	# Debug means for debugging these scripts: to play around with parameter settings, use the above (non-debug) parameters.
 debugMessageSizes = ['100', '10240']
 debugSessionLengths = ['0', '4']
 
