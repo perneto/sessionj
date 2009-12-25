@@ -13,12 +13,12 @@ debugWorkers = ['camelot02', 'camelot03']
 
 versions = ['JT', 'JE', 'ST', 'SE']
 
-#numClients = ['10', '100', '300', '500', '700', '900']
-#messageSizes = ['100', '1024', '10240']
-#sessionLengths = ['0', '1', '10', '100']
-numClients = ['900']
+numClients = ['10', '100', '300', '500', '700', '900']
 messageSizes = ['100', '1024']
-sessionLengths = ['0', '10']
+sessionLengths = ['0', '1', '10', '100']
+#numClients = ['900']
+#messageSizes = ['100', '1024']
+#sessionLengths = ['0', '10']
 
 debugNumClients = ['2', '4']	# Debug means for debugging these scripts: to play around with parameter settings, use the above (non-debug) parameters.
 debugMessageSizes = ['100', '10240']
