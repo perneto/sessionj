@@ -98,7 +98,7 @@ public class ClientRunner
     		}
     	}
     	
-    	System.out.println("[ClientRunner] ack received.");
+    	//System.out.println("[ClientRunner] ack received.");
     	
 	    Socket s = null;
 	    //DataOutputStream dos = null;
