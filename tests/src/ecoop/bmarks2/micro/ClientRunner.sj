@@ -3,6 +3,7 @@
 package ecoop.bmarks2.micro;
 
 import java.io.DataOutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 
 import ecoop.bmarks2.micro.java.thread.client.*;
@@ -85,7 +86,18 @@ public class ClientRunner
 	    
 	    try
 	    {
-	    	s = new Socket("localhost", scriptPort);
+	    	String script;
+	    	
+	    	if (host.equals("localhost")) // FIXME: stupid hack for python server sockets.
+	    	{
+	    		script = host;
+	    	}
+	    	else
+	    	{
+	    		script = InetAddress.getLocalHost().getHostName();
+	    	}
+	    	
+	    	s = new Socket(script, scriptPort);
 	    	
 	    	//dos = new DataOutputStream(s.getOutputStream());
 	    	
