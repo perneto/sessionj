@@ -364,10 +364,20 @@ public class SJNoAliasExprBuilder extends ContextVisitor
 	private Call buildCall(Call c) throws SemanticException // This should be enough to support session type checking of method calls as well (i.e. just need the SJMethodInstances from the Calls). Similarly for ConstructorCalls. // Maybe a separate pass for type building session expressions should be created. 
 	{
 		Receiver target = c.target();
-		ParsedClassType pct = (ParsedClassType) target.type();
+		
+		Type targetType = target.type();
+		
+		if (targetType instanceof ArrayType_c) // FIXME: handle method calls to array objects. Currently hacked in for wait/notify calls. 
+		{
+			c = (Call) setSJNoAliasExprExt(sjef, c, false, false, new LinkedList(), new LinkedList(), new LinkedList()); // FIXME: na-final return types currently not supported.
+			
+			return c;  
+		}
+		
+		ParsedClassType pct = (ParsedClassType) targetType;
 
-        List argsList = c.arguments();
-        MethodInstance mi = sjts.findMethod(pct, c.name(), getArgumentTypes(argsList), context().currentClass());
+		List argsList = c.arguments();
+		MethodInstance mi = sjts.findMethod(pct, c.name(), getArgumentTypes(argsList), context().currentClass());
 		Type t = mi.returnType();
 		
 		boolean isNoAlias = false;	

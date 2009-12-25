@@ -8,10 +8,15 @@ import java.net.*;
 import ecoop.bmarks2.micro.*;
 
 public class LoadClient extends ecoop.bmarks2.micro.LoadClient
-{
-  public LoadClient(boolean debug, String host, int port, int cid, int serverMessageSize) 
+{	
+  /*public LoadClient(boolean debug, String host, int port, int cid, int serverMessageSize) 
   {
   	super(debug, host, port, cid, serverMessageSize);
+  }*/
+  
+  public LoadClient(boolean debug, String host, int port, int cid, int serverMessageSize, boolean[] ack) 
+  {
+  	super(debug, host, port, cid, serverMessageSize, ack);
   }
   
 	public void run() throws Exception
@@ -30,6 +35,11 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 			oos = new ObjectOutputStream(s.getOutputStream());
 			ois = new ObjectInputStream(s.getInputStream());
 			      
+			if (shouldSendAck())
+			{
+				sendAck();
+			}
+			
       boolean debug = isDebug();
       int cid = getCid();
       int serverMessageSize = getServerMessageSize();
@@ -82,6 +92,6 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
     int cid = Integer.parseInt(args[3]);
     int serverMessageSize = Integer.parseInt(args[4]);
 
-    new LoadClient(debug, host, port, cid, serverMessageSize).run();  
+    new LoadClient(debug, host, port, cid, serverMessageSize, null).run();  
   }
 }

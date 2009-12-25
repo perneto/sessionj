@@ -21,7 +21,7 @@ public class ClientRunner
     final int scriptPort = Integer.parseInt(args[3]);
     
     int delay = Integer.parseInt(args[4]);
-    int numClients = Integer.parseInt(args[5]);    
+    final int numClients = Integer.parseInt(args[5]);    
     final int serverMessageSize = Integer.parseInt(args[6]);
     
   	final String flag = args[7];
@@ -33,6 +33,8 @@ public class ClientRunner
   		return;
 		}   
     
+  	final boolean[] ack = new boolean[1];
+  	
     for (int i = 0; i < numClients; i++)	
     {
       final int cid = i;
@@ -43,9 +45,16 @@ public class ClientRunner
         {
         	try
         	{
+        		boolean[] foo = null;
+        		
+        		if (cid == numClients - 1)
+        		{
+        			foo = ack;
+        		}
+        		
         		if (flag.equals(ServerRunner.JAVA_THREAD))
         		{
-        			new ecoop.bmarks2.micro.java.thread.client.LoadClient(debug, host, serverPort, cid, serverMessageSize).run();
+        			new ecoop.bmarks2.micro.java.thread.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, foo).run();
         		}
         		/*else if (flag.equals(ServerRunner.JAVA_EVENT))
         		{
@@ -78,9 +87,19 @@ public class ClientRunner
       }
     }
     
-    // Threads have been created (and started?) but the LoadClients are not necessarily connected yet. 
+    // Here, threads have been created (and started?) but the LoadClients are not necessarily connected yet. 
     if (scriptPort > 0) 
     {
+    	synchronized (ack)
+    	{
+    		while (!ack[0])
+    		{
+    			ack.wait();
+    		}
+    	}
+    	
+    	System.out.println("[ClientRunner] ack received.");
+    	
 	    Socket s = null;
 	    //DataOutputStream dos = null;
 	    
