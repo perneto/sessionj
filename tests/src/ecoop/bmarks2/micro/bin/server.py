@@ -84,7 +84,7 @@ else:
 	sys.exit(1)
 
 serverWarmup = 3 
-workerWarmup = 5
+workerWarmup = 8
 coolDown = 3
 
 
