@@ -79,7 +79,8 @@ public class Server extends ecoop.bmarks2.micro.Server
 		
 		while (!this.finished);
   	
-  	debugPrintln("[Server] Finished running (" + numClients + " Clients joined).");
+  	//debugPrintln("[Server] Finished running (" + numClients + " Clients joined).");
+		System.out.println("[Server] Finished running (" + numClients + " Clients joined).");
   }
   
   public static void main(String [] args) throws Exception 
