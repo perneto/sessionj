@@ -35,10 +35,7 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 			oos = new ObjectOutputStream(s.getOutputStream());
 			ois = new ObjectInputStream(s.getInputStream());
 			      
-			if (shouldSendAck())
-			{
-				sendAck();
-			}
+			sendAck();
 			
 			boolean debug = isDebug();
 			int cid = getCid();
