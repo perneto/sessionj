@@ -76,6 +76,6 @@ public class ServerMessage implements Serializable
   public String toString()
   {
   	//return "ServerMessage[size=" + size + ", start=" + isStartCounting + ", stop=" + isStopCounting + ", kill=" + isKill + "]";
-  	return "ServerMessage[size=" + size + "]";
+  	return "ServerMessage[size=" + size + ",isKill=" + isKill + "]";
   }
 }

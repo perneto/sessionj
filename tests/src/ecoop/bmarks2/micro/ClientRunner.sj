@@ -55,10 +55,10 @@ public class ClientRunner
         		{
         			new ecoop.bmarks2.micro.java.thread.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, possibleAck).run();
         		}
-        		/*else if (flag.equals(ServerRunner.JAVA_EVENT))
+        		else if (flag.equals(ServerRunner.JAVA_EVENT))
         		{
-        			new ecoop.bmarks2.micro.java.event.client.LoadClient(debug, host, serverPort, cid, serverMessageSize).run();
-        		}*/
+        			new ecoop.bmarks2.micro.java.event.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, possibleAck).run();
+        		}
         		else if (flag.equals(ServerRunner.SJ_THREAD) || flag.equals(ServerRunner.SJ_EVENT))
         		{
         			new ecoop.bmarks2.micro.sj.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, possibleAck).run();

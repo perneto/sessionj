@@ -70,9 +70,9 @@ public class Server extends ecoop.bmarks2.micro.Server
 
   public void kill() throws Exception
   {  	
-  	this.kill = true; // It's important that no more clients are trying to connect after this point.
+  	int numClients = getNumClients(); // Unlike java.thread.Server, this will only tell us the number of LoadClients currently connected, not the number of TimerClients that had also previously connected. That's alright, the TimerClient (an individual) has already finished by now.
   	
-  	int numClients = getNumClients(); // Unlike java.thread.Server, this will only tell us the number of LoadClients currently connected, not the number of TimerClients that had also previously connected. That's alright, the TimerClient (an individual) has already finished by now. 	
+  	this.kill = true; // It's important that no more clients are trying to connect after this point.
   	
   	while (getNumClients() > 0); 	
 		

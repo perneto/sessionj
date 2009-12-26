@@ -114,6 +114,21 @@ then
   done
 fi
 
+if [ "$je" == "true" ];
+then  
+  path=tests/src/ecoop/bmarks2/micro/java/event/server
+  
+  for f in Server; do
+    compile $path/$f.sj
+  done
+  
+  path=tests/src/ecoop/bmarks2/micro/java/event/client
+  
+  for f in LoadClient TimerClient; do
+    compile $path/$f.sj
+  done
+fi
+
 if [ "$st" == "true" ];
 then  
   path=tests/src/ecoop/bmarks2/micro/sj/thread/server

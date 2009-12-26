@@ -1,19 +1,16 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.micro.java.thread.client.LoadClient false localhost 8888 -2 100  
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.micro.java.event.client.LoadClient false localhost 8888 -2 100    
 
-package ecoop.bmarks2.micro.java.thread.client;
+package ecoop.bmarks2.micro.java.event.client;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 import ecoop.bmarks2.micro.*;
+import ecoop.bmarks2.micro.java.event.server.Server;
 
 public class LoadClient extends ecoop.bmarks2.micro.LoadClient
-{	
-  /*public LoadClient(boolean debug, String host, int port, int cid, int serverMessageSize) 
-  {
-  	super(debug, host, port, cid, serverMessageSize);
-  }*/
-  
+{
   public LoadClient(boolean debug, String host, int port, int cid, int serverMessageSize, boolean[] ack) 
   {
   	super(debug, host, port, cid, serverMessageSize, ack);
@@ -23,8 +20,8 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 	{
 		Socket s = null;
 		
-		ObjectOutputStream oos = null;
-		ObjectInputStream ois = null;
+		DataOutputStream dos = null;
+		DataInputStream dis = null;
 		
 		try
 		{
@@ -32,9 +29,9 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 			
 			s.setTcpNoDelay(true);
 			
-			oos = new ObjectOutputStream(s.getOutputStream());
-			ois = new ObjectInputStream(s.getInputStream());
-			      
+			dos = new DataOutputStream(s.getOutputStream());
+			dis = new DataInputStream(s.getInputStream());
+			
 			if (shouldSendAck())
 			{
 				sendAck();
@@ -43,21 +40,32 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 			boolean debug = isDebug();
 			int cid = getCid();
 			int serverMessageSize = getServerMessageSize();
+			
+			ServerMessage sm;
       
-			ServerMessage sm; // Some reports say that moving this inside the loop gives better performance.
-      
+      boolean run = true; 
       int iters = 0;
       
-      for (boolean run = true; run; ) 
+      while (run) 
       {
-  			oos.writeInt(Common.REC);
-  			//oos.flush(); // This is enabled in the events version.
+  			dos.write(Server.serializeInt(Common.REC));
+  			dos.flush();
   			
-        oos.writeObject(new ClientMessage(cid, Integer.toString(iters++), serverMessageSize));
-        oos.flush();
-      	oos.reset();
+  			byte[] bs = Server.serializeObject(new ClientMessage(cid, Integer.toString(iters++), serverMessageSize));  			
+  			  			
+  			dos.write(Server.serializeInt(bs.length));
+        dos.write(bs);
+        dos.flush();
+            
+        bs = new byte[4];
         
-        sm = (ServerMessage) ois.readObject();      
+        dis.readFully(bs);
+        
+        bs = new byte[Server.deserializeInt(bs)];
+        
+        dis.readFully(bs);
+        
+        sm = (ServerMessage) Server.deserializeObject(bs);      
         
         run = !sm.isKill();
             
@@ -69,21 +77,23 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 	      }
       }
       
+      dos.write(Server.serializeInt(Common.QUIT));
+			dos.flush();
+			
       debugPrintln("[LoadClient " + cid + "] Quitting.");
-      
-      oos.writeInt(Common.QUIT);
-			oos.flush();		
-      
-      Thread.sleep(100);
+		}
+		catch(Exception x)
+		{
+			throw new RuntimeException(x);
 		}
 		finally
 		{
-			Common.closeOutputStream(oos);
-			Common.closeInputStream(ois);
+			Common.closeOutputStream(dos);
+			Common.closeInputStream(dis);
 			Common.closeSocket(s);
 		}
 	}
-	
+
   public static void main(String [] args) throws Exception 
   {
   	boolean debug = Boolean.parseBoolean(args[0].toLowerCase());
