@@ -207,7 +207,7 @@ public class Server extends ecoop.bmarks2.micro.Server
     	
     	bb.get(bs);
     	
-    	ClientMessage cm = (ClientMessage) deserializeObject(bs);
+    	ClientMessage cm = (ClientMessage) Common.deserializeObject(bs);
     	
     	debugPrintln("[Server] Received: " + cm);
       
@@ -221,12 +221,12 @@ public class Server extends ecoop.bmarks2.micro.Server
   {
   	Attachment a = (Attachment) key.attachment();
   	
-  	byte[] bs = serializeObject(sm);  	
+  	byte[] bs = Common.serializeObject(sm);  	
   	byte[] bs1 = new byte[bs.length + 4];
   	
   	ByteBuffer bb = ByteBuffer.allocate(bs1.length);
   	
-  	bb.put(serializeInt(bs.length));
+  	bb.put(Common.serializeInt(bs.length));
   	bb.put(bs);
   	
   	bb.flip(); 
@@ -327,7 +327,7 @@ public class Server extends ecoop.bmarks2.micro.Server
   	
   	bb.get(bs);  	
   	
-  	return deserializeInt(bs);  	
+  	return Common.deserializeInt(bs);  	
   }	
   
   public static void main(String [] args) throws Exception 
@@ -336,82 +336,5 @@ public class Server extends ecoop.bmarks2.micro.Server
   	int port = Integer.parseInt(args[1]);
     
   	new Server(debug, port).run();
-  }
-  
-  public static final byte[] serializeInt(int value) 
-  {
-    return new byte[] {
-			(byte)(value >>> 24),
-			(byte)(value >>> 16),
-			(byte)(value >>> 8),
-			(byte)value
-		};
-  } 
-  
-	public static int deserializeInt(byte[] bs) 
-	{
-		int i = 0;
-		
-		i += (bs[0] & 255) << 24;
-		i += (bs[1] & 255) << 16;
-		i += (bs[2] & 255) << 8;
-		i += bs[3] & 255;
-		
-		return i;		
-	}	  	
-  
-	public static final byte[] serializeObject(Object o) throws Exception
-	{
-		ByteArrayOutputStream baos = null;
-		ObjectOutputStream oos = null;
-		
-		try 
-		{
-			baos = new ByteArrayOutputStream(); // Could optimise by reusing the byte array.
-			oos = new ObjectOutputStream(baos);
-			
-			oos.writeObject(o);
-			oos.flush();
-			
-			return baos.toByteArray();
-		} 
-		finally 
-		{
-			if (oos != null)
-			{
-				oos.close();
-			}
-			
-			if (baos != null)
-			{
-				baos.close();
-			}
-		}		
-	}
-	
-	public static final Object deserializeObject(byte[] bs) throws Exception
-	{
-		ByteArrayInputStream bais = null;
-		ObjectInputStream ois = null;
-		
-		try
-		{
-			bais = new ByteArrayInputStream(bs);
-			ois = new ObjectInputStream(bais);
-			
-			return ois.readObject();
-		}
-		finally
-		{
-			if (bais != null)
-			{
-				bais.close();
-			}
-			
-			if (ois != null)
-			{
-				ois.close();
-			}
-		}
-	}	  
+  }	  
 }
