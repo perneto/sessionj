@@ -55,11 +55,13 @@ else:
 	common.printAndFlush('Unknown environment: ' + env)
 	sys.exit(1)
 
+timer = 'BODY' # Set whether we want to include initialisation/close or not.
+
 
 # Main.
 
 common.printAndFlush('Configuration: server=' + serverName + ', client=' + hostname)
-common.printAndFlush('Global: versions=' + str(versions) + ', numClients=' + str(numClients) + ', messageSizes=' + str(messageSizes) + ', sessionLengths=' + str(sessionLengths))
+common.printAndFlush('Global: timer=' + timer + ', versions=' + str(versions) + ', numClients=' + str(numClients) + ', messageSizes=' + str(messageSizes) + ', sessionLengths=' + str(sessionLengths))
 
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -93,7 +95,7 @@ for v in versions:
 					else:
 						transport = ''
 					
-					command = renv + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.' + subpackage + '.client.TimerClient ' + str(debug) + ' ' + serverName + ' ' + sport + ' -1 ' + size + ' ' + length + ' ' + inners					
+					command = renv + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.' + subpackage + '.client.TimerClient ' + str(debug) + ' ' + serverName + ' ' + sport + ' -1 ' + size + ' ' + length + ' ' + timer + ' ' + inners					
 					common.debugPrint(debug, 'Command: ' + command)	
 					os.system(command)				
 

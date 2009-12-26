@@ -32,7 +32,7 @@ public class ClientRunner
   		return;
 		}   
     
-  	final boolean[] ack = new boolean[1];
+  	final boolean[] ack = new boolean[] { false };
   	
     for (int i = 0; i < numClients; i++)	
     {
@@ -43,25 +43,18 @@ public class ClientRunner
         public void run() 
         {
         	try
-        	{
-        		boolean[] possibleAck = null;
-        		
-        		if (cid == numClients - 1)
-        		{
-        			possibleAck = ack;
-        		}
-        		
+        	{        		
         		if (flag.equals(ServerRunner.JAVA_THREAD))
         		{
-        			new ecoop.bmarks2.micro.java.thread.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, possibleAck).run();
+        			new ecoop.bmarks2.micro.java.thread.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, ack).run();
         		}
         		else if (flag.equals(ServerRunner.JAVA_EVENT))
         		{
-        			new ecoop.bmarks2.micro.java.event.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, possibleAck).run();
+        			new ecoop.bmarks2.micro.java.event.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, ack).run();
         		}
         		else if (flag.equals(ServerRunner.SJ_THREAD) || flag.equals(ServerRunner.SJ_EVENT))
         		{
-        			new ecoop.bmarks2.micro.sj.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, possibleAck).run();
+        			new ecoop.bmarks2.micro.sj.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, ack).run();
         		}
         		else
         		{
@@ -76,6 +69,18 @@ public class ClientRunner
         }
       }.start();
       
+    	synchronized (ack)  
+    	{
+    		while (!ack[0])
+    		{
+    			ack.wait();
+    		}
+    	}
+    	
+    	ack[0] = false;
+    	
+    	System.out.println("[ClientRunner] Ack received from Client: " + cid);
+      
       try
       {
       	Thread.sleep(delay);
@@ -89,16 +94,6 @@ public class ClientRunner
     // Here, threads have been created (and started?) but the LoadClients are not necessarily connected yet. 
     if (scriptPort > 0) 
     {
-    	synchronized (ack)
-    	{
-    		while (!ack[0])
-    		{
-    			ack.wait();
-    		}
-    	}
-    	
-    	//System.out.println("[ClientRunner] ack received.");
-    	
 	    Socket s = null;
 	    //DataOutputStream dos = null;
 	    

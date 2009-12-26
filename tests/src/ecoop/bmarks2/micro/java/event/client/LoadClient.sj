@@ -32,10 +32,7 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 			dos = new DataOutputStream(s.getOutputStream());
 			dis = new DataInputStream(s.getInputStream());
 			
-			if (shouldSendAck())
-			{
-				sendAck();
-			}
+			sendAck();
 			
 			boolean debug = isDebug();
 			int cid = getCid();

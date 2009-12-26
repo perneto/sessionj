@@ -33,10 +33,7 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
       //s = serv.request(params);
     	s = c.request();
 
-			if (shouldSendAck())
-			{
-				sendAck();
-			}
+			sendAck();
     	
 			boolean debug = isDebug();
 			int cid = getCid();

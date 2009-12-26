@@ -1,4 +1,4 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.micro.java.thread.client.TimerClient false localhost 8888 -1 10 2 1
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.micro.java.thread.client.TimerClient false localhost 8888 -1 10 2 BODY 1
 
 package ecoop.bmarks2.micro.java.thread.client;
 
@@ -9,9 +9,9 @@ import ecoop.bmarks2.micro.*;
 
 public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 {
-  public TimerClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, int repeats) 
+  public TimerClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, String flag, int repeats) 
   {
-  	super(debug, host, port, cid, serverMessageSize, sessionLength, repeats);
+  	super(debug, host, port, cid, serverMessageSize, sessionLength, flag, repeats);
   }
 
   public void run(boolean timer) throws Exception
@@ -23,6 +23,16 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 		
 		try
 		{
+			boolean debug = isDebug();
+			int cid = getCid();
+			int serverMessageSize = getServerMessageSize();
+	    int sessionLength = getSessionLength();
+
+			if (includeInitialisation())
+			{
+		    startTimer();
+			}
+			
 			s = new Socket(getHost(), getPort());
 			
 			s.setTcpNoDelay(true);
@@ -30,12 +40,10 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 			oos = new ObjectOutputStream(s.getOutputStream());
 			ois = new ObjectInputStream(s.getInputStream());
 	
-			boolean debug = isDebug();
-			int cid = getCid();
-			int serverMessageSize = getServerMessageSize();
-	    int sessionLength = getSessionLength();
-			
-	    long start = System.nanoTime();
+			if (!includeInitialisation())
+			{
+		    startTimer();
+			}
 	    
 	    ServerMessage sm;	     
 	    
@@ -46,7 +54,7 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
   			
         oos.writeObject(new ClientMessage(cid, Integer.toString(iters), serverMessageSize));
         oos.flush();
-        oos.reset();    
+        oos.reset(); // Should reset or flush first?   
         
         sm = (ServerMessage) ois.readObject();      
             
@@ -61,16 +69,12 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
       oos.writeInt(Common.QUIT);
 			oos.flush();
 				
-      debugPrintln("[TimerClient " + cid + "] Quitting.");
+      debugPrintln("[TimerClient " + cid + "] Sent QUIT.");
 			
-	    long finish = System.nanoTime();
-	    
-	    if (timer)
-	    {
-	    	System.out.println("[TimerClient] Session duration: " + (finish - start) + " nanos");
-	    }
-	    
-	    Thread.sleep(100);
+      if (!includeClose())
+      {
+      	stopTimer();
+      }	    
 	  }
 	  finally
 	  {
@@ -78,6 +82,16 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 			Common.closeInputStream(ois);
 			Common.closeSocket(s);
 	  }
+	  
+	  if (includeClose())
+    {
+    	stopTimer();
+    }
+	  
+	  if (timer)
+  	{
+  		printTimer();
+  	}	  
 	}
   
   public static void main(String [] args) throws Exception
@@ -88,8 +102,9 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
     int cid = Integer.parseInt(args[3]);
     int serverMessageSize = Integer.parseInt(args[4]);
     int sessionLength = Integer.parseInt(args[5]);
-    int repeats = Integer.parseInt(args[6]);
+    String flag = args[6];
+    int repeats = Integer.parseInt(args[7]);
 
-    new TimerClient(debug, host, port, cid, serverMessageSize, sessionLength, repeats).run();
+    new TimerClient(debug, host, port, cid, serverMessageSize, sessionLength, flag, repeats).run();
   }
 }
