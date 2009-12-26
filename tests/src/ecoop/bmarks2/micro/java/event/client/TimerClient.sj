@@ -6,7 +6,6 @@ import java.io.*;
 import java.net.*;
 
 import ecoop.bmarks2.micro.*;
-import ecoop.bmarks2.micro.java.event.server.Server;
 
 public class TimerClient extends ecoop.bmarks2.micro.TimerClient 
 {
@@ -50,12 +49,12 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 	     
 	    for (int iters = 0; iters < sessionLength; iters++) 
       {
-	    	dos.write(Server.serializeInt(Common.REC));
+	    	dos.write(Common.serializeInt(Common.REC));
   			dos.flush();
   			
-  			byte[] bs = Server.serializeObject(new ClientMessage(cid, Integer.toString(iters), serverMessageSize));
+  			byte[] bs = Common.serializeObject(new ClientMessage(cid, Integer.toString(iters), serverMessageSize));
             
-  			dos.write(Server.serializeInt(bs.length));
+  			dos.write(Common.serializeInt(bs.length));
         dos.write(bs);
         dos.flush();
   			
@@ -63,11 +62,11 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
         
         dis.readFully(bs);
         
-        bs = new byte[Server.deserializeInt(bs)];
+        bs = new byte[Common.deserializeInt(bs)];
         
         dis.readFully(bs);
         
-        sm = (ServerMessage) Server.deserializeObject(bs);      
+        sm = (ServerMessage) Common.deserializeObject(bs);      
         
         debugPrintln("[TimerClient " + cid + "] Received: " + sm);
 	      
@@ -77,7 +76,7 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 	      }
       }
       
-      dos.write(Server.serializeInt(Common.QUIT));
+      dos.write(Common.serializeInt(Common.QUIT));
 			dos.flush();
 			
 			debugPrintln("[TimerClient " + cid + "] Sent QUIT.");

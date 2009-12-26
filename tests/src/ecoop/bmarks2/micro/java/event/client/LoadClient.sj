@@ -7,7 +7,6 @@ import java.net.*;
 import java.util.*;
 
 import ecoop.bmarks2.micro.*;
-import ecoop.bmarks2.micro.java.event.server.Server;
 
 public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 {
@@ -45,12 +44,12 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
       
       while (run) 
       {
-  			dos.write(Server.serializeInt(Common.REC));
+  			dos.write(Common.serializeInt(Common.REC));
   			dos.flush();
   			
-  			byte[] bs = Server.serializeObject(new ClientMessage(cid, Integer.toString(iters++), serverMessageSize));  			
+  			byte[] bs = Common.serializeObject(new ClientMessage(cid, Integer.toString(iters++), serverMessageSize));  			
   			  			
-  			dos.write(Server.serializeInt(bs.length));
+  			dos.write(Common.serializeInt(bs.length));
         dos.write(bs);
         dos.flush();
             
@@ -58,11 +57,11 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
         
         dis.readFully(bs);
         
-        bs = new byte[Server.deserializeInt(bs)];
+        bs = new byte[Common.deserializeInt(bs)];
         
         dis.readFully(bs);
         
-        sm = (ServerMessage) Server.deserializeObject(bs);      
+        sm = (ServerMessage) Common.deserializeObject(bs);      
         
         run = !sm.isKill();
             
@@ -74,7 +73,7 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 	      }
       }
       
-      dos.write(Server.serializeInt(Common.QUIT));
+      dos.write(Common.serializeInt(Common.QUIT));
 			dos.flush();
 			
       debugPrintln("[LoadClient " + cid + "] Quitting.");
