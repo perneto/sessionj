@@ -10,12 +10,11 @@ import ecoop.bmarks2.micro.*;
 
 public class Server extends ecoop.bmarks2.micro.Server  
 {  
-	volatile protected boolean run = true;
+	volatile protected boolean run = true; // Currently redundant.
 	volatile protected boolean kill = false;
+	volatile private boolean finished = false;
 	
 	private List threads = new LinkedList();
-	
-	volatile private boolean finished = false;
 	
 	private ServerSocket ss;
 	
@@ -67,13 +66,14 @@ public class Server extends ecoop.bmarks2.micro.Server
   	//int numClients = getNumClients();
   	int numClients = this.threads.size(); // Should be the same as getNumClients.
   	
-  	this.run = false;
   	this.kill = true;
   	
 		for (Iterator i = this.threads.iterator(); i.hasNext(); )
 		{
 			((ServerThread) i.next()).join();	// This includes all the (already finished) TimerClient threads.			
 		} 	
+		
+  	this.run = false;		
 		
   	Common.closeServerSocket(ss); // Break the accepting loop.
 		

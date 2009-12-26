@@ -9,14 +9,11 @@ import sessionj.runtime.transport.*;
 
 import ecoop.bmarks2.micro.*;
 
-// This counts as two clients (from the Server's view), due to the dummy run.
 public class TimerClient extends ecoop.bmarks2.micro.TimerClient 
 {
 	//protocol pClient ^(ecoop.bmarks2.micro.sj.thread.server.Server.pServer)
 	protocol pClient cbegin.rec X [!{REC: !<ClientMessage>.?(ServerMessage).#X, QUIT: }]
 
-	private int repeats; // This means "inner repeats", i.e. the number of measurements to take per Server instance.
-	
   public TimerClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, int repeats) 
   {
   	super(debug, host, port, cid, serverMessageSize, sessionLength, repeats);

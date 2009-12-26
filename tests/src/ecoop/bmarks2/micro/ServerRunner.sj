@@ -36,10 +36,10 @@ public class ServerRunner
 		{
 			server = new ecoop.bmarks2.micro.java.thread.server.Server(debug, port);
 		}  
-		/*else if (flag.equals(JAVA_EVENT))
+		else if (flag.equals(JAVA_EVENT))
 		{
-			server = new ecoop.bmarks2.micro.java.event.flag.Server(debug, port);
-		}*/
+			server = new ecoop.bmarks2.micro.java.event.server.Server(debug, port);
+		}
 		else if (flag.equals(SJ_THREAD))
 		{
 			server = new ecoop.bmarks2.micro.sj.thread.server.Server(debug, port);
