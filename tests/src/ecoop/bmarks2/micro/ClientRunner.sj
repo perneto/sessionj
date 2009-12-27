@@ -5,10 +5,6 @@ package ecoop.bmarks2.micro;
 import java.io.*;
 import java.net.*;
 
-import ecoop.bmarks2.micro.java.thread.client.*;
-//import ecoop.bmarks2.micro.java.event.client.*;
-import ecoop.bmarks2.micro.sj.client.*;
-
 // Spawns LoadClients.
 public class ClientRunner 
 {

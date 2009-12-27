@@ -12,8 +12,8 @@ import ecoop.bmarks2.micro.*;
 
 public class Server extends ecoop.bmarks2.micro.Server 
 {
-	volatile protected boolean run = true;
-	volatile protected boolean kill = false;
+	volatile private boolean run = true;
+	volatile private boolean kill = false;
   volatile private boolean finished = false;
 	
   private List keyUpdates = new LinkedList();

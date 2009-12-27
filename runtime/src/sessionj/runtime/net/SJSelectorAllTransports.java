@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class SJSelectorAllTransports implements SJSelector {
+public class SJSelectorAllTransports implements SJSelector {
     private final Collection<TransportSelector> transportSelectors;
     private static final String UNSUPPORTED = "None of the transports support non-blocking mode";
     private static final Logger log = SJRuntimeUtils.getLogger(SJSelectorAllTransports.class);
@@ -71,6 +71,10 @@ class SJSelectorAllTransports implements SJSelector {
                         latch.submitValue(sel.select(true));
                     } catch (Throwable t) {
                         log.log(Level.SEVERE, "Error calling select on: " + sel, t);
+                        
+                        //RAY
+                        throw new RuntimeException(t); // Doesn't seem to do anything.
+                        //YAR
                     }
                 }
             });
@@ -92,4 +96,12 @@ class SJSelectorAllTransports implements SJSelector {
         for (TransportSelector sel : transportSelectors) sel.close();
         executor.shutdownNow();
     }
+    
+    //RAY 
+    // Currently, closing (interrupting) the underlying server socket whilst the selector should be blocked on accept doesn't kill the selector.
+    public SJSelectorCloser getCloser()
+    {
+    	return new SJSelectorCloser(this);
+    }
+    //YAR    
 }
