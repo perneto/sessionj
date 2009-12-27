@@ -1,4 +1,5 @@
 //$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.micro.ClientRunner false localhost 8888 -1 100 1 10 JT
+//$ bin/sessionj -Dsessionj.transports.session=a -cp tests/classes/ ecoop.bmarks2.micro.ClientRunner false localhost 8888 -1 100 1 10 SE
 
 package ecoop.bmarks2.micro;
 

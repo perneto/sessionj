@@ -73,7 +73,7 @@ public class SJSelectorAllTransports implements SJSelector {
                         log.log(Level.SEVERE, "Error calling select on: " + sel, t);
                         
                         //RAY
-                        throw new RuntimeException(t); // Doesn't seem to do anything.
+                        //throw new RuntimeException(t); // Doesn't seem to do anything.
                         //YAR
                     }
                 }

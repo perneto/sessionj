@@ -138,6 +138,15 @@ then
   done
 fi
 
+if [ "$se" == "true" ];
+then  
+  path=tests/src/ecoop/bmarks2/micro/sj/event/server
+  
+  for f in Server; do
+    compile $path/$f.sj
+  done
+fi
+
 if [ "$st" == "true" -o "$se" == "true" ];
 then  
   path=tests/src/ecoop/bmarks2/micro/sj/client
