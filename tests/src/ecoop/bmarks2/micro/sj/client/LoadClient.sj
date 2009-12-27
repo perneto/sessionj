@@ -74,6 +74,8 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
           }
         }
       }
+      
+      Thread.sleep(50);
     }
     finally
     {

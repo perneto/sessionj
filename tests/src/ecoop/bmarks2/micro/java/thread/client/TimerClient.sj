@@ -28,9 +28,9 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 			int serverMessageSize = getServerMessageSize();
 	    int sessionLength = getSessionLength();
 
-			if (includeInitialisation())
+			//if (timer)
 			{
-		    startTimer();
+				startTimer();
 			}
 			
 			s = new Socket(getHost(), getPort());
@@ -40,9 +40,9 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 			oos = new ObjectOutputStream(s.getOutputStream());
 			ois = new ObjectInputStream(s.getInputStream());
 	
-			if (!includeInitialisation())
+			//if (timer)
 			{
-		    startTimer();
+				initialised();
 			}
 	    
 	    ServerMessage sm;	     
@@ -71,27 +71,28 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 				
       debugPrintln("[TimerClient " + cid + "] Sent QUIT.");
 			
-      if (!includeClose())
-      {
-      	stopTimer();
-      }	    
+      //if (timer)
+			{
+      	bodyDone();
+			}
+			
+			Thread.sleep(50); // This will affect close timing, but perhaps needed to prevent exceptions at the Server.
 	  }
 	  finally
 	  {
 			Common.closeOutputStream(oos);
 			Common.closeInputStream(ois);
 			Common.closeSocket(s);
-	  }
-	  
-	  if (includeClose())
-    {
-    	stopTimer();
-    }
+	  }	 
+
+	  stopTimer();
 	  
 	  if (timer)
   	{
   		printTimer();
   	}	  
+
+	  resetTimer();
 	}
   
   public static void main(String [] args) throws Exception
