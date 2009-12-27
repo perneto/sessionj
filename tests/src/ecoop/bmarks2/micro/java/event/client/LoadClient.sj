@@ -77,6 +77,8 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 			dos.flush();
 			
       debugPrintln("[LoadClient " + cid + "] Quitting.");
+      
+      Thread.sleep(50);
 		}
 		catch(Exception x)
 		{

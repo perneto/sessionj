@@ -34,18 +34,12 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 			int serverMessageSize = getServerMessageSize();
 	    int sessionLength = getSessionLength();
   	
-			if (includeInitialisation())
-			{
-		    startTimer();
-			}
+    	startTimer();
 			
 	    //s = serv.request(params);
 	  	s = c.request();
 		    
-	  	if (!includeInitialisation())
-			{
-		    startTimer();
-			}
+  		initialised();
 	  	
 	    ServerMessage sm;
 	     
@@ -82,25 +76,23 @@ public class TimerClient extends ecoop.bmarks2.micro.TimerClient
 	      iters++;
 	    }
 	    	    
-      if (!includeClose())
-      {
-      	stopTimer();
-      }	
+    	bodyDone();
+    	
+    	Thread.sleep(50);
 	  }
 	  finally
 	  {
 
 	  }
-	  
-	  if (includeClose())
-    {
-    	stopTimer();
-    }
+
+   	stopTimer();		  	  	
 	  
 	  if (timer)
   	{
   		printTimer();
   	}	 	  
+	  
+  	resetTimer();
 	}
   
   public static void main(String [] args) throws Exception

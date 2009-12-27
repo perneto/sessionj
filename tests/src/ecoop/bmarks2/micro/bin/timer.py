@@ -55,7 +55,7 @@ else:
 	common.printAndFlush('Unknown environment: ' + env)
 	sys.exit(1)
 
-timer = 'BODY' # Set whether we want to include initialisation/close or not.
+timer = 'FULL' # Set whether we want to include initialisation/close or not.
 
 
 # Main.

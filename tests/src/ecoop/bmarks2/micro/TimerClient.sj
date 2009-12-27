@@ -8,16 +8,20 @@ import ecoop.bmarks2.micro.*;
 abstract public class TimerClient extends Client
 {
 	public static final String BODY = "BODY";
-	public static final String INIT = "INIT";
+	public static final String INIT_AND_BODY = "INIT_AND_BODY";
 	public static final String FULL = "FULL";
 	
   private int sessionLength;
   private String flag; // Set whether we want to include initialisation/close or not.
 	private int repeats; // This means "inner repeats", i.e. the number of measurements to take per Server instance.
   
-  private long start;
-  private long finish;
+  private long preInit;
+  private long postInit;
+  private long preClose;
+  private long postClose;
 	
+  private int state = 0;
+  
   public TimerClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, String flag, int repeats) 
   {
   	super(debug, host, port, cid, serverMessageSize);
@@ -32,37 +36,73 @@ abstract public class TimerClient extends Client
   	return sessionLength;
   }
   
-  public boolean includeInitialisation() 
-  {
-  	return (flag.equals(INIT) || flag.equals(FULL));
-  }
-  
-  public boolean includeClose() 
-  {
-  	return (flag.equals(FULL));
-  }
-  
   public long startTimer()
   {
-  	start = System.nanoTime(); 
+  	preInit = System.nanoTime(); 
   	
-  	return start;
+  	state++; // Could also check state is 0, similarly for the other timer methods.
+  	
+  	return preInit;
   }
   
-  public long stopTimer()
+  public long initialised()
   {
-  	finish = System.nanoTime();
+  	postInit = System.nanoTime(); 
   	
-  	return finish;
+  	state++;
+  	
+  	return postInit;
+  }
+  
+  public long bodyDone()
+  {
+  	preClose = System.nanoTime();
+  	
+  	state++;
+  	
+  	return preClose;
   }
 
-  public long printTimer()
+  public long stopTimer()
   {
-  	long duration = finish - start;
+  	postClose = System.nanoTime();
   	
-  	System.out.println("[TimerClient] Session duration: " + duration + " nanos");
+  	state++;
   	
-  	return duration;
+  	return postClose;
+  }
+  
+  public void resetTimer()
+  {
+  	state = 0;
+  }
+  
+  public void printTimer()
+  {
+  	if (state != 4)
+  	{
+  		throw new RuntimeException("[TimerClient] Missing timer method: " + state);
+  	}
+  	
+  	long initialisation = postClose - preClose;
+  	long body = preClose - postInit;
+  	long close = postClose - preClose;
+  	
+  	if (flag.equals(BODY))
+  	{
+ 	  	System.out.println("[TimerClient] Body: " + body + " nanos");
+ 		}
+  	else if (flag.equals(INIT_AND_BODY))
+		{
+			System.out.println("[TimerClient] Initialisation: " + initialisation + " nanos");
+			System.out.println("[TimerClient] Body: " + body + " nanos");
+		}
+  	else if (flag.equals(FULL))
+		{
+			System.out.println("[TimerClient] Initialisation: " + initialisation + " nanos");
+			System.out.println("[TimerClient] Body: " + body + " nanos");
+			System.out.println("[TimerClient] Close: " + close + " nanos");
+		}
   }
   
   public void run() throws Exception
@@ -77,7 +117,7 @@ abstract public class TimerClient extends Client
   		{		  	
 		  	run(true);
 		    
-		  	Thread.sleep(50);
+		  	Thread.sleep(50); // Maybe factor this out.
   		}
   	}
   	finally

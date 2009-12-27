@@ -66,12 +66,12 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 	      }
       }
       
-      debugPrintln("[LoadClient " + cid + "] Quitting.");
-      
       oos.writeInt(Common.QUIT);
 			oos.flush();		
-      
-      Thread.sleep(100);
+
+      debugPrintln("[LoadClient " + cid + "] Quitting.");      			
+			
+      Thread.sleep(50); // To make sure the final QUIT gets sent: can factor out this delay.
 		}
 		finally
 		{
