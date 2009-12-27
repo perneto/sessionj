@@ -1,4 +1,4 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.micro.java.event.client.LoadClient false localhost 8888 -2 100    
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.micro.java.event.client.LoadClient false localhost 8888 -2 100
 
 package ecoop.bmarks2.micro.java.event.client;
 
@@ -100,6 +100,6 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
     int cid = Integer.parseInt(args[3]);
     int serverMessageSize = Integer.parseInt(args[4]);
 
-    new LoadClient(debug, host, port, cid, serverMessageSize, null).run();  
+    new LoadClient(debug, host, port, cid, serverMessageSize, new boolean[1]).run();  
   }
 }

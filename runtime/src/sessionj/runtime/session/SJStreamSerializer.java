@@ -83,9 +83,9 @@ public class SJStreamSerializer extends SJAbstractSerializer
 		try
 		{
 			oos.writeByte(SJ_OBJECT);
-			oos.writeObject(o);
+			oos.writeObject(o); // Flush?
 			
-			oos.reset();
+			oos.reset(); 
             // Does this affect performance? Would it be faster to make a new oos? (Probably not.)
             // Should we manually keep track of which objects have been sent and reset only when necessary?
 		}

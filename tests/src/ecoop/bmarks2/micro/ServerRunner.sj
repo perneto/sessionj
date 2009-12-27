@@ -3,11 +3,6 @@
 
 package ecoop.bmarks2.micro;
 
-import ecoop.bmarks2.micro.java.thread.server.*;
-//import ecoop.bmarks2.micro.java.event.flag.*;
-import ecoop.bmarks2.micro.sj.thread.server.*;
-//import ecoop.bmarks2.micro.sj.event.server.*;
-
 // Spawns a pair of Server and SignalClient.
 public class ServerRunner 
 {
@@ -44,10 +39,10 @@ public class ServerRunner
 		{
 			server = new ecoop.bmarks2.micro.sj.thread.server.Server(debug, port);
 		}
-		/*else if (flag.equals(SJ_EVENT))
+		else if (flag.equals(SJ_EVENT))
 		{
 			server = new ecoop.bmarks2.micro.sj.event.server.Server(debug, port);
-		}*/
+		}
   	else
   	{
   		throw new RuntimeException("[ServerRunner] Bad server flag: " + flag);
