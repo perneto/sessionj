@@ -64,12 +64,17 @@ public class SignalServer
         	}
         	case START_COUNTING:
         	{
+        		/*server.counts = new int[server.getNumClients()];
+        		server.count = true;*/
+        		
         		server.startCounting();
         		
         		break;
         	}
         	case STOP_COUNTING:
         	{
+        		//server.count = false;
+        		
         		server.stopCountingAndReset();
         		
         		break;

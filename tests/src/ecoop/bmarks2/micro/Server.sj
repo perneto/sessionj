@@ -16,11 +16,13 @@ abstract public class Server
   protected Object lock = new Object();*/
   private AtomicInteger numClients = new AtomicInteger(0);
   
-  private long startTime; 
-  private long finishTime; 
+  volatile private long startTime; 
+  volatile private long finishTime; 
   
-  private boolean count;  
-  private static int[] counts; // The number of messages sent.
+  volatile private boolean count; 
+  /*volatile */private int[] counts; // The number of messages sent.    
+  /*volatile public boolean count;
+  public int[] counts;*/
   
   public Server(boolean debug, int port) 
   {
@@ -54,8 +56,8 @@ abstract public class Server
   public final void startCounting() 
   {
   	this.counts = new int[getNumClients()]; // All clients should be connected before this is called.
-  	this.count = true;
   	this.startTime = System.nanoTime();
+  	this.count = true;
   }
   
   public final boolean isCounting()
@@ -65,17 +67,17 @@ abstract public class Server
   
   public final int incrementCount(int index) // Not synchronized because we expect only a single thread to access each element.
   {
-  	counts[index]++;
+  	this.counts[index]++;
   	
-  	return counts[index];
+  	return this.counts[index];
   }
   
   public final void stopCountingAndReset()
   { 
-  	this.finishTime = System.nanoTime();
   	this.count = false;
+  	this.finishTime = System.nanoTime();
   	
-  	System.out.println("[Server] Count duration: " + (finishTime - startTime) + " nanos");
+  	System.out.println("[Server] Count duration: " + (this.finishTime - this.startTime) + " nanos");
   	System.out.println("[Server] Total count: " + getCountTotal());
   }
   
@@ -83,9 +85,9 @@ abstract public class Server
   {
   	long total = 0;
   	
-  	for (int i = 0; i < counts.length; i++)
+  	for (int i = 0; i < this.counts.length; i++)
 		{
-			total += counts[i];
+			total += this.counts[i];
 		}
 		
 		return total;  	
