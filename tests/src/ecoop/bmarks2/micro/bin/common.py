@@ -30,7 +30,8 @@ debugSessionLengths = ['0', '4']
 # For localhost testing.
 localhostNumClients = ['1', '2']
 localhostMessageSizes = ['100', '1024']
-localhostSessionLengths = ['0', '4']
+#localhostSessionLengths = ['0', '4']
+localhostSessionLengths = ['-1']
 
 
 # Function declarations.

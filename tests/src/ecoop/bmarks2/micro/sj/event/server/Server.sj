@@ -115,7 +115,7 @@ public class Server extends ecoop.bmarks2.micro.Server
 		          
 		          if (isCounting()) 
 		          {
-		          	incrementCount(0); // HACK: just use a single counter. Could store the "tids" in a map (using local ports as a key), but could be a non-neglible overhead.
+		          	incrementCount(0); // HACK: just use a single counter (safe to do so for this single-threaded Server). Could store the "tids" in a map (using local ports as a key), but could be a non-neglible overhead.
 		            
 		           	debugPrintln("[ServerThread] Current count:" + getCountTotal());		            
 		          }
