@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-#tests/src/ecoop/bmarks2/micro/bin/throughput.py <debug> <env> <serverName> <server_port> <client_port> <version> <inners> <outers>
-#tests/src/ecoop/bmarks2/micro/bin/throughput.py f localhost localhost 8888 6666 JT 3 2
-#nohup tests/src/ecoop/bmarks2/micro/bin/throughput.py f camelot camelot16 8888 6666 JT 3 2 < /dev/null 1>foo.txt 2>bar.txt &	
+#tests/src/ecoop/bmarks2/macro/smtp/bin/throughput.py <debug> <env> <serverName> <server_port> <client_port> <version> <inners> <outers>
+#tests/src/ecoop/bmarks2/macro/smtp/bin/throughput.py f localhost localhost 8888 6666 ST 3 2
+#nohup tests/src/ecoop/bmarks2/macro/smtp/bin/throughput.py f camelot camelot16 8888 6666 ST 3 2 < /dev/null 1>foo.txt 2>bar.txt &	
 
 import os
 import socket
@@ -39,7 +39,7 @@ if env == 'localhost':
 	client = common.getLocalhostClient() 
 	workers = common.getLocalhostWorkers() 
 	
-	(numClients, messageSizes, sessionLengths) = common.getLocalhostParameters()
+	(numClients, messageSizes) = common.getLocalhostParameters()
 elif env == 'camelot':
 	renv = 'bin/csessionj'
 
@@ -48,10 +48,10 @@ elif env == 'camelot':
 		
 	if debug:
 		workers = common.getCamelotDebugWorkers() 
-		(numClients, messageSizes, sessionLengths) = common.getDebugParameters()
+		(numClients, messageSizes) = common.getDebugParameters()
 	else:
 		workers = common.getCamelotWorkers() 
-		(numClients, messageSizes, sessionLengths) = common.getParameters()	
+		(numClients, messageSizes) = common.getParameters()	
 else:
 	common.printAndFlush('Unknown environment: ' + env)
 	sys.exit(1)
@@ -62,7 +62,7 @@ window = 3
 # Main.
 
 common.printAndFlush('Configuration: server=' + serverName + ', client=' + hostname)
-common.printAndFlush('Global: window=' + str(window) + ', versions=' + str(versions) + ', numClients=' + str(numClients) + ', messageSizes=' + str(messageSizes) + ', sessionLengths=' + str(sessionLengths))
+common.printAndFlush('Global: window=' + str(window) + ', versions=' + str(versions) + ', numClients=' + str(numClients) + ', messageSizes=' + str(messageSizes))
 
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -78,29 +78,28 @@ common.debugPrint(debug, 'Server script connected, starting main loop...')
 for v in versions:
 	for clients in numClients:
 		for size in messageSizes:
-			for length in sessionLengths:
-				for i in range(0, outers):
-					common.printAndFlush('Parameters: version=' + v + ', clients=' + clients + ', size=' + size + ', length=' + length + ', trial=' + str(i))
-		
-					s.recv(1024)
-					
-					prefix = renv + ' -cp tests/classes ecoop.bmarks2.micro.SignalClient ' + serverName + ' ' + sport 
-					
-					count = prefix + ' COUNT'
-					stop = prefix + ' STOP'
-					kill = prefix + ' KILL'
-							
-					for i in range(0, inners):
-						common.debugPrint(debug, 'Command: ' + count)	
-						os.system(count) 		
-										
-						time.sleep(window)				
-										
-						common.debugPrint(debug, 'Command: ' + stop)	
-						os.system(stop)		
+			for i in range(0, outers):
+				common.printAndFlush('Parameters: version=' + v + ', clients=' + clients + ', size=' + size + ', trial=' + str(i))
+	
+				s.recv(1024)
+								
+				prefix = renv + ' -cp tests/classes ecoop.bmarks2.micro.SignalClient ' + serverName + ' ' + sport 
+				
+				count = prefix + ' COUNT'
+				stop = prefix + ' STOP'
+				kill = prefix + ' KILL'
 						
-						time.sleep(0.05) # Small cool down time.	
+				for i in range(0, inners):
+					common.debugPrint(debug, 'Command: ' + count)	
+					os.system(count) 		
 									
-					common.debugPrint(debug, 'Command: ' + kill)	
-					os.system(kill)
+					time.sleep(window)				
+									
+					common.debugPrint(debug, 'Command: ' + stop)	
+					os.system(stop)		
 					
+					time.sleep(0.05) # Small cool down time.	
+								
+				common.debugPrint(debug, 'Command: ' + kill)	
+				os.system(kill)
+				

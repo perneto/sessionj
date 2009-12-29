@@ -7,8 +7,7 @@ from threading import Thread
 
 # Benchmark configuration parameters (Camelot).
 
-#versions = ['JT', 'JE', 'ST', 'SE']
-versions = ['JE', 'ST', 'SE']
+versions = ['ST', 'SE']
 
 client = 'camelot01' # The Timer/Counter Client machine.
 
@@ -19,12 +18,9 @@ workers = ['camelot02', 'camelot03', 'camelot04', 'camelot05', 'camelot06', 'cam
 
 numClients = ['10', '100', '300', '500', '700', '900']
 messageSizes = ['100', '1024']
-sessionLengths = ['1', '10', '100'] # For response time benchmarks.
-#sessionLengths = ['-1'] # For throughput benchmarks.
 
 #numClients = ['900']
 #messageSizes = ['10240']
-#sessionLengths = ['100']
 
 
 # Benchmark debugging parameters (2 Workers).
@@ -33,16 +29,12 @@ debugWorkers = ['camelot02', 'camelot03']
 
 debugNumClients = ['2', '4']	# Debug means for debugging these scripts: to play around with parameter settings, use the above (non-debug) parameters.
 debugMessageSizes = ['100', '10240']
-debugSessionLengths = ['0', '4'] # For response time benchmarks.
-#debugSessionLengths = ['-1'] # For throughput benchmarks.
 
 
 # Localhost testing parameters.
 
 localhostNumClients = ['1', '2']
 localhostMessageSizes = ['100', '1024']
-localhostSessionLengths = ['0', '4'] # For response time benchmarks.
-#localhostSessionLengths = ['-1'] # For throughput benchmarks.
 
 
 # Function declarations.
@@ -57,10 +49,10 @@ def getCamelotDebugWorkers():
 	return debugWorkers
 
 def getParameters():
-	return (numClients, messageSizes, sessionLengths)
+	return (numClients, messageSizes)
 
 def getDebugParameters():
-	return (debugNumClients, debugMessageSizes, debugSessionLengths)
+	return (debugNumClients, debugMessageSizes)
 
 def getLocalhostClient():
 	return 'localhost'
@@ -69,7 +61,7 @@ def getLocalhostWorkers():
 	return ['localhost']
 
 def getLocalhostParameters():
-	return (localhostNumClients, localhostMessageSizes, localhostSessionLengths)
+	return (localhostNumClients, localhostMessageSizes)
 
 
 def parseBoolean(v):

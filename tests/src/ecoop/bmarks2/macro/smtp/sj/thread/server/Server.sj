@@ -1,5 +1,5 @@
 //$ bin/sessionjc -cp tests/classes tests/src/ecoop/bmarks2/macro/smtp/sj/thread/server/Server.sj -d tests/classes
-//$ bin/sessionj -cp tests/classes ecoop.bmarks2.macro.smtp.sj.thread.server.Server false 2525 s
+//$ bin/sessionj -cp tests/classes ecoop.bmarks2.macro.smtp.sj.thread.server.Server false 8888 s
 
 package ecoop.bmarks2.macro.smtp.sj.thread.server;
 

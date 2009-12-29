@@ -1,4 +1,4 @@
-//$ bin/sessionj -Dsessionj.transports.negotiation=a -Dsessionj.transports.session=a -cp tests/classes bmarks2.macro.smtp.sj.event.server.Server false 2525 a
+//$ bin/sessionj -Dsessionj.transports.negotiation=a -Dsessionj.transports.session=a -cp tests/classes bmarks2.macro.smtp.sj.event.server.Server false 8888 a
 
 package ecoop.bmarks2.macro.smtp.sj.event.server;;
 

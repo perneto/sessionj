@@ -5,7 +5,7 @@ package ecoop.bmarks2.macro.smtp;
 import java.io.*;
 import java.net.*;
 
-// Spawns DummyClients.
+// Mostly duplicated from the microbenchmark equivalent: spawns DummyClients.
 public class ClientRunner 
 {
   public static void main(String [] args) throws Exception
