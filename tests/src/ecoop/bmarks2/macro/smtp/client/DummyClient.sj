@@ -6,6 +6,8 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
+import ecoop.bmarks2.micro.Common;
+
 // Not too far away from the micro benchmark LoadClient functionality.
 public class DummyClient
 {			
@@ -33,10 +35,10 @@ public class DummyClient
 		
 		debugPrintln("fqdn: " + fqdn);
 		
-		Socket s;
+		Socket s = null;
 		
-		DataOutputStream dos;
-		DataInputStream dis;
+		DataOutputStream dos = null;
+		DataInputStream dis = null;
 		
 		try
 		{		
@@ -85,10 +87,14 @@ public class DummyClient
 					Thread.sleep(1000);
 				}
 			}		
+			
+			Thread.sleep(50);
 		}
 		finally
 		{
-			
+			Common.closeOutputStream(dos);
+			Common.closeInputStream(dis);
+			Common.closeSocket(s);		
 		}
 	}
     

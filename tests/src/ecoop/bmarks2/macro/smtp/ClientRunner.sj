@@ -1,4 +1,5 @@
 //$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.macro.smtp.ClientRunner false localhost 8888 -1 100 1 10
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.macro.smtp.ClientRunner false localhost 9088 -1 100 1 10
 
 package ecoop.bmarks2.macro.smtp;
 

@@ -62,10 +62,10 @@ public class Server extends ecoop.bmarks2.micro.Server
 
 			noalias SJSocket s;
 	    
-		  try (s) 
-		  {
-		    while (this.run) 
-		    {
+			while (this.run) 
+	    {
+			  try (s) 
+			  {		    
 		      s = sel.select();
 		      
 		      typecase (s) 
@@ -115,7 +115,7 @@ public class Server extends ecoop.bmarks2.micro.Server
 		          
 		          if (isCounting()) 
 		          {
-		          	incrementCount(0); // HACK: just use a single counter (safe to do so for this single-threaded Server). Could store the "tids" in a map (using local ports as a key), but could be a non-neglible overhead.
+		          	incrementCount(0); // HACK: using a single counter (safe to do so for this single-threaded Server). Could store the "tids" in a map (using local ports as a key), but could be a non-neglible overhead.
 		            
 		           	debugPrintln("[ServerThread] Current count:" + getCountTotal());		            
 		          }
@@ -123,22 +123,20 @@ public class Server extends ecoop.bmarks2.micro.Server
 	            sel.registerInput(s);
 	          }
 	        }
-	      }
-		  }
-		  catch (Exception x) // Selector closer not currently working.
-		  {
-		  	x.printStackTrace();
-		  }
-		  finally
-		  {
-		  	
-		  }
-		  	    
-	    this.finished = true;
+	      }			  
+			  finally
+			  {
+			  	
+			  }	
+		  }		  	  	    	    
 		}
+		catch (Exception x) // Selector closer not currently working.
+	  {
+	  	x.printStackTrace();
+	  }
 		finally
 		{
-
+			this.finished = true;
 		}
   }
 

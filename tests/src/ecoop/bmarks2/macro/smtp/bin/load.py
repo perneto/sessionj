@@ -84,7 +84,12 @@ for v in versions:
 							 
 				s.recv(1024);
 				
-				command = renv + ' -cp tests/classes ecoop.bmarks2.macro.smtp.ClientRunner ' + str(debug) + ' ' + serverName + ' ' + sport + ' ' + wport + ' ' + delay + ' ' + clients + ' ' + size				
+				if v == 'SE':
+					sport1 = str(int(sport) + 200)
+				else:
+					sport1 = sport	
+				
+				command = renv + ' -cp tests/classes ecoop.bmarks2.macro.smtp.ClientRunner ' + str(debug) + ' ' + serverName + ' ' + sport1 + ' ' + wport + ' ' + delay + ' ' + clients + ' ' + size				
 				common.debugPrint(debug, 'Command: ' + command)						
 				
 				ct = common.CommandThread(command)

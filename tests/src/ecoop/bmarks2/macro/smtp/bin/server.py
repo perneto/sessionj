@@ -102,14 +102,13 @@ for v in versions:
 					command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command + ' -Xmx256m'
 			
 				if v == 'SE':
-					#transport = '-Dsessionj.transports.session=a '
-					transport = 'a'
+					transport = '-Dsessionj.transports.session=a '
+					setup = 'a'
 				else:
-					#transport = ''							
-					transport = 's'
+					transport = ''							
+					setup = 's'
 				
-				#command = command + ' ' + transport + '-cp tests/classes ecoop.bmarks2.macro.smtp.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v
-				command = command + ' -cp tests/classes ecoop.bmarks2.macro.smtp.ServerRunner ' + str(debug) + ' ' + sport + ' ' + transport + ' ' + v
+				command = command + ' ' + transport + '-cp tests/classes ecoop.bmarks2.macro.smtp.ServerRunner ' + str(debug) + ' ' + sport + ' ' + setup + ' ' + v
 		
 				common.debugPrint(debug, 'Command: ' + command)
 				
