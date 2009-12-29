@@ -7,6 +7,7 @@ import java.net.*;
 
 import ecoop.bmarks2.micro.*;
 
+// Also used by macro benchmarks.
 public class SignalClient 
 {	
 	public static final String KILL = "KILL";

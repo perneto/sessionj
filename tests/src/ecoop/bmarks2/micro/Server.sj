@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.*;
 
 import ecoop.bmarks2.micro.*;
 
+// Also used by macro benchmarks.
 abstract public class Server  
 {
 	private boolean debug;		
@@ -21,6 +22,7 @@ abstract public class Server
   
   volatile private boolean count; 
   /*volatile */private int[] counts; // The number of messages sent.    
+ 
   /*volatile public boolean count;
   public int[] counts;*/
   

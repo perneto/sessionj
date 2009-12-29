@@ -3,7 +3,7 @@
 
 package ecoop.bmarks2.micro;
 
-// Spawns a pair of Server and SignalClient.
+// Spawns a pair of Server and SignalServer.
 public class ServerRunner 
 {
 	public static final String JAVA_THREAD = "JT";
