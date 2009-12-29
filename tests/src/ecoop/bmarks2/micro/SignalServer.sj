@@ -5,6 +5,7 @@ import java.net.*;
 
 import ecoop.bmarks2.micro.*;
 
+// Also used by macro benchmarks.
 public class SignalServer 
 {
 	public static final int SIGNAL_SERVER_PORT_OFFSET = -100;

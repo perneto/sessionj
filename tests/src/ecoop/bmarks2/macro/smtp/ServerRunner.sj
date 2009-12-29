@@ -1,11 +1,11 @@
-//$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.macro.smtp.ServerRunner false 2525 s ST
-//$ bin/sessionj -Dsessionj.transports.session=a -cp tests/classes/ ecoop.bmarks2.macro.smtp.ServerRunner false 2525 a SE
+//$ bin/sessionj -cp tests/classes/ ecoop.bmarks2.macro.smtp.ServerRunner false 8888 s ST
+//$ bin/sessionj -Dsessionj.transports.session=a -cp tests/classes/ ecoop.bmarks2.macro.smtp.ServerRunner false 8888 a SE
 
 package ecoop.bmarks2.macro.smtp;
 
 import ecoop.bmarks2.macro.smtp.sj.*;
 
-// Spawns a pair of Server and SignalServer.
+// Mostly duplicated from the microbenchmark equivalent: spawns a pair of Server and SignalServer.
 public class ServerRunner 
 {
 	public static final String SJ_THREAD = "ST";
