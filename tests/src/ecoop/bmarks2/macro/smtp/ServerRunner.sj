@@ -31,10 +31,10 @@ public class ServerRunner
 		{
 			server = new ecoop.bmarks2.macro.smtp.sj.thread.server.Server(debug, port, setups);
 		}
-		/*else if (flag.equals(SJ_EVENT))
+		else if (flag.equals(SJ_EVENT))
 		{
 			server = new ecoop.bmarks2.macro.smtp.sj.event.server.Server(debug, port, setups);
-		}*/
+		}
   	else
   	{
   		throw new RuntimeException("[ServerRunner] Bad server flag: " + flag);

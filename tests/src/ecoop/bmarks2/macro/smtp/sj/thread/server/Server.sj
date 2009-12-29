@@ -167,7 +167,7 @@ class ServerThread extends SJThread
 				{
 					//221 smtp1.cc.ic.ac.uk closing connection
 					QuitAck quitAck = new QuitAck("localhost closing connection"); // Unlike the "ack bodies", already prefixes the reply code.
-					//System.out.print("Sending: " + quitAck);			
+					debugPrintln("Sending: " + quitAck);			
 					s.send(quitAck);	
 					
 					server.removeClient();
