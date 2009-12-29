@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+// Move up a package level: also used by macro benchmarks.
 public class Common  
 {
 	public static final int REC = 1;

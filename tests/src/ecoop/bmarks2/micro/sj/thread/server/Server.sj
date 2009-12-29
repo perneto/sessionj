@@ -54,7 +54,7 @@ public class Server extends ecoop.bmarks2.micro.Server
 				} 				
     		finally 
     		{
-    			this.finished = true;
+    			
     		}
 			}			
 		}
@@ -64,7 +64,7 @@ public class Server extends ecoop.bmarks2.micro.Server
 		}
    	finally 
    	{
-   		
+   		this.finished = true;
    	}
   }
 

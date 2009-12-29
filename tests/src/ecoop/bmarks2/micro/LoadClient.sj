@@ -26,6 +26,7 @@ abstract public class LoadClient extends Client
   	synchronized (this.ack)
   	{
   		this.ack[0] = true;
+  		
   		this.ack.notify();
   	}
   }  
