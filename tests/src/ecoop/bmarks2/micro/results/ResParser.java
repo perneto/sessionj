@@ -1,3 +1,6 @@
+//$ javac ResParser
+//$ java ResParser timer-jt-i100o20.txt 100 jt-test.csv JT
+
 import java.io.*;
 import java.math.*;
 import java.net.*;
@@ -29,7 +32,7 @@ public class ResParser
 			}
 			else
 			{
-				throw new RuntimeException("Version value cannot be parsed from : " + m);
+				throw new RuntimeException("[ResParser] Version value cannot be parsed from : " + m);
 			}
 		}
 	}	
@@ -66,6 +69,69 @@ public class ResParser
 		//sort(results); // Already in order.
 		
 		writeResults(results, outFile, repeats);
+	}
+	
+	private static void parseResults(String inFile, List<Results> results, int repeats) throws IOException
+	{
+		BufferedReader in = null;
+
+		try
+		{
+			in = new BufferedReader(new FileReader(inFile)); 
+			
+			String m; 
+			
+			do
+			{
+				in.mark(1024 * 4);
+				
+				m = in.readLine();				
+			}
+			while (Parameters.parseParameters(m) == null);
+
+			in.reset();
+			
+			while ((m = in.readLine()) != null)
+			{
+				Results current = ((LinkedList<Results>) results).peekLast();				
+				
+				Parameters params = Parameters.parseParameters(m); 				 
+								
+				if (current == null || !params.equals(current.params))
+				{
+					//params.trial = repeats;
+					params.trial = 0;
+					
+					current = new Results(params, repeats);
+					
+					results.add(current);
+				}
+				
+				long[] values = new long[repeats];
+				
+				for (int i = 0; i < repeats; i++)
+				{
+					values[i] = parseResult(in.readLine());	
+				}									
+				
+				current.addTrial(values);				
+			}			
+		}		
+		finally
+		{
+			if (in != null)
+			{
+				in.close();
+			}
+		}		
+	}
+	
+	private static long parseResult(String m)
+	{
+		m = m.substring(RESULT_PREFIX.length());
+		m = m.substring(0, m.length() - RESULT_SUFFIX.length());
+		
+		return Long.parseLong(m);
 	}
 	
 	private static void writeResults(List<Results> results, String outFile, int repeats) throws IOException
@@ -142,7 +208,7 @@ public class ResParser
 				fw.close();				
 			}
 		}		
-	}
+	}	
 	
 	private static Results filterResults(List<Results> results, Parameters params)
 	{
@@ -154,75 +220,13 @@ public class ResParser
 			}
 		}
 		
-		throw new RuntimeException("Results not found for parameters: " + params);
-	}
-	
-	private static void parseResults(String inFile, List<Results> results, int repeats) throws IOException
-	{
-		BufferedReader in = null;
-
-		try
-		{
-			in = new BufferedReader(new FileReader(inFile)); 
-			
-			String m; 
-			
-			do
-			{
-				in.mark(1024 * 4);
-				
-				m = in.readLine();				
-			}
-			while (Parameters.parseParameters(m) == null);
-
-			in.reset();
-			
-			while ((m = in.readLine()) != null)
-			{
-				Results current = ((LinkedList<Results>) results).peekLast();				
-				
-				Parameters params = Parameters.parseParameters(m); 				 
-								
-				if (current == null || !params.equals(current.params))
-				{
-					params.trial = repeats;
-					
-					current = new Results(params, repeats);
-					
-					results.add(current);
-				}
-				
-				long[] values = new long[repeats];
-				
-				for (int i = 0; i < repeats; i++)
-				{
-					values[i] = parseResult(in.readLine());	
-				}									
-				
-				current.addTrial(values);				
-			}			
-		}		
-		finally
-		{
-			if (in != null)
-			{
-				in.close();
-			}
-		}		
-	}
-	
-	private static long parseResult(String m)
-	{
-		m = m.substring(RESULT_PREFIX.length());
-		m = m.substring(0, m.length() - RESULT_SUFFIX.length());
-		
-		return Long.parseLong(m);
-	}
+		throw new RuntimeException("[ResParser] No results found for parameters: " + params);
+	}	
 }
 
 class Results
 {
-	public Parameters params;	
+	public Parameters params;	// Should initially have trial as 0.
 	public long[] results;	
 	public int trials = 0;
 	
@@ -242,28 +246,9 @@ class Results
 		}
 		
 		trials++;
+		params.trial++;
 	}
-	
-	public ResParser.Version getVersion()
-	{
-		return params.version;
-	}
-	
-	public int getClients()
-	{
-		return params.clients;
-	}
-	
-	public int getSize()
-	{
-		return params.size;
-	}
-	
-	public int getLength()
-	{
-		return params.length;
-	}
-	
+		
 	public String toString()
 	{
 		return params.toString() + "\n" + Arrays.toString(results);
@@ -273,7 +258,12 @@ class Results
 class Parameters
 {
 	private static final String PARAMETERS_HEADER = "PARAMETERS:";
-
+	private static final String VERSION_HEADER = "VERSION=";
+	private static final String CLIENTS_HEADER = "CLIENTS=";
+	private static final String SIZE_HEADER = "SIZE=";
+	private static final String LENGTH_HEADER = "LENGTH=";
+	private static final String TRIAL_HEADER = "TRIAL=";
+	
 	public ResParser.Version version;
 	public int clients; // numClients;
 	public int size; // serverMessageSize;
@@ -313,29 +303,29 @@ class Parameters
 		{
 			param = param.trim();
 			
-			if (param.startsWith("VERSION="))
+			if (param.startsWith(VERSION_HEADER))
 			{
-				version = ResParser.Version.parseVersion(param.substring("VERSION=".length()));
+				version = ResParser.Version.parseVersion(param.substring(VERSION_HEADER.length()));
 			}
-			else if (param.startsWith("CLIENTS="))
+			else if (param.startsWith(CLIENTS_HEADER))
 			{
-				clients = Integer.parseInt(param.substring("CLIENTS=".length()));
+				clients = Integer.parseInt(param.substring(CLIENTS_HEADER.length()));
 			}
-			else if (param.startsWith("SIZE="))
+			else if (param.startsWith(SIZE_HEADER))
 			{
-				size = Integer.parseInt(param.substring("SIZE=".length()));
+				size = Integer.parseInt(param.substring(SIZE_HEADER.length()));
 			}
 			else if (param.startsWith("LENGTH="))
 			{
 				length = Integer.parseInt(param.substring("LENGTH=".length()));
 			}
-			else if (param.startsWith("TRIAL="))
+			else if (param.startsWith(TRIAL_HEADER))
 			{
-				trial = Integer.parseInt(param.substring("TRIAL=".length()));
+				trial = Integer.parseInt(param.substring(TRIAL_HEADER.length()));
 			}
 			else
 			{
-				throw new RuntimeException("[ResParser] Bad parameter: " + param);
+				throw new RuntimeException("[ResParser] Unrecognised parameter: " + param);
 			}
 		}
 		
