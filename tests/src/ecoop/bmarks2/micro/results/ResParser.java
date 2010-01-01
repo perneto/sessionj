@@ -1,5 +1,5 @@
 //$ javac ResParser
-//$ java ResParser timer-jt-i100o20.txt 100 jt-test.csv JT
+//$ java ResParser inFile.txt BODY 100 outFile.csv JT
 
 import java.io.*;
 import java.math.*;
@@ -16,19 +16,19 @@ public class ResParser
 		{
 			if (m.equals("JT"))
 			{
-				return Version.JT;
+				return JT;
 			}
 			else if (m.equals("JE"))
 			{
-				return Version.JE;
+				return JE;
 			}
 			else if (m.equals("ST"))
 			{
-				return Version.ST;
+				return ST;
 			}
 			else if (m.equals("SE"))
 			{
-				return Version.SE;
+				return SE;
 			}
 			else
 			{
@@ -37,27 +37,56 @@ public class ResParser
 		}
 	}	
 	
-	private static final String RESULT_PREFIX = "[TimerClient] Session duration: ";
+	public enum TimerFlag
+	{
+		BODY, INIT, FULL; 
+		
+		public static TimerFlag parseTimerFlag(String m)
+		{
+			if (m.equals("BODY"))
+			{
+				return BODY;
+			}
+			else if (m.equals("INIT"))
+			{
+				return INIT;
+			}
+			else if (m.equals("FULL"))
+			{
+				return FULL;
+			}
+			else
+			{
+				throw new RuntimeException("[ResParser] Timer flag cannot be parsed from : " + m);
+			}
+		}		
+	}
+	
+	private static final String INIT_PREFIX = "[TimerClient] Initialisation: ";
+	private static final String BODY_PREFIX = "[TimerClient] Body: ";
+	private static final String CLOSE_PREFIX = "[TimerClient] Close: ";
 	private static final String RESULT_SUFFIX = " nanos";
 	
 	//private static final Version[] versions = new Version[] {Version.JT};
 	private static Version[] versions;
 	private static final int[] sizes = new int[] {100, 1024};
-	private static final int[] lengths = new int[] {0, 1, 10, 100};
+	private static final int[] lengths = new int[] {1, 10, 100};
+	//private static final int[] numClients = new int[] {10, 100, 300, 500, 700, 900};
 	private static final int[] numClients = new int[] {10, 100, 300, 500};
 	
 	public static void main(String[] args) throws Exception
 	{
 		String inFile = args[0];
-		int repeats = Integer.parseInt(args[1]);
-		String outFile = args[2];
-		String vers = args[3];
+		TimerFlag tf = TimerFlag.parseTimerFlag(args[1]); 
+		int repeats = Integer.parseInt(args[2]); // "Inner" repeats.		
+		String outFile = args[3];
+		String vers = args[4];
 		
 		ResParser.versions = new Version[] {Version.parseVersion(vers)}; 
 		
 		List<Results> results = new LinkedList<Results>();
 		
-		parseResults(inFile, results, repeats);
+		parseResults(inFile, results, tf, repeats);
 		
 		System.out.println("Parsing summary: ");
 		
@@ -68,10 +97,10 @@ public class ResParser
 		
 		//sort(results); // Already in order.
 		
-		writeResults(results, outFile, repeats);
+		writeResults(results, outFile);
 	}
 	
-	private static void parseResults(String inFile, List<Results> results, int repeats) throws IOException
+	private static void parseResults(String inFile, List<Results> results, TimerFlag tf, int repeats) throws IOException
 	{
 		BufferedReader in = null;
 
@@ -99,8 +128,7 @@ public class ResParser
 								
 				if (current == null || !params.equals(current.params))
 				{
-					//params.trial = repeats;
-					params.trial = 0;
+					params.trial = 0; // Should be 0 anyway.
 					
 					current = new Results(params, repeats);
 					
@@ -111,7 +139,7 @@ public class ResParser
 				
 				for (int i = 0; i < repeats; i++)
 				{
-					values[i] = parseResult(in.readLine());	
+					values[i] = parseResult(in, tf);	
 				}									
 				
 				current.addTrial(values);				
@@ -126,15 +154,48 @@ public class ResParser
 		}		
 	}
 	
-	private static long parseResult(String m)
+	private static long parseResult(BufferedReader in, TimerFlag tf) throws IOException
 	{
-		m = m.substring(RESULT_PREFIX.length());
-		m = m.substring(0, m.length() - RESULT_SUFFIX.length());
+		long init = 0;
+		long body = 0;
+		long close = 0;
 		
-		return Long.parseLong(m);
+		String m = null;
+		
+		m = in.readLine();
+		
+		if (tf == TimerFlag.INIT || tf == TimerFlag.FULL) 
+		{
+			m = m.substring(INIT_PREFIX.length());
+			m = m.substring(0, m.length() - RESULT_SUFFIX.length());
+			
+			init = Long.parseLong(m);
+		}
+		
+		m = in.readLine();
+		
+		//if (tf == TimerFlag.INIT || tf == TimerFlag.BODY || tf == TimerFlag.FULL) 
+		{
+			m = m.substring(BODY_PREFIX.length());
+			m = m.substring(0, m.length() - RESULT_SUFFIX.length());
+			
+			body = Long.parseLong(m);
+		} 
+		
+		m = in.readLine();
+		
+		if (tf == TimerFlag.FULL) 
+		{
+			m = m.substring(CLOSE_PREFIX.length());
+			m = m.substring(0, m.length() - RESULT_SUFFIX.length());
+			
+			close = Long.parseLong(m);
+		}		
+		
+		return init + body + close;
 	}
 	
-	private static void writeResults(List<Results> results, String outFile, int repeats) throws IOException
+	private static void writeResults(List<Results> results, String outFile) throws IOException
 	{
 		FileWriter fw = null;
 		PrintWriter pw = null; 
@@ -180,7 +241,7 @@ public class ResParser
 							
 							pw.print(clients + ",");
 							
-							Results res = filterResults(results, new Parameters(version, clients, size, length, repeats));
+							Results res = filterResults(results, new Parameters(version, clients, size, length, -1));
 							
 							for (long value : res.results)
 							{
@@ -246,7 +307,7 @@ class Results
 		}
 		
 		trials++;
-		params.trial++;
+		params.trial++; // These two should be the same value (so a bit redundant perhaps).
 	}
 		
 	public String toString()
