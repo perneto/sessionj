@@ -71,8 +71,7 @@ public class ResParser
 	private static Version[] versions;
 	private static final int[] sizes = new int[] {100, 1024};
 	private static final int[] lengths = new int[] {1, 10, 100};
-	//private static final int[] numClients = new int[] {10, 100, 300, 500, 700, 900};
-	private static final int[] numClients = new int[] {10, 100, 300, 500};
+	private static final int[] numClients = new int[] {10, 100, 300, 500, 700, 900};
 	
 	public static void main(String[] args) throws Exception
 	{
