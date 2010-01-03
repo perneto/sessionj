@@ -7,8 +7,8 @@ from threading import Thread
 
 # Benchmark configuration parameters (Camelot).
 
-versions = ['JT', 'JE', 'ST', 'SE']
-#versions = ['JT']
+#versions = ['JT', 'JE', 'ST', 'SE']
+versions = ['JT', 'JE']
 
 client = 'camelot01' # The Timer/Counter Client machine.
 
