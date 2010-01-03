@@ -146,8 +146,12 @@ public class Server extends ecoop.bmarks2.micro.Server
   	
   	this.kill = true;
   	
+  	System.out.println("1: ");
+  	
   	while (getNumClients() > 0);
 
+  	System.out.println("2: ");
+  	
   	this.run = false; // Can stop the selector loop after all LoadClients have quit.
   	
 		//ssc.close(); // Break the selecting loop forcibly if needed. // Not currently working. 
@@ -155,6 +159,8 @@ public class Server extends ecoop.bmarks2.micro.Server
   	
 		while (!this.finished);
   	
+		System.out.println("3: ");
+		
   	//debugPrintln("[Server] Finished running (" + numClients + " Clients joined).");
 		System.out.println("[Server] Finished running (" + numClients + " Clients joined).");
   }

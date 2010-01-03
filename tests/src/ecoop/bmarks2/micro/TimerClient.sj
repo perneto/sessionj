@@ -103,6 +103,10 @@ abstract public class TimerClient extends Client
 			System.out.println("[TimerClient] Body: " + body + " nanos");
 			System.out.println("[TimerClient] Close: " + close + " nanos");
 		}
+  	else
+  	{
+  		throw new RuntimeException("[TimerClient] Bad timer flag: " + flag);  		
+  	}
   }
   
   public void run() throws Exception
