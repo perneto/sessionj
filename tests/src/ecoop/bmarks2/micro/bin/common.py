@@ -17,9 +17,9 @@ client = 'camelot01' # The Timer/Counter Client machine.
 
 workers = ['camelot02', 'camelot03', 'camelot04', 'camelot05', 'camelot06', 'camelot07', 'camelot08', 'camelot09', 'camelot10', 'camelot11'] # The Worker machines. # Load clients need to know how many Worker machines there are.
 
-#numClients = ['10', '100', '300', '500', '700', '900']
-numClients = ['900']
-messageSizes = ['1024']
+numClients = ['10', '100', '300', '500', '700', '900']
+#numClients = ['900']
+messageSizes = ['100', '1024']
 sessionLengths = ['1', '10', '100'] # For response time benchmarks.
 #sessionLengths = ['-1'] # For throughput benchmarks.
 
