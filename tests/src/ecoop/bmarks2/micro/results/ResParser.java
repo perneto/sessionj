@@ -67,11 +67,13 @@ public class ResParser
 	private static final String CLOSE_PREFIX = "[TimerClient] Close: ";
 	private static final String RESULT_SUFFIX = " nanos";
 	
+	// These control output formatting.
 	//private static final Version[] versions = new Version[] {Version.JT};
 	private static Version[] versions;
 	private static final int[] sizes = new int[] {100, 1024};
 	private static final int[] lengths = new int[] {1, 10, 100};
-	private static final int[] numClients = new int[] {10, 100, 300, 500, 700, 900};
+	//private static final int[] numClients = new int[] {10, 100, 300, 500, 700, 900};
+	private static final int[] numClients = new int[] {700};
 	
 	public static void main(String[] args) throws Exception
 	{
