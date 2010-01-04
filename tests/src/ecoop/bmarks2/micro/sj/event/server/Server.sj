@@ -117,14 +117,16 @@ public class Server extends ecoop.bmarks2.micro.Server
 		        	ClientMessage cm = (ClientMessage) s.receive();
 		          
 		          debugPrintln("[Server] Received: " + cm);
-		          
-		          if (this.kill)
-		          {
-		          	numQuitsSent.incrementAndGet(); // Have to be careful about ordering with the following action (in order to avoid synchronization).
-		          }
-		          
-		          s.send(new ServerMessage(cm.getServerMessageSize(), this.kill));
 		          		          
+		          boolean localKill = this.kill;
+		          
+		          s.send(new ServerMessage(cm.getServerMessageSize(), localKill));
+		          		          
+		          if (localKill) 
+		          {
+		          	numQuitsSent.incrementAndGet(); 
+		          }		          
+		          
 		          if (isCounting()) 
 		          {
 		          	incrementCount(0); // HACK: using a single counter (safe to do so for this single-threaded Server). Could store the "tids" in a map (using local ports as a key), but could be a non-neglible overhead.
