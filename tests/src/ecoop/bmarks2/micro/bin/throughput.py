@@ -56,8 +56,10 @@ else:
 	common.printAndFlush('Unknown environment: ' + env)
 	sys.exit(1)
 
-#window = 30
-window = 3
+if debug:
+	window = 3
+else:
+	window = 30
 
 
 # Main.

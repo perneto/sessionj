@@ -28,7 +28,9 @@ public class Server extends ecoop.bmarks2.micro.Server
   //private SJServerSocketCloser ssc; // Doesn't work: closing the server socket doesn't break the selector.
   private SJSelectorCloser sc;
   
+  // HACKS.
   private AtomicInteger numQuitsSent = new AtomicInteger(0);
+  private Thread mainEventLoopThread;
   
   public Server(boolean debug, int port) 
   {
@@ -37,6 +39,8 @@ public class Server extends ecoop.bmarks2.micro.Server
 
   public void run() throws Exception
   {
+  	this.mainEventLoopThread = Thread.currentThread();
+  	
 		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "a");
 			
 		final noalias SJSelector sel = SJRuntime.selectorFor(pSelector);
@@ -159,7 +163,7 @@ public class Server extends ecoop.bmarks2.micro.Server
   	//while (getNumClients() > 0); // Currently not working due to SJSelector-related deadlock (due to message dropping)?
   	while (numQuitsSent.get() < numClients);
   	
-  	Thread.sleep(500);
+  	Thread.sleep(1000);
 
   	System.out.println("2: ");
   	
@@ -168,7 +172,18 @@ public class Server extends ecoop.bmarks2.micro.Server
 		//ssc.close(); // Break the selecting loop forcibly if needed. // Not currently working. 
   	//sc.close(); // Also not currently working.
   	
-		while (!this.finished);
+  	Thread.sleep(500);
+  	
+		//while (!this.finished); // Not working here.
+  	if (!this.finished)
+  	{
+  		System.out.println("[Server] Interrupting main event loop...");
+  		
+  		this.mainEventLoopThread.interrupt();
+  		  		
+  		//System.out.println("[Server] Forced exit...");  		
+  		//System.exit(0);
+  	}
   	
 		System.out.println("3: ");
 		
