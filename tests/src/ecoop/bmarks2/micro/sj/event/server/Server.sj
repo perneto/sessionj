@@ -30,7 +30,7 @@ public class Server extends ecoop.bmarks2.micro.Server
   
   // HACKS.
   private AtomicInteger numQuitsSent = new AtomicInteger(0);
-  private Thread mainEventLoopThread;
+  //private Thread mainEventLoopThread;
   
   public Server(boolean debug, int port) 
   {
@@ -39,7 +39,7 @@ public class Server extends ecoop.bmarks2.micro.Server
 
   public void run() throws Exception
   {
-  	this.mainEventLoopThread = Thread.currentThread();
+  	//this.mainEventLoopThread = Thread.currentThread();
   	
 		//SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "a");
 			
@@ -148,7 +148,7 @@ public class Server extends ecoop.bmarks2.micro.Server
 	  }
 		finally
 		{
-			this.finished = true;
+			this.finished = true; // Comes before the inserted selector close operation.
 		}
   }
 
@@ -158,14 +158,14 @@ public class Server extends ecoop.bmarks2.micro.Server
   	
   	this.kill = true;
   	
-  	System.out.println("1: ");
+  	System.out.println("kill 1: ");
   	
   	//while (getNumClients() > 0); // Currently not working due to SJSelector-related deadlock (due to message dropping)?
   	while (numQuitsSent.get() < numClients);
   	
   	Thread.sleep(1000);
 
-  	System.out.println("2: ");
+  	System.out.println("kill 2: ");
   	
   	this.run = false; // Can stop the selector loop after all LoadClients have quit.
   	
@@ -177,15 +177,14 @@ public class Server extends ecoop.bmarks2.micro.Server
 		//while (!this.finished); // Not working here.
   	if (!this.finished)
   	{
-  		System.out.println("[Server] Interrupting main event loop...");
-  		
-  		this.mainEventLoopThread.interrupt();
+  		//System.out.println("[Server] Interrupting main event loop...");  		
+  		//this.mainEventLoopThread.interrupt(); // Not sure if this works.
   		  		
-  		//System.out.println("[Server] Forced exit...");  		
-  		//System.exit(0);
+  		System.out.println("[Server] Forced exit...");  		
+  		System.exit(0);
   	}
   	
-		System.out.println("3: ");
+		System.out.println("kill 3: ");
 		
   	//debugPrintln("[Server] Finished running (" + numClients + " Clients joined).");
 		System.out.println("[Server] Finished running (" + numClients + " Clients joined).");
