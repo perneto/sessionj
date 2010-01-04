@@ -118,13 +118,13 @@ public class Server extends ecoop.bmarks2.micro.Server
 		          
 		          debugPrintln("[Server] Received: " + cm);
 		          
-		          s.send(new ServerMessage(cm.getServerMessageSize(), this.kill));
-		          
 		          if (this.kill)
 		          {
-		          	numQuitsSent.incrementAndGet();
+		          	numQuitsSent.incrementAndGet(); // Have to be careful about ordering with the following action (in order to avoid synchronization).
 		          }
 		          
+		          s.send(new ServerMessage(cm.getServerMessageSize(), this.kill));
+		          		          
 		          if (isCounting()) 
 		          {
 		          	incrementCount(0); // HACK: using a single counter (safe to do so for this single-threaded Server). Could store the "tids" in a map (using local ports as a key), but could be a non-neglible overhead.
@@ -154,11 +154,13 @@ public class Server extends ecoop.bmarks2.micro.Server
 
   public void kill() throws Exception
   {
+  	System.out.println("kill 0: ");
+  	
   	int numClients = getNumClients(); 
   	
   	this.kill = true;
   	
-  	System.out.println("kill 1: ");
+  	System.out.println("kill 1: " + numClients);
   	
   	//while (getNumClients() > 0); // Currently not working due to SJSelector-related deadlock (due to message dropping)?
   	while (numQuitsSent.get() < numClients);
@@ -180,7 +182,7 @@ public class Server extends ecoop.bmarks2.micro.Server
   		//System.out.println("[Server] Interrupting main event loop...");  		
   		//this.mainEventLoopThread.interrupt(); // Not sure if this works.
   		  		
-  		System.out.println("[Server] Forced exit...");  		
+  		System.out.println("[Server] Forced exit... (" + numClients + ")");  		
   		System.exit(0);
   	}
   	
