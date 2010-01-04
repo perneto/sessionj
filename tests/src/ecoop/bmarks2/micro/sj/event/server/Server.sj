@@ -118,8 +118,9 @@ public class Server extends ecoop.bmarks2.micro.Server
 		          
 		          debugPrintln("[Server] Received: " + cm);
 		          		          
-		          boolean localKill = this.kill;
+		          boolean localKill = this.kill; // HACK.
 		          
+		          //s.send(new ServerMessage(cm.getServerMessageSize(), this.kill));
 		          s.send(new ServerMessage(cm.getServerMessageSize(), localKill));
 		          		          
 		          if (localKill) 
@@ -162,10 +163,13 @@ public class Server extends ecoop.bmarks2.micro.Server
   	
   	this.kill = true;
   	
-  	System.out.println("kill 1: " + numClients);
+  	System.out.println("kill 1: " + numClients + ", " + numQuitsSent.get());
   	
   	//while (getNumClients() > 0); // Currently not working due to SJSelector-related deadlock (due to message dropping)?
-  	while (numQuitsSent.get() < numClients);
+  	while (numQuitsSent.get() < numClients)
+  	{
+  		System.out.println("a: " + numQuitsSent.get());
+  	}
   	
   	Thread.sleep(1000);
 
