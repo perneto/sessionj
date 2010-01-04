@@ -166,10 +166,7 @@ public class Server extends ecoop.bmarks2.micro.Server
   	System.out.println("kill 1: " + numClients + ", " + numQuitsSent.get());
   	
   	//while (getNumClients() > 0); // Currently not working due to SJSelector-related deadlock (due to message dropping)?
-  	while (numQuitsSent.get() < numClients)
-  	{
-  		System.out.println("a: " + numQuitsSent.get());
-  	}
+  	while (numQuitsSent.get() < numClients);
   	
   	Thread.sleep(1000);
 
