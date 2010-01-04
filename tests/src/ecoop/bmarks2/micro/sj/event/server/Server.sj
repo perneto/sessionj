@@ -29,7 +29,7 @@ public class Server extends ecoop.bmarks2.micro.Server
   private SJSelectorCloser sc;
   
   // HACKS.
-  private AtomicInteger numQuitsSent = new AtomicInteger(0);
+  //private AtomicInteger numQuitsSent = new AtomicInteger(0);
   //private Thread mainEventLoopThread;
   
   public Server(boolean debug, int port) 
@@ -123,10 +123,10 @@ public class Server extends ecoop.bmarks2.micro.Server
 		          //s.send(new ServerMessage(cm.getServerMessageSize(), this.kill));
 		          s.send(new ServerMessage(cm.getServerMessageSize(), localKill));
 		          		          
-		          if (localKill) 
+		          /*if (localKill) 
 		          {
 		          	numQuitsSent.incrementAndGet(); 
-		          }		          
+		          }*/		          
 		          
 		          if (isCounting()) 
 		          {
@@ -161,7 +161,7 @@ public class Server extends ecoop.bmarks2.micro.Server
   	
   	int numClients = getNumClients(); 
   	
-  	this.kill = true;
+  	/*this.kill = true;
   	
   	System.out.println("kill 1: " + numClients + ", " + numQuitsSent.get());
   	
@@ -175,7 +175,7 @@ public class Server extends ecoop.bmarks2.micro.Server
   	this.run = false; // Can stop the selector loop after all LoadClients have quit.
   	
 		//ssc.close(); // Break the selecting loop forcibly if needed. // Not currently working. 
-  	//sc.close(); // Also not currently working.
+  	//sc.close(); // Also not currently working.*/
   	
   	Thread.sleep(500);
   	
