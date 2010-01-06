@@ -71,7 +71,7 @@ else:
 
 # Seconds.
 serverWarmup = 3 
-workerWarmup = 3
+workerWarmup = 5
 coolDown = 3
 
 

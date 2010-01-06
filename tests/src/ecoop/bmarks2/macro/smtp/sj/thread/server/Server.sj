@@ -54,9 +54,9 @@ public class Server extends ecoop.bmarks2.macro.smtp.sj.Server
 				{
 					s = ss.accept();
 					
-					s.spawn(new ServerThread(debug, this, i));
+					addClient(); // OK to "register" the Client before the thread actually started since we're not supposed to expect any failure for the purposes of this benchmark. 
 					
-					addClient();
+					s.spawn(new ServerThread(debug, this, i));					
 				}
 				finally
 				{
@@ -170,7 +170,7 @@ class ServerThread extends SJThread
 					debugPrintln("Sending: " + quitAck);			
 					s.send(quitAck);	
 					
-					server.removeClient();
+					server.removeClient(); // Maybe better to move to an outer finally block. But this benchmark is *not* supposed to be tolerant to failure.
   				
  					debugPrintln("[ServerThread] Clients remaning: " + server.getNumClients());
 				}
