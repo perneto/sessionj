@@ -4,13 +4,14 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import ecoop.bmarks2.micro.*;
 
 // Also used by macro benchmarks.
 abstract public class Server  
 {
-	private boolean debug;		
+  private boolean debug;		
   private int port;
 
   /*protected int numClients;
@@ -21,8 +22,11 @@ abstract public class Server
   volatile private long finishTime; 
   
   volatile private boolean count; 
-  /*volatile */private int[] counts; // The number of messages sent.    
- 
+  private int[] counts; // The number of messages sent.    
+  // ConcurrentHashMap so that several threads can update different counters safely. 
+  // No guarantees if 2 threads try to update the same counter, though.
+  private Map fairnessCounters = new ConcurrentHashMap();
+  
   /*volatile public boolean count;
   public int[] counts;*/
   
@@ -103,5 +107,20 @@ abstract public class Server
   public final void debugPrintln(String m)
   {
   	Common.debugPrintln(debug, m);
+  }
+  
+  public final void incrementFairnessCounter(int localPort)
+  {
+    Integer port = Integer.valueOf(localPort);
+    Integer count = (Integer) fairnessCounters.get(port);
+    if (count == null) {
+      count = Integer.valueOf(1);
+	}
+	fairnessCounters.put(port, Integer.valueOf(count.intValue() + 1));
+  }
+  
+  public final void printFairnessCounters()
+  {
+	System.out.println("[Server] Counts per local port: " + fairnessCounters);  
   }
 }
