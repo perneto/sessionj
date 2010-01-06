@@ -19,8 +19,7 @@ workers = ['camelot02', 'camelot03', 'camelot04', 'camelot05', 'camelot06', 'cam
 #numClients = ['10', '100', '300', '500', '700', '900']
 #messageSizes = ['100', '1024']
 
-#numClients = ['100', '500', '900']
-numClients = ['900']
+numClients = ['100', '300', '500']
 messageSizes = ['1024']
 
 
