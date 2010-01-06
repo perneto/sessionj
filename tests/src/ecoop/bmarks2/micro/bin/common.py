@@ -45,6 +45,10 @@ localhostMessageSizes = ['100', '1024']
 localhostSessionLengths = ['0', '4'] # For response time benchmarks.
 #localhostSessionLengths = ['-1'] # For throughput benchmarks.
 
+#localhostNumClients = ['0']
+#localhostMessageSizes = ['100']
+#localhostSessionLengths = ['10'] # For response time benchmarks.
+
 
 # Function declarations.
 

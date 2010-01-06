@@ -104,10 +104,11 @@ public class Server extends ecoop.bmarks2.micro.Server
 		                
 		                debugPrintln("[Server] Clients remaning: " + numClients);
 		                
+		                /*// Commented to allow testing with 0 LoadClients. Shouldn't matter if we're doing force kill anyway.
 		                if (numClients == 0) // HACK: because the selector closer isn't working.
 		                {
 		                	this.run = false;
-		                }
+		                }*/
 		              }
 		            }
 		          }
