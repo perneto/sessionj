@@ -48,15 +48,16 @@ public class DummyClient
 							
 			dos = new DataOutputStream(s.getOutputStream());
 			dis = new DataInputStream(s.getInputStream());
+						
+			read(dis, "Server greeting: ");
 			
 			synchronized (ack) // Duplicated from LoadClient.
 	  	{
 	  		ack[0] = true;
 	  		
 	  		ack.notify();
-	  	}
+	  	}			
 			
-			read(dis, "Server greeting: ");			
 			write(dos, "EHLO " + fqdn + "\r\n");			
 			read(dis, "EHLO ack: ");
 			
