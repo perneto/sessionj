@@ -59,7 +59,7 @@ else:
 if debug:
 	window = 3
 else:
-	window = 20
+	window = 15
 
 
 # Main.
