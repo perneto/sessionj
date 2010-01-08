@@ -1,19 +1,15 @@
 package sessionj.runtime.session;
 
-import java.util.*;
-
 import polyglot.types.SemanticException;
 import polyglot.types.Type;
 import polyglot.types.TypeSystem;
-
-import sessionj.types.*;
-import sessionj.types.contexts.SJTypeBuildingContext_c;
-import sessionj.types.sesstypes.*;
-import sessionj.util.*;
-
-import sessionj.runtime.*;
-import sessionj.runtime.util.SJRuntimeUtils;
+import sessionj.runtime.SJIOException;
 import sessionj.runtime.session.contexts.*;
+import sessionj.types.SJTypeSystem;
+import sessionj.types.sesstypes.*;
+import sessionj.util.SJLabel;
+
+import java.util.Stack;
 
 
 /**
@@ -63,11 +59,12 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		SJSessionType st = contexts.isEmpty() ? null : currentContext().activeType();
 		
+		/*
 		if (st != null) // HACK: because recurse types are unrolled lazily.
 		{
 			st = SJTypeBuildingContext_c.substituteTypeVariables(st, recursionVariables.inScope()); 
 		}
-		
+		*/
 		return st;
 	}
 
@@ -357,7 +354,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			throw new SJIOException(se);
 		}
 
-		SJSessionType active = activeType();//.nodeClone(); // Unlike for send where we trust ourselves, we don't necessary trust our peer on receives.
+		SJSessionType active = activeType(); // Unlike for send where we trust ourselves, we don't necessary trust our peer on receives.
 
 		if (!sjrt.nodeSubtype(active)) // Opposite direction to send.
 		{
@@ -472,50 +469,11 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 			debugPrintln("Finished inwhile: " + iwt);
 		}
 	}
-	
-	private SJRecursionType findRecursionBinder(SJLabel lab) // HACK: to try and get runtime monitoring working when recursive sessions are done through recursive method calls. But this is not working in general at all. 
-	{		
-		//for (SJRuntimeContextElement rce : contexts) // Starts from innermost (oldest).
-		for (int i = contexts.size() - 1; i >= 0; i--)	
-		{
-			SJRuntimeContextElement rce = contexts.get(i);
-			
-			if (rce instanceof SJRecursionContext)
-			{
-				SJRecursionContext rc = (SJRecursionContext) rce;
-				
-				if (rc.label().equals(lab))
-				{
-					return rc.originalType(); // Gets a defensive copy.
-				}
-			}
-		}
-		
-		throw new SJRuntimeException("[SJStateManager_c] Shouldn't get in here: " + lab);
-	}
-	
-	// This is called by recursionEnter; currently, nothing is done on recursionExit (this seems to be convenient for e.g. registration of sessions with a SJSelector - and delegation within recursion scopes in general?).
-	// FIXME: a better way to do this is to unfold the recursive type every time we come here. That would be "eager" compared to the "lazy" unfolding we do now.
+	// This is called by recursionEnter; currently, nothing is done on recursionExit 
+// (this seems to be convenient for e.g. registration of sessions with a SJSelector - and delegation within recursion scopes in general?).
 	public final void recursion(SJLabel lab)  // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
 	{
-		//RAY: to handle recursive sessions done through method calls. 
-		SJRecursionType rt;
-		
-		if (activeType() instanceof SJRecurseType) // This may subsume the need to do SJRuntime.recurse. But it seems better to as much explicit as possible.
-		{
-			rt = findRecursionBinder(lab);
-
-            SJRecurseType foo = sjts.SJRecurseType(lab);
-
-            advanceContext(foo); // As done by recurse. Is this safe?	Need to use the well-formed check to prevent e.g. hacked protocol having two recurse types consecutively.		
-		}
-		else
-		{
-			rt = (SJRecursionType) activeType();
-		}
-		//YAR
-
-		//pushRecursion(lab, ((SJRecursionType) activeType()).body()); // body returns a defensive copy.
+		SJRecursionType rt = (SJRecursionType) activeType();
 		pushRecursion(rt); // Changed (now different to e.g. in/outwhile routines) because we want to keep the whole type as information.
 		
         if (DEBUG)
@@ -526,7 +484,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
         SJRecurseType sjrt = sjts.SJRecurseType(lab);
 
-        advanceContext(sjrt);
+        //advanceContext(sjrt);
 
         if (DEBUG)
             debugPrintln("recurse: " + sjrt);
@@ -548,20 +506,6 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		contexts.removeAllElements();
 	}
 
-    public void delegation(SJSessionType st) {
-	    //System.err.println("Delegation, remaining: \n" + st + "\ncontexts: \n" + contexts + "\nrecursionVariables: \n" + recursionVariables + "\n\n");
-	    /*
-        if (st instanceof SJRecursionType) {
-            SJRecursionType rt = (SJRecursionType) st;
-            SJLabel label = rt.label();
-            if (recursionVariables.alreadyEntered(label)) {
-                popUntilIncluding(label);
-                recursionVariables.exitScope(label);
-            }
-        }
-        */
-    }
-
 	// Assumes the label is there (and hence that the stack isn't empty).
 	private void popUntilExcluding(SJLabel lab) {
 		//System.out.println("popUntilExcluding, start: " + contexts);
@@ -579,12 +523,13 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	}
 
 	// Assumes the label is there (and hence that the stack isn't empty).
-    private void popUntilIncluding(SJLabel lab) {
+    private SJRecursionContext popUntilIncluding(SJLabel lab) {
         SJRuntimeContextElement top;
         do {
              top = contexts.pop();
         } while (!(top instanceof SJRecursionContext 
             && ((SJRecursionContext) top).hasLabel(lab)));
+		return (SJRecursionContext) top;
     }
 
     private void advanceContext(SJSessionType sjtype)
@@ -616,31 +561,6 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 					else if (sjsc instanceof SJRecursionContext)
 					{
 						SJLabel lab = ((SJRecurseType) sjtype).label();
-						if (sjtype instanceof SJRecurseType) // Enacting the recursion.
-						{
-							while (!((SJRecursionContext) currentContext()).label().equals(lab)) // Other contexts must have been completed (advanced and popped) to get to this point, so it can only be a series of recursion contexts?
-							{
-								popContext();
-							}
-
-							popContext(); // The recursion body type actually implemented is lost.
-
-							redo = false;
-						}
-						else // This recursion (including "nested mutual" scopes) has finished.
-						{
-							popContext(); // sjsc popped.
-
-                            implemented = sjts.SJRecursionType(lab).body(completed); // Only the branch type that quits the iteration is recorded.
-
-                            /*if (rsocket != null) // HACK: leaving recursion context.
-                                   {
-                                       if (!inIterationContext())
-                                       {
-                                           rsocket.pushSentMessage(SJRSocket.CACHE_MARKER);
-                                       }
-                                   }*/
-						}
 						recursionVariables.exitScope(lab);
 					}
 				}
@@ -756,15 +676,16 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		else if (recursionVariables.alreadyEntered(label)) 
 		{
 			//System.out.println("recursionVariables: " + recursionVariables + "\ncontexts: " + contexts);
-			popUntilExcluding(label);
+			SJRecursionContext rc = popUntilIncluding(label);
+			pushContext(rc.withOriginalBody());
 			//No recursionVariables.exitScope(label) as we need to keep the recursion label visible;
 			// it is eventually removed by advanceContext.
 		}
 		else
 		{
 			//System.out.println("Pushing context for type: " + rt);
-			pushContext(new SJRecursionContext(rt));
             recursionVariables.enterScope(rt.label(), rt);
+			pushContext(new SJRecursionContext(rt, recursionVariables.inScope()));
 		}
 	}
 	
