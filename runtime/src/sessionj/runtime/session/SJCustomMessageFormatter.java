@@ -36,7 +36,7 @@ abstract public class SJCustomMessageFormatter
 		 bb.flip();
 	}
 	
-	private LinkedList<Object> history = new LinkedList<Object>();
+	//private LinkedList<Object> history = new LinkedList<Object>(); // Design not finished: no memory management considered yet for long running sessions, i.e. cannot keep all history forever. 
 	
 	// Maybe a bit weird for formatMessage to use a byte[] but parseMessage to use a ByteBuffer.
 	abstract public byte[] formatMessage(Object o) throws SJIOException; // Maybe we should use e.g. SJCustomMessage (subclasses) rather than Object. SJCustomMessage could also offer message-specific formatting operations.
@@ -48,7 +48,7 @@ abstract public class SJCustomMessageFormatter
 		this.conn = conn;
 	}
 	
-	public List<Object> getHistory()
+	/*public List<Object> getHistory()
 	{
 		return Collections.unmodifiableList(history); 
 	}
@@ -56,14 +56,14 @@ abstract public class SJCustomMessageFormatter
 	public Object lastMessageSent()
 	{
 		return history.peek();
-	}
+	}*/
 	
 	protected final void writeMessage(Object o) throws SJIOException
 	{
 		conn.writeBytes(formatMessage(o));
 		conn.flush();
 		
-		history.push(o); // Not compatible with noalias reference passing.
+		//history.push(o); // Not compatible with noalias reference passing.
 	}
 	
 	// Pre: bb should be ready for reading.
