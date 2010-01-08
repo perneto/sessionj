@@ -17,13 +17,13 @@ client = 'camelot01' # The Timer/Counter Client machine.
 
 workers = ['camelot02', 'camelot03', 'camelot04', 'camelot05', 'camelot06', 'camelot07', 'camelot08', 'camelot09', 'camelot10', 'camelot11'] # The Worker machines. # Load clients need to know how many Worker machines there are.
 
-numClients = ['10', '100', '300', '500', '700', '900']
-messageSizes = ['100', '1024']
-sessionLengths = ['1', '10', '100'] # For response time benchmarks.
-#sessionLengths = ['-1'] # For throughput benchmarks.
+#numClients = ['10', '100', '300', '500', '700', '900']
+#messageSizes = ['100', '1024']
+#sessionLengths = ['1', '10', '100'] # For response time benchmarks.
+sessionLengths = ['-1'] # For throughput benchmarks.
 
-#numClients = ['900']
-#messageSizes = ['10240']
+numClients = ['500']
+messageSizes = ['1024']
 #sessionLengths = ['100']
 
 
@@ -33,8 +33,8 @@ debugWorkers = ['camelot02', 'camelot03']
 
 debugNumClients = ['2', '4']	# Debug means for debugging these scripts: to play around with parameter settings, use the above (non-debug) parameters.
 debugMessageSizes = ['100', '10240']
-debugSessionLengths = ['0', '4'] # For response time benchmarks.
-#debugSessionLengths = ['-1'] # For throughput benchmarks.
+#debugSessionLengths = ['0', '4'] # For response time benchmarks.
+debugSessionLengths = ['-1'] # For throughput benchmarks.
 
 
 # Localhost testing parameters.
