@@ -514,9 +514,6 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 		//pushRecursion(lab, ((SJRecursionType) activeType()).body()); // body returns a defensive copy.
 		pushRecursion(rt); // Changed (now different to e.g. in/outwhile routines) because we want to keep the whole type as information.
-        //FIXME: A new context gets pushed every time we enter the recursion, so the context stack grows
-        // very big. Do we really need a new instance, or could we reuse the existing one if
-        // we're in a recursion context already?
 		
         if (DEBUG)
             debugPrintln("Entered recursion for: " + lab);
@@ -549,17 +546,35 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	}
 
     public void delegation(SJSessionType st) {
+	    //System.err.println("Delegation, remaining: \n" + st + "\ncontexts: \n" + contexts + "\nrecursionVariables: \n" + recursionVariables + "\n\n");
+	    /*
         if (st instanceof SJRecursionType) {
             SJRecursionType rt = (SJRecursionType) st;
             SJLabel label = rt.label();
             if (recursionVariables.alreadyEntered(label)) {
-                popUntil(label);
+                popUntilIncluding(label);
                 recursionVariables.exitScope(label);
             }
         }
+        */
     }
 
-    private void popUntil(SJLabel lab) {
+	// Assumes the label is there (and hence that the stack isn't empty).
+	private void popUntilExcluding(SJLabel lab) {
+		boolean continuePopping = true;
+		do {
+			SJRuntimeContextElement top = contexts.peek();
+			if (!(top instanceof SJRecursionContext
+			&& ((SJRecursionContext) top).hasLabel(lab))) {
+				contexts.pop();
+			} else {
+				continuePopping = false;
+			}
+		} while (continuePopping);
+	}
+
+	// Assumes the label is there (and hence that the stack isn't empty).
+    private void popUntilIncluding(SJLabel lab) {
         SJRuntimeContextElement top;
         do {
              top = contexts.pop();
@@ -729,9 +744,16 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 	private void pushRecursion(SJRecursionType rt)
 	{
+		SJLabel label = rt.label();
 		if (rt.body() == null)
 		{
 			advanceContext(rt); // Like branch: an empty recursion can't recurse because no recurse type in body.
+		}
+		else if (recursionVariables.alreadyEntered(label)) 
+		{
+			popUntilExcluding(label);
+			//No recursionVariables.exitScope(label) as we need to keep the recursion label visible;
+			// it is eventually removed by advanceContext.
 		}
 		else
 		{

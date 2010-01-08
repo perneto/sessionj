@@ -102,6 +102,8 @@ for v in versions:
 						#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command
 						command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command + ' -Xmx256m'
 				
+					command += ' -agentpath:/Applications/YourKit_Java_Profiler_8.0.19.app/bin/mac/libyjpagent.jnilib'
+					
 					if v == 'SE':
 						transport = '-Dsessionj.transports.session=a '
 					else:
