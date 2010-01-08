@@ -403,7 +403,9 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		
 		pushInbranch(lab, ibt.branchCase(lab));
 		
-		debugPrintln("Pushed inbranch: " + lab);
+		if (DEBUG) {
+			debugPrintln("Pushed inbranch: " + lab);
+		}
 	}
 
 	public final void outwhile(boolean bool) // Could return performed type on false.
@@ -777,7 +779,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	{
 		SJRuntimeContextElement sjsc = contexts.pop();
 
-		SJRuntimeUtils.debugPrintln("Popped " + sjsc + " to: " + activeType() + ", " + implementedType());
+		//SJRuntimeUtils.debugPrintln("Popped " + sjsc + " to: " + activeType() + ", " + implementedType());
 	}
 
 	private static String fullClassName(Object obj) // Move to SJRuntimeUtils?
