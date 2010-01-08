@@ -175,9 +175,6 @@ public class MultiPartyInsyncTest {
             return null;
         }
 
-        public void delegationTypeMonitoringCallback() {
-        }
-
         public boolean recurse(String lab) throws SJIOException {
             // TODO Auto-generated method stub
             return false;

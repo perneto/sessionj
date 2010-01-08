@@ -58,8 +58,6 @@ public interface SJStateManager // Analogous to SJContext. But only tracks the s
 	public void recursion(SJLabel lab) throws SJIOException; // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
 	public SJSessionType recurse(SJLabel lab) throws SJIOException; // Recursion is "local" (so is checked by compiler), no dynamic check needed (no point to check own actions).
 
-    void delegation(SJSessionType st);
-    
 	public void close();
 	public void reset();
 

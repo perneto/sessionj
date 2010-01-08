@@ -20,7 +20,7 @@ public abstract class SJRuntimeContextElement
 		//this.original = (active == null) ? null : active.treeClone();
 	}
 
-	public SJSessionType activeType() // No cloning ok?
+	public SJSessionType activeType()
 	{
 		return active;
 	}

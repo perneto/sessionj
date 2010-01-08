@@ -54,7 +54,6 @@ public class SJSelectorAllTransports implements SJSelector {
                 throw new SJIOException(e);
             }
         checkResults(results);
-        s.delegationTypeMonitoringCallback();
     }
 
     private void checkResults(Collection<Boolean> results) throws SJIOException {
@@ -71,10 +70,6 @@ public class SJSelectorAllTransports implements SJSelector {
                         latch.submitValue(sel.select(true));
                     } catch (Throwable t) {
                         log.log(Level.SEVERE, "Error calling select on: " + sel, t);
-                        
-                        //RAY
-                        //throw new RuntimeException(t); // Doesn't seem to do anything.
-                        //YAR
                     }
                 }
             });
