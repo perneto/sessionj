@@ -175,7 +175,7 @@ public class MultiPartyInsyncTest {
             return null;
         }
 
-        public void registerInputCallback() {
+        public void delegationTypeMonitoringCallback() {
         }
 
         public boolean recurse(String lab) throws SJIOException {

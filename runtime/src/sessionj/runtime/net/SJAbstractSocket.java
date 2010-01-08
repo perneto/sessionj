@@ -359,7 +359,7 @@ abstract public class SJAbstractSocket implements SJSocket
         return receivedRuntimeType == null ? protocol.type() : receivedRuntimeType;
     }
 
-    public void registerInputCallback() {
+    public void delegationTypeMonitoringCallback() {
         sm.delegation(remainingSessionType());
     }
 

@@ -54,7 +54,7 @@ public class SJSelectorAllTransports implements SJSelector {
                 throw new SJIOException(e);
             }
         checkResults(results);
-        s.registerInputCallback();
+        s.delegationTypeMonitoringCallback();
     }
 
     private void checkResults(Collection<Boolean> results) throws SJIOException {

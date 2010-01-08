@@ -89,5 +89,5 @@ public interface SJSocket extends SJChannel
 
     SJSessionType getInitialRuntimeType() throws SJIOException;
 
-    void registerInputCallback();
+    void delegationTypeMonitoringCallback();
 }
