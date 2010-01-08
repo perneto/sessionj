@@ -55,7 +55,7 @@ else:
 	common.printAndFlush('Unknown environment: ' + env)
 	sys.exit(1)
 
-delay = '25' # Milliseconds in between LoadClient requests.
+delay = '50' # Milliseconds in between LoadClient requests.
 
 
 # Main.
