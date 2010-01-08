@@ -101,6 +101,8 @@ for v in versions:
 					#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command
 					command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command + ' -Xmx256m'
 			
+				command = command + '-Dcom.sun.management.jmxremote.port=12345 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false'
+			
 				if v == 'SE':
 					transport = '-Dsessionj.transports.session=a '
 					setup = 'a'
