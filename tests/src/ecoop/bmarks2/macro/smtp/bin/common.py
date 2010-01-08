@@ -28,7 +28,7 @@ messageSizes = ['1024']
 debugWorkers = ['camelot02', 'camelot03']
 
 debugNumClients = ['2', '4']	# Debug means for debugging these scripts: to play around with parameter settings, use the above (non-debug) parameters.
-debugMessageSizes = ['100', '10240']
+debugMessageSizes = ['100']
 
 
 # Localhost testing parameters.
