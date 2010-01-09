@@ -507,30 +507,36 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	}
 
 	// Assumes the label is there (and hence that the stack isn't empty).
-	private void popUntilExcluding(SJLabel lab) {
-		//System.out.println("popUntilExcluding, start: " + contexts);
-		boolean continuePopping = true;
-		do {
-			SJRuntimeContextElement top = contexts.peek();
-			if (!(top instanceof SJRecursionContext
-			&& ((SJRecursionContext) top).hasLabel(lab))) {
-				contexts.pop();
-			} else {
-				continuePopping = false;
+	private SJRecursionContext popUntilIncluding(SJLabel lab) 
+	{
+		SJRuntimeContextElement top = null;
+		
+		/*do {
+			top = contexts.pop();
+		} while (!(top instanceof SJRecursionContext 
+					&& ((SJRecursionContext) top).hasLabel(lab)));*/
+		    
+		for (boolean run = true; run; )
+		{
+			top = contexts.pop();
+			
+			if (top instanceof SJRecursionContext)
+			{
+				SJLabel topLab = ((SJRecursionContext) top).label();
+				
+				if (topLab.equals(lab))
+				{
+					run = false;
+				}
+				else
+				{
+					recursionVariables.exitScope(topLab);
+				}
 			}
-		} while (continuePopping);
-		//System.out.println("popUntilExcluding, end: " + contexts);
-	}
-
-	// Assumes the label is there (and hence that the stack isn't empty).
-    private SJRecursionContext popUntilIncluding(SJLabel lab) {
-        SJRuntimeContextElement top;
-        do {
-             top = contexts.pop();
-        } while (!(top instanceof SJRecursionContext 
-            && ((SJRecursionContext) top).hasLabel(lab)));
+		}        
+		    
 		return (SJRecursionContext) top;
-    }
+	}
 
     private void advanceContext(SJSessionType sjtype)
 	{
@@ -560,8 +566,12 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 					}
 					else if (sjsc instanceof SJRecursionContext)
 					{
-						SJLabel lab = ((SJRecurseType) sjtype).label();
-						recursionVariables.exitScope(lab);
+						//SJLabel lab = ((SJRecurseType) sjtype).label();
+						//recursionVariables.exitScope(lab);
+						
+						SJRecursionContext rc = (SJRecursionContext) popContext(); // Since 'next' is null, then we are not "recursing". So pop the context.										
+						
+						recursionVariables.exitScope(rc.label());
 					}
 				}
 				else if (sjsc instanceof SJBranchContext)
@@ -669,6 +679,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	private void pushRecursion(SJRecursionType rt)
 	{
 		SJLabel label = rt.label();
+		
 		if (rt.body() == null)
 		{
 			advanceContext(rt); // Like branch: an empty recursion can't recurse because no recurse type in body.
@@ -676,7 +687,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		else if (recursionVariables.alreadyEntered(label)) 
 		{
 			//System.out.println("recursionVariables: " + recursionVariables + "\ncontexts: " + contexts);
-			SJRecursionContext rc = popUntilIncluding(label);
+			SJRecursionContext rc = popUntilIncluding(label); // This should only be popping the immediate context (any other completed contexts that were nested will have been popped by advanceContext). But we have to pop it because the context element is immutable, so this is the only way to "reset" it. 
 			pushContext(rc.withOriginalBody());
 			//No recursionVariables.exitScope(label) as we need to keep the recursion label visible;
 			// it is eventually removed by advanceContext.
@@ -684,7 +695,7 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		else
 		{
 			//System.out.println("Pushing context for type: " + rt);
-            recursionVariables.enterScope(rt.label(), rt);
+			recursionVariables.enterScope(rt.label(), rt);
 			pushContext(new SJRecursionContext(rt, recursionVariables.inScope()));
 		}
 	}
@@ -696,11 +707,14 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 		//SJRuntimeUtils.debugPrintln("Pushed " + sjsc + ": " + activeType() + ", " + implementedType());
 	}
 
-	private void popContext()
+	//private void popContext()
+	private SJRuntimeContextElement popContext()
 	{
 		SJRuntimeContextElement sjsc = contexts.pop();
 
 		//SJRuntimeUtils.debugPrintln("Popped " + sjsc + " to: " + activeType() + ", " + implementedType());
+		
+		return sjsc;
 	}
 
 	private static String fullClassName(Object obj) // Move to SJRuntimeUtils?
