@@ -507,40 +507,33 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 	}
 
 	// Assumes the label is there (and hence that the stack isn't empty).
+	// Exits any other recursion scopes as they are popped.
 	private SJRecursionContext popUntilIncluding(SJLabel lab) 
 	{
-		SJRuntimeContextElement top = null;
-		
-		/*do {
-			top = contexts.pop();
-		} while (!(top instanceof SJRecursionContext 
-					&& ((SJRecursionContext) top).hasLabel(lab)));*/
-		    
-		for (boolean run = true; run; )
-		{
-			top = contexts.pop();
-			
+		while (true) {
+			SJRuntimeContextElement top = contexts.pop();
+
 			if (top instanceof SJRecursionContext)
 			{
-				SJLabel topLab = ((SJRecursionContext) top).label();
-				
-				if (topLab.equals(lab))
+				SJRecursionContext recursionContext = (SJRecursionContext) top;
+				if (recursionContext.hasLabel(lab))
 				{
-					run = false;
+					return recursionContext;
 				}
 				else
 				{
-					recursionVariables.exitScope(topLab);
+					recursionVariables.exitScope((SJRecursionContext) top);
 				}
 			}
-		}        
-		    
-		return (SJRecursionContext) top;
+		}
 	}
 
     private void advanceContext(SJSessionType sjtype)
 	{
-		//System.out.println("advanceContext: " + sjtype);
+		if (DEBUG) {
+			debugPrintln("advanceContext: " + sjtype);
+		}
+		
 		SJSessionType implemented = sjtype;
 
 		boolean redo = true;
@@ -552,8 +545,10 @@ public class SJStateManager_c implements SJStateManager // Analogous to SJContex
 
 			sjsc.activeType(next);
 
-			//SJRuntimeUtils.debugPrintln("Socket state: " + activeType() + ", " + implementedType());
-
+			if (DEBUG) {
+		        debugPrintln("Socket state: " + activeType() + ", " + implementedType());
+			}
+			
 			if (next == null && !(sjsc instanceof SJTopLevelContext))
 			{
 				if (sjsc instanceof SJLoopContext)
