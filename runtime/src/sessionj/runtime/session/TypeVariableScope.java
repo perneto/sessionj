@@ -2,6 +2,7 @@ package sessionj.runtime.session;
 
 import sessionj.types.sesstypes.SJRecursionType;
 import sessionj.util.SJLabel;
+import sessionj.runtime.session.contexts.SJRecursionContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +49,10 @@ public class TypeVariableScope {
 	    // For now, assuming no masking of recursion variables.
 	    labels.remove(lab);
     }
+	
+	public void exitScope(SJRecursionContext context) {
+		exitScope(context.label());
+	}
 
     public boolean alreadyEntered(SJLabel label) {
 	    // For now, assuming no masking of recursion variables.
