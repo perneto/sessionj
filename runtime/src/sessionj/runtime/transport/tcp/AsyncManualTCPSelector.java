@@ -10,9 +10,8 @@ import java.io.IOException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.*;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  */
@@ -34,9 +33,9 @@ class AsyncManualTCPSelector implements TransportSelector {
         ServerSocketChannel ssc = retrieveServerSocketChannel(ss);
         
         if (ssc != null) {
-            // No need to do the real registration with the selecting thread,
+            // Not doing the real registration with the selecting thread,
             // this is done by the acceptor, ahead of time.
-            // If done twice, a race condition (occasional deadlocks) happens.
+            // When the real registration is done twice, a race condition (occasional deadlocks) happens.
             
             registrations.accept(ssc, ss);
             return true;
