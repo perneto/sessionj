@@ -228,13 +228,13 @@ public class SJTransportManager_c extends SJTransportManager
 
             st.start();
 
-            log.finer("" + t.getTransportName() + " setup ready on: " + port + "(" + t.sessionPortToSetupPort(port) + ")");
+            log.finer(t.getTransportName() + " setup ready on: " + port + '(' + t.sessionPortToSetupPort(port) + ")");
 
             return st;
         }
         catch (SJIOException ioe) // Need to close the failed acceptor?
         {
-            log.finer("" + ioe);
+            log.log(Level.FINE, "Opening negotiation acceptor", ioe);
 
             for (SJSetupThread setupThread : sts) {
                 setupThread.close();

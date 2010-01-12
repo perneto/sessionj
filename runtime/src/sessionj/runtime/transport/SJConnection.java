@@ -29,4 +29,6 @@ public interface SJConnection
     SJTransport getTransport();
 
     boolean supportsBlocking();
+
+	boolean arrived();
 }

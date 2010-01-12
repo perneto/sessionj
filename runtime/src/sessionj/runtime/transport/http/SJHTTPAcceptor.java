@@ -5,18 +5,15 @@ import java.net.*;
 import java.nio.channels.SelectableChannel;
 
 import sessionj.runtime.*;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJConnectionAcceptor;
-import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.*;
 
-public class SJHTTPAcceptor implements SJConnectionAcceptor{
+public class SJHTTPAcceptor extends AbstractWithTransport implements SJConnectionAcceptor{
 	
-	private ServerSocket ss;
-    private final SJTransport transport;
+	private final ServerSocket ss;
 
     public SJHTTPAcceptor(int port, SJTransport transport) throws SJIOException
 	{
-        this.transport = transport;
+        super(transport);
         try
 		{
 			ss = new ServerSocket(port); // Didn't bother to explicitly check portInUse.
@@ -33,12 +30,12 @@ public class SJHTTPAcceptor implements SJConnectionAcceptor{
 		{
 			if (ss == null)
 			{
-				throw new SJIOException("[" + getTransportName() + "] Connection acceptor not open.");
+				throw new SJIOException('[' + getTransportName() + "] Connection acceptor not open.");
 			}
 			
 			Socket s = ss.accept(); 
 			
-			return new SJHTTPConnection(s, s.getOutputStream(), s.getInputStream(), transport);
+			return new SJHTTPConnection(s, s.getOutputStream(), s.getInputStream(), getTransport());
 		}
 		catch (IOException ioe)
 		{
@@ -60,7 +57,7 @@ public class SJHTTPAcceptor implements SJConnectionAcceptor{
 				ss.close(); 
 			}
 		}
-		catch (IOException ioe) { }
+		catch (IOException ignored) { }
 
 	}
 	
@@ -74,9 +71,4 @@ public class SJHTTPAcceptor implements SJConnectionAcceptor{
 		return ss.isClosed();
 	}
 	
-	public String getTransportName(){
-		
-		return SJHTTP.TRANSPORT_NAME;
-	}
-
 }

@@ -51,11 +51,6 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
                 public String getTransportName() {
                     return TRANSPORT_NAME;
                 }
-
-                @Override
-                public boolean supportsBlocking() {
-                    return true;
-                }
             };
         }
         catch (IOException ioe)

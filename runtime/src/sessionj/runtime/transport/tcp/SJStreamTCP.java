@@ -10,14 +10,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Random;
 
-class SJStreamTCPAcceptor implements SJConnectionAcceptor
+class SJStreamTCPAcceptor extends AbstractWithTransport implements SJConnectionAcceptor
 {
 	private final ServerSocket ss;
-    private final SJTransport transport;
-
+	
     SJStreamTCPAcceptor(int port, SJTransport transport) throws SJIOException
 	{
-        this.transport = transport;
+		super(transport);
         try
 		{
 			ss = new ServerSocket(port); // Didn't bother to explicitly check portInUse.
@@ -41,7 +40,7 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 			
 			s.setTcpNoDelay(SJStreamTCP.TCP_NO_DELAY);
 			
-			return new SJStreamTCPConnection(s, s.getInputStream(), s.getOutputStream(), transport);
+			return new SJStreamTCPConnection(s, s.getInputStream(), s.getOutputStream(), getTransport());
 		}
 		catch (IOException ioe)
 		{
@@ -58,7 +57,7 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 				ss.close(); 
 			}
 		}
-		catch (IOException ioe) { }
+		catch (IOException ignored) { }
 	}
 	
 	public boolean interruptToClose()
@@ -69,11 +68,6 @@ class SJStreamTCPAcceptor implements SJConnectionAcceptor
 	public boolean isClosed()
 	{
 		return ss.isClosed();
-	}
-	
-	public String getTransportName()
-	{
-		return SJStreamTCP.TRANSPORT_NAME;
 	}
 }
 

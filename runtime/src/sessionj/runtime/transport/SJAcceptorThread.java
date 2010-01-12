@@ -33,4 +33,8 @@ public abstract class SJAcceptorThread extends Thread {
             //throw new RuntimeException("..."); // Maybe this would be better, with an appropriate exception catcher?
         }
     }
+
+	public SJTransport getTransport() {
+		return ca.getTransport();
+	}
 }

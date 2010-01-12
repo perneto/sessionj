@@ -10,14 +10,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Logger;
 
-class SJManualTCPAcceptor implements SJConnectionAcceptor
+class SJManualTCPAcceptor extends AbstractWithTransport implements SJConnectionAcceptor
 {
 	private final ServerSocket ss;
-    private final SJTransport transport;
 
     SJManualTCPAcceptor(int port, SJTransport transport) throws SJIOException
 	{
-        this.transport = transport;
+		super(transport);
         try
 		{
 			ss = new ServerSocket(port); // Didn't bother to explicitly check portInUse.
@@ -41,7 +40,7 @@ class SJManualTCPAcceptor implements SJConnectionAcceptor
 			
 			s.setTcpNoDelay(SJManualTCP.TCP_NO_DELAY);
 			
-			return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream(), transport);
+			return new SJManualTCPConnection(s, s.getInputStream(), s.getOutputStream(), getTransport());
 		}
 		catch (IOException ioe)
 		{
@@ -69,11 +68,6 @@ class SJManualTCPAcceptor implements SJConnectionAcceptor
 	public boolean isClosed()
 	{
 		return ss.isClosed();
-	}
-	
-	public String getTransportName()
-	{
-		return SJManualTCP.TRANSPORT_NAME;
 	}
 }
 

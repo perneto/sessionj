@@ -8,4 +8,8 @@ public abstract class AbstractSJConnection extends AbstractWithTransport impleme
     public boolean supportsBlocking() {
         return true;
     }
+
+	public boolean arrived() {
+		throw new UnsupportedOperationException("Does not support non-blocking mode");
+	}
 }

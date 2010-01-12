@@ -8,17 +8,14 @@ import javax.net.ssl.*;
 import javax.net.ServerSocketFactory;
 
 import sessionj.runtime.*;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJConnectionAcceptor;
-import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.*;
 
-public class SJHTTPSAcceptor implements SJConnectionAcceptor {
+public class SJHTTPSAcceptor extends AbstractWithTransport implements SJConnectionAcceptor {
 
     private final SSLServerSocket sss;
-    private final SJTransport transport;
 
     public SJHTTPSAcceptor(int port, SJTransport transport) throws SJIOException {
-        this.transport = transport;
+	    super(transport);
 
         try {
             KeyManagerFactory mgrFact = KeyManagerFactory.getInstance("SunX509");
@@ -53,12 +50,12 @@ public class SJHTTPSAcceptor implements SJConnectionAcceptor {
 
         try {
             if (sss == null) {
-                throw new SJIOException("[" + getTransportName() + "] Connection acceptor not open.");
+                throw new SJIOException('[' + getTransportName() + "] Connection acceptor not open.");
             }
 
             SSLSocket s = (SSLSocket) sss.accept();
 
-            return new SJHTTPSConnection(s, s.getInputStream(), s.getOutputStream(), transport);
+            return new SJHTTPSConnection(s, s.getInputStream(), s.getOutputStream(), getTransport());
         }
         catch (IOException ioe) {
             throw new SJIOException(ioe);
@@ -77,7 +74,7 @@ public class SJHTTPSAcceptor implements SJConnectionAcceptor {
                 sss.close();
             }
         }
-        catch (IOException ioe) {
+        catch (IOException ignored) {
         }
 
     }
@@ -90,11 +87,6 @@ public class SJHTTPSAcceptor implements SJConnectionAcceptor {
     public boolean isClosed() {
 
         return sss.isClosed();
-    }
-
-    public String getTransportName() {
-
-        return SJHTTPS.TRANSPORT_NAME;
     }
 
 }
