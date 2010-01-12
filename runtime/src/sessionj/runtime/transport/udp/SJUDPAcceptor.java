@@ -19,41 +19,40 @@ import sessionj.runtime.*;
 
 import sessionj.runtime.transport.*;
 
-public class SJUDPAcceptor implements SJConnectionAcceptor{
+public class SJUDPAcceptor extends AbstractWithTransport implements SJConnectionAcceptor{
        
     private final DatagramSocket ss;
     private static final int INITIAL_MESSAGE_SIZE = 8; 
     private final DatagramPacket request
        = new DatagramPacket(new byte [INITIAL_MESSAGE_SIZE],
         INITIAL_MESSAGE_SIZE);
-    private final SJTransport transport;
 
     public SJUDPAcceptor(int port, SJTransport transport) throws SJIOException
     {
-        this.transport = transport;
+	    super(transport);
         try {      	 
            ss = new DatagramSocket(port);
-       } catch (IOException ioe) {
+        } catch (IOException ioe) {
            throw new SJIOException(ioe);
-       }
+        }
     }
        
     public SJConnection accept() throws SJIOException{
        try {
            if (ss == null) {
-              throw new SJIOException("[" + 
-                                   getTransportName() + 
-                                   "]" +
+              throw new SJIOException('[' + 
+                                   getTransportName() +
+	                               ']' +
                                    "Connection acceptor" +
                                    "not open.");
            }
            // get the request
-           this.ss.receive(this.request); 
+	       ss.receive(request); 
            
-           System.out.println("1: " + this.request);
+           System.out.println("1: " + request);
            
            // parse it
-           byte [] data = this.request.getData();
+           byte [] data = request.getData();
            int IPaddress = Converter.byteArrayToInt(data, 0);
            int UDPport = Converter.byteArrayToInt(data, 4);           
            // create the address
@@ -64,7 +63,7 @@ public class SJUDPAcceptor implements SJConnectionAcceptor{
            /*inet_IPaddress = InetAddress.getLocalHost();           
            System.out.println("1b: " + inet_IPaddress + ", " + UDPport);*/           
            
-           InetSocketAddress sa = new InetSocketAddress(inet_IPaddress, UDPport);
+           SocketAddress sa = new InetSocketAddress(inet_IPaddress, UDPport);
            
            // create a channel 
            DatagramChannel datagramChannel = DatagramChannel.open();
@@ -88,7 +87,7 @@ public class SJUDPAcceptor implements SJConnectionAcceptor{
            Converter.intToByteArray(localAddress, data, 0);
            Converter.intToByteArray(localPort, data, 4);
            
-           System.out.println("3a: " + lsa.getAddress() + " " + localPort);
+           System.out.println("3a: " + lsa.getAddress() + ' ' + localPort);
            
            //datagramChannel.send(ByteBuffer.wrap(data), lsa);
            datagramChannel.send(ByteBuffer.wrap(data), sa);
@@ -116,7 +115,7 @@ public class SJUDPAcceptor implements SJConnectionAcceptor{
            
            // can be 3-way but for simplicity just this
            // now return the connection
-           return new SJUDPConnection(datagramChannel, transport);
+           return new SJUDPConnection(datagramChannel, getTransport());
        }
        catch (IOException ioe) {
            throw new SJIOException(ioe);
@@ -133,7 +132,7 @@ public class SJUDPAcceptor implements SJConnectionAcceptor{
               ss.close(); 
            }
        }
-       catch (Exception e) { }
+       catch (Exception ignored) { }
     }
        
     public boolean interruptToClose() {

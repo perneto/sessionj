@@ -5,9 +5,9 @@ package sessionj.runtime.net;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
-import sessionj.runtime.transport.SJAcceptorThreadGroup;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJConnectionAcceptor;
+import sessionj.runtime.transport.*;
+
+import java.util.Collection;
 
 /**
  * @author Raymond
@@ -111,4 +111,8 @@ abstract public class SJServerSocket implements SJChannel
     public SJConnectionAcceptor getAcceptorFor(String transportName) {
         return getAcceptorGroup().getAcceptorFor(transportName);
     }
+
+	public Collection<SJTransport> activeTransports() {
+		return getAcceptorGroup().activeTransports();
+	}
 }

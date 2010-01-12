@@ -2,9 +2,7 @@ package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.util.SJRuntimeUtils;
-import sessionj.runtime.transport.SJConnection;
-import sessionj.runtime.transport.SJConnectionAcceptor;
-import sessionj.runtime.transport.SJTransport;
+import sessionj.runtime.transport.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -12,16 +10,15 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.logging.Logger;
 
-class AsyncTCPAcceptor implements SJConnectionAcceptor {
+class AsyncTCPAcceptor extends AbstractWithTransport implements SJConnectionAcceptor {
     private final SelectingThread thread;
     // package-private so the selector can access it
     final ServerSocketChannel ssc;
     private static final Logger logger = SJRuntimeUtils.getLogger(AsyncTCPAcceptor.class);
-    private final SJTransport transport;
 
     AsyncTCPAcceptor(SelectingThread thread, int port, SJTransport transport) throws IOException {
+	    super(transport);
         this.thread = thread;
-        this.transport = transport;
         ssc = ServerSocketChannel.open();
         ssc.configureBlocking(false);
         ssc.socket().bind(new InetSocketAddress(port));
@@ -52,14 +49,9 @@ class AsyncTCPAcceptor implements SJConnectionAcceptor {
         return !ssc.isOpen();
     }
 
-    public String getTransportName() {
-        return SJAsyncManualTCP.TRANSPORT_NAME;
-    }
-
-
-    private SJConnection createSJConnection(SocketChannel socketChannel) throws IOException {
+	private SJConnection createSJConnection(SocketChannel socketChannel) throws IOException {
         socketChannel.socket().setTcpNoDelay(SJManualTCP.TCP_NO_DELAY);
         thread.notifyAccepted(ssc, socketChannel);
-        return new AsyncConnection(thread, socketChannel, transport);
+        return new AsyncConnection(thread, socketChannel, getTransport());
     }
 }

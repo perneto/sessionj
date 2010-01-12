@@ -18,4 +18,5 @@ public interface SJConnectionAcceptor
 	
 	boolean isClosed();
 	String getTransportName(); 
+	SJTransport getTransport();
 }

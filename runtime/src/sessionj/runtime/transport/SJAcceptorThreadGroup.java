@@ -169,4 +169,14 @@ public class SJAcceptorThreadGroup extends ThreadGroup
         return null;
     }
 
+	public Collection<SJTransport> activeTransports() {
+		Thread[] ts = new Thread[activeCount()];
+		enumerate(ts);
+		
+		Collection<SJTransport> active = new ArrayList<SJTransport>(ts.length);
+		for (Thread t : ts) {
+			((SJAcceptorThread) t).getTransport();
+		}
+		return active;
+	}
 }

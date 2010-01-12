@@ -10,21 +10,19 @@ import java.util.*;
 
 // All derived from sessionj.runtime.transport.sharedmem.SJFifoPair.
 
-class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
-{	
+class SJBoundedFifoPairAcceptor extends AbstractWithTransport implements SJConnectionAcceptor {	
 	protected static final HashMap<Integer, LinkedList<SJBoundedFifoPairConnection>> servers = new HashMap<Integer, LinkedList<SJBoundedFifoPairConnection>>(); 
 	
 	protected int port;
 	protected boolean isClosed = false;
 	
 	private int boundedBufferSize;
-    private final SJTransport transport;
-	
-	SJBoundedFifoPairAcceptor(int port, int boundedBufferSize, SJTransport transport) {
-		this.port = port;
-        this.transport = transport;
 
-        servers.put(port, new LinkedList<SJBoundedFifoPairConnection>());
+	SJBoundedFifoPairAcceptor(int port, int boundedBufferSize, SJTransport transport) {
+		super(transport);
+		this.port = port;
+
+		servers.put(port, new LinkedList<SJBoundedFifoPairConnection>());
 		
 		this.boundedBufferSize = boundedBufferSize;
 	}
@@ -59,7 +57,7 @@ class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
 		
 		SJBoundedFifoPair.bindPort(localPort); // Can the connection establishment after this fail? Would need to free the port.
 		
-		SJBoundedFifoPairConnection ourConn = new SJBoundedFifoPairConnection(null, theirConn.getLocalPort(), localPort, ours, transport); // FIXME: need peer hostname.
+		SJBoundedFifoPairConnection ourConn = new SJBoundedFifoPairConnection(null, theirConn.getLocalPort(), localPort, ours, getTransport()); // FIXME: need peer hostname.
 		//SJBoundedFifoPairConnection ourConn = new SJBoundedFifoPairConnection(null, theirConn.getLocalPort(), port, ours); // FIXME: need peer hostname. // Reusing server port value for local port, as in TCP. // Problem: hard to tell when need to free port after a connection is closed (don't know if server is using that port still).
 		
 		theirConn.setPeerFifo(ours);
@@ -97,12 +95,7 @@ class SJBoundedFifoPairAcceptor implements SJConnectionAcceptor
 	{
 		return isClosed;
 	}
-	
-	public String getTransportName()
-	{
-		return SJBoundedFifoPair.TRANSPORT_NAME;
-	}
-	
+
 	protected static void addRequest(int port, SJBoundedFifoPairConnection conn)
 	{
 

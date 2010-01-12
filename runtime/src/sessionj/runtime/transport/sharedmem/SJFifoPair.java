@@ -15,17 +15,15 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class SJFifoPairAcceptor implements SJConnectionAcceptor
-{	
+class SJFifoPairAcceptor extends AbstractWithTransport implements SJConnectionAcceptor {	
 	private static final HashMap<Integer, LinkedList<SJFifoPairConnection>> servers = new HashMap<Integer, LinkedList<SJFifoPairConnection>>();
 
 	private final int port;
 	private boolean isClosed = false;
-    private final SJTransport transport;
 
     SJFifoPairAcceptor(int port, SJTransport transport) {
+	    super(transport);
 		this.port = port;
-        this.transport = transport;
 
         servers.put(port, new LinkedList<SJFifoPairConnection>());
 	}
@@ -59,7 +57,7 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 
 		SJFifoPair.bindPort(localPort); // Can the connection establishment after this fail? Would need to free the port.
 
-		SJFifoPairConnection ourConn = new SJFifoPairConnection(null, theirConn.getLocalPort(), localPort, ours, transport); // FIXME: need peer hostname.
+		SJFifoPairConnection ourConn = new SJFifoPairConnection(null, theirConn.getLocalPort(), localPort, ours, getTransport()); // FIXME: need peer hostname.
 		//SJFifoPairConnection ourConn = new SJFifoPairConnection(null, theirConn.getLocalPort(), port, ours); // FIXME: need peer hostname. // Reusing server port value for local port, as in TCP. // Problem: hard to tell when need to free port after a connection is closed (don't know if server is using that port still).
 		
 		theirConn.setPeerFifo(ours);
@@ -100,11 +98,6 @@ class SJFifoPairAcceptor implements SJConnectionAcceptor
 	public boolean isClosed()
 	{
 		return isClosed;
-	}
-	
-	public String getTransportName()
-	{
-		return SJFifoPair.TRANSPORT_NAME;
 	}
 	
 	protected static void addRequest(int port, SJFifoPairConnection conn)

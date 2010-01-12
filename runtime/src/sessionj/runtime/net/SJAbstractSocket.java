@@ -359,7 +359,15 @@ abstract public class SJAbstractSocket implements SJSocket
         return receivedRuntimeType == null ? protocol.type() : receivedRuntimeType;
     }
 
-    @Override
+	public boolean supportsBlocking() {
+		return conn.supportsBlocking();
+	}
+
+	public boolean arrived() {
+		return conn.arrived();
+	}
+
+	@Override
     public String toString() {
         return getClass().getSimpleName() + '{' +
             "protocol=" + protocol +

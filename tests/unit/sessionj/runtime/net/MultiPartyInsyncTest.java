@@ -148,22 +148,17 @@ public class MultiPartyInsyncTest {
         }
 
         public SJStateManager getStateManager() {
-            // TODO: Auto-generated method stub.
             return null;
         }
 
         public void setStateManager(SJStateManager sm) {
-            // TODO: Auto-generated method stub.
-
         }
 
         public SJSessionType currentSessionType() {
-            // TODO: Auto-generated method stub.
             return null;
         }
 
         public SJSessionType remainingSessionType() {
-            // TODO: Auto-generated method stub.
             return null;
         }
 
@@ -175,18 +170,23 @@ public class MultiPartyInsyncTest {
             return null;
         }
 
-        public boolean recurse(String lab) throws SJIOException {
-            // TODO Auto-generated method stub
+	    public boolean supportsBlocking() {
+		    return false;
+	    }
+
+	    public boolean arrived() {
+		    return false;
+	    }
+
+	    public boolean recurse(String lab) throws SJIOException {
             return false;
         }
 
         public boolean recursionEnter(String lab) throws SJIOException {
-            // TODO Auto-generated method stub
             return false;
         }
 
         public boolean recursionExit() throws SJIOException {
-            // TODO Auto-generated method stub
             return false;
         }
     }
