@@ -10,8 +10,8 @@ public abstract class AbstractSJTransport implements SJTransport {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof SJTransport)) return false;
-        return getTransportName().equals(((SJTransport) o).getTransportName());
+	    return o instanceof SJTransport 
+		    && getTransportName().equals(((SJTransport) o).getTransportName());
     }
 
     /**
