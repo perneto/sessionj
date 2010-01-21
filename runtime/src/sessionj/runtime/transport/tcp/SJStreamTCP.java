@@ -1,6 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.transport.*;
 
 import java.io.IOException;
@@ -131,7 +132,7 @@ public class SJStreamTCP extends AbstractSJTransport
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 65535 - 1024;
 
-    public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
+    public SJConnectionAcceptor openAcceptor(int port, SJSessionParameters param) throws SJIOException
 	{
 		return new SJStreamTCPAcceptor(port, this);
 	}

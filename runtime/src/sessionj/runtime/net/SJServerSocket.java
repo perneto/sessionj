@@ -7,13 +7,13 @@ import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
 import sessionj.runtime.transport.*;
 
-import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Raymond
  *
  */
-abstract public class SJServerSocket implements SJChannel
+abstract public class SJServerSocket implements SJChannel, SJSelectableChannel
 {
 	private final SJProtocol protocol;
 	private final int port; // The local port.
@@ -112,7 +112,18 @@ abstract public class SJServerSocket implements SJChannel
         return getAcceptorGroup().getAcceptorFor(transportName);
     }
 
-	public Collection<SJTransport> activeTransports() {
+	public Set<SJTransport> activeTransports() {
 		return getAcceptorGroup().activeTransports();
+	}
+
+	@Override
+	public String toString() {
+		return "SJServerSocket{" +
+			"protocol=" + protocol +
+			", port=" + port +
+			", sjPort=" + sjPort +
+			", isOpen=" + isOpen +
+			", params=" + params +
+			'}';
 	}
 }

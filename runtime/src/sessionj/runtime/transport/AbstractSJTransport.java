@@ -1,8 +1,6 @@
 package sessionj.runtime.transport;
 
-import sessionj.runtime.net.SJServerSocket;
-import sessionj.runtime.net.SJSocket;
-import sessionj.runtime.net.TransportSelector;
+import sessionj.runtime.net.*;
 
 public abstract class AbstractSJTransport implements SJTransport {
     @Override
@@ -22,19 +20,19 @@ public abstract class AbstractSJTransport implements SJTransport {
      */
     public TransportSelector transportSelector() {
         return new TransportSelector() {
-	        public boolean registerAccept(SJServerSocket ss) {
+	        public boolean registerAccept(SJSelectorInternal sjSelector, SJServerSocket ss) {
 		        return false;
 	        }
 
-	        public boolean registerInput(SJSocket s) {
+	        public boolean registerInput(SJSelectorInternal sjSelector, SJConnection s) {
 		        return false;
 	        }
 
-	        public SJSocket select(boolean considerSessionType) {
+	        public boolean deregisterInput(SJConnection sc, SJSelectorInternal selectorInternal) {
 		        throw new UnsupportedOperationException("Dummy Transport Selector");
 	        }
 
-	        public void close() {
+	        public boolean deregisterAccept(SJServerSocket ss, SJSelectorInternal selectorInternal) {
 		        throw new UnsupportedOperationException("Dummy Transport Selector");
 	        }
         };

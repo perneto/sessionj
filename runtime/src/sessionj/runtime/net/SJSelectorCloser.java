@@ -2,9 +2,9 @@ package sessionj.runtime.net;
 
 public class SJSelectorCloser
 {
-	private SJSelectorAllTransports s; // FIXME: would be better for SJSelector.   
+	private SJSelectorImpl s; // FIXME: would be better for SJSelector.   
 	
-	protected SJSelectorCloser(SJSelectorAllTransports s)
+	protected SJSelectorCloser(SJSelectorImpl s)
 	{
 		this.s = s;
 	}

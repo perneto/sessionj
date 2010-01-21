@@ -2,6 +2,7 @@ package sessionj.runtime.transport;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.TransportSelector;
+import sessionj.runtime.net.SJSessionParameters;
 
 /**
  * @author Raymond, Fred van den Driessche
@@ -10,7 +11,7 @@ import sessionj.runtime.net.TransportSelector;
  */
 public interface SJTransport 
 {
-	SJConnectionAcceptor openAcceptor(int port) throws SJIOException; // Transport-level port.
+	SJConnectionAcceptor openAcceptor(int port, SJSessionParameters param) throws SJIOException; // Transport-level port.
 	//SJConnection connect(SJServerIdentifier si) throws SJIOException;
     SJConnection connect(String hostName, int port) throws SJIOException;
     // May be useful to pass additional higher-level information to these operations,

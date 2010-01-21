@@ -1,9 +1,9 @@
 package sessionj.runtime.transport.sharedmem;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.util.SJRuntimeUtils;
-import sessionj.runtime.net.TransportSelector;
+import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.transport.*;
+import sessionj.runtime.util.SJRuntimeUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -401,7 +401,7 @@ public class SJFifoPair extends AbstractSJTransport
 	
 	public SJFifoPair() { }
 
-	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
+	public SJConnectionAcceptor openAcceptor(int port, SJSessionParameters param) throws SJIOException
 	{
 		SJFifoPairAcceptor a = new SJFifoPairAcceptor(port, this);
 		
@@ -457,10 +457,6 @@ public class SJFifoPair extends AbstractSJTransport
 				
 		return ourConn;
 	}
-
-    public TransportSelector transportSelector() {
-        return null; 
-    }
 
     private boolean notLocalHost(String hostName) throws UnknownHostException {
         // FIXME: check properly. We're now using IP addresses rather than host names. 

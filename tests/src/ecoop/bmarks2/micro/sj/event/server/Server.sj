@@ -26,7 +26,6 @@ public class Server extends ecoop.bmarks2.micro.Server
   private Set clients = new HashSet(); 
   
   //private SJServerSocketCloser ssc; // Doesn't work: closing the server socket doesn't break the selector.
-  private SJSelectorCloser sc;
   
   // HACKS.
   //private AtomicInteger numQuitsSent = new AtomicInteger(0);
@@ -44,8 +43,6 @@ public class Server extends ecoop.bmarks2.micro.Server
     //SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "a");
         
     final noalias SJSelector sel = SJRuntime.selectorFor(pSelector);
-    
-    this.sc = ((SJSelectorAllTransports) sel).getCloser();
     
     try (sel) 
     {
@@ -172,7 +169,7 @@ public class Server extends ecoop.bmarks2.micro.Server
   	this.run = false; // Can stop the selector loop after all LoadClients have quit.
   	
 		//ssc.close(); // Break the selecting loop forcibly if needed. // Not currently working. 
-  	//sc.close(); // Also not currently working.*/
+  	*/
   	
   	Thread.sleep(500);
   	

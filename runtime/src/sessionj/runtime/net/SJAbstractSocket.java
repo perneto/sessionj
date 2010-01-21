@@ -1,12 +1,15 @@
 package sessionj.runtime.net;
 
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.SJProtocol;
+import sessionj.runtime.session.SJSerializer;
+import sessionj.runtime.session.SJSessionProtocols;
+import sessionj.runtime.session.SJStateManager;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.types.sesstypes.SJSessionType;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
-import sessionj.runtime.*;
-import sessionj.runtime.session.*;
-import sessionj.runtime.transport.*;
-import sessionj.types.sesstypes.SJSessionType;
 
 abstract public class SJAbstractSocket implements SJSocket
 {
@@ -365,6 +368,10 @@ abstract public class SJAbstractSocket implements SJSocket
 
 	public boolean arrived() {
 		return conn.arrived();
+	}
+
+	public TransportSelector transportSelector() {
+		return conn.getTransport().transportSelector();
 	}
 
 	@Override

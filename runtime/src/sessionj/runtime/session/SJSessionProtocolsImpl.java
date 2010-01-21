@@ -110,16 +110,12 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
                         try
 						{
                             log.finer("About to read control signal from: " + ser);
-                            SJConnection connection = ser.getConnection();
                             // FIXME: HACK to support non-blocking transports.
-                            if (!connection.supportsBlocking()) {
-                                SJTransport transport = connection.getTransport();
+                            if (!s.supportsBlocking()) {
                                 log.finer("Starting close protocol hack for non-blocking transport on:" + s);
-                                sel = transport.transportSelector();
-                                sel.registerInput(s);
-                                SJSocket selected = sel.select(false);
-                                log.finer("Selected socket in close protocol: " + s);
-                                assert selected.getConnection().equals(ser.getConnection());
+	                            //noinspection StatementWithEmptyBody
+	                            while (!s.arrived()); // spin-wait
+	                            log.finer("Finished spin-wait in close protocol on: " + s);
                             }
 							ser.readControlSignal(); 
                             log.fine("Control signal read.");
