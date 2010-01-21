@@ -91,7 +91,6 @@ made to be able to cope with such interleaving.
 package sessionj.runtime.transport.udp;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.transport.AbstractSJConnection;
 

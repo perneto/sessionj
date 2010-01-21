@@ -282,11 +282,7 @@ public class SJTransportManager_c extends SJTransportManager
 			if (active == 0)
 			{
 				sessions.remove(conn);*/
-		try {
-			conn.disconnect();
-		} catch (SJIOException e) {
-			e.printStackTrace();
-		}
+		conn.disconnect();
 		/*}
 			else
 			{

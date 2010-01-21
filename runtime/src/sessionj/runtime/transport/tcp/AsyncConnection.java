@@ -37,7 +37,7 @@ public class AsyncConnection extends AbstractSJConnection
 		this.deserializer = deserializer;
 	}
 
-    public void disconnect() throws SJIOException {
+    public void disconnect() {
         log.fine("Closing channel: " + sc);
         thread.close(sc);
     }

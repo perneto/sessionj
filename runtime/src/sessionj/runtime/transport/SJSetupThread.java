@@ -60,11 +60,7 @@ public class SJSetupThread extends SJAcceptorThread
 							}
 							finally
 							{
-								try {
-									conn.disconnect();
-								} catch (SJIOException e) {
-									e.printStackTrace();
-								}
+								conn.disconnect();
 							}
 						}						
 					}

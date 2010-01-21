@@ -88,11 +88,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 		
 		for (SJConnection conn : pending) // Synchronize?
 		{
-			try {
-				conn.disconnect();
-			} catch (SJIOException e) {
-				e.printStackTrace();
-			}
+			conn.disconnect();
 		}
 	}
 	
