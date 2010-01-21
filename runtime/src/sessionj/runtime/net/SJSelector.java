@@ -1,7 +1,6 @@
 package sessionj.runtime.net;
 
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.transport.SJConnection;
 
 public interface SJSelector {
 
@@ -15,5 +14,5 @@ public interface SJSelector {
     // then, the accept() call will be done in the user code.
     SJSocket select() throws SJIOException, SJIncompatibleSessionException;
 
-	void close() throws SJIOException;
+	void close();
 }

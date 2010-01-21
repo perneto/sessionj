@@ -154,8 +154,7 @@ class SJBoundedFifoPairConnection extends AbstractSJConnection
 		}
 	}*/
 	
-	public void disconnect()
-	{		
+	public void disconnect() {		
 		if (theirs != null) // FIXME: need an isClosed, e.g. delegation protocol closes early.
 		{
 			boolean closed = false;			

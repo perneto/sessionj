@@ -9,7 +9,7 @@ import sessionj.runtime.SJIOException;
  */
 public interface SJConnection 
 {
-	void disconnect() throws SJIOException;
+	void disconnect();
 
 	// A bit naive. Should we only signal EOF through exceptions? 
 	void writeByte(byte b) throws SJIOException;

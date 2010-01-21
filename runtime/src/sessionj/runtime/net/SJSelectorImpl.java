@@ -123,7 +123,7 @@ class SJSelectorImpl implements SJSelector, SJSelectorInternal {
         registrations.put(conn, sjss.getParameters().getAcceptProtocol().initialAcceptState(sjss));
 	}
 
-    public void close() throws SJIOException {
+    public void close() {
 	    for (SJServerSocket ss : serverSockets) {
 		    Set<SJTransport> socketTransports = ss.activeTransports();
 		    for (SJTransport tr : socketTransports) {

@@ -120,9 +120,6 @@ public class SJUDP extends AbstractSJTransport {
 	    } 
 	    catch (IOException ioe) 
 	    {
-	    	ioe.printStackTrace();
-	    	System.out.println();
-	    	
 	    	throw new SJIOException(ioe);
 	    }
     }
