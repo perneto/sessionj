@@ -108,7 +108,7 @@ class SJSelectorImpl implements SJSelector, SJSelectorInternal {
 	}
 
 	private void deregister(SJSocket s, SJConnection connection) {
-		s.transportSelector().deregisterInput(connection, this);
+		s.transportSelector().deregisterInput(connection);
 
 		registrations.remove(s);
 	}
@@ -131,7 +131,7 @@ class SJSelectorImpl implements SJSelector, SJSelectorInternal {
 		    }
 	    }
 	    for (SJConnection conn : registrations.keySet()) {
-		    conn.getTransport().transportSelector().deregisterInput(conn, this);
+		    conn.getTransport().transportSelector().deregisterInput(conn);
 	    }
 	    if (log.isLoggable(Level.FINE))
 		    log.fine("Closed selector: " + this);

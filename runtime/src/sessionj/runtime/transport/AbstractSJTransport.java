@@ -28,7 +28,7 @@ public abstract class AbstractSJTransport implements SJTransport {
 		        return false;
 	        }
 
-	        public boolean deregisterInput(SJConnection sc, SJSelectorInternal selectorInternal) {
+	        public boolean deregisterInput(SJConnection sc) {
 		        throw new UnsupportedOperationException("Dummy Transport Selector");
 	        }
 
