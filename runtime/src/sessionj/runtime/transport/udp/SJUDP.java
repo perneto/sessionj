@@ -1,6 +1,7 @@
 package sessionj.runtime.transport.udp;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.transport.*;
 
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class SJUDP extends AbstractSJTransport {
        = new DatagramPacket(new byte [INITIAL_MESSAGE_SIZE],
         INITIAL_MESSAGE_SIZE);
 
-    public SJConnectionAcceptor openAcceptor (int port) 
+    public SJConnectionAcceptor openAcceptor(int port, SJSessionParameters param) 
        throws SJIOException
     {
         return new SJUDPAcceptor(port, this);

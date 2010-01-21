@@ -5,7 +5,7 @@ import sessionj.runtime.session.SJStateManager;
 import sessionj.runtime.transport.SJConnection;
 import sessionj.types.sesstypes.SJSessionType;
 
-public interface SJSocket extends SJChannel
+public interface SJSocket extends SJChannel, SJSelectableChannel
 {	
 	void close();
 	
@@ -82,4 +82,6 @@ public interface SJSocket extends SJChannel
 	boolean supportsBlocking();
 
 	boolean arrived();
+
+	TransportSelector transportSelector();
 }

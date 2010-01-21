@@ -2,6 +2,7 @@ package sessionj.runtime.transport.sharedmem;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJRuntimeException;
+import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.transport.*;
 
 import java.io.IOException;
@@ -305,7 +306,7 @@ public class SJBoundedFifoPair extends AbstractSJTransport
 	
 	public SJBoundedFifoPair() { }
 
-	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
+	public SJConnectionAcceptor openAcceptor(int port, SJSessionParameters param) throws SJIOException
 	{
 		return openAcceptor(port, UNBOUNDED_BUFFER_SIZE);
 	}

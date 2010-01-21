@@ -3,17 +3,15 @@ package sessionj.runtime.net;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.session.*;
+import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.transport.SJTransportManager;
-import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 import sessionj.runtime.transport.tcp.InputState;
 import sessionj.runtime.transport.tcp.WaitInitialInputIfNeeded;
-import sessionj.runtime.transport.tcp.AsyncConnection;
 
 import java.util.Collections;
 import java.util.List;
-import java.nio.channels.SocketChannel;
 
 /**
  * 
@@ -56,9 +54,9 @@ public class SJSessionParameters
 	
 	//private SJCustomMessageFormatter cmf;
 	private Class<? extends SJCustomMessageFormatter> cmf;
-    private SocketChannel sc = null;
+    private SJConnection conn = null;
 
-    // HACK: SJSessionParameters are supposed to be user-configurable parameters.
+	// HACK: SJSessionParameters are supposed to be user-configurable parameters.
   // But now using as a convenient place to store pseudo compiler-generated optimisation
   // information for now. Would be better to make a dedicated object for storing such information.
   // But that could be slow. // Factor out constant more generally?
@@ -164,17 +162,21 @@ public class SJSessionParameters
 		return sessionTransports;
 	}
 	
-	public String toString()
-	{
-		String m = "SJSessionParameters{";
-		
-		m += negotiationTransports + ", " + sessionTransports;
-		m += ", " + boundedBufferSize;
-		
-		return m + "}";
+	@Override
+	public String toString() {
+		return "SJSessionParameters{" +
+			"negotiationTransportClasses=" + negotiationTransportClasses +
+			", sessionTransportClasses=" + sessionTransportClasses +
+			", negotiationTransports=" + negotiationTransports +
+			", sessionTransports=" + sessionTransports +
+			", boundedBufferSize=" + boundedBufferSize +
+			", mode=" + mode +
+			", cmf=" + cmf +
+			", conn=" + conn +
+			'}';
 	}
 
-    public int getBoundedBufferSize()
+	public int getBoundedBufferSize()
     {
         return boundedBufferSize;
     }
@@ -215,16 +217,6 @@ public class SJSessionParameters
         return SJRuntime.getTransportManager().defaultNegotiationTransportClasses();
     }
 
-    /*private static List<SJTransport> defaultSession() 
-     {
-         return SJRuntime.getTransportManager().defaultSessionTransports();
-     }
-     
-     private static List<SJTransport> defaultNeg()
-     {
-         return SJRuntime.getTransportManager().defaultNegotiationTransports();
-     }*/
-
     public SJDeserializer createDeserializer() throws SJIOException {
         if (cmf == null) return new SJManualDeserializer();
         else return new CustomMessageFormatterFactory(createCustomMessageFormatter());
@@ -234,17 +226,21 @@ public class SJSessionParameters
         if (cmf == null) return new SJAcceptProtocolImpl();
         // The custom mode has no accept protocol messages to wait for.
         else return new SJAcceptProtocol() {
-            public InputState initialAcceptState(SJServerSocket serverSocket, SocketChannel sc) throws SJIOException, SJIncompatibleSessionException {
+            public InputState initialAcceptState(SJServerSocket serverSocket) throws SJIOException, SJIncompatibleSessionException {
                 return new WaitInitialInputIfNeeded(serverSocket.accept());
             }
         };
     }
 
-    public void setSocketChannelHack(SocketChannel sc) {
-        this.sc = sc;
+	// HACK: The following 2 methods serve to avoid a race condition in SJServerSocket.nextConnection().
+	// When we receive several connections at the same time, we need a way to pair
+	// the SJServerSockets and the actual underlying SJConnections.
+	// See also DefaultSJProtocolAcceptState
+    public void setExpectedConnectionHack(SJConnection conn) {
+        this.conn = conn;
     }
     
     public boolean validConnection(SJConnection conn) {
-        return sc == null || ((AsyncConnection) conn).sc.equals(sc);
+        return this.conn == null || conn.equals(this.conn);
     }
 }

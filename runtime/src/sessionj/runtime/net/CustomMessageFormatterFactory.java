@@ -13,12 +13,12 @@ import java.util.logging.Logger;
 public class CustomMessageFormatterFactory implements SJDeserializer { // Possibly more fitting to runtime.session subpackage.
     private static final Logger log = SJRuntimeUtils.getLogger(CustomMessageFormatterFactory.class);
     private final MessageFormatterOngoingRead messageFormatterOngoingRead;
+	private static final byte[] BYTE = {};
 
-    public CustomMessageFormatterFactory(SJCustomMessageFormatter cmf) {
+	public CustomMessageFormatterFactory(SJCustomMessageFormatter cmf) {
         messageFormatterOngoingRead = new MessageFormatterOngoingRead(cmf);
     }
     
-    @Override
     public OngoingRead newOngoingRead() throws SJIOException {
         // Need to reuse the same message formatter
         return messageFormatterOngoingRead;
@@ -36,10 +36,9 @@ public class CustomMessageFormatterFactory implements SJDeserializer { // Possib
 			this.messageFormatter = messageFormatter;
 		}
 		
-		private byte[] consumed = new byte[0]; // A cache of the data from which a message is parsed. This *cannot* be obtained by "re-formatting" the message returned from parsing.
-		private byte[] unconsumed = new byte[0]; // Holds the data that was not consumed the previous time we tried parsing. The issue is that SelectingThread needs all data to be read from the ByteBuffer argument before it will proceed: so we do so and cache it here. For this purpose, SelectingThread.consumeBytesRead is modified to use the same OngingRead all the time, otherwise, again, this unconsumed data will be lost (unless we do something like copy the unconsumed data from the old OngoingRead when we make the new one).   
+		private byte[] consumed = BYTE; // A cache of the data from which a message is parsed. This *cannot* be obtained by "re-formatting" the message returned from parsing.
+		private byte[] unconsumed = BYTE; // Holds the data that was not consumed the previous time we tried parsing. The issue is that SelectingThread needs all data to be read from the ByteBuffer argument before it will proceed: so we do so and cache it here. For this purpose, SelectingThread.consumeBytesRead is modified to use the same OngingRead all the time, otherwise, again, this unconsumed data will be lost (unless we do something like copy the unconsumed data from the old OngoingRead when we make the new one).   
 		
-		@Override
 		public void updatePendingInput(ByteBuffer newBytes, boolean eof) throws SJIOException 
 		{
 			byte[] allBytesArray = Arrays.copyOf(unconsumed, unconsumed.length + newBytes.remaining());
@@ -73,7 +72,7 @@ public class CustomMessageFormatterFactory implements SJDeserializer { // Possib
 				{
 					newBytes.position(pos - remaining);
 					
-					unconsumed = new byte[0];
+					unconsumed = BYTE;
 				}
 			}
 			else
@@ -84,13 +83,11 @@ public class CustomMessageFormatterFactory implements SJDeserializer { // Possib
 			log.finer("Consumed input, parsed = " + parsed);
 		}
 		
-		@Override
 		public boolean finished() 
 		{
 			return parsed != null;
 		}
 		
-		@Override
 		public ByteBuffer getCompleteInput() throws SJIOException 
 		{
 			if (parsed != null) 

@@ -1,62 +1,93 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSelectorInternal;
+import sessionj.runtime.session.OngoingRead;
+import sessionj.runtime.session.SJDeserializer;
 import sessionj.runtime.transport.AbstractSJConnection;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.util.SJRuntimeUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import static java.util.logging.Level.FINER;
+import static java.util.logging.Level.FINEST;
 import java.util.logging.Logger;
-import java.util.logging.Level;
 
 public class AsyncConnection extends AbstractSJConnection
 {
     private final SelectingThread thread;
-    // HACK: to allow selection of the correct connection when more than one is available in SJServerSocket.nextConnection()
-    public final SocketChannel sc;
+    private final SocketChannel sc;
     private static final Logger log = SJRuntimeUtils.getLogger(AsyncConnection.class);
-
-    AsyncConnection(SelectingThread thread, SocketChannel sc, SJTransport transport) {
+	private final SJDeserializer deserializer;
+	private final BlockingQueue<ByteBuffer> readyInputs = new LinkedBlockingQueue<ByteBuffer>();
+	private final Queue<ByteBuffer> requestedOutputs = new ConcurrentLinkedQueue<ByteBuffer>();
+	
+	private OngoingRead or = null;
+	private SJSelectorInternal interestedSelector = null;
+	
+	AsyncConnection(SelectingThread thread, SocketChannel sc, SJTransport transport, SJDeserializer deserializer) {
         super(transport);
         this.thread = thread;
         this.sc = sc;
-    }
+		this.deserializer = deserializer;
+	}
 
-    public void disconnect() {
+    public void disconnect() throws SJIOException {
         log.fine("Closing channel: " + sc);
         thread.close(sc);
     }
 
     public void writeByte(byte b) throws SJIOException {
-        thread.enqueueOutput(sc, b);
+        writeBytes(new byte[] {b});
     }
 
     public void writeBytes(byte[] bs) throws SJIOException {
-        thread.enqueueOutput(sc, bs);
+	    requestedOutputs.add(ByteBuffer.wrap(bs));
+	    if (log.isLoggable(FINER))
+		    log.finer("Enqueued write on: " + sc + " of: " + bs.length + " bytes");
+        thread.enqueuedOutput(sc);
     }
+	
+	void setInterestedSelector(SJSelectorInternal selector) {
+		if (interestedSelector == null) {
+			interestedSelector = selector;
+		} else if (!interestedSelector.equals(selector)) {
+			throw new IllegalStateException("Tried to set interested selector to: " 
+				+ selector + " but already set to: " + interestedSelector);
+		}
+	}
 
     /**
      * Non-blocking read from the connection.
      * @throws NullPointerException If called when no data is ready on this connection (ie. not after a select call).
      */
-    public synchronized byte readByte() throws SJIOException {
+    public byte readByte() throws SJIOException {
         ByteBuffer input = checkAndDequeue(1);
         
         return input.get();
     }
 
     private ByteBuffer checkAndDequeue(int remaining) throws SJIOException {
-        ByteBuffer input = thread.peekAtInputQueue(sc);
+        ByteBuffer input = readyInputs.peek();
+	    if (log.isLoggable(FINEST))
+		    log.finest("Peeked input for: " + sc + ", input: " + input);
         if (input == null) {
             throw new SJIOException("No available inputs on connection: " + this);
         }
         
-        if (log.isLoggable(Level.FINEST))
+        if (log.isLoggable(FINEST))
             log.finest("Returning input: " + input);
 
-        if (input.remaining() == remaining)
-            thread.dequeueFromInputQueue(sc);
+        if (input.remaining() == remaining) {
+	        if (log.isLoggable(FINEST))
+		        log.finest("Dequeueing input from: " + sc);
+            readyInputs.remove();
+        }
         
         return input;
     }
@@ -65,7 +96,7 @@ public class AsyncConnection extends AbstractSJConnection
      * Non-blocking read from the connection.
      * @throws NullPointerException If called when no data is ready on this connection (ie. not after a select call).
      */
-    public synchronized void readBytes(byte[] bs) throws SJIOException {
+    public void readBytes(byte[] bs) throws SJIOException {
         ByteBuffer input = checkAndDequeue(bs.length);
         input.get(bs, 0, bs.length);
     }
@@ -91,17 +122,64 @@ public class AsyncConnection extends AbstractSJConnection
         return sc.socket().getLocalPort();
     }
 
-    SocketChannel socketChannel() {
+	// HACK: to allow selection of the correct connection when more than one is available in SJServerSocket.nextConnection()
+    public SocketChannel socketChannel() {
         return sc;
     }
 
-    @Override
+	@Override
+	public boolean arrived() {
+		return !readyInputs.isEmpty();
+	}
+
+	@Override
     public boolean supportsBlocking() {
         return false;
     }
 
     @Override
     public String toString() {
-        return "AsyncConnection{" + sc + '}';
+        return "AsyncConnection{sc: " + sc + ", readyInputs: " 
+	        + readyInputs + ", requestedOutputs: " + requestedOutputs + '}';
     }
+
+	public void consumeBytesRead(SocketChannel sc, ByteBuffer bytes, boolean eof) throws SJIOException {
+		if (or == null) {
+			// For custom message formatting mode, this does *not* create a new OngoingRead: it returns a singleton. 
+			or = deserializer.newOngoingRead();
+		}
+
+		while (bytes.remaining() > 0)  {
+			or.updatePendingInput(bytes, eof);
+
+			if (or.finished()) {
+				ByteBuffer input = or.getCompleteInput();
+
+				if (log.isLoggable(FINER))
+					log.finer("Received complete input on channel " + sc + ": " + input);
+
+				readyInputs.add(input);
+				// order is important here: notifying makes the read visible to the user-level select
+				notifyInput();
+				or = deserializer.newOngoingRead();
+			} 
+		}
+	}
+
+	private void notifyInput() {
+		if (interestedSelector != null)
+			interestedSelector.notifyInput(this);
+	}
+
+	public boolean hasMoreWrites() {
+		return !requestedOutputs.isEmpty();
+	}
+
+	public ByteBuffer peekWrite() {
+		return requestedOutputs.peek();
+	}
+
+	public void removeWrite() {
+		requestedOutputs.remove();
+	}
 }

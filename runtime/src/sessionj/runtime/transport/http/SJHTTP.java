@@ -1,11 +1,15 @@
 package sessionj.runtime.transport.http;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSessionParameters;
+import sessionj.runtime.transport.AbstractSJTransport;
+import sessionj.runtime.transport.SJConnection;
+import sessionj.runtime.transport.SJConnectionAcceptor;
 
-import sessionj.runtime.*;
-import sessionj.runtime.transport.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Random;
 
 public class SJHTTP extends AbstractSJTransport {
 	
@@ -14,7 +18,7 @@ public class SJHTTP extends AbstractSJTransport {
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 10000;
 	
-	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException{
+	public SJConnectionAcceptor openAcceptor(int port, SJSessionParameters param) throws SJIOException{
 		
 		return new SJHTTPAcceptor(port, this);
 	}

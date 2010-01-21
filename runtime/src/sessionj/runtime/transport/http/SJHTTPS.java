@@ -1,6 +1,7 @@
 package sessionj.runtime.transport.http;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.transport.*;
 
 import javax.net.ssl.*;
@@ -18,7 +19,7 @@ public class SJHTTPS extends AbstractSJTransport {
 	private static final int LOWER_PORT_LIMIT = 1024; 
 	private static final int PORT_RANGE = 10000;
 	
-	public SJConnectionAcceptor openAcceptor(int port) throws SJIOException{
+	public SJConnectionAcceptor openAcceptor(int port, SJSessionParameters param) throws SJIOException{
 		
 		return new SJHTTPSAcceptor(port, this);
 	}

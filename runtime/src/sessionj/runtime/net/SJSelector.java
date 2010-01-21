@@ -1,8 +1,9 @@
 package sessionj.runtime.net;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.transport.SJConnection;
 
-public interface SJSelector extends SJSelectorBase {
+public interface SJSelector {
 
     void registerAccept(SJServerSocket ss) throws SJIOException;
 
@@ -13,4 +14,6 @@ public interface SJSelector extends SJSelectorBase {
     // Will be removed when compiler is updated to allow returning SJServerSockets too;
     // then, the accept() call will be done in the user code.
     SJSocket select() throws SJIOException, SJIncompatibleSessionException;
+
+	void close() throws SJIOException;
 }

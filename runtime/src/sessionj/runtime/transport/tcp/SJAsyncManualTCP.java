@@ -3,6 +3,7 @@ package sessionj.runtime.transport.tcp;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.runtime.net.TransportSelector;
+import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.transport.*;
 
 import java.io.IOException;
@@ -21,17 +22,19 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
 	
     private final SelectingThread thread;
     private static final Logger logger = SJRuntimeUtils.getLogger(SJAsyncManualTCP.class);
+	private final AsyncManualTCPSelector transportSelector;
 
-    public SJAsyncManualTCP() throws IOException {
+	public SJAsyncManualTCP() throws IOException {
         thread = new SelectingThread();
         Thread t = new Thread(thread, "SelectingThread");
         t.setDaemon(true);
         t.start();
+		transportSelector = new AsyncManualTCPSelector(thread, this);
     }
 
-    public SJConnectionAcceptor openAcceptor(int port) throws SJIOException {
+    public SJConnectionAcceptor openAcceptor(int port, SJSessionParameters param) throws SJIOException {
         try {
-            return new AsyncTCPAcceptor(thread, port, this);
+            return new AsyncTCPAcceptor(thread, port, this, transportSelector, param);
         } catch (IOException e) {
             throw new SJIOException("Could not open acceptor on (physical) port: " + port, e);
         }
@@ -65,7 +68,7 @@ public final class SJAsyncManualTCP extends AbstractSJTransport
 	}
 
     public TransportSelector transportSelector() {
-        return new AsyncManualTCPSelector(thread, this);
+        return transportSelector;
     }
 
     @Override

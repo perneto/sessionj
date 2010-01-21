@@ -3,10 +3,12 @@
  */
 package sessionj.runtime.transport;
 
-import java.util.*;
-
-import sessionj.runtime.*;
+import sessionj.runtime.SJIOException;
 import sessionj.runtime.net.SJSessionParameters;
+import sessionj.runtime.util.SJRuntimeUtils;
+
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * @author Raymond
@@ -19,13 +21,15 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 	private final int port; // The session port.
 	
 	private final Map<String, Integer> transports = new HashMap<String, Integer>();
+	private final Set<SJTransport> activeTransports = new HashSet<SJTransport>();
 	
 	private final List<SJConnection> pending = new LinkedList<SJConnection>();
 	
 	private boolean isClosed = false;
 	
 	private final SJSessionParameters params; // Better to link to the parent SJServerSocket? But do we sometimes need acceptor groups that aren't attached to a server socket? // Should correspond with the transports that are eventually registered. 
-	
+	private static final Logger log = SJRuntimeUtils.getLogger(SJAcceptorThreadGroup.class);
+
 	public SJAcceptorThreadGroup(SJTransportManager sjtm, int port, String name, SJSessionParameters params)
 	{
 		super(name);
@@ -84,7 +88,11 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 		
 		for (SJConnection conn : pending) // Synchronize?
 		{
-			conn.disconnect();
+			try {
+				conn.disconnect();
+			} catch (SJIOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -134,14 +142,17 @@ public class SJAcceptorThreadGroup extends ThreadGroup
 		return port;
 	}
 	
-	void addTransport(String name, int port)
+	void addTransport(SJTransport transport, int port)
 	{
-		transports.put(name, port);
+		transports.put(transport.getTransportName(), port);
+		if (!activeTransports.add(transport)) {
+			log.warning("Added transport: " + transport + " twice");
+		}
 	}
 	
 	protected Map<String, Integer> getTransports()
 	{
-		return transports;
+		return Collections.unmodifiableMap(transports);
 	}
 	
 	public boolean isClosed()
@@ -169,14 +180,7 @@ public class SJAcceptorThreadGroup extends ThreadGroup
         return null;
     }
 
-	public Collection<SJTransport> activeTransports() {
-		Thread[] ts = new Thread[activeCount()];
-		enumerate(ts);
-		
-		Collection<SJTransport> active = new ArrayList<SJTransport>(ts.length);
-		for (Thread t : ts) {
-			((SJAcceptorThread) t).getTransport();
-		}
-		return active;
+	public Set<SJTransport> activeTransports() {
+		return Collections.unmodifiableSet(activeTransports);
 	}
 }

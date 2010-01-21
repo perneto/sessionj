@@ -115,11 +115,10 @@ public class SJTransportManager_c extends SJTransportManager
 
     public SJAcceptorThreadGroup openAcceptorGroup(int port, SJSessionParameters params) throws SJIOException 
 	{
-        List<SJTransport> ss = params.getNegotiationTransports();
-        List<SJTransport> ts = params.getSessionTransports();
-        Collection<String> sn = transportNames(ss);
+        List<SJTransport> negTrans = params.getNegotiationTransports();
+        List<SJTransport> sessTrans = params.getSessionTransports();
         
-        return openAcceptorGroup(port, ss, ts, sn, params);
+        return openAcceptorGroup(port, negTrans, sessTrans, params);
 	}
 
     private List<String> transportNames(Iterable<SJTransport> ss) {
@@ -129,9 +128,11 @@ public class SJTransportManager_c extends SJTransportManager
         return sn;
     }
     
-	private SJAcceptorThreadGroup openAcceptorGroup(int port, Iterable<SJTransport> negotiationTrans, Iterable<SJTransport> sessionTrans, Collection<String> negotiationNames, SJSessionParameters params) throws SJIOException // Synchronized where necessary from calling scope.
+	private SJAcceptorThreadGroup openAcceptorGroup(int port, Iterable<SJTransport> negotiationTrans, Iterable<SJTransport> sessionTrans, SJSessionParameters params) throws SJIOException // Synchronized where necessary from calling scope.
 	{
-        log.finer("Openening acceptor group: " + port);
+		Collection<String> negotiationNames = transportNames(negotiationTrans);
+		if (log.isLoggable(Level.FINER))
+			log.finer("Openening acceptor group, port: " + port + ", negotiation: " + negotiationTrans + " session: " + sessionTrans + ", params: " + params);
 
         synchronized (acceptorGroups)
 		{								
@@ -150,7 +151,7 @@ public class SJTransportManager_c extends SJTransportManager
 			Collection<SJSetupThread> sts = new LinkedList<SJSetupThread>();			
 			
 			for (SJTransport t : negotiationTrans) 
-                sts.add(openAcceptorForNegotiation(port, params.getBoundedBufferSize(), atg, sts, t));
+                sts.add(openAcceptorForNegotiation(port, params, atg, sts, t));
 			
 			if (sts.isEmpty())
                 throw new SJIOException("[SJTransportManager_c] No valid negociationTrans: " + port);
@@ -162,13 +163,13 @@ public class SJTransportManager_c extends SJTransportManager
                 // If the transport is already a negotiation transport, reuse the negotiation acceptor.
 				if (negotiationNames.contains(t.getTransportName()))
 				{
-					atg.addTransport(t.getTransportName(), -1 * t.sessionPortToSetupPort(port)); 
+					atg.addTransport(t, -1 * t.sessionPortToSetupPort(port)); 
                     // Marked as minus to show it's a setup port (transport connection needs to send NEGOTIATION_DONE). 
                     // Reuse the setup port for accepting (negotiated) transport connections.
 				}
 				else 
 				{
-                    SJSessionAcceptorThread thread = openAcceptorForSession(params.getBoundedBufferSize(), atg, t);
+                    SJSessionAcceptorThread thread = openAcceptorForSession(atg, t, params);
                     if (thread != null) ats.add(thread);
                 }
 			}
@@ -178,12 +179,13 @@ public class SJTransportManager_c extends SJTransportManager
 		
 			acceptorGroups.put(port, atg);
 
-            log.finer("Opened acceptor group: " + port);
+			if (log.isLoggable(Level.FINE))
+				log.fine("Opened acceptor group, port: " + port + ", negotiation: " + negotiationTrans + " session: " + sessionTrans + ", params: " + params);
             return atg;
 		}		
 	}
 
-    private SJSessionAcceptorThread openAcceptorForSession(int boundedBufferSize, SJAcceptorThreadGroup atg, SJTransport t) {
+    private SJSessionAcceptorThread openAcceptorForSession(SJAcceptorThreadGroup atg, SJTransport t, SJSessionParameters params) {
         try {
             int freePort = t.getFreePort(); 
             // FIXME: need to lock the transport until after we have properly claimed the port. 
@@ -196,16 +198,17 @@ public class SJTransportManager_c extends SJTransportManager
             if (t instanceof SJBoundedFifoPair) 
             // FIXME: currently hacked. Should there be a SJBoundedBufferTransport?
             {
-                at = new SJSessionAcceptorThread(atg, ((SJBoundedFifoPair) t).openAcceptor(freePort, boundedBufferSize));
+                at = new SJSessionAcceptorThread(atg, 
+	                ((SJBoundedFifoPair) t).openAcceptor(freePort, params.getBoundedBufferSize()));
             } else {
-                at = new SJSessionAcceptorThread(atg, t.openAcceptor(freePort));
+                at = new SJSessionAcceptorThread(atg, t.openAcceptor(freePort, params));
             }
 
             at.start();
 
-            log.finer(t.getTransportName() + " transport ready on: " + freePort);
+            log.finer(t + " transport ready on: " + freePort);
 
-            atg.addTransport(t.getTransportName(), freePort);
+            atg.addTransport(t, freePort);
             return at;
         }
         catch (SJIOException ioe) // Need to close the failed acceptor?
@@ -215,15 +218,15 @@ public class SJTransportManager_c extends SJTransportManager
         }
     }
 
-    private SJSetupThread openAcceptorForNegotiation(int port, int boundedBufferSize, SJAcceptorThreadGroup atg, Iterable<SJSetupThread> sts, SJTransport t) throws SJSetupException {
+    private SJSetupThread openAcceptorForNegotiation(int port, SJSessionParameters params, SJAcceptorThreadGroup atg, Iterable<SJSetupThread> sts, SJTransport t) throws SJSetupException {
         try {
             SJSetupThread st;
 
             if (t instanceof SJBoundedFifoPair) // FIXME: currently hacked. Should there be a SJBoundedBufferTransport?
             {
-                st = new SJSetupThread(atg, ((SJBoundedFifoPair) t).openAcceptor(t.sessionPortToSetupPort(port), boundedBufferSize));
+                st = new SJSetupThread(atg, ((SJBoundedFifoPair) t).openAcceptor(t.sessionPortToSetupPort(port), params.getBoundedBufferSize()));
             } else {
-                st = new SJSetupThread(atg, t.openAcceptor(t.sessionPortToSetupPort(port)));
+                st = new SJSetupThread(atg, t.openAcceptor(t.sessionPortToSetupPort(port), params));
             }
 
             st.start();
@@ -278,9 +281,13 @@ public class SJTransportManager_c extends SJTransportManager
 			
 			if (active == 0)
 			{
-				sessions.remove(conn);*/			
-				conn.disconnect();
-			/*}
+				sessions.remove(conn);*/
+		try {
+			conn.disconnect();
+		} catch (SJIOException e) {
+			e.printStackTrace();
+		}
+		/*}
 			else
 			{
 				sessions.put(conn, new Integer(active));

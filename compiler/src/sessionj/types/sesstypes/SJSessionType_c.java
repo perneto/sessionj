@@ -162,9 +162,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 
 	public boolean nodeEquals(SJSessionType st)
 	{
-		//return eligibleForEquals(st) && compareNode(NodeComparison.EQUALS, st);
-		
-		SJSessionType_c us = (SJSessionType_c) this.getCanonicalForm();
+		SJSessionType_c us = (SJSessionType_c) getCanonicalForm();
 		SJSessionType_c them = (SJSessionType_c) st.getCanonicalForm();
 
 		return us.eligibleForEquals(them) && us.compareNode(NodeComparison.EQUALS, them);
@@ -175,7 +173,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
     //SJSessionType candidate = potentialSupertype.supertypeCandidate(this);
 		//return eligibleForSubtype(candidate) && compareNode(NodeComparison.SUBTYPE, candidate);
 		
-		SJSessionType_c us = (SJSessionType_c) this.getCanonicalForm();
+		SJSessionType_c us = (SJSessionType_c) getCanonicalForm();
 		SJSessionType_c them = (SJSessionType_c) potentialSupertype.getCanonicalForm();
 
     SJSessionType candidate = them.supertypeCandidate(us);
@@ -185,7 +183,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 	public boolean nodeDualtype(SJSessionType st)
     // Should check message SVUID values?
 	{
-		SJSessionType_c us = (SJSessionType_c) this.getCanonicalForm();
+		SJSessionType_c us = (SJSessionType_c) getCanonicalForm();
 		SJSessionType_c them = (SJSessionType_c) st.getCanonicalForm();
 		
 		return us.eligibleForDualtype(them) && us.compareNode(NodeComparison.DUALTYPE, them);
@@ -311,7 +309,7 @@ abstract public class SJSessionType_c extends SJType_c implements SJSessionType 
 		SJSessionType n = nodeCanonicalForm();
   	SJSessionType c = child();		
 		
-  	return (c == null) ?  n : n.child(c.getCanonicalForm());
+  	return c == null ?  n : n.child(c.getCanonicalForm());
 	}
 	
   public boolean canImplement(SJSessionType st)

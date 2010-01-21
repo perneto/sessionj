@@ -178,6 +178,10 @@ public class MultiPartyInsyncTest {
 		    return false;
 	    }
 
+	    public TransportSelector transportSelector() {
+		    return null;
+	    }
+
 	    public boolean recurse(String lab) throws SJIOException {
             return false;
         }

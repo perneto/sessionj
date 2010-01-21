@@ -1,19 +1,10 @@
 package sessionj.runtime.net;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.*;
-import java.util.logging.Logger;
-import java.util.logging.Level;
-import java.util.concurrent.*;
-import java.io.IOException;
-
 import polyglot.types.SemanticException;
-
 import sessionj.ExtensionInfo;
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.SJProtocol;
+import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.session.*;
 import sessionj.runtime.transport.*;
 import sessionj.runtime.util.SJClassResolver;
@@ -21,6 +12,13 @@ import sessionj.runtime.util.SJRuntimeTypeEncoder;
 import sessionj.runtime.util.SJRuntimeUtils;
 import sessionj.types.SJTypeSystem;
 import sessionj.types.sesstypes.SJSessionType;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @SuppressWarnings({"StaticMethodOnlyUsedInOneClass"})
 public class SJRuntime
@@ -970,7 +968,7 @@ public class SJRuntime
 	}
 
     public static SJSelector selectorFor(SJProtocol proto) {
-        return new SJSelectorAllTransports(getTransportManager().activeSessionTransports());
+        return new SJSelectorImpl();
     }
 	
 	public static int findFreePort() throws SJIOException

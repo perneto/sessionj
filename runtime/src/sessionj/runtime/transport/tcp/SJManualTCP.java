@@ -1,6 +1,7 @@
 package sessionj.runtime.transport.tcp;
 
 import sessionj.runtime.SJIOException;
+import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.transport.*;
 import static sessionj.runtime.util.SJRuntimeUtils.closeStream;
 import sessionj.runtime.util.SJRuntimeUtils;
@@ -202,7 +203,7 @@ public class SJManualTCP extends AbstractSJTransport
 	protected static final boolean TCP_NO_DELAY = true;
     private static final Logger log = SJRuntimeUtils.getLogger(SJManualTCP.class);
 
-    public SJConnectionAcceptor openAcceptor(int port) throws SJIOException
+    public SJConnectionAcceptor openAcceptor(int port, SJSessionParameters param) throws SJIOException
 	{
 		return new SJManualTCPAcceptor(port, this);
 	}

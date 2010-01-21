@@ -1,15 +1,15 @@
 package sessionj.types;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import polyglot.frontend.Source;
 import polyglot.types.*;
 import sessionj.types.noalias.*;
-import sessionj.types.typeobjects.*;
 import sessionj.types.sesstypes.*;
+import sessionj.types.typeobjects.*;
 import sessionj.util.SJLabel;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class SJTypeSystem_c extends TypeSystem_c implements SJTypeSystem 
 {
@@ -42,7 +42,13 @@ public class SJTypeSystem_c extends TypeSystem_c implements SJTypeSystem
 	{
 		return new SJOutbranchType_c(this, isDependentlyTyped);
 	}
-	
+
+	@Override
+	public boolean typeEquals(Type type1, Type type2) {
+		// Removed the assert_ calls as this is a hotspot when using typecase
+		return type1.typeEqualsImpl(type2);
+	}
+
 	public SJInbranchType SJInbranchType()
 	{
 		return new SJInbranchType_c(this);

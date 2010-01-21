@@ -1,15 +1,17 @@
 package sessionj.runtime.transport.tcp;
 
-import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.*;
+import sessionj.runtime.net.SJSelectorInternal;
+import sessionj.runtime.net.SJServerSocket;
+import sessionj.runtime.net.TransportSelector;
+import sessionj.runtime.transport.SJConnection;
 import sessionj.runtime.transport.SJTransport;
 import sessionj.runtime.util.SJRuntimeUtils;
-import sessionj.util.Pair;
 
-import java.io.IOException;
-import java.nio.channels.SelectableChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,117 +20,96 @@ import java.util.logging.Logger;
 class AsyncManualTCPSelector implements TransportSelector {
     private static final Logger log = SJRuntimeUtils.getLogger(AsyncManualTCPSelector.class);
     
-    private final SelectingThread thread;
+    final SelectingThread thread;
     private final SJTransport transport;
-    private final ChannelRegistrations registrations;
+	private Map<ServerSocketChannel, SJServerSocket> serverSockets;
+	final ConcurrentHashMap<ServerSocketChannel, SJSelectorInternal> interestedSelectorForServerSocket;
 
-    AsyncManualTCPSelector(SelectingThread thread, SJTransport transport) {
+	AsyncManualTCPSelector(SelectingThread thread, SJTransport transport) {
         this.thread = thread;
         this.transport = transport;
-        registrations = new ChannelRegistrations();
+		serverSockets = new HashMap<ServerSocketChannel, SJServerSocket>();
+		interestedSelectorForServerSocket = new ConcurrentHashMap<ServerSocketChannel, SJSelectorInternal>();
     }
 
     @SuppressWarnings({"MethodParameterOfConcreteClass"})
-    public boolean registerAccept(SJServerSocket ss) throws IOException {
+    public boolean registerAccept(SJSelectorInternal sel, SJServerSocket ss) {
         ServerSocketChannel ssc = retrieveServerSocketChannel(ss);
-        
-        if (ssc != null) {
+
+	    //noinspection RedundantIfStatement
+	    if (ssc != null) {
             // Not doing the real registration with the selecting thread,
             // this is done by the acceptor, ahead of time.
             // When the real registration is done twice, a race condition (occasional deadlocks) happens.
-            
-            registrations.accept(ssc, ss);
+		    serverSockets.put(ssc, ss);
+		    interestedSelectorForServerSocket.put(ssc, sel);
+		    
             return true;
         }
         return false;
     }
+	
+	void notifyAccepted(ServerSocketChannel ssc, SocketChannel socketChannel, AsyncConnection connection) {
+		SJServerSocket sjss = serverSockets.get(ssc);
+		SJSelectorInternal sel = interestedSelectorForServerSocket.get(ssc);
+		connection.setInterestedSelector(sel);
+		sel.notifyAccept(sjss, connection);
+	}
 
-    public boolean registerInput(SJSocket s) throws SJIOException {
-        SocketChannel sc = retrieveSocketChannel(s);
-        if (sc != null) {
-            if (log.isLoggable(Level.FINER))
-                log.finer("Registering: " + sc);
-            thread.registerInput(sc, s.getParameters().createDeserializer(), this);
-            registrations.input(sc, new DirectlyToUser(s));
-            return true;
-        }
-        return false;
-    }
 
-    public SJSocket select(boolean considerSessionType) throws SJIOException, SJIncompatibleSessionException {
-        while (true) {
-            Object chan;
-            try {
-                log.finer("Blocking dequeue...");
-                chan = thread.dequeueChannelForSelect(registrations.registeredChannels()); // blocking dequeue
-                if (log.isLoggable(Level.FINE)) log.fine("Channel selected: " + chan);
-            } catch (InterruptedException e) {
-                throw new SJIOException(e);
-            }
-            if (chan instanceof SocketChannel) {
-                SocketChannel sc = (SocketChannel) chan;
+	public boolean registerInput(SJSelectorInternal sel, SJConnection connection) {
+		/*
+		if (registeredSel == null || registeredSel.equals(sel))
+			interestedSelectorForServerSocket.put(sc, sel);
+		else
+			throw new IllegalStateException("Tried to register channel: " + sc
+				+ " with selector: " + sel + ", but channel already monitored by selector: " + registeredSel);
+		...
+	        if (!registeredSel.equals(sel)) throw new IllegalStateException("Channel: " + sc 
+		        + " already registered for selector: " + registeredSel 
+		        + ", but asked for registration with another selector: " + sel);
+		*/
+		SocketChannel sc = retrieveSocketChannel(connection);
+		if (sc != null) {
+			if (log.isLoggable(Level.FINER))
+				log.finer("Registering: " + sc);
+			AsyncConnection asyncConnection = (AsyncConnection) connection;
+			asyncConnection.setInterestedSelector(sel);
+			thread.registerInput(sc, asyncConnection);
+			return true;
+		}
+		return false;
+	}
 
-                InputState state = registrations.getInput(sc);
-                InputState newState = state.receivedInput();
-                registrations.input(sc, newState);
-                SJSocket s = newState.sjSocket();
-                if (s == null) {
-                    log.finest("Read: InputState not complete: looping in select");
-                } else if (considerSessionType && s.remainingSessionType() == null) {
-                    // User-level inputs all done - this must be from the close protocol
-                    if (log.isLoggable(Level.FINER))
-                        log.finer("remainingSessionType is null: looping in select and deregistering socket " + s);
-                    thread.enqueueChannelForSelect(sc);
-                    deregister(sc);
-                } else {
-                    return s;
-                }
-            } else {
-                Pair<ServerSocketChannel, SocketChannel> p = (Pair<ServerSocketChannel, SocketChannel>) chan;
-                ServerSocketChannel ssc = p.first;
+	public boolean deregisterInput(SJConnection sc, SJSelectorInternal selectorInternal) {
+		/*
+		if (registeredSel != null && sel.equals(registeredSel)) {
+		} else {
+			log.warning("Asked to deregister: " + sc + ", selector: "
+				+ sel + " but channel was registered with: " + registeredSel);
+		}
+		*/
+		SocketChannel schan = retrieveSocketChannel(sc);
+		if (schan != null) {
+			thread.deregister(schan);
+			return true;
+		}
+		return false;
+	}
 
-                SJServerSocket sjss = registrations.getAccept(ssc);
-                registerOngoingAccept(sjss, p.second);
+	public boolean deregisterAccept(SJServerSocket ss, SJSelectorInternal selectorInternal) {
+		ServerSocketChannel ssc = retrieveServerSocketChannel(ss);
+		if (ssc != null) {
+			thread.deregister(ssc);
+			return true;
+		}
+		return false;
+	}
 
-                InputState initialState = registrations.getInput(p.second);
-                SJSocket s = initialState.sjSocket();
-                if (s == null) {
-                    log.finest("Accept: InputState not complete: looping in select");
-                } else {
-                    return s;
-                }
-            }
-        }
-    }
-
-    private void deregister(SocketChannel sc) {
-        // Does not really cancel the selection key, unless no
-        // other instance of this class is interested.
-        thread.deregisterInput(sc, this); 
-        
-        registrations.removeInput(sc);
-    }
-
-    private void registerOngoingAccept(SJServerSocket sjss, SocketChannel sc) throws SJIOException, SJIncompatibleSessionException {
-        // OK even if we only do outputs: enqueing write requests will change the interest
-        // set for the channel. Input is the default interest that we go back to after 
-        // everything is written.
-        log.finest("sjss: " + sjss + ", sc: " + sc);
-        thread.registerInput(sc, sjss.getParameters().createDeserializer(), this);
-        registrations.input(sc, sjss.getParameters().getAcceptProtocol().initialAcceptState(sjss, sc));
-    }
-
-    public void close() throws SJIOException {
-        log.finer("Closing selector");
-        for (SelectableChannel chan : registrations.registeredChannels()) {
-            thread.close(chan);
-        }
-    }
-
-    private SocketChannel retrieveSocketChannel(SJSocket s) {
+	private SocketChannel retrieveSocketChannel(SJConnection connection) {
         SocketChannel sc = null;
-        if (isOurSocket(s)) {
-            sc = ((AsyncConnection) s.getConnection()).socketChannel();
+        if (connection instanceof AsyncConnection) {
+            sc = ((AsyncConnection) connection).socketChannel();
             assert sc != null;
         }
         return sc;
@@ -142,9 +123,5 @@ class AsyncManualTCPSelector implements TransportSelector {
         } else {
             return acceptor.ssc;
         }
-    }
-
-    private boolean isOurSocket(SJSocket s) {
-        return transport.equals(s.getConnection().getTransport());
     }
 }

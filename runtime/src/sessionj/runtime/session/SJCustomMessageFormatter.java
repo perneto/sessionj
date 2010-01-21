@@ -3,15 +3,13 @@
  */
 package sessionj.runtime.session;
 
-import java.io.EOFException;
-import java.nio.Buffer;
-import java.nio.BufferOverflowException;
-import java.nio.ByteBuffer;
-import java.util.*;
-
 import sessionj.SJConstants;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.transport.SJConnection;
+
+import java.io.EOFException;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 
 /**
  * @author Raymond
