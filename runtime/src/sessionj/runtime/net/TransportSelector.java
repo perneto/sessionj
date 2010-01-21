@@ -12,7 +12,7 @@ public interface TransportSelector {
     boolean registerAccept(SJSelectorInternal sjSelector, SJServerSocket ss);
     boolean registerInput(SJSelectorInternal sjSelector, SJConnection s);
 
-	boolean deregisterInput(SJConnection connection, SJSelectorInternal selectorInternal);
+	boolean deregisterInput(SJConnection connection);
 	boolean deregisterAccept(SJServerSocket ss, SJSelectorInternal selectorInternal);
 
 	// At the moment the transport selectors are not explicitly created - nor closed - by the 

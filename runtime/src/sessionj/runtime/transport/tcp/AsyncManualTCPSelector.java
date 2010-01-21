@@ -58,17 +58,6 @@ class AsyncManualTCPSelector implements TransportSelector {
 
 
 	public boolean registerInput(SJSelectorInternal sel, SJConnection connection) {
-		/*
-		if (registeredSel == null || registeredSel.equals(sel))
-			interestedSelectorForServerSocket.put(sc, sel);
-		else
-			throw new IllegalStateException("Tried to register channel: " + sc
-				+ " with selector: " + sel + ", but channel already monitored by selector: " + registeredSel);
-		...
-	        if (!registeredSel.equals(sel)) throw new IllegalStateException("Channel: " + sc 
-		        + " already registered for selector: " + registeredSel 
-		        + ", but asked for registration with another selector: " + sel);
-		*/
 		SocketChannel sc = retrieveSocketChannel(connection);
 		if (sc != null) {
 			if (log.isLoggable(Level.FINER))
@@ -81,14 +70,7 @@ class AsyncManualTCPSelector implements TransportSelector {
 		return false;
 	}
 
-	public boolean deregisterInput(SJConnection sc, SJSelectorInternal selectorInternal) {
-		/*
-		if (registeredSel != null && sel.equals(registeredSel)) {
-		} else {
-			log.warning("Asked to deregister: " + sc + ", selector: "
-				+ sel + " but channel was registered with: " + registeredSel);
-		}
-		*/
+	public boolean deregisterInput(SJConnection sc) {
 		SocketChannel schan = retrieveSocketChannel(sc);
 		if (schan != null) {
 			thread.deregister(schan);

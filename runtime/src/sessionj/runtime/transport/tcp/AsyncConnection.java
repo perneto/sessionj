@@ -122,8 +122,8 @@ public class AsyncConnection extends AbstractSJConnection
         return sc.socket().getLocalPort();
     }
 
-	// HACK: to allow selection of the correct connection when more than one is available in SJServerSocket.nextConnection()
-    public SocketChannel socketChannel() {
+	// For AsyncManualTCPSelector
+    SocketChannel socketChannel() {
         return sc;
     }
 
