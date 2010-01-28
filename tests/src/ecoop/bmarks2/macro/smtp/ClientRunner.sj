@@ -21,6 +21,8 @@ public class ClientRunner
     final int msgSize = Integer.parseInt(args[6]);
       
   	final boolean[] ack = new boolean[] { false };
+
+    Thread.sleep(2000);
   	
     for (int i = 0; i < numClients; i++)	
     {
