@@ -99,7 +99,7 @@ for v in versions:
 				
 				if env == 'camelot':
 					#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command
-					command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command + ' -Xmx256m'
+					command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command + ' -Xmx1024m'
 			
 				#command = command + ' -Dcom.sun.management.jmxremote.port=12345 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false'
 				#command += ' -agentpath:/Applications/YourKit_Java_Profiler_8.0.19.app/bin/mac/libyjpagent.jnilib'
