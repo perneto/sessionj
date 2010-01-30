@@ -21,6 +21,7 @@ public class ClientRunner
     final int msgSize = Integer.parseInt(args[6]);
       
   	final boolean[] ack = new boolean[] { false };
+  	final boolean[] spin = new boolean[] { false };
 
     Thread.sleep(2000);
   	
@@ -34,7 +35,7 @@ public class ClientRunner
         {
         	try
         	{        		
-        		new ecoop.bmarks2.macro.smtp.client.DummyClient(debug).run(host, serverPort, msgSize, ack);        		
+        		new ecoop.bmarks2.macro.smtp.client.DummyClient(debug).run(host, serverPort, msgSize, ack, spin);        		
         	}
         	catch (Exception x)
         	{
@@ -49,21 +50,29 @@ public class ClientRunner
     		{
     			ack.wait();
     		}
+    		
+            ack[0] = false;	    	
     	}
     	
-    	ack[0] = false;
     	
     	System.out.println("[ClientRunner] Ack received from Client: " + cid);
       
-      try
-      {
       	Thread.sleep(delay);
-      }
-      finally
-      {
-      	
-      }
     }
+    
+    synchronized (spin) {
+        spin[0] = true;
+        spin.notifyAll();
+    }
+    
+    long clientSpinStart;
+    if (debug) {
+        clientSpinStart = 500;
+    } else {
+        clientSpinStart = 10000;
+    }
+
+    Thread.sleep(clientSpinStart);
     
     // Here, threads have been created (and started?) but the LoadClients are not necessarily connected yet. 
     if (scriptPort > 0) 

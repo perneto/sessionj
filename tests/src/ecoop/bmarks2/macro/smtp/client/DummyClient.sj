@@ -29,7 +29,7 @@ public class DummyClient
 		DummyClient.text = sb.toString();
 	}
 	
-	public void run(String server, int port, int msgSize, boolean[] ack) throws Exception
+	public void run(String server, int port, int msgSize, boolean[] ack, boolean[] spin) throws Exception
 	{
 		final String fqdn = InetAddress.getLocalHost().getHostName().toString(); //getCanonicalHostName().toString();
 		
@@ -87,6 +87,12 @@ public class DummyClient
 				{
 					Thread.sleep(1000);
 				}
+				
+				synchronized (spin) {
+					while (!spin[0]) {
+						spin.wait();
+					}
+				}
 			}		
 			
 			Thread.sleep(50);
@@ -132,7 +138,7 @@ public class DummyClient
 			System.out.println(m);
 		}
 	}
-	
+	/*
 	public static void main(String[] args) throws Exception
 	{
 		boolean debug = Boolean.parseBoolean(args[0]);
@@ -142,6 +148,7 @@ public class DummyClient
 		
 		int msgSize = Integer.parseInt(args[3]);
 		
-		new DummyClient(debug).run(server, port, msgSize, new boolean[1]);
+		new DummyClient(debug).run(server, port, msgSize, new boolean[1], new boolean[1]);
 	}
+	*/
 }
