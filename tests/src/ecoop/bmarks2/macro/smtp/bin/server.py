@@ -111,7 +111,7 @@ for v in versions:
 					transport = ''							
 					setup = 's'
 				
-				command = command + ' ' + transport + '-cp tests/classes ecoop.bmarks2.macro.smtp.ServerRunner ' + str(debug) + ' ' + sport + ' ' + setup + ' ' + v
+				command = command + ' ' + transport + '-cp tests/classes ecoop.bmarks2.macro.smtp.ServerRunner ' + str(debug) + ' ' + sport + ' ' + setup + ' ' + v + ' ' + str(len(workers))
 		
 				common.debugPrint(debug, 'Command: ' + command)
 				

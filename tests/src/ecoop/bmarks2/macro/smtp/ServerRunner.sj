@@ -4,6 +4,7 @@
 package ecoop.bmarks2.macro.smtp;
 
 import ecoop.bmarks2.macro.smtp.sj.*;
+import ecoop.bmarks2.micro.StartSpinningController;
 
 // Mostly duplicated from the microbenchmark equivalent: spawns a pair of Server and SignalServer.
 public class ServerRunner 
@@ -17,6 +18,7 @@ public class ServerRunner
     final int port = Integer.parseInt(args[1]);
     final String setups = args[2];
     final String flag = args[3];
+    final int numWorkers = Integer.parseInt(args[4]);
     
   	if (!(flag.equals(SJ_THREAD) || flag.equals(SJ_EVENT)))
 		{
@@ -69,5 +71,9 @@ public class ServerRunner
     		}
     	}
     }.start();
+    
+    Thread spinning = new Thread(new StartSpinningController(port, numWorkers));
+    spinning.setDaemon(true);
+    spinning.start();
   }
 }

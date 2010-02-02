@@ -96,36 +96,52 @@ public class Common
   	}
   }
   
-  public static final void closeInputStream(InputStream is) throws IOException
+  public static final void closeInputStream(InputStream is)
   {
-  	if (is != null)
-  	{
-  		is.close();
+    try {
+		if (is != null)
+		{
+			is.close();
+		}
+  	} catch (Exception e) {
+  	    throw new RuntimeException(e);
   	}
   }
   
-  public static final void closeOutputStream(OutputStream os) throws IOException
+  public static final void closeOutputStream(OutputStream os)
   {
-  	if (os != null)
-  	{
-  		os.flush();
-  		os.close();
+	try {
+		if (os != null)
+		{
+			os.flush();
+			os.close();
+		}
+  	} catch (Exception e) {
+  	    throw new RuntimeException(e);
   	}
   }
   
-  public static final void closeSocket(Socket s) throws IOException
+  public static final void closeSocket(Socket s)
   {
-  	if (s != null)
-  	{
-  		s.close();
+    try {
+     	if (s != null)
+		{
+			s.close();
+		}
+    } catch (Exception e) {
+  	    throw new RuntimeException(e);
   	}
   }
   
-  public static final void closeServerSocket(ServerSocket ss) throws IOException
+  public static final void closeServerSocket(ServerSocket ss)
   {
-  	if (ss != null)
-  	{
-  		ss.close();
+    try {
+		if (ss != null)
+		{
+			ss.close();
+		}
+  	} catch (Exception e) {
+  	    throw new RuntimeException(e);
   	}
   }  
 }
