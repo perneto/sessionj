@@ -3,6 +3,8 @@
 
 package ecoop.bmarks2.macro.smtp;
 
+import sessionj.runtime.transport.tcp.*;
+
 import ecoop.bmarks2.macro.smtp.sj.*;
 import ecoop.bmarks2.micro.StartSpinningController;
 
@@ -42,6 +44,10 @@ public class ServerRunner
   		throw new RuntimeException("[ServerRunner] Bad server flag: " + flag);
   	}
   	
+  	Thread spinning = new Thread(new StartSpinningController(debug, port, numWorkers));
+    //spinning.setDaemon(true);
+    spinning.start();
+    
     new Thread()
     {
     	public void run()
@@ -72,8 +78,5 @@ public class ServerRunner
     	}
     }.start();
     
-    Thread spinning = new Thread(new StartSpinningController(port, numWorkers));
-    spinning.setDaemon(true);
-    spinning.start();
   }
 }

@@ -15,9 +15,9 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
 	//protocol pClient ^(ecoop.bmarks2.micro.sj.thread.server.Server.pServer) // Can be either "thread" or "event". 
   protocol pClient cbegin.rec X [!{REC: !<ClientMessage>.?(ServerMessage).#X, QUIT: }]
 
-  public LoadClient(boolean debug, String host, int port, int cid, int serverMessageSize, boolean[] ack) 
+  public LoadClient(boolean debug, String host, int port, int cid, int serverMessageSize, boolean[] ack, boolean[] spin) 
   {
-  	super(debug, host, port, cid, serverMessageSize, ack);
+  	super(debug, host, port, cid, serverMessageSize, ack, spin);
   }
 
   public void run() throws Exception
@@ -63,6 +63,7 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
     	      	Thread.sleep(1000);
     	      }
             
+            waitSpin();
             s.recurse(X);
           }
         }
@@ -91,6 +92,6 @@ public class LoadClient extends ecoop.bmarks2.micro.LoadClient
     int cid = Integer.parseInt(args[3]);
     int serverMessageSize = Integer.parseInt(args[4]);
 
-    new LoadClient(debug, host, port, cid, serverMessageSize, new boolean[1]).run();  
+    new LoadClient(debug, host, port, cid, serverMessageSize, new boolean[1], new boolean[1]).run();  
   }
 }

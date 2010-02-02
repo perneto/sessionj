@@ -7,11 +7,13 @@ public class StartSpinningController implements Runnable {
 	private final int port;
 	private final int numWorkers;
 	private final Socket[] sockets;
+	private final boolean debug;
 	
-	public StartSpinningController(int port, int numWorkers) {
+	public StartSpinningController(boolean debug, int port, int numWorkers) {
 		this.port = port;
 		this.numWorkers = numWorkers;
 		sockets = new Socket[numWorkers];
+		this.debug = debug;
 	}
 	
 	public void run() {
@@ -19,6 +21,7 @@ public class StartSpinningController implements Runnable {
 		Socket s = null;
 		try {
 			ss = new ServerSocket(port + OFFSET);
+			Common.debugPrintln(debug, "[StartSpinningController] Listening on: "+ (port+OFFSET));
 			for (int i=0; i<numWorkers; i++) {
 				s = ss.accept();
 				sockets[i] = s;
@@ -27,6 +30,7 @@ public class StartSpinningController implements Runnable {
 			for (int i=0; i<numWorkers; i++) {
 				sockets[i].sendUrgentData(42);
 			}
+			System.out.println("[StartSpinningController] Sent spin signal to all clients");
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
