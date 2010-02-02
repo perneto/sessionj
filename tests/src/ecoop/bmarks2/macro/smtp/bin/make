@@ -82,7 +82,7 @@ if [ "$c" == "true" ];
 then  
   path=tests/src/ecoop/bmarks2/micro
   
-  for f in Common Server SignalServer SignalClient; do
+  for f in Common StartSpinningController Server SignalServer SignalClient ; do
     compile $path/$f.sj
   done
 

@@ -5,6 +5,8 @@ package ecoop.bmarks2.macro.smtp;
 
 import java.io.*;
 import java.net.*;
+import ecoop.bmarks2.micro.Common;
+import ecoop.bmarks2.micro.StartSpinningController;
 
 // Mostly duplicated from the microbenchmark equivalent: spawns DummyClients.
 public class ClientRunner 
@@ -60,10 +62,22 @@ public class ClientRunner
       	Thread.sleep(delay);
     }
     
+    Socket s1 = null;
+    InputStream is = null;
+    try {
+        Common.debugPrintln(debug, "Waiting for spinning signal from server...");
+        s1 = new Socket(host, serverPort+StartSpinningController.OFFSET);
+        is = s1.getInputStream();
+        is.read();
+    } finally {
+        Common.closeSocket(s1);
+        Common.closeInputStream(is);
+    }
     synchronized (spin) {
         spin[0] = true;
         spin.notifyAll();
     }
+    Common.debugPrintln(debug, "Received start signal from server, spinning");
     
     long clientSpinStart;
     if (debug) {
