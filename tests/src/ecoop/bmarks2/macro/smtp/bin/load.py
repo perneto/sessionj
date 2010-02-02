@@ -89,7 +89,7 @@ for v in versions:
 				else:
 					sport1 = sport	
 				
-				command = renv + ' -cp tests/classes ecoop.bmarks2.macro.smtp.ClientRunner ' + str(debug) + ' ' + serverName + ' ' + sport1 + ' ' + wport + ' ' + delay + ' ' + clients + ' ' + size				
+				command = renv + ' -cp tests/classes ecoop.bmarks2.macro.smtp.ClientRunner ' + str(debug) + ' ' + serverName + ' ' + sport1 + ' ' + wport + ' ' + delay + ' ' + clients + ' ' + size	+ ' ' + sport			
 				common.debugPrint(debug, 'Command: ' + command)						
 				
 				ct = common.CommandThread(command)

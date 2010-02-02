@@ -96,7 +96,7 @@ public class Server extends ecoop.bmarks2.macro.smtp.sj.Server
 			{
 				ss = SJServerSocket.create(smtp_server, getPort(), params);
 				
-				debugPrintln("[Server] Listening on: " + getPort());
+				debugPrintln("[Server] Listening on: " + (getPort() + SJAsyncManualTCP.TCP_PORT_MAP_ADJUST));
 				
 				sel.registerAccept(ss);				
 			}

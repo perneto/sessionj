@@ -30,6 +30,7 @@ public class ClientRunner
 		}   
     
   	final boolean[] ack = new boolean[] { false };
+    final boolean[] spin = new boolean[] { false };  	
   	
     for (int i = 0; i < numClients; i++)	
     {
@@ -43,15 +44,15 @@ public class ClientRunner
         	{        		
         		if (flag.equals(ServerRunner.JAVA_THREAD))
         		{
-        			new ecoop.bmarks2.micro.java.thread.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, ack).run();
+        			new ecoop.bmarks2.micro.java.thread.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, ack, spin).run();
         		}
         		else if (flag.equals(ServerRunner.JAVA_EVENT))
         		{
-        			new ecoop.bmarks2.micro.java.event.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, ack).run();
+        			new ecoop.bmarks2.micro.java.event.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, ack, spin).run();
         		}
         		else if (flag.equals(ServerRunner.SJ_THREAD) || flag.equals(ServerRunner.SJ_EVENT))
         		{
-        			new ecoop.bmarks2.micro.sj.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, ack).run();
+        			new ecoop.bmarks2.micro.sj.client.LoadClient(debug, host, serverPort, cid, serverMessageSize, ack, spin).run();
         		}
         		else
         		{
@@ -88,6 +89,32 @@ public class ClientRunner
       }
     }
     
+    Socket s1 = null;
+	InputStream is = null;
+	try {
+		Common.debugPrintln(debug, "Waiting for spinning signal from server...");
+		s1 = new Socket(host, serverPort+StartSpinningController.OFFSET);
+		is = s1.getInputStream();
+		is.read();
+	} finally {
+		Common.closeSocket(s1);
+		Common.closeInputStream(is);
+	}
+	synchronized (spin) {
+		spin[0] = true;
+		spin.notifyAll();
+	}
+	Common.debugPrintln(debug, "Received start signal from server, spinning");
+	
+	long clientSpinStart;
+	if (debug) {
+		clientSpinStart = 500;
+	} else {
+		clientSpinStart = 10000;
+	}
+
+	Thread.sleep(clientSpinStart);
+		
     // Here, threads have been created (and started?) but the LoadClients are not necessarily connected yet. 
     if (scriptPort > 0) 
     {

@@ -17,6 +17,8 @@ public class ServerRunner
     final int port = Integer.parseInt(args[1]);
     //final int numClients = Integer.parseInt(args[2]); // NB: TimerClients count as two clients.
     final String flag = args[2];
+    final int numWorkers = Integer.parseInt(args[3]);
+    
     
   	if (!(flag.equals(JAVA_THREAD) || flag.equals(JAVA_EVENT) || flag.equals(SJ_THREAD) || flag.equals(SJ_EVENT)))
 		{
@@ -77,5 +79,8 @@ public class ServerRunner
     		}
     	}
     }.start();
+  
+	Thread spinning = new Thread(new StartSpinningController(debug, port, numWorkers));
+	spinning.start();
   }
 }

@@ -109,7 +109,7 @@ for v in versions:
 					else:
 						transport = ''							
 					
-					command = command + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v
+					command = command + ' ' + transport + '-cp tests/classes ecoop.bmarks2.micro.ServerRunner ' + str(debug) + ' ' + sport + ' ' + v + ' ' + str(len(workers))
 			
 					common.debugPrint(debug, 'Command: ' + command)
 					

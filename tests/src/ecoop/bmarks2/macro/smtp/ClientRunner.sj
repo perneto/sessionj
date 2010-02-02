@@ -21,6 +21,7 @@ public class ClientRunner
     int delay = Integer.parseInt(args[4]);
     final int numClients = Integer.parseInt(args[5]);    
     final int msgSize = Integer.parseInt(args[6]);
+    final int basePort = Integer.parseInt(args[7]);
       
   	final boolean[] ack = new boolean[] { false };
   	final boolean[] spin = new boolean[] { false };
@@ -65,8 +66,9 @@ public class ClientRunner
     Socket s1 = null;
     InputStream is = null;
     try {
-        Common.debugPrintln(debug, "Waiting for spinning signal from server...");
-        s1 = new Socket(host, serverPort+StartSpinningController.OFFSET);
+        Common.debugPrintln(debug, "Waiting for spinning signal from server, connecting to: " 
+            + host + ":" + (basePort+StartSpinningController.OFFSET));
+        s1 = new Socket(host, basePort+StartSpinningController.OFFSET);
         is = s1.getInputStream();
         is.read();
     } finally {
