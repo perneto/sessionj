@@ -25,7 +25,7 @@ public interface SJTransport
 	
 	String getTransportName();
 	
-	String sessionHostToNegociationHost(String hostName);
+	String sessionHostToNegotiationHost(String hostName);
 	int sessionPortToSetupPort(int port);
 	
 	/*

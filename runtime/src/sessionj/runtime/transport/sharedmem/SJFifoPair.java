@@ -553,7 +553,7 @@ public class SJFifoPair extends AbstractSJTransport
             + ", port will still be considered in use");
 	}
 	
-	public String sessionHostToNegociationHost(String hostName)
+	public String sessionHostToNegotiationHost(String hostName)
 	{
 		return hostName;
 	}

@@ -257,20 +257,39 @@ public class SJTransportManager_c extends SJTransportManager
 	 
 	public SJConnection openConnection(String hostName, int port, SJSessionParameters params) throws SJIOException
 	{
-        List<SJTransport> ss = params.getNegotiationTransports();
-        List<SJTransport> ts = params.getSessionTransports();
-        List<String> tn = transportNames(ts);
+		List<SJTransport> ss = params.getNegotiationTransports();
+    List<SJTransport> ts = params.getSessionTransports();
+    List<String> tn = transportNames(ts);
 
-        SJConnection conn = clientNegotiation(params, hostName, port, ss, ts, tn, params.getBoundedBufferSize());
+    SJConnection conn = clientNegotiation(params, hostName, port, ss, ts, tn, params.getBoundedBufferSize());
 
-        if (conn == null)
-            throw new SJIOException("[SJTransportManager_c] Connection failed: " + hostName + ":" + port);
+    checkAndRegisterConnection(conn, hostName, port);
 
-        log.finer("Connected on " + conn.getLocalPort() + " to " + hostName + ":" + port + " (" + conn.getPort() + ") using: " + conn.getTransportName());
+    return conn;		
+	}
+	
+	// Duplicated from the above, but uses the authenticating client negotiation. Perhaps we should the compatibility mode (i.e. SECURE) to determine whether to do authentication or not.
+	public SJConnection openAuthenticatedConnection(String hostName, int port, SJSessionParameters params, String user, String pwd) throws SJIOException
+	{
+    List<SJTransport> ss = params.getNegotiationTransports();
+    List<SJTransport> ts = params.getSessionTransports();
+    List<String> tn = transportNames(ts);
 
-        registerConnection(conn);
-		
-		return conn;
+    SJConnection conn = clientNegotiationAndAuthentication(params, hostName, port, ss, ts, tn, params.getBoundedBufferSize(), user, pwd);
+    
+    checkAndRegisterConnection(conn, hostName, port);
+
+    return conn;		
+	}
+	
+	private void checkAndRegisterConnection(SJConnection conn, String hostName, int port) throws SJIOException
+	{
+		if (conn == null)
+      throw new SJIOException("[SJTransportManager_c] Connection failed: " + hostName + ":" + port);
+
+		log.finer("Connected on " + conn.getLocalPort() + " to " + hostName + ":" + port + " (" + conn.getPort() + ") using: " + conn.getTransportName());
+
+		registerConnection(conn);		
 	}
 	
 	public void closeConnection(SJConnection conn) // FIXME: add in close delay to allow connection reuse.
@@ -406,6 +425,12 @@ public class SJTransportManager_c extends SJTransportManager
 	
 	protected SJConnection clientNegotiation(SJSessionParameters params, String hostName, int port, List<SJTransport> ss, List<SJTransport> ts, List<String> tn, int boundedBufferSize) throws SJIOException // Synchronized where necessary from calling scope.
 	{
+		return clientNegotiationAndAuthentication(params, hostName, port, ss, ts, tn, boundedBufferSize, null, null);
+	}
+	
+	// HACK: Nuno's authenticated connections hacked in. Authentication only performed for SJAuthenticatingTransports; skipped for other transports.
+	protected SJConnection clientNegotiationAndAuthentication(SJSessionParameters params, String hostName, int port, List<SJTransport> ss, List<SJTransport> ts, List<String> tn, int boundedBufferSize, String user, String pwd) throws SJIOException // Synchronized where necessary from calling scope.
+	{
 		SJConnection conn = null;
 		
 		for (SJTransport t : ss) // The negotiation transports.
@@ -414,11 +439,20 @@ public class SJTransportManager_c extends SJTransportManager
 			{
 				if (t instanceof SJBoundedFifoPair) // FIXME: currently hacked. Should there be a SJBoundedBufferTransport? 
 				{
-					conn = ((SJBoundedFifoPair) t).connect(t.sessionHostToNegociationHost(hostName), t.sessionPortToSetupPort(port), boundedBufferSize);
+					conn = ((SJBoundedFifoPair) t).connect(t.sessionHostToNegotiationHost(hostName), t.sessionPortToSetupPort(port), boundedBufferSize);
+				}
+				else if (t instanceof SJAuthenticatingTransport) // HACK.
+				{
+					if (user == null || pwd == null) // Should be passed via SJCredentials.
+					{
+						throw new SJIOException("[SJTransportManager_c] Missing authentication details: user=" + user + ", pwd=" + pwd); 
+					}
+					
+					conn = ((SJAuthenticatingTransport) t).connect(t.sessionHostToNegotiationHost(hostName), t.sessionPortToSetupPort(port), user, pwd);
 				}
 				else 
 				{
-					conn = t.connect(t.sessionHostToNegociationHost(hostName), t.sessionPortToSetupPort(port));
+					conn = t.connect(t.sessionHostToNegotiationHost(hostName), t.sessionPortToSetupPort(port));
 				}
 
                 log.finer("Setting up on " + conn.getLocalPort() + " to " + hostName + ':' + t.sessionPortToSetupPort(port) + " using: " + t.getTransportName());
@@ -539,11 +573,11 @@ public class SJTransportManager_c extends SJTransportManager
 						
 						if (t instanceof SJBoundedFifoPair) // FIXME: currently hacked. Should there be a SJBoundedBufferTransport? 
 						{
-							tmp = ((SJBoundedFifoPair) t).connect(t.sessionHostToNegociationHost(hostName), p < 0 ? -1 * p : p, boundedBufferSize);
+							tmp = ((SJBoundedFifoPair) t).connect(t.sessionHostToNegotiationHost(hostName), p < 0 ? -1 * p : p, boundedBufferSize);
 						}
 						else // The original case. 
 						{
-							tmp = t.connect(t.sessionHostToNegociationHost(hostName), p < 0 ? -1 * p : p);
+							tmp = t.connect(t.sessionHostToNegotiationHost(hostName), p < 0 ? -1 * p : p);
 						}
 						
 						if (p < 0) // Connected to a setup, so bypass the preliminary negotiation phase.
