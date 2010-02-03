@@ -73,6 +73,7 @@ else:
 serverWarmup = 3 
 workerWarmup = 3
 coolDown = 3
+loadSpinWarmup = 10
 
 
 # Main.
@@ -124,7 +125,8 @@ for v in versions:
 					s.send('1')
 					s.recv(1024); 
 					time.sleep(workerWarmup) # Make sure DummyClients are properly connected and warmed up.
-							
+                
+				time.sleep(loadSpinWarmup)
 				timerClient.send('1')
 					
 				ct.join()

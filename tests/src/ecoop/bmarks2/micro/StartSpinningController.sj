@@ -21,7 +21,7 @@ public class StartSpinningController implements Runnable {
 		Socket s = null;
 		try {
 			ss = new ServerSocket(port + OFFSET);
-			Common.debugPrintln(debug, "[StartSpinningController] Listening on: "+ (port+OFFSET));
+			Common.debugPrintln(debug, "[StartSpinningController] Listening on: "+ (port+OFFSET) + ", waiting for " + numWorkers + " clients");
 			for (int i=0; i<numWorkers; i++) {
 				s = ss.accept();
 				sockets[i] = s;

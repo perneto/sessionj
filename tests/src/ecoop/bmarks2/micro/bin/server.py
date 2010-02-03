@@ -73,6 +73,7 @@ else:
 serverWarmup = 3 
 workerWarmup = 3
 coolDown = 3
+loadSpinStart = 10
 
 
 # Main.
@@ -124,6 +125,8 @@ for v in versions:
 						s.recv(1024); # Why 1024? 4 too small? Should match system network buffer size?
 						time.sleep(workerWarmup) # Make sure LoadClients are properly connected and warmed up.
 								
+					time.sleep(loadSpinStart)
+
 					timerClient.send('1')
 						
 					ct.join()
