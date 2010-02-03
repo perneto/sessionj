@@ -1,5 +1,5 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/purchase/Vendor.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ purchase.Vendor d d 8888 localhost 7777
+//$ bin/sessionjc -cp tests/classes/ tests/src/places/purchase/Vendor.sj -d tests/classes/
+//$ bin/sessionj -cp tests/classes/ places.purchase.Vendor s s 8888 localhost 7777
 
 package places.purchase;
 
@@ -9,8 +9,7 @@ import java.util.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
-import sessionj.runtime.transport.tcp.*;
-import sessionj.runtime.transport.http.*;
+import sessionj.runtime.transport.*;
 
 /**
  * Shop of an online shopping company. After the purchase is complete, 
@@ -20,6 +19,7 @@ import sessionj.runtime.transport.http.*;
  *
  */
 class Vendor {
+	private static final String PRODUCTS_DATABASE = "c:\\cygwin\\home\\Raymond\\code\\java\\eclipse\\sessionj-hg\\tests\\src\\places\\purchase\\products.txt"; // Just a text file.
 	
 	private List products;
 	private Map basket;
@@ -30,6 +30,8 @@ class Vendor {
 	private int port_a;
 	private String addr_s;
 	private int port_s;
+	
+	//private CreditCard dummy;
 	
 	final noalias protocol options {
 		?{
@@ -67,7 +69,7 @@ class Vendor {
 		
 		final noalias SJServerSocket ss_sc;
 		
-		SJSessionParameters params = createSJSessionParameters(setups, transports);
+		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(setups, transports);
 		
 		try (ss_sc) {
 			ss_sc = SJServerSocketImpl.create(vendorToCustomer, port_a, params);
@@ -154,7 +156,7 @@ class Vendor {
 	}
 	
 	private void readFile() {
-		File file = new File("D:\\products.txt");
+		File file = new File(PRODUCTS_DATABASE);
 		FileInputStream fis = null;
 	    BufferedInputStream bis = null;
 	    DataInputStream dis = null;
@@ -202,57 +204,5 @@ class Vendor {
 		// Include file as argument
 		
 		new Vendor(setups, transports, port_a, host_s, port_s).run();
-	}
-
-	private static SJSessionParameters createSJSessionParameters(String setups, String transports) {		
-		SJSessionParameters params;
-		
-		if (setups.contains("d") && transports.contains("d")) {
-			params = new SJSessionParameters();
-		}
-		else {
-			List ss = new LinkedList();
-			List ts = new LinkedList();				
-			
-			parseTransportFlags(ss, setups);
-			parseTransportFlags(ts, transports);
-								
-			params = new SJSessionParameters(ss, ts);
-		}
-
-		return params;
-	}
-	
-	private static void parseTransportFlags(List ts, String transports)
-	{
-		if (transports.contains("d")) {
-			ts.add(new SJStreamTCP());
-			return;
-		}
-		
-		char[] cs = transports.toCharArray();
-		
-		for (int i = 0; i < cs.length; i++)	{
-			
-			switch (cs[i]) {
-
-				case 't': {
-					ts.add(new SJStreamTCP());
-					break;
-				}					
-				case 'm': {			
-					ts.add(new SJManualTCP());
-					break;
-				}					
-				case 'h': {			
-					ts.add(new SJHTTP());
-					break;
-				}
-				case 's': {			
-					ts.add(new SJHTTPS());
-					break;
-				}
-			}
-		}					
 	}	
 }

@@ -254,7 +254,7 @@ public class SJTransportManager_c extends SJTransportManager
 			acceptorGroups.remove(port).close();
 		}
 	}
-	 
+	 // FIXME: the two openConnections should be unified. This routine should do authentication as appropriate based on the transport type (as done in the client neogitation protocol). Then we will also not need the extra SJRuntime.reconnectAndAuthenticate routine, and the SJRuntime.connectSocket routine will also be working for the secure transport. Socket The issue is how to pass the credentials (as arguments, i.e. what should the method signature be?). 
 	public SJConnection openConnection(String hostName, int port, SJSessionParameters params) throws SJIOException
 	{
 		List<SJTransport> ss = params.getNegotiationTransports();
