@@ -31,6 +31,8 @@ abstract public class SJTransportManager
 	abstract public SJConnection openConnection(String hostName, int port, SJSessionParameters params) throws SJIOException;
 	abstract public void closeConnection(SJConnection conn);
 	
+	abstract public SJConnection openAuthenticatedConnection(String hostName, int port, SJSessionParameters params, String user, String pwd) throws SJIOException; // HACK: Nuno's SRP authenticated session connections hacked in for now.
+	
 	abstract public List<SJTransport> activeNegotiationTransports();
 
     /**

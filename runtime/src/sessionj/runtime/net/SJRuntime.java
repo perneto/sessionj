@@ -6,6 +6,7 @@ import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
 import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.session.*;
+import sessionj.runtime.session.security.SJSecureSessionProtocols;
 import sessionj.runtime.transport.*;
 import sessionj.runtime.util.SJClassResolver;
 import sessionj.runtime.util.SJRuntimeTypeEncoder;
@@ -249,12 +250,28 @@ public class SJRuntime
 	{		
 		closeSocket(s);
 		
-		s.reconnect(sjtm.openConnection(hostName, port, s.getParameters()));
+		s.reconnect(sjtm.openConnection(hostName, port, s.getParameters()));  
 		
+		setHostNameAndPort(s, hostName, port);
+	}
+	
+	// Duplicated from the above, but uses the authenticating client negotiation.
+	// FIXME: perhaps we should check the compatibility mode, i.e. if SECURE, to determine whether or not to do authentication. On the other hand, we already use the compatibility mode to create the appropriate session protocols object, which encapsulates these decisions.
+	public static void reconnectAndAuthenticateSocket(SJSocket s, String hostName, int port, String user, String pwd) throws SJIOException
+	{		
+		closeSocket(s);
+		
+		s.reconnect(sjtm.openAuthenticatedConnection(hostName, port, s.getParameters(), user, pwd));
+		
+		setHostNameAndPort(s, hostName, port);
+	}	
+	
+	private static void setHostNameAndPort(SJSocket s, String hostName, int port) throws SJIOException
+	{
 		try
 		{
 			s.setHostName(InetAddress.getByName(hostName).getHostAddress());
-            // Host names are more fragile than IP addresses (e.g. HZHL2 on IC-DoC).
+			// Host names are more fragile than IP addresses (e.g. HZHL2 on IC-DoC).
 			s.setPort(port);		
 		}
 		catch (UnknownHostException uhe)
@@ -1146,31 +1163,40 @@ public class SJRuntime
   
   public static void initSocket(SJAbstractSocket s) throws SJIOException
   {
-  	SJConnection conn = s.getConnection();
-  	SJSessionParameters params = s.getParameters(); 
+		SJConnection conn = s.getConnection();
+		SJSessionParameters params = s.getParameters(); 
+		
+		SJSerializer ser = SJRuntime.getSerializer(params, conn); // Switches on the compatibility mode to get the appropriate serializer.   	
+		
+		s.ser = ser; // FIXME: should have options for more user configurability.
+		
+		switch (params.getCompatibilityMode()) // Now need to get the appropriate session-layer protocol component(s).
+		{
+			case SJ:
+			{
+				s.sp = new SJSessionProtocolsImpl(s, ser); // FIXME: should have options for more user configurability. 	
+				break;
+			}				
+			case CUSTOM:
+			{
+				s.sp = new SJNonSjCompatibilityProtocols(s, ser);
+				// Doesn't support e.g. session initiation validation and session delegation. 
+				// // FIXME: but there should also be better user control over these options. 
+				break;
+			}			
+			case SECURE:
+			{
+				s.sp = new SJSecureSessionProtocols(s, ser);
+				break;
+			}
+			default:
+			{
+				throw new SJRuntimeException("[SJRuntime] Unsupported session compatibility mode: " + params.getCompatibilityMode());
+			}
+		}
 
-    SJSerializer ser = SJRuntime.getSerializer(params, conn); // Switches on the compatibility mode to get the appropriate serializer.   	
-  	
-    s.ser = ser; // FIXME: should have options for more user configurability.
-    
-    switch (params.getCompatibilityMode()) // Now need to get the appropriate session-layer protocol component(s).
-    {
-    	case SJ:
-            s.sp = new SJSessionProtocolsImpl(s, ser); // FIXME: should have options for more user configurability. 	
-            break;
-        
-        case CUSTOM:
-            s.sp = new SJNonSjCompatibilityProtocols(s, ser);
-            // Doesn't support e.g. session initiation validation and session delegation. 
-            // // FIXME: but there should also be better user control over these options. 
-            break;
-        
-        default:
-            throw new SJRuntimeException("[SJRuntime] Unsupported session compatibility mode: " + params.getCompatibilityMode());
-    }
-    
-    assert s.ser != null;
-    assert s.sp != null;
+		assert s.ser != null;
+		assert s.sp != null;
   }
   
   // This is currently called by SJSessionParameters (at creation time). Anywhere else where it would be better to call it from? E.g. if the user can still configure the SJ Runtime directly (not using a SJSessionParameters), we should check it there as well. Maybe we should check these conditions at session initiation.    
@@ -1187,6 +1213,16 @@ public class SJRuntime
 			if (params.getCustomMessageFormatter() == null)
 			{
 				throw new SJSessionParametersException("[SJRuntime] Custom compatibility mode requires a SJCustomMessageFormatter.");
+			}
+		}
+		else if (mode == SJCompatibilityMode.SECURE)
+		{
+			for (SJTransport t : params.getSessionTransports()) // Should also check negotiation transports?
+			{
+				if (!(t instanceof SJAuthenticatingTransport))
+				{
+					throw new SJSessionParametersException("[SJRuntime] Secure compatibility mode only valid for SJAuthenticatingTransports.");
+				}
 			}
 		}
 		

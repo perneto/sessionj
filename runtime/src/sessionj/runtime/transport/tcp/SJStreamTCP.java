@@ -183,7 +183,7 @@ public class SJStreamTCP extends AbstractSJTransport
 		return TRANSPORT_NAME;
 	}
 	
-	public String sessionHostToNegociationHost(String hostName)
+	public String sessionHostToNegotiationHost(String hostName)
 	{
 		return hostName;
 	}

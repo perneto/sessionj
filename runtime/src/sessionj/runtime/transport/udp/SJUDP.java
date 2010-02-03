@@ -147,7 +147,7 @@ public class SJUDP extends AbstractSJTransport {
        return -1;
     }
 
-    public String sessionHostToNegociationHost(String s) {
+    public String sessionHostToNegotiationHost(String s) {
        return null;
     }
        
