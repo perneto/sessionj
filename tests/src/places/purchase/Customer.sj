@@ -1,5 +1,5 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/purchase/Customer.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ purchase.Customer d d localhost 9999
+//$ bin/sessionjc -cp tests/classes/ tests/src/places/purchase/Customer.sj -d tests/classes/
+//$ bin/sessionj -cp tests/classes/ places.purchase.Customer s s localhost 9999
 
 package places.purchase;
 
@@ -9,8 +9,7 @@ import java.io.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
-import sessionj.runtime.transport.tcp.*;
-import sessionj.runtime.transport.http.*;
+import sessionj.runtime.transport.*;
 
 /**
  * Customer of an online shopping company.
@@ -65,7 +64,7 @@ class Customer {
 		final noalias SJSocket s_cs;
 		
 		try (s_cs) {
-			s_cs = c_cs.request(createSJSessionParameters(setups, transports));
+			s_cs = c_cs.request(SJTransportUtils.createSJSessionParameters(setups, transports));
 			
 			products = (List) s_cs.receive();
 			
@@ -297,56 +296,4 @@ class Customer {
 		
 		new Customer(setups, transports, host_a, port_a).run();
 	}
-	
-	private static SJSessionParameters createSJSessionParameters(String setups, String transports) {
-		SJSessionParameters params;
-		
-		if (setups.contains("d") && transports.contains("d")) {
-			params = new SJSessionParameters();
-		}
-		else {
-			List ss = new LinkedList();
-			List ts = new LinkedList();				
-			
-			parseTransportFlags(ss, setups);
-			parseTransportFlags(ts, transports);
-								
-			params = new SJSessionParameters(ss, ts);
-		}
-
-		return params;
-	}
-	
-	private static void parseTransportFlags(List ts, String transports) {
-		
-		if (transports.contains("d")) {
-			ts.add(new SJStreamTCP());
-			return;
-		}
-		
-		char[] cs = transports.toCharArray();
-		
-		for (int i = 0; i < cs.length; i++)	{
-			
-			switch (cs[i]) {
-
-				case 't': {
-					ts.add(new SJStreamTCP());
-					break;
-				}					
-				case 'm': {			
-					ts.add(new SJManualTCP());
-					break;
-				}					
-				case 'h': {			
-					ts.add(new SJHTTP());
-					break;
-				}
-				case 's': {			
-					ts.add(new SJHTTPS());
-					break;
-				}
-			}
-		}					
-	}	
 }

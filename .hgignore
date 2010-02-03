@@ -18,3 +18,4 @@ benchmark/classes
 test-output
 .DS_Store
 benchmark/results
+eclipse-bin

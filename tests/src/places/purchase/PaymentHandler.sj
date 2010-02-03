@@ -1,5 +1,5 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/purchase/PaymentHandler.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ purchase.PaymentHandler d d 7777
+//$ bin/sessionjc -cp tests/classes/ tests/src/places/purchase/PaymentHandler.sj -d tests/classes/
+//$ bin/sessionj -cp tests/classes/ places.purchase.PaymentHandler s s 7777
 
 package places.purchase;
 
@@ -8,8 +8,7 @@ import java.util.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
-import sessionj.runtime.transport.tcp.*;
-import sessionj.runtime.transport.http.*;
+import sessionj.runtime.transport.*;
 
 /**
  * Payment Handler of an online shopping company
@@ -37,7 +36,7 @@ class PaymentHandler {
 		final noalias SJServerSocket ss_ps;
 		
 		try (ss_ps) {
-			ss_ps = SJServerSocketImpl.create(handlerToVendor, port, createSJSessionParameters(setups, transports)); 		
+			ss_ps = SJServerSocketImpl.create(handlerToVendor, port, SJTransportUtils.createSJSessionParameters(setups, transports)); 		
 		
 			while (true) {
 				final noalias SJSocket s_ps;		
@@ -75,57 +74,5 @@ class PaymentHandler {
 		int port_s = Integer.parseInt(args[2]);
 		
 		new PaymentHandler(setups, transports, port_s).run();
-	}
-	
-	private static SJSessionParameters createSJSessionParameters(String setups, String transports) {		
-		SJSessionParameters params;
-		
-		if (setups.contains("d") && transports.contains("d")) {
-			params = new SJSessionParameters();
-		}
-		else {
-			List ss = new LinkedList();
-			List ts = new LinkedList();				
-			
-			parseTransportFlags(ss, setups);
-			parseTransportFlags(ts, transports);
-								
-			params = new SJSessionParameters(ss, ts);
-		}
-
-		return params;
-	}
-	
-	private static void parseTransportFlags(List ts, String transports) {
-
-		if (transports.contains("d")) {
-			ts.add(new SJStreamTCP());
-			return;
-		}
-		
-		char[] cs = transports.toCharArray();
-		
-		for (int i = 0; i < cs.length; i++)	{
-			
-			switch (cs[i]) {
-
-				case 't': {
-					ts.add(new SJStreamTCP());
-					break;
-				}					
-				case 'm': {			
-					ts.add(new SJManualTCP());
-					break;
-				}					
-				case 'h': {			
-					ts.add(new SJHTTP());
-					break;
-				}
-				case 's': {			
-					ts.add(new SJHTTPS());
-					break;
-				}
-			}
-		}					
 	}		
 }
