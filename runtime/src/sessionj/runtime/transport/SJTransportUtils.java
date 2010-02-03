@@ -1,24 +1,30 @@
 package sessionj.runtime.transport;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import sessionj.runtime.SJIOException;
-import sessionj.runtime.net.SJRuntime;
-import sessionj.runtime.net.SJSessionParameters;
-import sessionj.runtime.net.SJSessionParametersException;
-import sessionj.runtime.session.SJCompatibilityMode;
-import sessionj.runtime.session.SJCustomMessageFormatter;
-import sessionj.runtime.transport.httpservlet.SJHTTPServlet;
+import sessionj.runtime.net.*;
+import sessionj.runtime.session.*;
+import sessionj.runtime.transport.http.SJHTTP;
+import sessionj.runtime.transport.https.SJHTTPS;
 import sessionj.runtime.transport.sharedmem.SJBoundedFifoPair;
 import sessionj.runtime.transport.sharedmem.SJFifoPair;
 import sessionj.runtime.transport.tcp.SJAsyncManualTCP;
 import sessionj.runtime.transport.tcp.SJManualTCP;
 import sessionj.runtime.transport.tcp.SJStreamTCP;
 
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-
 public class SJTransportUtils 
 {
+	public static final char SJ_DEFAULT_TRANSPORTS = 'd';
+	public static final char SJ_FIFO_PAIR = 'f';	    
+	public static final char SJ_STREAM_TCP = 's';
+	public static final char SJ_MANUAL_TCP = 'm';
+	public static final char SJ_ASYNCHRONOUS_TCP = 'a';
+	public static final char SJ_HTTP = 'h';
+	public static final char SJ_BOUNDED_FIFO_PAIR = 'b';
+	public static final char SJ_HTTPS = 'p'; // This is sessionj.runtime.transport.https.HTTPS, not sessionj.runtime.transport.http.HTTPS (package "https", not "http").  
+	
 	private SJTransportUtils() 
 	{
 	
@@ -56,11 +62,11 @@ public class SJTransportUtils
 		
 		for (char c : flags.toCharArray()) 
 		{
-			if (c == 'd')
+			if (c == SJ_DEFAULT_TRANSPORTS)
 			{
 				//cs.addAll(parseTransportFlags("fs"));
-				cs.add(parseTransportFlag('f'));
-				cs.add(parseTransportFlag('s'));				
+				cs.add(parseTransportFlag(SJ_FIFO_PAIR));
+				cs.add(parseTransportFlag(SJ_STREAM_TCP));				
 			}
 			else
 			{
@@ -76,12 +82,13 @@ public class SJTransportUtils
   { 
     switch (code) 
     { 
-	    case 'f': return SJFifoPair.class;	    
-	    case 's': return SJStreamTCP.class;
-	    case 'm': return SJManualTCP.class;
-	    case 'a': return SJAsyncManualTCP.class;
-	    case 'h': return SJHTTPServlet.class;
-	    case 'b': return SJBoundedFifoPair.class;	        
+	    case SJ_FIFO_PAIR:         return SJFifoPair.class;	    
+	    case SJ_STREAM_TCP:        return SJStreamTCP.class;
+	    case SJ_MANUAL_TCP:        return SJManualTCP.class;
+	    case SJ_ASYNCHRONOUS_TCP:  return SJAsyncManualTCP.class;
+	    case SJ_HTTP:              return SJHTTP.class;
+	    case SJ_BOUNDED_FIFO_PAIR: return SJBoundedFifoPair.class;
+	    case SJ_HTTPS:             return SJHTTPS.class;
     }
 
     throw new SJIOException("[SJTransportUtils] Unsupported transport flag: " + code);

@@ -1,7 +1,11 @@
 package sessionj.runtime.session;
 
+import sessionj.SJConstants;
+
 public class SJDelegationSignal extends SJControlSignal
 {
+	private static final long serialVersionUID = SJConstants.SJ_VERSION;
+	
 	private String hostName;
 	private int port;
 	

@@ -27,8 +27,8 @@ public class Client
 		{
 			//long start = System.nanoTime();
 							
-			//s = SJService.create(p_client, server, port).request(createSJSessionParameters(setups, transports));
-			s = SJService.create(p_client, server, port).request();
+			s = SJService.create(p_client, server, port).request(SJTransportUtils.createSJSessionParameters(setups, transports));
+			//s = SJService.create(p_client, server, port).request();
 			
 			long start = System.nanoTime();
 			
