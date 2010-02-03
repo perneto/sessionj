@@ -447,7 +447,7 @@ public class SJBoundedFifoPair extends AbstractSJTransport
     }
 	}
 	
-	public String sessionHostToNegociationHost(String hostName)
+	public String sessionHostToNegotiationHost(String hostName)
 	{
 		return hostName;
 	}

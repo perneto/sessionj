@@ -23,8 +23,8 @@ public class Server
 		
 		try (ss)
 		{
-			//ss = SJServerSocket.create(p_server, port, createSJSessionParameters(setups, transports));
-			ss = SJServerSocket.create(p_server, port);
+			ss = SJServerSocket.create(p_server, port, SJTransportUtils.createSJSessionParameters(setups, transports));
+			//ss = SJServerSocket.create(p_server, port);
 			
 			//while (true)
 			{
