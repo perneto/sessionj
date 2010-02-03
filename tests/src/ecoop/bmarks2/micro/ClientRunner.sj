@@ -89,32 +89,6 @@ public class ClientRunner
       }
     }
     
-    Socket s1 = null;
-	InputStream is = null;
-	try {
-		Common.debugPrintln(debug, "Waiting for spinning signal from server...");
-		s1 = new Socket(host, serverPort+StartSpinningController.OFFSET);
-		is = s1.getInputStream();
-		is.read();
-	} finally {
-		Common.closeSocket(s1);
-		Common.closeInputStream(is);
-	}
-	synchronized (spin) {
-		spin[0] = true;
-		spin.notifyAll();
-	}
-	Common.debugPrintln(debug, "Received start signal from server, spinning");
-	
-	long clientSpinStart;
-	if (debug) {
-		clientSpinStart = 500;
-	} else {
-		clientSpinStart = 10000;
-	}
-
-	Thread.sleep(clientSpinStart);
-		
     // Here, threads have been created (and started?) but the LoadClients are not necessarily connected yet. 
     if (scriptPort > 0) 
     {
@@ -147,5 +121,22 @@ public class ClientRunner
 				Common.closeSocket(s);    	
 	    }
     }
+    Socket s1 = null;
+	InputStream is = null;
+	try {
+		Common.debugPrintln(debug, "Waiting for spinning signal from server...");
+		s1 = new Socket(host, serverPort+StartSpinningController.OFFSET);
+		is = s1.getInputStream();
+		is.read();
+	} finally {
+		Common.closeSocket(s1);
+		Common.closeInputStream(is);
+	}
+	synchronized (spin) {
+		spin[0] = true;
+		spin.notifyAll();
+	}
+	Common.debugPrintln(debug, "Received start signal from server, spinning");
+	
   }
 }
