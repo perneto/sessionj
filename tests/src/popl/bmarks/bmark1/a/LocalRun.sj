@@ -1,6 +1,6 @@
 //$ bin/sessionjc -cp tests/classes/ tests/src/popl/bmarks/bmark1/a/LocalRun.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ popl.bmarks.bmark1.a.LocalRun false 8888 b 0 1 
-//$ tests/src/popl/bmarks/bmark1/a/ordinary.sh 8888 b 0 
+//$ bin/sessionj -cp tests/classes/ popl.bmarks.bmark1.a.LocalRun false 8888 b 1024 2 
+//$ tests/src/popl/bmarks/bmark1/a/ordinary.sh 8888 b 1024 -r 2 
 
 package popl.bmarks.bmark1.a;
 
@@ -8,10 +8,6 @@ import java.util.*;
 
 import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
-import sessionj.runtime.transport.tcp.*;
-import sessionj.runtime.transport.sharedmem.*;
-
-import util.*;
 
 import popl.bmarks.*;
 
@@ -23,7 +19,7 @@ public class LocalRun
 {
 	private static final int lens[] = { 0, 1, 10, 100, 1000 };
 	//private static final int bufferSizes[] = { 7, 7, 34, 304, 3004 };
-	private static final int bufferSizes[] = { 7, 7, 7, 7, 7 };
+	private static final int bufferSizes[] = { 7, 7, 7, 7, 7 }; // Input buffer size for Client: upper message bound is just one, but that is three "messages" at the transport level, and a constant factor of four is added for opening and closing - again three for the session type object at init. and one more for the SJFIN). (These numbers are for non-noalias.)  
 	
 	private void run(final boolean debug, final int port, final String transports, final int size, final int repeat) throws Exception
 	{
@@ -33,7 +29,8 @@ public class LocalRun
 			{
 				try
 				{
-					new Server(debug, port, transports, 5011);
+					//new Server(debug, port, transports, 5011);
+					new Server(debug, port, transports, 10); // From Server side: upper message bound is two, so buffer size is three bigger than Client. However, application still works for buffer size 9 - probably because we always finish reading the initiation messages quickly enough before overwriting them.   
 				}
 				catch (Exception x)
 				{
@@ -84,7 +81,7 @@ public class LocalRun
 		int size = Integer.parseInt(args[3]);
 		int repeat = Integer.parseInt(args[4]);
 			
-		TransportUtils.configureTransports("f", "f"); // For KillThreads.
+		SJTransportUtils.configureTransports("f", "f"); // For KillThreads (communicating with Servers).
 		
 		new LocalRun().run(debug, port, transports, size, repeat);
 	}

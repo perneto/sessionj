@@ -1,5 +1,5 @@
-//$ bin/sessionjc tests/src/purchase/Network.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ purchase.Network 9999 localhost 8888
+//$ bin/sessionjc tests/src/places/purchase/Network.sj -d tests/classes/
+//$ bin/sessionj -cp tests/classes/ places.purchase.Network 9999 localhost 8888
 
 package places.purchase;
 

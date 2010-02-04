@@ -247,14 +247,15 @@ public class SJTransportManager_c extends SJTransportManager
         }
     }
 
-    public void closeAcceptorGroup(int port)
+	public void closeAcceptorGroup(int port)
 	{
 		synchronized (acceptorGroups)
 		{
 			acceptorGroups.remove(port).close();
 		}
 	}
-	 // FIXME: the two openConnections should be unified. This routine should do authentication as appropriate based on the transport type (as done in the client neogitation protocol). Then we will also not need the extra SJRuntime.reconnectAndAuthenticate routine, and the SJRuntime.connectSocket routine will also be working for the secure transport. Socket The issue is how to pass the credentials (as arguments, i.e. what should the method signature be?). 
+	
+    // FIXME: the two openConnections should be unified. This routine should do authentication as appropriate based on the transport type (as done in the client neogitation protocol). Then we will also not need the extra SJRuntime.reconnectAndAuthenticate routine, and the SJRuntime.connectSocket routine will also be working for the secure transport. Socket The issue is how to pass the credentials (as arguments, i.e. what should the method signature be?). 
 	public SJConnection openConnection(String hostName, int port, SJSessionParameters params) throws SJIOException
 	{
 		List<SJTransport> ss = params.getNegotiationTransports();
@@ -439,6 +440,7 @@ public class SJTransportManager_c extends SJTransportManager
 			{
 				if (t instanceof SJBoundedFifoPair) // FIXME: currently hacked. Should there be a SJBoundedBufferTransport? 
 				{
+					// Although the interface is for reading/writing bytes, here buffer size means SJ Runtime (session level) messages. Because each byte chunk corresponds to one such message. So correct buffer size settings depend on the SJ serialization protocol (similarly to message arrival detection for the SJSelector). Basically, this interface currently combines a byte-level abstract transport with a session-level abstract transport.   
 					conn = ((SJBoundedFifoPair) t).connect(t.sessionHostToNegotiationHost(hostName), t.sessionPortToSetupPort(port), boundedBufferSize);
 				}
 				else if (t instanceof SJAuthenticatingTransport) // HACK.

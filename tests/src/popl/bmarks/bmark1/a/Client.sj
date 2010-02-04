@@ -1,5 +1,5 @@
 //$ bin/sessionjc -cp tests/classes/ tests/src/popl/bmarks/bmark1/a/Client.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ popl.bmarks.bmark1.a.Client false localhost 8888 s 0 1 7 1
+//$ bin/sessionj -cp tests/classes/ popl.bmarks.bmark1.a.Client false localhost 8888 s 1024 10 7 1
 //$ tests/src/popl/bmarks/bmark1/a/client.sh localhost 8888 d 0 
 
 //$ javac -cp lib/sessionj.jar';'lib/sessionj-rt.jar';'tests/classes/ tests/classes/popl/bmarks/bmark1/a/Client.java
@@ -16,10 +16,6 @@ import java.util.*;
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
-import sessionj.runtime.transport.tcp.*;
-import sessionj.runtime.transport.sharedmem.*;
-
-import util.*;
 
 import popl.bmarks.*;
 
@@ -39,7 +35,7 @@ public class Client
 		long totalRunTime = 0;		
 	
 		//SJSessionParameters params = TransportUtils.createSJSessionParameters(transports, transports, BUFFER_SIZE);
-		SJSessionParameters params = TransportUtils.createSJSessionParameters(transports, transports, bufferSize);
+		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(transports, transports, bufferSize);
 		
 		for (int i = 0; i < num; i++) 
 		{

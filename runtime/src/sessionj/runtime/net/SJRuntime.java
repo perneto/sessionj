@@ -220,6 +220,7 @@ public class SJRuntime
 		s.setLocalPort(takeFreePort());
 	}
 	
+	// The secure compatibility mode needs an authenticating version of this routine. FIXME: move authentication decision into SJTransportManager openConnection routine (based on transport type), then no changes needed here. 
 	public static void connectSocket(SJRequestingSocket s) throws SJIOException
 	{		
 		SJServerIdentifier si = s.getServerIdentifier();
