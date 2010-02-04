@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run from the sessionj root directory:
-#$ tests/src/popl/bmarks/bmark1/a/ordinary.sh 8888 b 0
+#$ tests/src/popl/bmarks/bmark1/a/ordinary.sh 8888 b 1024 -r 2
 
 
 debug=false 

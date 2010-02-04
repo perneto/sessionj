@@ -128,6 +128,7 @@ class SJBoundedFifoPairConnection extends AbstractSJConnection
 	
 	//private boolean initialised = false;
 	
+	// "ours" is our input buffer, i.e. we read from it (and the session peer writes to it).
 	protected SJBoundedFifoPairConnection(String hostName, int port, int localPort, SJBoundedFifo ours, SJTransport transport) {
         super(transport);
         this.hostName = hostName;
@@ -458,6 +459,7 @@ public class SJBoundedFifoPair extends AbstractSJTransport
 	}
 }
 
+// This is a FIFO that uses "wrapped-around" (modular arithmetic wrt. buffer capacity) indexing for the read/write indices.
 class SJBoundedFifo
 {
 	private Object[] buffer; 	

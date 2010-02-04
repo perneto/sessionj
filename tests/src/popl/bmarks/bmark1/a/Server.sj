@@ -1,5 +1,5 @@
 //$ bin/sessionjc -cp tests/classes/ tests/src/popl/bmarks/bmark1/a/Server.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ popl.bmarks.bmark1.a.Server false 8888 d 5011
+//$ bin/sessionj -cp tests/classes/ popl.bmarks.bmark1.a.Server false 8888 s 10
 
 //$ javac -cp lib/sessionj.jar';'lib/sessionj-rt.jar';'tests/classes/ tests/classes/popl/bmarks/bmark1/a/Server.java
 
@@ -15,9 +15,6 @@ import java.util.*;
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
 import sessionj.runtime.transport.*;
-import sessionj.runtime.transport.tcp.*;
-
-import util.*;
 
 import popl.bmarks.*;
 
@@ -64,7 +61,7 @@ public class Server
 				//ss = SJServerSocketImpl.create(p, port);
 				
 				//SJSessionParameters params = TransportUtils.createSJSessionParameters(this.transports, this.transports, BUFFER_SIZE);
-				SJSessionParameters params = TransportUtils.createSJSessionParameters(this.transports, this.transports, bufferSize);
+				SJSessionParameters params = SJTransportUtils.createSJSessionParameters(this.transports, this.transports, bufferSize);
 				
 				ss = SJServerSocket.create(p, port, params);
 				
