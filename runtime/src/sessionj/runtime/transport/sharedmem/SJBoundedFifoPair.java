@@ -15,7 +15,6 @@ import sessionj.types.sesstypes.SJMessageCommunicationType;
 import sessionj.types.sesstypes.SJReceiveType;
 import sessionj.types.sesstypes.SJSessionType;
 import sessionj.util.SJCompilerUtils;
-import sun.text.normalizer.UProperty;
 
 import java.io.IOException;
 import java.net.InetAddress;
