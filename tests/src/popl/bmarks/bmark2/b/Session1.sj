@@ -5,6 +5,7 @@ package popl.bmarks.bmark2.b;
 import popl.bmarks.*;
 import popl.bmarks.bmark2.*;
 
+// Bidirectional exchanges between Requestor and Acceptor. 
 class Session1 extends Session
 {
 	final boolean debug;
