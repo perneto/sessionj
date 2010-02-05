@@ -21,6 +21,8 @@ public class LocalRun
 		
 		for (int i = 0; i < repeats; i++)
 		{
+			Thread.sleep(200); // Give some time for GC, etc.
+			
 			run(debug, true, chan, session, size, len);
 		}
 	}
