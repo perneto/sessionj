@@ -1,5 +1,5 @@
 //$ bin/sessionjc -cp tests/classes/ tests/src/popl/bmarks/bmark2/b/LocalRun.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ popl.bmarks.bmark2.b.LocalRun false o 1 10 100
+//$ bin/sessionj -cp tests/classes/ popl.bmarks.bmark2.b.LocalRun false o 1 10 100 2
 
 package popl.bmarks.bmark2.b;
 
@@ -15,7 +15,17 @@ public class LocalRun
 		
 	}
 
-	private void run(boolean debug, String chan, int session, int size, int len) throws Exception
+	private void run(boolean debug, String chan, int session, int size, int len, int repeats) throws Exception
+	{
+		run(debug, false, chan, session, size, len);
+		
+		for (int i = 0; i < repeats; i++)
+		{
+			run(debug, true, chan, session, size, len);
+		}
+	}
+	
+	private void run(boolean debug, boolean timer, String chan, int session, int size, int len) throws Exception
 	{
 		Channel aToB = createChannel(chan, len);
 		Channel bToA = createChannel(chan, len);
@@ -33,16 +43,19 @@ public class LocalRun
 		
 		long finish = System.nanoTime();
 		
-		System.out.println("Run time: " + ((finish - start) / 1000) + " micros.");
-		
-		//if (chan.equals("w") || chan.equals("n") || chan.equals("r") || chan.equals("s"))
-		if (aToB instanceof SpinChannel) 
+		if (timer)
 		{
-			System.out.println("Spins: " + ((SpinChannel) aToB).getSpins() + ", " + ((SpinChannel) bToA).getSpins());
-			System.out.println("Nospins: " + ((SpinChannel) aToB).getNospins() + ", " + ((SpinChannel) bToA).getNospins());
+			System.out.println("Run time: " + ((finish - start) / 1000) + " micros.");
+			
+			//if (chan.equals("w") || chan.equals("n") || chan.equals("r") || chan.equals("s"))
+			if (aToB instanceof SpinChannel) 
+			{
+				System.out.println("Spins: " + ((SpinChannel) aToB).getSpins() + ", " + ((SpinChannel) bToA).getSpins());
+				System.out.println("Nospins: " + ((SpinChannel) aToB).getNospins() + ", " + ((SpinChannel) bToA).getNospins());
+			}
+			
+			//System.out.println(((finish - start) / 1000));
 		}
-		
-		//System.out.println(((finish - start) / 1000));
 	}
 
 	private static Session createSession(boolean debug, int session, boolean requestor, Channel in, Channel out)
@@ -94,7 +107,8 @@ public class LocalRun
 		int session = Integer.parseInt(args[2]);
 		int size = Integer.parseInt(args[3]);
 		int len = Integer.parseInt(args[4]);
+		int repeats = Integer.parseInt(args[5]);
 		
-		new LocalRun().run(debug, chan, session, size, len);
+		new LocalRun().run(debug, chan, session, size, len, repeats);
 	}
 }
