@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Run from the sessionj root directory:
-#$ tests/src/popl/bmarks/bmark2/b/all.sh   
+#$ tests/src/popl/bmarks/bmark2/b/all.sh -i 3 -o 2  
 
 
 debug=false 
-repeat=1
+inners=1
+outers=1
 args=
 numargs=0
 
@@ -19,9 +20,14 @@ do
       debug="true"
       shift
       ;;
-    -r)
+    -i)
       shift
-      repeat=$1
+      inners=$1
+      shift
+      ;;           
+    -o)
+      shift
+      outers=$1
       shift
       ;;     
     *)
@@ -41,17 +47,20 @@ fi
 
 for session in 1 2
 do  
-  for chan in w o n r
+  #for chan in w o n r s
+  for chan in w o n s
   do
     for size in 0 1 10 100 1000 10000
     do
-      echo bmark2b: session=$session chan=$chan size=$size 
-        
-      for (( k = 0; k < $repeat; k = k + 1 ))
-      do  
-        for len in 0 1 10 100 1000 
-        do    
-          bin/sessionj -cp tests/classes/ popl.bmarks.bmark2.b.LocalRun $debug $chan $session $size $len  
+      #echo bmark2b: session=$session chan=$chan size=$size 
+
+      for len in 0 1 10 100 1000 
+      do        
+        for (( k = 0; k < $outers; k = k + 1 ))
+        do  
+          echo bmark2b: session=$session chan=$chan size=$size len=$len outer=$k
+            
+          bin/sessionj -cp tests/classes/ popl.bmarks.bmark2.b.LocalRun $debug $chan $session $size $len $inners  
         done
       done
     done
