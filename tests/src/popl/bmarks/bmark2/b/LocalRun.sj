@@ -33,15 +33,16 @@ public class LocalRun
 		
 		long finish = System.nanoTime();
 		
-		/*System.out.println("Run time: " + ((finish - start) / 1000) + " micros.");
+		System.out.println("Run time: " + ((finish - start) / 1000) + " micros.");
 		
-		if (chan.equals("w") || chan.equals("n") || chan.equals("r"))
+		//if (chan.equals("w") || chan.equals("n") || chan.equals("r") || chan.equals("s"))
+		if (aToB instanceof SpinChannel) 
 		{
 			System.out.println("Spins: " + ((SpinChannel) aToB).getSpins() + ", " + ((SpinChannel) bToA).getSpins());
 			System.out.println("Nospins: " + ((SpinChannel) aToB).getNospins() + ", " + ((SpinChannel) bToA).getNospins());
-		}*/
+		}
 		
-		System.out.println(((finish - start) / 1000));
+		//System.out.println(((finish - start) / 1000));
 	}
 
 	private static Session createSession(boolean debug, int session, boolean requestor, Channel in, Channel out)
@@ -76,8 +77,14 @@ public class LocalRun
 		{
 			return new NewerChannel(len);
 		}
-		
-		return null;
+		else if (chan.equals("s"))
+		{
+			return new NewestChannel(len);
+		}
+		else
+		{
+			throw new RuntimeException("[LocalRun] Unknown channel type flag: " + chan);
+		}		
 	}
 	
 	public static void main(String[] args) throws Exception

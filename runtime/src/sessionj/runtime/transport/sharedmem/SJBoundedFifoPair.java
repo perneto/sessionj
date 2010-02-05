@@ -1,13 +1,27 @@
 package sessionj.runtime.transport.sharedmem;
 
+import sessionj.ast.sessops.basicops.SJReceive;
+import sessionj.ast.sessops.compoundops.SJInbranch;
+import sessionj.ast.sessops.compoundops.SJInwhile;
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJRuntimeException;
 import sessionj.runtime.net.SJSessionParameters;
 import sessionj.runtime.transport.*;
+import sessionj.runtime2.SJProtocol;
+import sessionj.types.sesstypes.SJBranchType;
+import sessionj.types.sesstypes.SJInbranchType;
+import sessionj.types.sesstypes.SJInwhileType;
+import sessionj.types.sesstypes.SJMessageCommunicationType;
+import sessionj.types.sesstypes.SJReceiveType;
+import sessionj.types.sesstypes.SJSessionType;
+import sessionj.util.SJCompilerUtils;
+import sun.text.normalizer.UProperty;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.*;
+
+import polyglot.types.SemanticException;
 
 // All derived from sessionj.runtime.transport.sharedmem.SJFifoPair.
 
@@ -456,6 +470,70 @@ public class SJBoundedFifoPair extends AbstractSJTransport
 	public int sessionPortToSetupPort(int port)
 	{
 		return port;
+	}
+	
+	public static final int upperBufferBound(SJProtocol p)
+	{
+		return upperBufferBound(p.getSessionType());
+	}
+	
+	public static final int dualUpperBufferBound(SJProtocol p)
+	{
+		try
+		{
+			return upperBufferBound(SJCompilerUtils.dualSessionType(p.getSessionType()));
+		}
+		catch (SemanticException se)
+		{
+			throw new SJRuntimeException("[SJBoundedFifoPair] Could not determine a dual type to: " + p.toString(), se);
+		}
+	}		
+	
+	// Determines the upper bound for the input buffer size (i.e. from the receiver side of the session type).
+	// FIXME: implicitly tied to the current SJ serialization protocol, and other protocols like initiation and close.
+	private static final int upperBufferBound(SJSessionType st)
+	{
+		int bound = 0;
+		int count = 0;
+		
+		while (st != null)
+		{
+			if (isInputNode(st))
+			{
+				count++;
+			}
+			else
+			{
+				if (count > bound)
+				{
+					bound = count;
+				}
+				
+				count = 0;
+			}
+			
+			if (st instanceof SJMessageCommunicationType)
+			{
+				st = st.child();
+			}
+			else if (st instanceof SJBranchType)
+			{
+				// TODO.
+				
+				throw new SJRuntimeException("[SJBoundedFifoPair] TODO.");
+			}
+			else
+			{
+				throw new SJRuntimeException("[SJBoundedFifoPair] TODO.");
+			}
+		}
+		
+		return bound;
+	}
+	
+	private static final boolean isInputNode(SJSessionType st)
+	{
+		return (st instanceof SJReceiveType) || (st instanceof SJInbranchType) || (st instanceof SJInwhileType);
 	}
 }
 

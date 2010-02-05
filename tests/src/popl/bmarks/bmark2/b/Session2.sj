@@ -7,6 +7,7 @@ import java.util.*;
 import popl.bmarks.*;
 import popl.bmarks.bmark2.*;
 
+// Unidirectional communication from Requestor to Acceptor.
 public class Session2 extends Session
 {
 	final boolean debug;
