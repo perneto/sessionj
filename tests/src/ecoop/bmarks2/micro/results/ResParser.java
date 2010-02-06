@@ -70,10 +70,9 @@ public class ResParser
 	// These control output formatting.
 	//private static final Version[] versions = new Version[] {Version.JT};
 	private static Version[] versions;
-	private static final int[] sizes = new int[] {1024};
+	private static final int[] sizes = new int[] {100,1024};
 	private static final int[] lengths = new int[] {1, 10, 100};
-	//private static final int[] numClients = new int[] {10, 100, 300, 500, 700, 900};
-	private static final int[] numClients = new int[] {900};
+	private static final int[] numClients = new int[] {10, 100, 300, 500, 700, 900};
 	
 	public static void main(String[] args) throws Exception
 	{
@@ -210,50 +209,25 @@ public class ResParser
 			{
 				for (int size : sizes)
 				{
-					pw.print(size + ",");
-					
-					boolean first1 = true;
-					
 					for (int length : lengths)
 					{
-						if (first1)
-						{
-							first1 = false;
-						}
-						else
-						{
-							pw.print(",");
-						}
-						
-						pw.print(length + ",");
-						
-						boolean first2 = true;
-						
 						for (int clients : numClients)
 						{
-							if (first2)
-							{
-								first2 = false;
-							}
-							else
-							{
-								pw.print(",,");
-							}
-							
+                            pw.print(size + ",");
+                            pw.print(length + ",");
 							pw.print(clients + ",");
 							
 							Results res = filterResults(results, new Parameters(version, clients, size, length, -1));
 							
-							for (long value : res.results)
+							for (int i=0; i<res.results.length; ++i)
 							{
-								pw.print(value + ",");
+								pw.print(res.results[i]);
+                                if (i != res.results.length - 1) pw.print(',');
 							}
 							
 							pw.println();
 						}
 					}
-					
-					pw.println();
 				}
 			}
 		}
