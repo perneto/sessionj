@@ -33,8 +33,8 @@ debugWorkers = ['camelot02', 'camelot03']
 
 debugNumClients = ['2', '4']	# Debug means for debugging these scripts: to play around with parameter settings, use the above (non-debug) parameters.
 debugMessageSizes = ['100', '10240']
-#debugSessionLengths = ['0', '4'] # For response time benchmarks.
-debugSessionLengths = ['-1'] # For throughput benchmarks.
+debugSessionLengths = ['0', '4'] # For response time benchmarks.
+#debugSessionLengths = ['-1'] # For throughput benchmarks.
 
 
 # Localhost testing parameters.
