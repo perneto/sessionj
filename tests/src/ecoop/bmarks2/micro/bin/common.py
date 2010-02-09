@@ -23,9 +23,9 @@ workers = ['camelot02', 'camelot03', 'camelot04', 'camelot05', 'camelot12', 'cam
 #sessionLengths = ['1', '10', '100'] # For response time benchmarks.
 #sessionLengths = ['-1'] # For throughput benchmarks.
 
-numClients = ['900']
-messageSizes = ['1024']
-sessionLengths = ['10','100']
+numClients = ['10', '100', '300', '500', '700', '900']
+messageSizes = ['100','1024']
+sessionLengths = ['1']
 
 
 # Benchmark debugging parameters (2 Workers).
