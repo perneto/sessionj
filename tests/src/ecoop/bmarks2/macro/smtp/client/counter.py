@@ -2,6 +2,8 @@
 import sys, socket
 import os, time
 
+# @deprecated: this was the original script used for the Vectors before submission. Superseded by bin/throughput.py. 
+
 # tests/src/ecoop/bmarks/timer.py <debug> <host> <server_port> <client_port> <version> <num_repeats>
 # tests/src/ecoop/bmarks/smtp/client/counter.py vector22 2525 10  
 

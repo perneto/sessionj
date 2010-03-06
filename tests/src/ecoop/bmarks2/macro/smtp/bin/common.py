@@ -16,13 +16,10 @@ client = 'camelot01' # The Timer/Counter Client machine.
 
 workers = ['camelot15', 'camelot03', 'camelot04', 'camelot05', 'camelot08', 'camelot07', 'camelot09', 'camelot02', 'camelot13', 'camelot14'] # The Worker machines. # Load clients need to know how many Worker machines there are.
 
+numClients = ['10', '100', '300', '500', '700', '900']
 #numClients = ['900', '100', '300', '500', '700', '10']
-#numClients = ['100', '300', '500', '700', '10']
-numClients = ['2000', '5000']
-#messageSizes = ['100', '1024']
-
-#numClients = ['500']
-messageSizes = ['1024']
+#numClients = ['2000', '5000']
+messageSizes = ['100', '1024']
 
 
 # Benchmark debugging parameters (2 Workers).
