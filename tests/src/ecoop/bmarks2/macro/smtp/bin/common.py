@@ -24,7 +24,7 @@ messageSizes = ['100', '1024']
 
 # Benchmark debugging parameters (2 Workers).
 
-debugWorkers = ['camelot04', 'camelot03']
+debugWorkers = ['camelot02', 'camelot03']
 
 debugNumClients = ['2', '4']	# Debug means for debugging these scripts: to play around with parameter settings, use the above (non-debug) parameters.
 debugMessageSizes = ['1024']
