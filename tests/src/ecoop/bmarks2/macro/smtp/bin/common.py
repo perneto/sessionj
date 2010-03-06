@@ -9,7 +9,7 @@ from threading import Thread
 
 versions = ['ST', 'SE']
 
-client = 'camelot01' # The Timer/Counter Client machine.
+client = 'camelot13' # The Timer/Counter Client machine.
 
 
 # "Full" configuration parameters (10 Workers).
