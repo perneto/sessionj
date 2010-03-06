@@ -19,7 +19,7 @@ workers = ['camelot02', 'camelot03', 'camelot04', 'camelot12', 'camelot06', 'cam
 numClients = ['10', '100', '300', '500', '700', '900']
 #numClients = ['900', '100', '300', '500', '700', '10']
 #numClients = ['2000', '5000']
-messageSizes = ['100', '1024']
+messageSizes = ['1024', '10000']
 
 
 # Benchmark debugging parameters (2 Workers).
