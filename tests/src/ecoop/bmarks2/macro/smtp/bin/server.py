@@ -94,7 +94,7 @@ for v in versions:
 	for clients in numClients:
 		for size in messageSizes:
 			for i in range(0, repeats):
-				common.printAndFlush('Parameters: version=' + v + ', size=' + size + ', trial=' + str(i))
+				common.printAndFlush('Parameters: version=' + v + ', clients=' + clients + ', size=' + size + ', trial=' + str(i))
 								
 				command = renv
 				
