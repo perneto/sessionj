@@ -14,7 +14,7 @@ client = 'camelot01' # The Timer/Counter Client machine.
 
 # "Full" configuration parameters (10 Workers).
 
-workers = ['camelot15', 'camelot03', 'camelot04', 'camelot05', 'camelot08', 'camelot07', 'camelot09', 'camelot02', 'camelot13', 'camelot14'] # The Worker machines. # Load clients need to know how many Worker machines there are.
+workers = ['camelot02', 'camelot03', 'camelot04', 'camelot05', 'camelot06', 'camelot07', 'camelot08', 'camelot09', 'camelot10', 'camelot11'] # The Worker machines. # Load clients need to know how many Worker machines there are.
 
 numClients = ['10', '100', '300', '500', '700', '900']
 #numClients = ['900', '100', '300', '500', '700', '10']
