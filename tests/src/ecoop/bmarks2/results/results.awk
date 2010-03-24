@@ -1,20 +1,16 @@
 BEGIN {
     # First runs
-    #clients[0] = 10
-    #clients[1] = 100
-    #clients[2] = 300
-    #clients[3] = 500
-    #clients[4] = 700
-    #clients[5] = 900
+    clients[0] = 10
+    clients[1] = 100
+    clients[2] = 300
+    clients[3] = 500
+    clients[4] = 700
+    clients[5] = 900
 
     # SE High-clients run
-    clients[0] = 10000
-    clients[1] = 2000
-    clients[2] = 5000
-
-    # ST High-clients run
-    clients[0] = 2000
-    clients[1] = 5000
+    #clients[0] = 10000
+    #clients[1] = 2000
+    #clients[2] = 5000
 
     c = -1
     if (version == "") {
