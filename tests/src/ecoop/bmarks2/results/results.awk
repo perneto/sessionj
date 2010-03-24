@@ -1,3 +1,5 @@
+#$ awk -f results.awk -v version=SE smtp-se-i50o10.txt
+
 BEGIN {
     # First runs
     clients[0] = 10
@@ -20,9 +22,9 @@ BEGIN {
     fileBase = "throughput-" version
 }
 /Parameters/ {
-    split($4, array, "=")
+    split($5, array, "=")
     trial = array[2]
-    if (trial > 6) {
+    if (trial > 10) {
         file = "/dev/null"
     } else if (trial == 0) {
         c += 1
