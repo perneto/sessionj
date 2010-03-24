@@ -1,4 +1,5 @@
 #load("SMTPthroughput10-10000.rdata")
+source("loadThroughputCsv.R")
 
 remove_zeroes <- function(X) {
 	newX <- c()
@@ -52,9 +53,6 @@ yLab <- rep(par("usr")[3] - 6, times=length(clientsSE))
 yLab <- yLab + 14*c(0,1,0,1,0,1,0,0,0)
 text(clientsSE, yLab, srt=90, adj=1, labels=clientsSE, xpd=T, cex=0.6)
 
-<<<<<<< local
-#title(main="SMTP macro-benchmark: Throughput", xlab="Number of clients", ylab="Throughput (msg / s)")
-legend(list(x=8000,y=250), legend=c("SE", "ST"), col=c("blue", "red"), lty = 1, pch=20, bty="n")=======
 title(main="SMTP macro-benchmark: Throughput", xlab="Number of clients", ylab="Throughput (msg / s)")
 legend(list(x=8000,y=250), legend=c("SE", "ST"), col=c("blue", "red"), lty = 1, pch=20, bty="n")
->>>>>>> other
+
