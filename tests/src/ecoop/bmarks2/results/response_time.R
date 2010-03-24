@@ -3,23 +3,23 @@ graphID <- function (sess_l, msg_size) {
 }
 
 loadCsv <- function(filename) {
-csv <- read.csv(filename, header=F)
-data <- list()
+	csv <- read.csv(filename, header=F)
+	data <- list()
 
-for (msg_size in unique(csv[[1]])) {
-	forSize <- subset(csv, V1 %in% msg_size)
-	for (sess_len in unique(forSize[[2]])) {
-		id <- graphID(sess_len, msg_size)
-		data[[id]] <- list()
-		forLen <- subset(forSize, V2 %in% sess_len)
-		for (nClients in forLen[[3]]) {
-			data[[id]][[toString(nClients)]] <- t(as.vector(
-				subset(forLen, V3 %in% nClients)[4:length(forLen)]
-			))
+	for (msg_size in unique(csv[[1]])) {
+		forSize <- subset(csv, V1 %in% msg_size)
+		for (sess_len in unique(forSize[[2]])) {
+			id <- graphID(sess_len, msg_size)
+			data[[id]] <- list()
+			forLen <- subset(forSize, V2 %in% sess_len)
+			for (nClients in forLen[[3]]) {
+				data[[id]][[toString(nClients)]] <- t(as.vector(
+					subset(forLen, V3 %in% nClients)[4:length(forLen)]
+				))
+			}
 		}
 	}
-}
-data
+	data
 }
 
 loadAll <- function() {
@@ -95,7 +95,7 @@ drawMean(data, "len1_size1024", main="Session length: 1, Message size: 1024")
 drawMean(data, "len10_size1024", main="Session length: 10, Message size: 1024")
 drawMean(data, "len100_size1024", main="Session length: 100, Message size: 1024")
 #mtext("Number of clients", 3, outer=T)
-myLegend(-3000, y=40100)
+myLegend(-2900, y=46000)
 
 dev.new()
 par(mfrow=c(2,3), oma=c(0,0,2,0), mar=c(4,4,0,2))
@@ -105,4 +105,4 @@ drawSd(data, "len100_size100", main="Session length: 100, Message size: 100")
 drawSd(data, "len1_size1024", main="Session length: 1, Message size: 1024")
 drawSd(data, "len10_size1024", main="Session length: 10, Message size: 1024")
 drawSd(data, "len100_size1024", main="Session length: 100, Message size: 1024")
-myLegend(-2800, y=3500)
+myLegend(-2900, y=9500)
