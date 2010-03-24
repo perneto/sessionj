@@ -1,4 +1,4 @@
-load("SMTPthroughput10-10000.rdata")
+#load("SMTPthroughput10-10000.rdata")
 
 remove_zeroes <- function(X) {
 	newX <- c()
@@ -31,8 +31,10 @@ sdST <- sd_nozeroes(tputST)
 
 meanSE <- mean_nozeroes(tputSE)
 sdSE <- sd_nozeroes(tputSE)
-clientsSE <- c(10, 100, 300, 500, 700, 900, 2000, 5000, 10000)
-clientsST <- c(10, 100, 300, 500, 700, 900, 2000)
+#clientsSE <- c(10, 100, 300, 500, 700, 900, 2000, 5000, 10000)
+clientsSE <- c(10, 100, 300, 500, 700, 900)
+#clientsST <- c(10, 100, 300, 500, 700, 900, 2000)
+clientsST <- c(10, 100, 300, 500, 700, 900)
 yrangeMean<-c(150, 350)
 
 yMarks = round(c(meanSE, meanST), 1)
