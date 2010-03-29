@@ -39,14 +39,18 @@ yrangeMean<-c(240, 370)
 yMarks = round(c(meanSE, meanST), 1)
 
 library(gplots)
+library(plotrix)
 
-plotCI(x=clientsSE, y=meanSE, uiw=sdSE, type="o", pch=20, gap=0, ylim=yrangeMean, col="blue", xlab="", ylab="", xaxt="n", yaxt="n", bty="n", sfrac=0.005)
-plotCI(add=TRUE, x=clientsST, y=meanST, uiw=sdST, type="o", pch=20, gap=0, ylim=yrangeMean, col="red", xlab="", ylab="", xaxt="n", sfrac=0.005)
+yMarksOrig <- yMarks
+delta <- diff(c(300, 340))
+yMarks[yMarks>300] <- yMarks[yMarks>300] - delta
+gplots::plotCI(x=clientsSE, y=meanSE - delta, uiw=sdSE, type="o", pch=20, gap=0, ylim=yrangeMean, col="blue", xlab="", ylab="", xaxt="n", yaxt="n", bty="n", sfrac=0.005)
+gplots::plotCI(add=TRUE, x=clientsST, y=meanST, uiw=sdST, type="o", pch=20, gap=0, ylim=yrangeMean, col="red", xlab="", ylab="", xaxt="n", sfrac=0.005)
 rug(yMarks, side=2, ticksize=-0.02)
+axis.break(2, breakpos=300)
+yMarksOrigCulled=sort(yMarksOrig)[-2][-2][-6][-6][-7]
 yMarksCulled=sort(yMarks)[-2][-2][-6][-6][-7]
-print(sort(yMarks))
-print(yMarksCulled)
-text(par("usr")[1]-20, yMarksCulled, adj=1, labels=yMarksCulled, xpd=T, cex=0.6)
+text(par("usr")[1]-20, yMarksCulled, adj=1, labels=yMarksOrigCulled, xpd=T, cex=0.6)
 
 rug(clientsSE, side=1, ticksize=-0.02)
 yLab <- rep(par("usr")[3] - 6, times=length(clientsSE))
@@ -55,5 +59,5 @@ text(clientsSE, yLab, srt=90, adj=1, labels=clientsSE, xpd=T, cex=0.6)
 
 #title(main="SMTP macro-benchmark: Throughput", xlab="Number of clients", ylab="Throughput (msg / s)")
 title(xlab="Number of clients", ylab="Throughput (msg / s)")
-legend(list(x=0,y=330), legend=c("SE", "ST"), col=c("blue", "red"), lty = 1, pch=20, bty="n")
+legend(list(x=750,y=290), legend=c("SE", "ST"), col=c("blue", "red"), lty = 1, pch=20, bty="n")
 
