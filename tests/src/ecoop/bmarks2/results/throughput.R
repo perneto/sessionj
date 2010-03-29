@@ -32,11 +32,9 @@ sdST <- sd_nozeroes(tputST)
 
 meanSE <- mean_nozeroes(tputSE)
 sdSE <- sd_nozeroes(tputSE)
-#clientsSE <- c(10, 100, 300, 500, 700, 900, 2000, 5000, 10000)
 clientsSE <- c(10, 100, 300, 500, 700, 900)
-#clientsST <- c(10, 100, 300, 500, 700, 900, 2000)
 clientsST <- c(10, 100, 300, 500, 700, 900)
-yrangeMean<-c(150, 350)
+yrangeMean<-c(240, 370)
 
 yMarks = round(c(meanSE, meanST), 1)
 
@@ -45,14 +43,17 @@ library(gplots)
 plotCI(x=clientsSE, y=meanSE, uiw=sdSE, type="o", pch=20, gap=0, ylim=yrangeMean, col="blue", xlab="", ylab="", xaxt="n", yaxt="n", bty="n", sfrac=0.005)
 plotCI(add=TRUE, x=clientsST, y=meanST, uiw=sdST, type="o", pch=20, gap=0, ylim=yrangeMean, col="red", xlab="", ylab="", xaxt="n", sfrac=0.005)
 rug(yMarks, side=2, ticksize=-0.02)
-yMarksCulled=sort(yMarks)[-2][-8][-8][-8][-8][-8]
-text(par("usr")[1]-250, yMarksCulled, adj=1, labels=yMarksCulled, xpd=T, cex=0.6)
+yMarksCulled=sort(yMarks)[-2][-2][-6][-6][-7]
+print(sort(yMarks))
+print(yMarksCulled)
+text(par("usr")[1]-20, yMarksCulled, adj=1, labels=yMarksCulled, xpd=T, cex=0.6)
 
 rug(clientsSE, side=1, ticksize=-0.02)
 yLab <- rep(par("usr")[3] - 6, times=length(clientsSE))
-yLab <- yLab + 14*c(0,1,0,1,0,1,0,0,0)
+#yLab <- yLab + 14*c(0,1,0,1,0,1,0,0,0)
 text(clientsSE, yLab, srt=90, adj=1, labels=clientsSE, xpd=T, cex=0.6)
 
-title(main="SMTP macro-benchmark: Throughput", xlab="Number of clients", ylab="Throughput (msg / s)")
-legend(list(x=8000,y=250), legend=c("SE", "ST"), col=c("blue", "red"), lty = 1, pch=20, bty="n")
+#title(main="SMTP macro-benchmark: Throughput", xlab="Number of clients", ylab="Throughput (msg / s)")
+title(xlab="Number of clients", ylab="Throughput (msg / s)")
+legend(list(x=0,y=330), legend=c("SE", "ST"), col=c("blue", "red"), lty = 1, pch=20, bty="n")
 
