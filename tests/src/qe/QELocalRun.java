@@ -60,7 +60,7 @@ public class QELocalRun
 		if (time)
 		{
 			System.out.println("Run time: " + ((finish - start) / 1000) + " micros.");
-			//System.out.println(((finish - start) / 1000));
+			//System.out.println("Run time: " + (finish - start) + " nanos.");
 		}
 	}
 
