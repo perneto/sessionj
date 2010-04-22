@@ -8,6 +8,7 @@ import java.util.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
+import sessionj.runtime.transport.*;
 import sessionj.runtime.transport.tcp.*;
 import sessionj.runtime.transport.httpservlet.*;
 
@@ -24,7 +25,7 @@ class Service
 		
 		try (ss_sa)
 		{
-			ss_sa = SJServerSocketImpl.create(p_sa, port, createSJSessionParameters(setups, transports)); 		
+			ss_sa = SJServerSocketImpl.create(p_sa, port, SJTransportUtils.createSJSessionParameters(setups, transports)); 		
 		
 			while (true) 
 			{
@@ -80,7 +81,7 @@ class Service
 		new Service(setups, transports, port_s);
 	}
 	
-	private static SJSessionParameters createSJSessionParameters(String setups, String transports) throws SJSessionParametersException
+	/*private static SJSessionParameters createSJSessionParameters(String setups, String transports) throws SJSessionParametersException
 	{		
 		SJSessionParameters params;
 		
@@ -123,7 +124,7 @@ class Service
 					ts.add(new SJFifoPair());
 					
 					break;
-				}*/
+				}*
 				case 's':
 				{
 					ts.add(new SJStreamTCP());
@@ -144,5 +145,5 @@ class Service
 				}
 			}
 		}					
-	}		
+	}*/		
 }

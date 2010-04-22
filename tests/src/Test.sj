@@ -10,12 +10,42 @@ import sessionj.runtime.net.*;
 
 public class Test  
 {		
-	static protocol foo { !<String> }
-	static protocol bar { !<String>.@(foo) }	
+	//static protocol foo { !<String> }
+	//static protocol bar { !<String>.@(foo) }	
+	
+	/*static class A 
+	{
+		private noalias Object a1;
+	
+		public A meth2()
+		{
+			return null;
+		}
+	
+		public A meth(noalias A a, noalias A aa) 
+		{
+			a1 = a;	
+			
+			return null;
+		}
+	}*/
 	
 	public static void main(String[] args) throws Exception
 	{		
-		final noalias protocol p1 { cbegin.?(String).!<String> }
+		//noalias Integer i = new Integer(123);
+		
+		//noalias A a2 = new A();
+		//noalias A a3 = new A();
+		
+		//a2.meth(a3.meth2(), a3.meth(a3, null));
+	
+		//a3 = a2.meth2();
+	
+			noalias Object o;
+			
+			o.toString();
+	
+		/*final noalias protocol p1 { cbegin.?(String).!<String> }
 		//final noalias protocol p1 { cbegin.?{L1: !<String>} }
 		final noalias protocol p2 { cbegin.?[!<int>]* }
 		
@@ -44,6 +74,6 @@ public class Test
 		finally
 		{
 			
-		}
+		}*/
 	}
 }
