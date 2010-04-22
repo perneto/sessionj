@@ -10,6 +10,7 @@ import java.util.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
+import sessionj.runtime.transport.*;
 import sessionj.runtime.transport.tcp.*;
 import sessionj.runtime.transport.httpservlet.*;
 
@@ -33,11 +34,12 @@ class Agency
 
 		final noalias SJServerSocket ss_ac;
 		
-		SJSessionParameters params = createSJSessionParameters(setups, transports);
+		SJSessionParameters params1 = SJTransportUtils.createSJSessionParameters(setups, transports);
+		SJSessionParameters params2 = SJTransportUtils.createSJSessionParameters(setups, transports);
 		
 		try (ss_ac)
 		{
-			ss_ac = SJServerSocketImpl.create(p_ac, port_a, params);
+			ss_ac = SJServerSocketImpl.create(p_ac, port_a, params1);
 			
 			while (true) 
 			{
@@ -67,7 +69,7 @@ class Agency
 	
 							try (s_as)
 							{
-								s_as = c_as.request(params);
+								s_as = c_as.request(params2);
 								
 								s_as.pass(s_ac); // No more operations on s_ac allowed. 
 							}		
@@ -111,7 +113,7 @@ class Agency
 		new Agency(setups, transports, port_a, host_s, port_s);
 	}
 
-	private static SJSessionParameters createSJSessionParameters(String setups, String transports) throws SJSessionParametersException
+	/*private static SJSessionParameters createSJSessionParameters(String setups, String transports) throws SJSessionParametersException
 	{		
 		SJSessionParameters params;
 		
@@ -154,7 +156,7 @@ class Agency
 					ts.add(new SJFifoPair());
 					
 					break;
-				}*/
+				}*
 				case 's':
 				{
 					ts.add(new SJStreamTCP());
@@ -175,7 +177,7 @@ class Agency
 				}
 			}
 		}					
-	}	
+	}*/	
 	
 	private Address a = new Address("dummy"); // FIXME: currently a problem if Address is referred to in the delegation type but not actually used in the code.
 }
