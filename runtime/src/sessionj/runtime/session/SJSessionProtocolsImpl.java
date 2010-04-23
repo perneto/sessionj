@@ -1038,9 +1038,9 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 		{
             log.finest("About to receive peer session type from: " + ser);
             String encodedType = (String) ser.readObject();
-            /*
-            Disabled for benchmarking.
             
+            /*
+            //Disabled for benchmarking.            
             SJSessionType theirs = SJRuntime.decodeSessionType(encodedType);
 			
 			if (!ours.isDualtype(theirs))
@@ -1054,8 +1054,8 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 				s.close();
 				
 				throw new SJIncompatibleSessionException("[SJSessionProtocolsImpl] Our session type (" + ours + ") incompatible with theirs: " + theirs);
-			}
-			*/
+			}*/
+			
 		}
 		catch (ClassNotFoundException cnfe)
 		{
