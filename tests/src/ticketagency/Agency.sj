@@ -22,7 +22,7 @@ class Agency
 		{
 		  sbegin.
 		  ?[
-		  	?(String).!<Double>
+		  	?(String).!<double>
 		  ]*.
 		  ?{
 		    ACCEPT: ?(Address).!<Date>,
@@ -34,12 +34,11 @@ class Agency
 
 		final noalias SJServerSocket ss_ac;
 		
-		SJSessionParameters params1 = SJTransportUtils.createSJSessionParameters(setups, transports);
-		SJSessionParameters params2 = SJTransportUtils.createSJSessionParameters(setups, transports);
+		SJSessionParameters params = SJTransportUtils.createSJSessionParameters(setups, transports);
 		
 		try (ss_ac)
 		{
-			ss_ac = SJServerSocketImpl.create(p_ac, port_a, params1);
+			ss_ac = SJServerSocketImpl.create(p_ac, port_a, params);
 			
 			while (true) 
 			{
@@ -57,7 +56,7 @@ class Agency
 	
 						System.out.println("Requested journey: " + travDetails + "; cost: " + cost);
 	
-						s_ac.send(cost);
+						s_ac.send(cost.doubleValue());
 					}
 	
 					s_ac.inbranch() 
@@ -69,7 +68,7 @@ class Agency
 	
 							try (s_as)
 							{
-								s_as = c_as.request(params2);
+								s_as = c_as.request(params);
 								
 								s_as.pass(s_ac); // No more operations on s_ac allowed. 
 							}		
