@@ -44,8 +44,8 @@ debugSessionLengths = ['0', '4'] # For response time benchmarks.
 
 localhostNumClients = ['1', '2']
 localhostMessageSizes = ['100', '1024']
-localhostSessionLengths = ['0', '4'] # For response time benchmarks.
-#localhostSessionLengths = ['-1'] # For throughput benchmarks.
+#localhostSessionLengths = ['0', '4'] # For response time benchmarks.
+localhostSessionLengths = ['-1'] # For throughput benchmarks.
 
 #localhostNumClients = ['0']
 #localhostMessageSizes = ['100']
