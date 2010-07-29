@@ -2,6 +2,10 @@
 //$ bin/sessionjc -cp tests/classes/ tests/src/smtp/sj/client/Client.sj -d tests/classes/
 //$ bin/sessionj -cp tests/classes/ smtp.sj.client.Client false smtp.cc.ic.ac.uk 25 
 
+/*openssl s_client -starttls smtp -connect smtp.gmail.com:587
+ehlo vm-shell1.doc.ic.ac.uk
+AUTH LOGIN...*/
+
 package smtp.sj.client;
 
 import java.net.InetAddress;

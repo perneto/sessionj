@@ -264,13 +264,13 @@ sj_session_set_type_body ::=
 sj_channel_type ::=
 	sj_session_type_cbegin:a {:  RESULT = a;  :}
 |	sj_session_type_cbegin:a DOT sj_session_type_body:b
-	    {:  RESULT = a.child(b);  :}
+	    {: RESULT = a.child(b); :}
 ;
 
 sj_server_type ::=
 	sj_session_type_sbegin:a {:  RESULT = a;  :}
 |	sj_session_type_sbegin:a DOT sj_session_type_body:b
-	    {:  RESULT = a.child(b);  :}
+	    {: RESULT = a.child(b); :}
 ;
 
 sj_session_type_cbegin ::=
@@ -298,6 +298,7 @@ sj_session_type_body ::=
 	:}
 ;
 
+// may be able to specify empty session types here (just do RESULT directly) as for e.g. block_statements_opt for optional blocks 
 sj_session_type_element ::=
 	//Cannot use LPAREN/RPAREN, conflicts with session type cast.
 	NOT:a LT sj_message_type:b GT:c
@@ -551,6 +552,7 @@ sj_receivedouble_operation ::=
 	:}
 ;
 
+// FIXME: shouldn't this be receiveint?
 sj_receive_operation ::=
 	name:a DOT SJ_RECEIVEINT LPAREN argument_list_opt:b RPAREN:c // Using sj_socket doesn't seem to work?
 	{: 		

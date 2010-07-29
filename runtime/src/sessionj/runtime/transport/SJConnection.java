@@ -11,7 +11,7 @@ public interface SJConnection
 {
 	void disconnect();
 
-	// A bit naive. Should we only signal EOF through exceptions? 
+	// A bit naive (wrt. to all or nothing written?). Should we only signal EOF through exceptions? 
 	void writeByte(byte b) throws SJIOException;
 	void writeBytes(byte[] bs) throws SJIOException;
 

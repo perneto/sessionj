@@ -387,12 +387,14 @@ public class SJRuntime
 		}
 	}
 
+	// SJSocket doesn't have to be in the last position, but perhaps uniform with the other variant
 	public static void send(Object obj, SJSocket s) throws SJIOException
 	{
 		s.send(obj);
 	}
 
-	public static void send(Object obj, SJSocket... sockets) throws SJIOException
+	// a send call with a single SJSocket argument will invoke the above method, not this one
+	public static void send(Object obj, SJSocket... sockets) throws SJIOException 
 	{
 		for (SJSocket s : sockets)
 		{

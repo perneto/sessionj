@@ -25,7 +25,7 @@ abstract public class SJTransportManager
 	protected static final byte REUSE_SETUP_CONNECTION = 51;
 	protected static final byte CLOSE_SETUP_CONNECTION = 52;	
 	
-	abstract public SJAcceptorThreadGroup openAcceptorGroup(int port, SJSessionParameters params) throws SJIOException;
+	abstract public SJAcceptorThreadGroup openAcceptorGroup(int port, SJSessionParameters params) throws SJIOException; // should be session port?
 	abstract public void closeAcceptorGroup(int port);
 	
 	abstract public SJConnection openConnection(String hostName, int port, SJSessionParameters params) throws SJIOException;
