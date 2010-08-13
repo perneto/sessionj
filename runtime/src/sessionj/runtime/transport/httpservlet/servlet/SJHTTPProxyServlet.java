@@ -218,6 +218,7 @@ public class SJHTTPProxyServlet extends HttpServlet
 		//return b;
 	}
 	
+	// Called write because we're writing to the Client. But it is in repsonse to a GET read request from the Client.
 	private void doWriteByteArray(String key, PrintWriter pw, int len) throws SJIOException
 	{
 		SJConnection conn = getConnection(key);
@@ -232,7 +233,7 @@ public class SJHTTPProxyServlet extends HttpServlet
 			
 			synchronized (conn)
 			{												
-				conn.readBytes(bs);					
+				conn.readBytes(bs);	// readFully, as per ATI specification				
 			}
 	
 			pw.println(FORWARDED_PREFIX + Arrays.toString(bs).replace(" ", "") + FORWARDED_SUFFIX);

@@ -806,7 +806,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 
             if (simultaneousDelegation && becomeOrigRequester) {
                 //throw new RuntimeException("foo");
-                // A test case for failure in the middle fot delegation. Not resolved yet, e.g. try delegation case 4.
+                // A test case for failure in the middle of delegation. Not resolved yet, e.g. try delegation case 4.
 
                 SJDelegationSignal ds = (SJDelegationSignal) controlMsgs.get(controlMsgs.size() - 1).getContent();
 

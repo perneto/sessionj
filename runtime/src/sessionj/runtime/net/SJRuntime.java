@@ -498,6 +498,7 @@ public class SJRuntime
         else return res.getClass().isInstance(expectedClass);
     }
 
+    // Currently not "optimised" to use e.g. setSoTimeout. 
     private static Object timedReceive(int timeout, SJSocket s, int typeCode, String typeName, Class<?> expectedClass, Object[] args) throws SJIOException {
         Object[] res = new Object[1];
 

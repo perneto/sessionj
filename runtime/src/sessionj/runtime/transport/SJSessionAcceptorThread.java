@@ -29,7 +29,7 @@ public class SJSessionAcceptorThread extends SJAcceptorThread {
 			{
 				try
 				{
-					atg.queueConnection(ca.accept());
+					atg.queueConnection(ca.accept()); // just a simple version of SJSetupThread. can probably combine into one class.
 				}
 				//catch (InterruptedException ie) { } // Interrupt doesn't apply...
 				catch (SJIOException ioe) { } // ...instead close the connection acceptor and catch the exception?			

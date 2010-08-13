@@ -113,7 +113,7 @@ class SJManualTCPConnection extends AbstractSJConnection
 		try
 		{
 			dos.writeByte(b);
-			dos.flush();
+			dos.flush(); // FIXME: since ATI exports flush, we shouldn't do this implicitly (no point to ATI flush otherwise)
 		}
 		catch (IOException ioe)
 		{
