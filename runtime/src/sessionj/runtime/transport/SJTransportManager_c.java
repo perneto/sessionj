@@ -559,7 +559,7 @@ public class SJTransportManager_c extends SJTransportManager
 									
 					if (sname.equals(name) && servers.get(name) != null)
 					{
-						conn.writeByte(REUSE_SETUP_CONNECTION);
+						conn.writeByte(REUSE_SETUP_CONNECTION); // Could make this a boolean?
 						conn.flush();
 						
 						transportAgreed = true;

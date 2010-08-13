@@ -41,22 +41,18 @@ public class Test
 	
 		//a3 = a2.meth2();
 	
-			noalias Object o;
-			
-			o.toString();
-	
-		/*final noalias protocol p1 { cbegin.?(String).!<String> }
-		//final noalias protocol p1 { cbegin.?{L1: !<String>} }
-		final noalias protocol p2 { cbegin.?[!<int>]* }
+		final noalias protocol p1 cbegin.?(String)
+		//final noalias protocol p1 cbegin.?{L1: !<String>}
+		//final noalias protocol p2 cbegin.?[!<int>]* 
 		
 		final noalias SJService c1 = SJService.create(p1, "A", 1234);
-		final noalias SJService c2 = SJService.create(p2, "B", 1234);
+		//final noalias SJService c2 = SJService.create(p2, "B", 1234);
 		
-		protocol p_select { ?(String).!<String> }
+		//protocol p_select { ?(String).!<String> }
 		
-		final noalias SJSelector sel = SJRuntime.selectorFor(p_select);
+		//final noalias SJSelector sel = SJRuntime.selectorFor(p_select);
 		
-		try (sel)
+		//try (sel)
 		{
 			noalias SJSocket s1, s2;
 			
@@ -64,16 +60,18 @@ public class Test
 			{
 				s1 = c1.request();
 				
-				sel.registerInput(s1);
+				s1.receive(123);
+				
+				//sel.registerInput(s1);
 			}
 			finally
 			{
 				
 			}
 		}
-		finally
+		//finally
 		{
 			
-		}*/
+		}
 	}
 }
