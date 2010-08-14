@@ -47,6 +47,8 @@ public interface SJSocket extends SJChannel, SJSelectableChannel
 	void delegateSession(SJAbstractSocket s, String encoded) throws SJIOException;
     SJAbstractSocket receiveSession(String encoded, SJSessionParameters params) throws SJIOException;
 	
+  // for the following "non session typed" methods on SJSocket, need to add as "exceptions" to SJSessionOperationParser  
+    
 	SJProtocol getProtocol();
 	
 	String getHostName();

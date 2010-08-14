@@ -34,8 +34,12 @@ public class Server
 				{
 					s = ss.accept();
 						
-					System.out.println("Accepted connection from: " + s.getHostName() + ":" + s.getPort()); 
-										
+					System.out.println("Accepted connection from: " + s.getHostName() + ":" + s.getPort());
+					System.out.println("Transport: " + s.getConnection().getTransportName());
+						
+					/*s.receive();					
+					s.send("DEF");*/
+					
 					s.inwhile()
 					{
 						s.inbranch()
