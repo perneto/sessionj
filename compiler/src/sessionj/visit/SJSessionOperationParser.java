@@ -27,7 +27,7 @@ import java.util.*;
 public class SJSessionOperationParser extends ContextVisitor
 // Doesn't do any "proper" parsing of session operations (done by actual parser), but does some argument adjusting. // Except SJSpawns.
 {
-	public static final Set<String> UNTYPED_SOCKET_OPERATIONS = new HashSet<String>(); 	
+	public static final Set<String> UNTYPED_SOCKET_OPERATIONS = new HashSet<String>(); // could use an anonymous subclass with instance initialiser instead 	
 	{
 		UNTYPED_SOCKET_OPERATIONS.add("getProtocol"); // Just the getters. // FIXME: factor out as constants.
 		UNTYPED_SOCKET_OPERATIONS.add("getHostName");
@@ -38,6 +38,7 @@ public class SJSessionOperationParser extends ContextVisitor
 		UNTYPED_SOCKET_OPERATIONS.add("getStateManager");
 		UNTYPED_SOCKET_OPERATIONS.add("currentSessionType");
 		UNTYPED_SOCKET_OPERATIONS.add("remainingSessionType");
+		UNTYPED_SOCKET_OPERATIONS.add("getConnection");
 	}
 	
 	private static final Set<String> SJ_BASIC_OPERATION_KEYWORDS = new HashSet<String>();

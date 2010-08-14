@@ -32,6 +32,9 @@ public class Client
 			
 			long start = System.nanoTime();
 			
+			/*s.send("ABC");			
+			s.receive();*/
+			
 			int i = 0;
 			
 			if (i == 0)
@@ -63,7 +66,7 @@ public class Client
 			
 			long finish = System.nanoTime();
 			
-			System.out.println("time = " + (finish - start) / 1000000 + " millis.");
+			System.out.println("time = " + (finish - start) / 1000000 + " millis.");							
 		}
 		finally
 		{

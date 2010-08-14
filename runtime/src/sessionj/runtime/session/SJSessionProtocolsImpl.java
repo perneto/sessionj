@@ -1032,17 +1032,17 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
         log.finest("About to send our session type on: " + ser);
 		ser.writeObject(encoded);
 		
-		SJSessionType ours = proto.type();
+		SJSessionType ours = proto.type().getCanonicalForm();
 		
 		try
 		{
             log.finest("About to receive peer session type from: " + ser);
             String encodedType = (String) ser.readObject();
-            
-            /*
+                        
+            //*
             //Disabled for benchmarking.            
-            SJSessionType theirs = SJRuntime.decodeSessionType(encodedType);
-			
+            SJSessionType theirs = SJRuntime.decodeSessionType(encodedType).getCanonicalForm();			
+            
 			if (!ours.isDualtype(theirs))
 			{
 				//ser.close(); // The session socket variable will still be null because of this
@@ -1054,7 +1054,8 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 				s.close();
 				
 				throw new SJIncompatibleSessionException("[SJSessionProtocolsImpl] Our session type (" + ours + ") incompatible with theirs: " + theirs);
-			}*/
+			}
+			//*/
 			
 		}
 		catch (ClassNotFoundException cnfe)
