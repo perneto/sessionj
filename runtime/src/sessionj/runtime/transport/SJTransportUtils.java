@@ -66,7 +66,8 @@ public class SJTransportUtils
 			{
 				//cs.addAll(parseTransportFlags("fs"));
 				//cs.add(parseTransportFlag(SJ_FIFO_PAIR)); // FIXME: seems something is currently wrong with SJFifoPair (probably to due with using files to detect open/closed ports), so disable for now.  
-				cs.add(parseTransportFlag(SJ_STREAM_TCP));				
+				//cs.add(parseTransportFlag(SJ_STREAM_TCP));
+				cs.add(parseTransportFlag(SJ_MANUAL_TCP));
 			}
 			else
 			{
