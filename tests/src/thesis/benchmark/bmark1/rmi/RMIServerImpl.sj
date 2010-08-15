@@ -1,7 +1,7 @@
 //$ bin/sessionjc -cp tests/classes/ thesis/benchmark/bmark1/rmi/RMIServerImpl.sj -d tests/classes/
 //$ rmiregistry &
 //$ bin/sessionj -cp tests/classes/ -j -Djava.rmi.server.codebase=file:///c:/cygwin/home/Raymond/code/java/eclipse/sessionj-hg/tests/classes/ -j -Djava.security.policy=C:/cygwin/home/Raymond/code/java/eclipse/sessionj-hg/tests/src/thesis/benchmark/bmark1/rmi/security-localhost.policy thesis.benchmark.bmark1.rmi.RMIServerImpl false
-//$ bin/sessionj -cp tests/classes/ -j -Djava.rmi.server.codebase=file:///~/code/java/eclipse/sessionj-hg/tests/classes/ -j -Djava.security.policy=~/code/java/eclipse/sessionj-hg/tests/src/thesis/benchmark/bmark1/rmi/security.policy thesis.benchmark.bmark1.rmi.RMIServerImpl false
+//$ bin/sessionj -cp tests/classes/ -j -Djava.rmi.server.codebase=file:///homes/rhu/code/java/eclipse/sessionj-hg/tests/classes/ -j -Djava.security.policy=/homes/rhu/code/java/eclipse/sessionj-hg/tests/src/thesis/benchmark/bmark1/rmi/security.policy thesis.benchmark.bmark1.rmi.RMIServerImpl false
 
 package thesis.benchmark.bmark1.rmi;
 
