@@ -2,7 +2,7 @@
 
 ##
 # Run from the sessionj root directory:
-# tests/src/thesis/benchmark/bmark1/bin/make localhost all 
+# tests/src/thesis/benchmark/bmark1/bin/make LOCALHOST all 
 ##
 
 ##
@@ -32,13 +32,13 @@ rmi=false     # RMI
 sj=false      # SJ
 socket=false  # "Plain" sockets
 
-if [ "$1" == "localhost" ];
+if [ "$1" == "LOCALHOST" ];
 then
   java=java
-elif [ "$1" == "doc" ];
+elif [ "$1" == "DOC" ];
 then
   java=java
-elif [ "$1" == "camelot" ];
+elif [ "$1" == "CAMELOT" ];
 then
   java=~/bin/jdk1.6.0_21-64/bin/java  
 else
