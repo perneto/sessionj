@@ -8,10 +8,10 @@
 ##
 # Script configuration parameters.
 ##
-java=
-compiler=bin/sessionjc    # compiler
-classpath=tests/classes   # classpath
-destination=tests/classes # output directory
+java=                     # We're using sessionjc; so need java (not javac)
+compiler=bin/sessionjc    # Compiler
+classpath=tests/classes   # Classpath
+destination=tests/classes # Output directory
 
 
 ##
@@ -35,14 +35,15 @@ socket=false  # "Plain" sockets
 if [ "$1" == "localhost" ];
 then
   java=java
-else 
-  if [ "$1" == "doc" ];
-  then
-    java=... 
-  else
-    echo Invalid environment: $1
-  exit 1
-  fi
+elif [ "$1" == "doc" ];
+then
+  java=java
+elif [ "$1" == "camelot" ];
+then
+  java=~/bin/jdk1.6.0_21-64/bin/java  
+else
+  echo Invalid environment: $1
+exit 1
 fi
 
 shift
