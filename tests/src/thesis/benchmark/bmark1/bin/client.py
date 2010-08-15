@@ -31,7 +31,7 @@ timer      = sys.argv[9]      # Timer mode: e.g. FULL, BODY, etc.
 ##
 # Main execution command.
 ## 
-if (env == 'localhost' or 'env' == doc):
+if (env == 'localhost' or env == 'doc'):
 	renv = "bin/sessionj -J " + common.JAVA          # Uses client JVM by default
 elif env == 'camelot':
 	renv = "bin/sessionj -J " + common.CAMELOT_JAVA
