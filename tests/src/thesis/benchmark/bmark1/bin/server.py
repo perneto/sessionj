@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 ##
-# tests/src/thesis/benchmark/bmark1/bin/server.py false 8888 HZHL2 7777 SJm 2
+# tests/src/thesis/benchmark/bmark1/bin/server.py false localhost 8888 localhost 7777 SJm 2
 ##
 
 import socket
@@ -12,23 +12,29 @@ import common
 
 
 ##
-# Main execution command.
-## 
-renv = "bin/sessionj -j '-server' -J " + common.JAVA	
-
-
-##
 # Command line arguments.
 ##
-if len(sys.argv) != 7:
-	common.runtime_error('Usage: server.py <debug> <server_port> <client> <client_port> <version> <repeats>')
+if len(sys.argv) != 8:
+	common.runtime_error('Usage: server.py <debug> <env> <server_port> <client> <client_port> <version> <repeats>')
 debug   = common.parse_boolean(sys.argv[1]) 
-sport   = sys.argv[2]
-client  = sys.argv[3]      # Don't use localhost; use the hostname (see client.py)
-cport   = int(sys.argv[4])
-version = sys.argv[5]
-repeats = int(sys.argv[6]) # "Outer repeats", i.e. how many times we will recreate the Server per parameter configuration
+env     = sys.argv[2]
+sport   = sys.argv[3]
+client  = sys.argv[4]      # Use "localhost" if env is localhost
+cport   = int(sys.argv[5])
+version = sys.argv[6]
+repeats = int(sys.argv[7]) # "Outer repeats", i.e. how many times we will recreate the Server per parameter configuration
 
+
+##
+# Main execution command.
+## 
+if (env == 'localhost' or env == 'doc'):
+	renv = "bin/sessionj -j '-server' -J " + common.JAVA
+elif env == 'camelot':
+	renv = "bin/sessionj -j '-server' -J " + common.CAMELOT_JAVA
+else:
+	common.runtime_error('Bad environment: ' + env)
+	
 
 ##
 # Benchmark configuration parameters.
