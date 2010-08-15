@@ -11,7 +11,9 @@ from threading import Thread
 JAVA = 'java'
 CAMELOT_JAVA = '~/bin/jdk1.6.0_21-64/bin/java'
 RMI_CODEBASE = '-Djava.rmi.server.codebase=file:///c:/cygwin/home/Raymond/code/java/eclipse/sessionj-hg/tests/classes/'
-RMI_SECURITY_POLICY = '-Djava.security.policy=C:/cygwin/home/Raymond/code/java/eclipse/sessionj-hg/tests/src/thesis/benchmark/bmark1/rmi/security.policy'
+RMI_SECURITY_POLICY = '-Djava.security.policy=C:/cygwin/home/Raymond/code/java/eclipse/sessionj-hg/tests/src/thesis/benchmark/bmark1/rmi/security-localhost.policy'
+DOC_RMI_CODEBASE = '-Djava.rmi.server.codebase=file:///~/code/java/eclipse/sessionj-hg/tests/classes/'
+DOC_RMI_SECURITY_POLICY = '-Djava.security.policy=~/code/java/eclipse/sessionj-hg/tests/src/thesis/benchmark/bmark1/rmi/security.policy'
 
 
 ##

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 ##
-# tests/src/thesis/benchmark/bmark1/bin/server.py false localhost 8888 localhost 7777 SJm 2
+# tests/src/thesis/benchmark/bmark1/bin/server.py false LOCALHOST 8888 localhost 7777 SJm 2
+# tests/src/thesis/benchmark/bmark1/bin/server.py false CAMELOT 8888 camelot14 7777 ALL 2
 ##
 
 import socket
@@ -28,9 +29,9 @@ repeats = int(sys.argv[7]) # "Outer repeats", i.e. how many times we will recrea
 ##
 # Main execution command.
 ## 
-if (env == 'localhost' or env == 'doc'):
+if (env == 'LOCALHOST' or env == 'DOC'):
 	renv = "bin/sessionj -j '-server' -J " + common.JAVA
-elif env == 'camelot':
+elif env == 'CAMELOT':
 	renv = "bin/sessionj -j '-server' -J " + common.CAMELOT_JAVA
 else:
 	common.runtime_error('Bad environment: ' + env)
@@ -91,8 +92,14 @@ for v in versions:
 				command += ' -Dsessionj.transports.negotiation=' + transport \
 			           + ' -Dsessionj.transports.session=' + transport
 			elif v == 'RMI':
-				command += ' -j ' + common.RMI_CODEBASE \
-		             + ' -j ' + common.RMI_SECURITY_POLICY 																									
+				if env == 'LOCALHOST':
+					command += ' -j ' + common.RMI_CODEBASE \
+			             + ' -j ' + common.RMI_SECURITY_POLICY
+				elif (env == 'DOC' or env == 'CAMELOT'):
+					command += ' -j ' + common.DOC_RMI_CODEBASE \
+				           + ' -j ' + common.DOC_RMI_SECURITY_POLICY 	
+				else:
+					common.runtime_error('Bad environment: ' + env)																								
 			command += ' -cp tests/classes thesis.benchmark.bmark1.ServerRunner ' \
 			         + str(debug) \
 			         + ' ' + sport \
