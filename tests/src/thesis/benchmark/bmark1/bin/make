@@ -1,0 +1,135 @@
+#!/bin/bash
+
+##
+# Run from the sessionj root directory:
+# tests/src/thesis/benchmark/bmark1/bin/make localhost all 
+##
+
+##
+# Script configuration parameters.
+##
+java=
+compiler=bin/sessionjc    # compiler
+classpath=tests/classes   # classpath
+destination=tests/classes # output directory
+
+
+##
+# Functions.
+##
+compile()
+{
+  echo Compiling: $1
+  $compiler -J $java -cp $classpath $1 -d $destination
+  if [ $? -ne 0 ]; then exit 1; fi
+}
+
+##
+# Command line arguments.
+##
+c=false       # Base/shared
+rmi=false     # RMI
+sj=false      # SJ
+socket=false  # "Plain" sockets
+
+if [ "$1" == "localhost" ];
+then
+  java=java
+else 
+  if [ "$1" == "doc" ];
+  then
+    java=... 
+  else
+    echo Invalid environment: $1
+  exit 1
+  fi
+fi
+
+shift
+
+while true;
+do
+  case $1 in
+    "")
+      break
+      ;;
+    all) 
+      c=true
+      rmi=true
+      sj=true
+      socket=true
+      break
+      ;;
+    c)
+      c=true
+      shift
+      ;;       
+    rmi) 
+      rmi=true
+      shift
+      ;;      
+    sj)
+      sj=true
+      shift
+      ;;
+    socket)
+      socket=true
+      shift
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+
+##
+# Main.
+##
+echo Parameters: compiler=$compiler, java=$java, classpath=$classpath, destination=$destination 
+
+if [ "$c" == "true" ];
+then  
+  path=tests/src/thesis/benchmark
+  for f in Util; do
+    compile $path/$f.sj
+  done
+  
+  path=tests/src/thesis/benchmark/bmark1  
+  for f in Message ClientMessage ServerMessage Server AbstractServer Client TimerClient SignalServer SignalClient; do
+    compile $path/$f.sj
+  done
+fi
+
+if [ "$rmi" == "true" ];
+then  
+  path=tests/src/thesis/benchmark/bmark1/rmi  
+  for f in RMIServer RMIClient RMIServerImpl; do
+    compile $path/$f.sj
+  done
+fi
+
+if [ "$sj" == "true" ];
+then  
+  path=tests/src/thesis/benchmark/bmark1/sj  
+  for f in SJServer SJClient; do
+    compile $path/$f.sj
+  done
+fi
+
+if [ "$socket" == "true" ];
+then  
+  path=tests/src/thesis/benchmark/bmark1/socket  
+  for f in SocketServer SocketClient; do
+    compile $path/$f.sj
+  done
+fi
+
+if [ "$c" == "true" ];
+then  
+  path=tests/src/thesis/benchmark/bmark1  
+  for f in ServerRunner; do
+    compile $path/$f.sj
+  done
+fi  
+  
