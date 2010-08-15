@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 ##
-# tests/src/thesis/benchmark/bmark1/bin/client.py false localhost 7777 localhost 8888 SJm 2 3 BODY
-# nohup tests/src/thesis/benchmark/bmark1/bin/client.py false localhost 7777 localhost 8888 SJm 2 3 BODY < /dev/null 1>foo.txt 2>bar.txt &
+# tests/src/thesis/benchmark/bmark1/bin/client.py false LOCALHOST 7777 localhost 8888 SJm 2 3 BODY
+# tests/src/thesis/benchmark/bmark1/bin/client.py false CAMELOT 7777 camelot15 8888 ALL 2 3 FULL
+# nohup tests/src/thesis/benchmark/bmark1/bin/client.py false LOCALHOST 7777 localhost 8888 SJm 2 3 BODY < /dev/null 1>foo.txt 2>bar.txt &
 ##	
 
 import os
@@ -31,9 +32,9 @@ timer      = sys.argv[9]      # Timer mode: e.g. FULL, BODY, etc.
 ##
 # Main execution command.
 ## 
-if (env == 'localhost' or env == 'doc'):
+if (env == 'LOCALHOST' or env == 'DOC'):
 	renv = "bin/sessionj -J " + common.JAVA          # Uses client JVM by default
-elif env == 'camelot':
+elif env == 'CAMELOT':
 	renv = "bin/sessionj -J " + common.CAMELOT_JAVA
 else:
 	common.runtime_error('Bad environment: ' + env)
@@ -72,7 +73,7 @@ def run_client(debug, s, run_command):
 common.print_and_flush('Global: renv=' + renv + ', timer=' + timer + ', versions=' + str(versions) + ', message_sizes=' + str(message_sizes) + ', session_lengths=' + str(session_lengths))
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-if env == 'localhost':
+if env == 'LOCALHOST':
 	hostname = 'localhost'
 else:
 	hostname = socket.gethostname()

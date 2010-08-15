@@ -1,4 +1,4 @@
-grant codeBase "file:///c:/cygwin/home/Raymond/code/java/eclipse/sessionj-hg/tests/classes/"
+grant codeBase "file:///~/code/java/eclipse/sessionj-hg/tests/classes/"
 {
   permission java.security.AllPermission;
 };
