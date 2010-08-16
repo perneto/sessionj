@@ -107,5 +107,5 @@ for v in versions:
 			#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command + ' -Xmx256m'        
 			        		
 			for i in range(0, repeats):
-				common.print_and_flush('Parameters: version=' + v + ', size=' + size + ', length=' + length + ', repeat=' + str(i))
+				common.print_and_flush('Parameters: version=' + v + transport + ', size=' + size + ', length=' + length + ', repeat=' + str(i))
 				run_server(debug, client_socket, command)
