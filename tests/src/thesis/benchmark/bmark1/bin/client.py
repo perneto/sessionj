@@ -68,7 +68,7 @@ def run_client(debug, s, run_command):
 
 
 ##
-# Main.
+# Main. (This script needs to be refactored into main plus aux. functions.)
 ##
 common.print_and_flush('Global: renv=' + renv + ', timer=' + timer + ', versions=' + str(versions) + ', message_sizes=' + str(message_sizes) + ', session_lengths=' + str(session_lengths) + ', repeats=' + str(repeats) + ', iters=' + iters)
 
