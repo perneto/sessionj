@@ -70,7 +70,7 @@ def run_client(debug, s, run_command):
 ##
 # Main.
 ##
-common.print_and_flush('Global: renv=' + renv + ', timer=' + timer + ', versions=' + str(versions) + ', message_sizes=' + str(message_sizes) + ', session_lengths=' + str(session_lengths))
+common.print_and_flush('Global: renv=' + renv + ', timer=' + timer + ', versions=' + str(versions) + ', message_sizes=' + str(message_sizes) + ', session_lengths=' + str(session_lengths) + ', repeats=' + str(repeats) + ', iters=' + iters)
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 if env == 'LOCALHOST':
