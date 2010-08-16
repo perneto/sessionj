@@ -62,7 +62,7 @@ public class SocketServer extends AbstractServer
 
   private void doSession(boolean debug, Socket s) throws IOException, InterruptedException
   {
-  	s.setTcpNoDelay(false);
+  	s.setTcpNoDelay(Util.TCP_NO_DELAY);
   	
   	ObjectInputStream is = null;
   	ObjectOutputStream os = null; 	

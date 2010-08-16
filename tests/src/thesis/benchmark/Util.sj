@@ -7,6 +7,8 @@ import java.net.Socket;
 
 public class Util  
 {	
+	public static final boolean TCP_NO_DELAY = true;
+	
 	public static final int DEBUG_DELAY = 1000; // Millis
 	
   public static final void debugPrintln(boolean debug, String m)

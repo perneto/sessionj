@@ -34,7 +34,7 @@ public class SocketClient extends TimerClient
     	startTimer();
 			
 	  	s = new Socket(getHost(), getPort());		    
-	  	s.setTcpNoDelay(false);
+	  	s.setTcpNoDelay(Util.TCP_NO_DELAY);
 	  	os = new ObjectOutputStream(s.getOutputStream());
 	  	is = new ObjectInputStream(s.getInputStream());	  	
 	  	
