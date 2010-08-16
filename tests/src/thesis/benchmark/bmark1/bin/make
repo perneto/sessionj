@@ -2,20 +2,21 @@
 
 ##
 # Run from the sessionj root directory:
-# tests/src/thesis/benchmark/bmark1/bin/make LOCALHOST all 
+# tests/src/thesis/benchmark/bmark1/bin/make LOCALHOST ALL 
 ##
 
+
 ##
-# Script configuration parameters.
+# Script configuration parameters (global variables).
 ##
-java=                     # We're using sessionjc; so need java (not javac)
+java=                     # We're using sessionjc, so need java (not javac); set by parseArgs
 compiler=bin/sessionjc    # Compiler
 classpath=tests/classes   # Classpath
 destination=tests/classes # Output directory
 
 
 ##
-# Functions.
+# Compile source file.
 ##
 compile()
 {
@@ -24,113 +25,128 @@ compile()
   if [ $? -ne 0 ]; then exit 1; fi
 }
 
+
 ##
 # Command line arguments.
 ##
-c=false       # Base/shared
-rmi=false     # RMI
-sj=false      # SJ
-socket=false  # "Plain" sockets
-
-if [ "$1" == "LOCALHOST" ];
-then
-  java=java
-elif [ "$1" == "DOC" ];
-then
-  java=java
-elif [ "$1" == "CAMELOT" ];
-then
-  java=~/bin/jdk1.6.0_21-64/bin/java  
-else
-  echo Invalid environment: $1
-exit 1
-fi
-
-shift
-
-while true;
-do
-  case $1 in
-    "")
-      break
-      ;;
-    all) 
-      c=true
-      rmi=true
-      sj=true
-      socket=true
-      break
-      ;;
-    c)
-      c=true
-      shift
-      ;;       
-    rmi) 
-      rmi=true
-      shift
-      ;;      
-    sj)
-      sj=true
-      shift
-      ;;
-    socket)
-      socket=true
-      shift
-      ;;
-    *)
-      shift
-      ;;
-  esac
-done
+parseArgs()
+{
+	# These are global variables accessed from main.
+	base=false    # Base/shared
+	rmi=false     # RMI
+	sj=false      # SJ
+	socket=false  # "Plain" sockets
+	
+	if [ "$1" == "LOCALHOST" ];
+	then
+	  java=java
+	elif [ "$1" == "DOC" ];
+	then
+	  java=java
+	elif [ "$1" == "CAMELOT" ];
+	then
+	  java=~/bin/jdk1.6.0_21-64/bin/java  
+	else
+	  echo Invalid environment: $1
+	exit 1
+	fi
+	
+	shift
+	
+	while true;
+	do
+	  case $1 in
+	    "")
+	      break
+	      ;;
+	    ALL) 
+	      base=true
+	      rmi=true
+	      sj=true
+	      socket=true
+	      break
+	      ;;
+	    BASE)
+	      base=true
+	      shift
+	      ;;       
+	    RMI) 
+	      rmi=true
+	      shift
+	      ;;      
+	    SJ)
+	      sj=true
+	      shift
+	      ;;
+	    SOCKET)
+	      socket=true
+	      shift
+	      ;;
+	    *)
+	      shift
+	      ;;
+	  esac
+	done
+}
 
 
 ##
 # Main.
 ##
-echo Parameters: compiler=$compiler, java=$java, classpath=$classpath, destination=$destination 
+main() 
+{
+	parseArgs $*
 
-if [ "$c" == "true" ];
-then  
-  path=tests/src/thesis/benchmark
-  for f in Util; do
-    compile $path/$f.sj
-  done
-  
-  path=tests/src/thesis/benchmark/bmark1  
-  for f in Message ClientMessage ServerMessage Server AbstractServer Client TimerClient SignalServer SignalClient; do
-    compile $path/$f.sj
-  done
-fi
+	echo Parameters: compiler=$compiler, java=$java, classpath=$classpath, destination=$destination 
+	
+	if [ "$base" == "true" ];
+	then  
+	  local path=tests/src/thesis/benchmark
+	  for f in Util; do
+	    compile $path/$f.sj
+	  done
+	  
+	  local path=tests/src/thesis/benchmark/bmark1  
+	  for f in Message ClientMessage ServerMessage Server AbstractServer Client TimerClient SignalServer SignalClient; do
+	    compile $path/$f.sj
+	  done
+	fi
+	
+	if [ "$rmi" == "true" ];
+	then  
+	  local path=tests/src/thesis/benchmark/bmark1/RMI  
+	  for f in RMIServer RMIClient RMIServerImpl; do
+	    compile $path/$f.sj
+	  done
+	fi
+	
+	if [ "$sj" == "true" ];
+	then  
+	  local path=tests/src/thesis/benchmark/bmark1/SJ  
+	  for f in SJServer SJClient; do
+	    compile $path/$f.sj
+	  done
+	fi
+	
+	if [ "$socket" == "true" ];
+	then  
+	  local path=tests/src/thesis/benchmark/bmark1/SOCKET  
+	  for f in SocketServer SocketClient; do
+	    compile $path/$f.sj
+	  done
+	fi
+	
+	if [ "$base" == "true" ];
+	then  
+	  local path=tests/src/thesis/benchmark/bmark1  
+	  for f in ServerRunner; do
+	    compile $path/$f.sj
+	  done
+	fi  
+}
 
-if [ "$rmi" == "true" ];
-then  
-  path=tests/src/thesis/benchmark/bmark1/rmi  
-  for f in RMIServer RMIClient RMIServerImpl; do
-    compile $path/$f.sj
-  done
-fi
 
-if [ "$sj" == "true" ];
-then  
-  path=tests/src/thesis/benchmark/bmark1/sj  
-  for f in SJServer SJClient; do
-    compile $path/$f.sj
-  done
-fi
-
-if [ "$socket" == "true" ];
-then  
-  path=tests/src/thesis/benchmark/bmark1/socket  
-  for f in SocketServer SocketClient; do
-    compile $path/$f.sj
-  done
-fi
-
-if [ "$c" == "true" ];
-then  
-  path=tests/src/thesis/benchmark/bmark1  
-  for f in ServerRunner; do
-    compile $path/$f.sj
-  done
-fi  
-  
+##
+# Call the main function.
+##  
+main $*
