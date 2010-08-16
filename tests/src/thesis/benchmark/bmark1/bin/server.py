@@ -70,7 +70,7 @@ def run_server(debug, client_socket, command):
 ##
 # Main.
 ##
-common.print_and_flush('Global: renv=' + renv + ', versions=' + str(versions) + ', message_sizes=' + str(message_sizes) + ', session_lengths=' + str(session_lengths))
+common.print_and_flush('Global: renv=' + renv + ', versions=' + str(versions) + ', message_sizes=' + str(message_sizes) + ', session_lengths=' + str(session_lengths) + ', repeats=' + str(repeats))
 	
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((client, cport))	
