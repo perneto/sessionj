@@ -21,7 +21,7 @@ DOC_RMI_SECURITY_POLICY = '-Djava.security.policy=/homes/rhu/code/java/eclipse/s
 ##
 ALL_VERSIONS = ['RMI', 'SJm', 'SJs', 'SOCKET']
 ALL_MESSAGE_SIZES = ['100', '1024']
-ALL_SESSION_LENGTHS = ['1', '10']
+ALL_SESSION_LENGTHS = ['1', '10', '100', '1000']
 
 
 ##
