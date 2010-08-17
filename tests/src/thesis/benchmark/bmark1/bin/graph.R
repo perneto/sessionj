@@ -1,4 +1,9 @@
 ##
+# Set the current directory to the csv directory.
+##
+
+
+##
 # Global parameters.
 ##
 PREFIX  = 'bmark1-'
