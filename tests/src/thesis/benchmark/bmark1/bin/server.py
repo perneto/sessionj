@@ -80,7 +80,7 @@ for v in versions:
 	if v.startswith('SJ'):
 		transport = v[2]
 		v = v[0:2]
-	elif not(v == 'RMI' or v == 'SOCKET'):
+	elif not(v == 'RMI' or v.startswith('SOCK')):
 		common.runtime_error('Bad flag: ' + v)
 	
 	for size in message_sizes:

@@ -131,7 +131,7 @@ main()
 	if [ "$socket" == "true" ];
 	then  
 	  local path=tests/src/thesis/benchmark/bmark1/socket  
-	  for f in SocketServer SocketClient; do
+	  for f in StreamServer StreamClient ManualServer ManualClient; do
 	    compile $path/$f.sj
 	  done
 	fi

@@ -23,7 +23,7 @@ public final class SJRuntimeUtils
 
 	private SJRuntimeUtils() { }
 
-	public static byte[] serializeObject(Object o) throws SJIOException
+	public static final byte[] serializeObject(Object o) throws SJIOException
 	{
 		try 
 		{
@@ -40,7 +40,7 @@ public final class SJRuntimeUtils
 		}		
 	}
 	
-	public static Object deserializeObject(byte[] bs) throws SJIOException
+	public static final Object deserializeObject(byte[] bs) throws SJIOException
 	{
 		try
 		{
@@ -59,7 +59,7 @@ public final class SJRuntimeUtils
 		}
 	}	
 	
-	public static byte[] serializeInt(int i) {
+	public static final byte[] serializeInt(int i) {
 		byte[] bs = new byte[4];
 
 		bs[0] = (byte)(i >> 24);
@@ -70,7 +70,7 @@ public final class SJRuntimeUtils
 		return bs;
 	}	
 	
-	public static int deserializeInt(byte[] bs) {
+	public static final int deserializeInt(byte[] bs) {
 		int i = 0;
 		
 		i += (bs[0] & 255) << 24;
@@ -92,7 +92,7 @@ public final class SJRuntimeUtils
 		return sjts;
 	}*/
 
-	public static Map<String, Long> getClassSVUIDs(SJSessionType sjtype) throws SJIOException, ClassNotFoundException
+	public static final Map<String, Long> getClassSVUIDs(SJSessionType sjtype) throws SJIOException, ClassNotFoundException
 	{
 		HashMap<String, Long> ours = new HashMap<String, Long>();
 
@@ -147,7 +147,7 @@ public final class SJRuntimeUtils
 		return ours;
 	}
 
-	private static Map<String, Long> getMessageSVUID(Type messageType) throws SJIOException, ClassNotFoundException // SJCompilerUtils has a simpler version of this routine.
+	private static final Map<String, Long> getMessageSVUID(Type messageType) throws SJIOException, ClassNotFoundException // SJCompilerUtils has a simpler version of this routine.
 	{
 		HashMap<String, Long> ours = new HashMap<String, Long>();
 
@@ -222,7 +222,7 @@ public final class SJRuntimeUtils
 		return port;
 	}*/
 
-	public static void closeStream(InputStream is) throws IOException
+	public static final void closeStream(InputStream is) throws IOException
 	{
 		if (is != null)
 		{
@@ -230,7 +230,7 @@ public final class SJRuntimeUtils
 		}
 	}
 
-	public static void closeStream(OutputStream os) throws IOException
+	public static final void closeStream(OutputStream os) throws IOException
 	{
 		if (os != null)
 		{
@@ -239,7 +239,7 @@ public final class SJRuntimeUtils
 		}
 	}
 	
-	public static void closeReader(Reader r) throws IOException
+	public static final void closeReader(Reader r) throws IOException
 	{
 		if (r != null)
 		{
@@ -247,7 +247,7 @@ public final class SJRuntimeUtils
 		}
 	}	
 	
-	public static void closeWriter(Writer w) throws IOException
+	public static final void closeWriter(Writer w) throws IOException
 	{
 		if (w != null)
 		{
@@ -264,7 +264,7 @@ public final class SJRuntimeUtils
 		}
 	}
 
-    public static Logger getLogger(Class<?> aClass) {
+    public static final Logger getLogger(Class<?> aClass) {
         String name = aClass.getName();
         return Logger.getLogger(name.replaceAll("sessionj\\.runtime", "sessionj"));
     }

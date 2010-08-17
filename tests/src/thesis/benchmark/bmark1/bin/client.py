@@ -90,8 +90,10 @@ for v in versions:
 		transport = v[2]
 		v = v[0:2]		
 		client = 'sj.SJClient'
-	elif v == 'SOCKET':
-		client = 'socket.SocketClient'
+	elif v == 'SOCKm':
+		client = 'socket.ManualClient'
+	elif v == 'SOCKs':
+		client = 'socket.StreamClient'
 	else:
 		common.runtime_error('Bad flag: ' + v)
 	

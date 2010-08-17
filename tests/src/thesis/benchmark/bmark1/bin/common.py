@@ -19,15 +19,16 @@ DOC_RMI_SECURITY_POLICY = '-Djava.security.policy=/homes/rhu/code/java/eclipse/s
 ##
 # Benchmark configuration parameters.
 ##
-ALL_VERSIONS = ['RMI', 'SJm', 'SJs', 'SOCKET']
-ALL_MESSAGE_SIZES = ['100', '1024']
+#ALL_VERSIONS = ['RMI', 'SJm', 'SJs', 'SOCKm', 'SOCKs']
+ALL_VERSIONS = ['SJm', 'SJs', 'SOCKm', 'SOCKs']
+ALL_MESSAGE_SIZES = ['0', '1024']
 ALL_SESSION_LENGTHS = ['1', '10', '100', '1000']
 
 
 ##
 # Benchmark debugging parameters.
 ##
-DEBUG_MESSAGE_SIZES = ['10', '10240']
+DEBUG_MESSAGE_SIZES = ['0', '10240']
 DEBUG_SESSION_LENGTHS = ['0', '2'] 
 
 

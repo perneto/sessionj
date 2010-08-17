@@ -8,7 +8,8 @@ public class ServerRunner
 {
 	private static final String RMI = "RMI";
 	private static final String SJ = "SJ";
-	private static final String SOCKET = "SOCKET";	
+	private static final String SOCKET_MANUAL = "SOCKm";
+	private static final String SOCKET_STREAM = "SOCKs";	
 	
   public static void main(String args[]) throws Exception
   {
@@ -25,9 +26,13 @@ public class ServerRunner
 		{
 			server = new thesis.benchmark.bmark1.sj.SJServer(debug, port);
 		}
-  	else if (flag.equals(SOCKET))
+  	else if (flag.equals(SOCKET_MANUAL))
 		{
-			server = new thesis.benchmark.bmark1.socket.SocketServer(debug, port);
+			server = new thesis.benchmark.bmark1.socket.ManualServer(debug, port);
+		}
+  	else if (flag.equals(SOCKET_STREAM))
+		{
+			server = new thesis.benchmark.bmark1.socket.StreamServer(debug, port);
 		}
   	else
   	{
