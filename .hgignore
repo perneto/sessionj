@@ -5,6 +5,7 @@ syntax: glob
 *.iml
 *.iws
 *.cup
+*.csv
 out
 compiler/src/sessionj/parse/Grm.java
 compiler/src/sessionj/parse/Lexer_c.java
