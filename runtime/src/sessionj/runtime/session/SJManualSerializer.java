@@ -243,6 +243,7 @@ public class SJManualSerializer extends SJAbstractSerializer
 		conn.writeByte(SJ_CONTROL);
 		conn.writeBytes(serializeInt(bs.length));
 		conn.writeBytes(bs);
+		conn.flush();
 	}
 
 	public SJControlSignal readControlSignal() throws SJIOException
@@ -315,6 +316,7 @@ public class SJManualSerializer extends SJAbstractSerializer
 		
 		conn.writeBytes(serializeInt(bs.length));
 		conn.writeBytes(bs);
+		conn.flush();
 	}
 	
 	private Object readObjectFromConn() throws SJIOException {

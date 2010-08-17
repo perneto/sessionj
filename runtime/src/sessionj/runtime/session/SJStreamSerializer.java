@@ -83,7 +83,8 @@ public class SJStreamSerializer extends SJAbstractSerializer
 		try
 		{
 			oos.writeByte(SJ_OBJECT);
-			oos.writeObject(o); // Flush?
+			oos.writeObject(o); 
+			oos.flush(); // Flush needed? bad?
 			
 			oos.reset(); 
             // Does this affect performance? Would it be faster to make a new oos? (Probably not.)
@@ -101,7 +102,7 @@ public class SJStreamSerializer extends SJAbstractSerializer
 		{
 			oos.writeByte(SJ_BYTE);
 			oos.writeByte(b);
-			oos.flush();
+			oos.flush(); // FIXME: problem is OOS flush may not call flush of underlying stream (as far as API says)
 		}
 		catch (IOException ioe)
 		{
