@@ -19,6 +19,7 @@ public class Test
 		
 		System.out.println(msg);
 		System.out.println(SJRuntimeUtils.serializeObject(msg).length);
+		System.out.println(SJRuntimeUtils.serializeObject(new Integer(1)).length);
 		System.out.println(SJRuntimeUtils.serializeObject(new Boolean(true)).length);
 	}
 }

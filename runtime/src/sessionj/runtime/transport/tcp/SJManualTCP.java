@@ -113,7 +113,7 @@ class SJManualTCPConnection extends AbstractSJConnection
 		try
 		{
 			dos.writeByte(b);
-			dos.flush(); // FIXME: since ATI exports flush, we shouldn't do this implicitly (no point to ATI flush otherwise)
+			//dos.flush(); // FIXME: since ATI exports flush, we shouldn't do this implicitly (no point to ATI flush otherwise); flush should be done by e.g. SJManualSerializer
 		}
 		catch (IOException ioe)
 		{
@@ -126,6 +126,7 @@ class SJManualTCPConnection extends AbstractSJConnection
 		try
 		{
 			dos.write(bs);
+			//dos.flush();
 		}
 		catch (IOException ioe)
 		{
