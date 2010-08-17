@@ -1,26 +1,29 @@
-//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark1.socket.StreamServer false 8888
-//$ bin/sessionj -cp tests/classes/ -server thesis.benchmark.bmark1.socket.StreamServer false 8888
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark1.socket.ManualServer false 8888
+//$ bin/sessionj -cp tests/classes/ -server thesis.benchmark.bmark1.socket.ManualServer false 8888
 
 package thesis.benchmark.bmark1.socket;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.util.SJRuntimeUtils;
 
 import thesis.benchmark.Util;
 import thesis.benchmark.bmark1.AbstractServer;
 import thesis.benchmark.bmark1.ServerMessage;
 
-public class StreamServer extends AbstractServer
+public class ManualServer extends AbstractServer
 {
 	protected volatile boolean run = true;
 	private volatile boolean finished = false;
 	  
 	private ServerSocket ss;
 	
-  public StreamServer(boolean debug, int port) 
+  public ManualServer(boolean debug, int port) 
   {
   	super(debug, port);
   }
@@ -32,7 +35,7 @@ public class StreamServer extends AbstractServer
 		{
 			ss = new ServerSocket(getPort());				
 			
-			debugPrintln("[StreamServer] Listening on: " + getPort());
+			debugPrintln("[ManualServer] Listening on: " + getPort());
 			
 			boolean debug = isDebug();
 			
@@ -60,29 +63,31 @@ public class StreamServer extends AbstractServer
    	}
   }
 
-  private void doSession(boolean debug, Socket s) throws IOException, InterruptedException
+  private void doSession(boolean debug, Socket s) throws IOException, SJIOException, InterruptedException
   {
   	s.setTcpNoDelay(Util.TCP_NO_DELAY);
   	
-  	ObjectInputStream is = null;
-  	ObjectOutputStream os = null; 	
+  	DataInputStream is = null;
+  	DataOutputStream os = null; 	
   	try
   	{	  	  
-	  	is = new ObjectInputStream(s.getInputStream());
-	  	os = new ObjectOutputStream(s.getOutputStream());
+	  	is = new DataInputStream(s.getInputStream());
+	  	os = new DataOutputStream(s.getOutputStream());
 	  	
 			int serverMessageSize = is.readInt();		  			     
 			
-			debugPrintln("[StreamServer] Received message size parameter: " + serverMessageSize);
+			debugPrintln("[ManualServer] Received message size parameter: " + serverMessageSize);
 			
 	    int len = 0;	    
 	    while (is.readBoolean()) 
 	    {
-	      ServerMessage msg = new ServerMessage(0, new Integer(len).toString(), serverMessageSize);            	      
-	      os.writeObject(msg);
+	      ServerMessage msg = new ServerMessage(0, new Integer(len).toString(), serverMessageSize);
+	      byte[] bs = SJRuntimeUtils.serializeObject(msg);
+	      os.writeInt(bs.length);
+	      os.write(bs);
 	      os.flush();
 	      
-	      debugPrintln("[StreamServer] Dispatached: " + msg);
+	      debugPrintln("[ManualServer] Dispatached: " + msg);
 	
 	      if (debug)
 	      {
@@ -111,6 +116,6 @@ public class StreamServer extends AbstractServer
   	boolean debug = Boolean.parseBoolean(args[0].toLowerCase());
   	int port = Integer.parseInt(args[1]);
     
-  	new StreamServer(debug, port).run();
+  	new ManualServer(debug, port).run();
   }
 }

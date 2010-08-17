@@ -1,19 +1,22 @@
-//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark1.sj.StreamClient false localhost 8888 -1 10 2 1 BODY 
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark1.sj.ManualClient false localhost 8888 -1 10 2 1 BODY 
 
 package thesis.benchmark.bmark1.socket;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.Socket;
+
+import sessionj.runtime.SJIOException;
+import sessionj.runtime.util.SJRuntimeUtils;
 
 import thesis.benchmark.Util;
 import thesis.benchmark.bmark1.ServerMessage;
 import thesis.benchmark.bmark1.TimerClient;
 
-public class StreamClient extends TimerClient 
+public class ManualClient extends TimerClient 
 {
-  public StreamClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, int iters, String flag) 
+  public ManualClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, int iters, String flag) 
   {
   	super(debug, host, port, cid, serverMessageSize, sessionLength, iters, flag);
   }
@@ -21,8 +24,8 @@ public class StreamClient extends TimerClient
   public void run(boolean warmup, boolean timer) throws Exception
   {	  	  
   	Socket s = null;
-  	ObjectOutputStream os = null;
-  	ObjectInputStream is = null;
+  	DataOutputStream os = null;
+  	DataInputStream is = null;
   	
 	  try 
 	  {
@@ -35,10 +38,10 @@ public class StreamClient extends TimerClient
 			
 	  	s = new Socket(getHost(), getPort());		    
 	  	s.setTcpNoDelay(Util.TCP_NO_DELAY);
-	  	os = new ObjectOutputStream(s.getOutputStream());
-	  	is = new ObjectInputStream(s.getInputStream());	  	
+	  	os = new DataOutputStream(s.getOutputStream());
+	  	is = new DataInputStream(s.getInputStream());	  	
 	  	
-	  	debugPrintln("[StreamClient] Connected.");
+	  	debugPrintln("[ManualClient] Connected.");
 	  	
   		initialised();
 	  	
@@ -51,9 +54,12 @@ public class StreamClient extends TimerClient
 	    	os.writeBoolean(true);
 	    	os.flush();
 	    	
-	    	ServerMessage msg = (ServerMessage) is.readObject();            
+	    	int bsLen = is.readInt();
+	    	byte[] bs = new byte[bsLen];
+	    	is.readFully(bs);
+	    	ServerMessage msg = (ServerMessage) SJRuntimeUtils.deserializeObject(bs);             
         
-        debugPrintln("[StreamClient " + cid + "] Received: " + msg);
+        debugPrintln("[ManualClient " + cid + "] Received: " + msg);
 
         if (debug)
         {
@@ -98,6 +104,6 @@ public class StreamClient extends TimerClient
     int iters = Integer.parseInt(args[6]);
     String flag = args[7];
 
-    new StreamClient(debug, host, port, cid, serverMessageSize, sessionLength, iters, flag).run();
+    new ManualClient(debug, host, port, cid, serverMessageSize, sessionLength, iters, flag).run();
   }
 }
