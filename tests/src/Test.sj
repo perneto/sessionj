@@ -7,71 +7,18 @@ import java.util.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
+import sessionj.runtime.util.*;
+
+import thesis.benchmark.bmark1.ServerMessage;
 
 public class Test  
 {		
-	//static protocol foo { !<String> }
-	//static protocol bar { !<String>.@(foo) }	
-	
-	/*static class A 
-	{
-		private noalias Object a1;
-	
-		public A meth2()
-		{
-			return null;
-		}
-	
-		public A meth(noalias A a, noalias A aa) 
-		{
-			a1 = a;	
-			
-			return null;
-		}
-	}*/
-	
 	public static void main(String[] args) throws Exception
 	{		
-		//noalias Integer i = new Integer(123);
+		ServerMessage msg = new ServerMessage(-1, args[0], Integer.parseInt(args[1]));
 		
-		//noalias A a2 = new A();
-		//noalias A a3 = new A();
-		
-		//a2.meth(a3.meth2(), a3.meth(a3, null));
-	
-		//a3 = a2.meth2();
-	
-		final noalias protocol p1 cbegin.?(String)
-		//final noalias protocol p1 cbegin.?{L1: !<String>}
-		//final noalias protocol p2 cbegin.?[!<int>]* 
-		
-		final noalias SJService c1 = SJService.create(p1, "A", 1234);
-		//final noalias SJService c2 = SJService.create(p2, "B", 1234);
-		
-		//protocol p_select { ?(String).!<String> }
-		
-		//final noalias SJSelector sel = SJRuntime.selectorFor(p_select);
-		
-		//try (sel)
-		{
-			noalias SJSocket s1, s2;
-			
-			try (s1, s2)
-			{
-				s1 = c1.request();
-				
-				s1.receive(123);
-				
-				//sel.registerInput(s1);
-			}
-			finally
-			{
-				
-			}
-		}
-		//finally
-		{
-			
-		}
+		System.out.println(msg);
+		System.out.println(SJRuntimeUtils.serializeObject(msg).length);
+		System.out.println(SJRuntimeUtils.serializeObject(new Boolean(true)).length);
 	}
 }
