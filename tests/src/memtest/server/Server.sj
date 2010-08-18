@@ -21,6 +21,8 @@ public class Server
 		{
 			ss = SJServerSocketImpl.create(p_server, 8888);						
 			
+			System.out.println("s1:");
+			
 			//while (true)
 			{
 				final noalias SJSocket s;
@@ -29,6 +31,8 @@ public class Server
 				{
 					s = ss.accept();
 										
+					System.out.println("s2:");
+					
 					s.inwhile()
 					{
 						/*s.inbranch()

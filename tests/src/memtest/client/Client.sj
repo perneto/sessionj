@@ -28,6 +28,8 @@ public class Client
 		{
 			s = SJService.create(p_client, server, port).request();					
 			
+			System.out.println("c1:");
+			
 			long start = System.nanoTime();
 			
 			int i = 0;

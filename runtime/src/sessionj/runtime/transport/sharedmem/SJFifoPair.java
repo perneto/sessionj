@@ -55,8 +55,10 @@ class SJFifoPairAcceptor extends AbstractWithTransport implements SJConnectionAc
 		
 		int localPort = SJFifoPair.findFreePort();
 
+		//RAY
 		SJFifoPair.bindPort(localPort); // Can the connection establishment after this fail? Would need to free the port.
-
+		//YAR
+		
 		SJFifoPairConnection ourConn = new SJFifoPairConnection(null, theirConn.getLocalPort(), localPort, ours, getTransport()); // FIXME: need peer hostname.
 		//SJFifoPairConnection ourConn = new SJFifoPairConnection(null, theirConn.getLocalPort(), port, ours); // FIXME: need peer hostname. // Reusing server port value for local port, as in TCP. // Problem: hard to tell when need to free port after a connection is closed (don't know if server is using that port still).
 		
@@ -116,7 +118,7 @@ class SJFifoPairAcceptor extends AbstractWithTransport implements SJConnectionAc
 	}
 }
 
-class SJFifoPairConnection extends AbstractSJConnection
+class SJFifoPairConnection extends AbstractSJConnection implements SJLocalConnection
 {
 	private static Object EOF = new Object() {}; 
 	
@@ -404,7 +406,9 @@ public class SJFifoPair extends AbstractSJTransport
 	{
 		SJFifoPairAcceptor a = new SJFifoPairAcceptor(port, this);
 		
+		//RAY
 		bindPort(port);
+		//YAR
 		
 		return a;
 	}
@@ -424,14 +428,19 @@ public class SJFifoPair extends AbstractSJTransport
             throw new SJIOException(e);
         } 
 
+    //RAY
+		//*
 		if (!portInUse(port)) 
 		{
-			throw new SJIOException('[' + getTransportName() + "] Port not open: " + port);
-		}
+			//throw new SJIOException('[' + getTransportName() + "] Port not open: " + port);
+		}//*/
+		//YAR
 		
 		int localPort = getFreePort();
 		
+		//RAY
 		bindPort(localPort); // Can the connection establishment after this fail? Would need to free the port.
+		//YAR
 		
 		SJFifoPairConnection ourConn = new SJFifoPairConnection(hostName, port, localPort, new LinkedList<Object>(), this);
 		
@@ -453,7 +462,7 @@ public class SJFifoPair extends AbstractSJTransport
 				throw new SJIOException('[' + getTransportName() + "] 2: " + ie, ie);
 			}
     }	
-				
+		
 		return ourConn;
 	}
 
@@ -482,7 +491,8 @@ public class SJFifoPair extends AbstractSJTransport
 	
 	private static synchronized boolean portFree(int port)
 	{
-        FileLock lock = null;
+				//RAY
+        /*FileLock lock = null;
         try {
             lock = lock();
             return portFile(port).isFile();
@@ -491,7 +501,9 @@ public class SJFifoPair extends AbstractSJTransport
             return true;
         } finally {
             close(lock);
-        }
+        }*/
+				return true;
+				//YAR
     }
 	
 	protected static int findFreePort() throws SJIOException
@@ -513,7 +525,8 @@ public class SJFifoPair extends AbstractSJTransport
     // Needs to be synchronized to prevent several threads to try and lock the
     // lock file: Java file locks are at process level, not thread level.
 	protected synchronized static void bindPort(int port) throws SJIOException {
-        File portFile = portFile(port);
+        //RAY
+				/*File portFile = portFile(port);
         boolean created;
         FileLock lock = null;
         try {
@@ -525,6 +538,8 @@ public class SJFifoPair extends AbstractSJTransport
             close(lock);
         }
         if (!created) throw new SJIOException("Could not create port file:" + portFile);
+        */
+		//YAR
 	}
 
     private static void close(FileLock lock) {
