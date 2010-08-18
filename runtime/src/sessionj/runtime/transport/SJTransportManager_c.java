@@ -239,6 +239,12 @@ public class SJTransportManager_c extends SJTransportManager
         {
             log.log(Level.FINE, "Opening negotiation acceptor", ioe);
 
+            System.out.println();
+            System.out.println();            
+            ioe.printStackTrace();
+            System.out.println();
+            System.out.println();
+            
             for (SJSetupThread setupThread : sts) {
                 setupThread.close();
             }

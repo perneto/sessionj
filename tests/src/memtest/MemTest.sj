@@ -27,7 +27,8 @@ public class MemTest
 				}
 				catch (Exception x)
 				{
-					System.out.println("Server: " + x);
+					//System.out.println("Server: " + x);
+					throw new RuntimeException(x);
 				}
 			}
 		}.start();
@@ -44,7 +45,8 @@ public class MemTest
 				}
 				catch (Exception x)
 				{
-					System.out.println("Client: " + x);
+					//System.out.println("Client: " + x);
+					throw new RuntimeException(x);
 				}				
 			}
 		}.start();		

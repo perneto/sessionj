@@ -57,7 +57,7 @@ else:
 ##
 # Run one Client instance.
 ##
-kill_command = renv + ' -cp tests/classes thesis.benchmark.bmark1.SignalClient ' + str(debug) + ' ' + serverName + ' ' + sport + ' KILL'
+kill_command = renv + ' -cp tests/classes thesis.benchmark.SignalClient ' + str(debug) + ' ' + serverName + ' ' + sport + ' KILL'
 
 def run_client(debug, s, run_command):								
 	s.recv(1024) # Wait for the Server to signal that it is ready				
