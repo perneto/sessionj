@@ -8,8 +8,8 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import thesis.benchmark.Util;
-import thesis.benchmark.bmark1.ServerMessage;
-import thesis.benchmark.bmark1.TimerClient;
+import thesis.benchmark.ServerMessage;
+import thesis.benchmark.TimerClient;
 
 public class StreamClient extends TimerClient 
 {

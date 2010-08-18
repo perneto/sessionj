@@ -8,8 +8,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 import thesis.benchmark.Util;
-import thesis.benchmark.bmark1.ServerMessage;
-import thesis.benchmark.bmark1.TimerClient;
+import thesis.benchmark.ServerMessage;
+import thesis.benchmark.TimerClient;
 
 public class RMIClient extends TimerClient
 {

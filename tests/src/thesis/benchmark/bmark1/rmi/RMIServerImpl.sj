@@ -8,14 +8,14 @@ package thesis.benchmark.bmark1.rmi;
 import java.io.IOException;
 import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
+import java.rmi.RMISecurityManager;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 import thesis.benchmark.Util;
-import java.rmi.RMISecurityManager;
-import thesis.benchmark.bmark1.ServerMessage;
-import thesis.benchmark.bmark1.Server;
+import thesis.benchmark.ServerMessage;
+import thesis.benchmark.Server;
 
 // Some methods duplicated from AbstractServer since we cannot extend it here.
 public class RMIServerImpl extends UnicastRemoteObject implements RMIServer, Server 

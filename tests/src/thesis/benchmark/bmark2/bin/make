@@ -2,7 +2,7 @@
 
 ##
 # Run from the sessionj root directory:
-# tests/src/thesis/benchmark/bmark1/bin/make LOCALHOST ALL 
+# tests/src/thesis/benchmark/bmark2/bin/make LOCALHOST ALL 
 ##
 
 
@@ -33,10 +33,9 @@ parseArgs()
 {
 	# These are global variables accessed from main.
 	flag=$1
-	base=false    # Base/shared
-	rmi=false     # RMI
-	sj=false      # SJ
-	socket=false  # "Plain" sockets
+	base=false     # Base/shared
+	noalias=false  # 
+	ordinary=false # 
 	
 	if [ "$flag" == "LOCALHOST" ];
 	then
@@ -62,25 +61,20 @@ parseArgs()
 	      ;;
 	    ALL) 
 	      base=true
-	      rmi=true
-	      sj=true
-	      socket=true
+	      noalias=true
+	      ordinary=true
 	      break
 	      ;;
 	    BASE)
 	      base=true
 	      shift
 	      ;;       
-	    RMI) 
-	      rmi=true
+	    NOALIAS) 
+	      noalias=true
 	      shift
 	      ;;      
-	    SJ)
-	      sj=true
-	      shift
-	      ;;
-	    SOCKET)
-	      socket=true
+	    ORDINARY)
+	      ordinary=true
 	      shift
 	      ;;
 	    *)
@@ -103,35 +97,32 @@ main()
 	if [ "$base" == "true" ];
 	then  
 	  tests/src/thesis/benchmark/bin/make $flag BASE
-	fi
-	
-	if [ "$rmi" == "true" ];
-	then  
-	  local path=tests/src/thesis/benchmark/bmark1/rmi  
-	  for f in RMIServer RMIClient RMIServerImpl; do
+	  
+	  local path=tests/src/thesis/benchmark/bmark2  
+	  for f in NoaliasMessage; do
 	    compile $path/$f.sj
 	  done
 	fi
 	
-	if [ "$sj" == "true" ];
+	if [ "$noalias" == "true" ];
 	then  
-	  local path=tests/src/thesis/benchmark/bmark1/sj  
-	  for f in SJServer SJClient; do
+	  local path=tests/src/thesis/benchmark/bmark2/noaliaz
+	  for f in NoaliasServer NoaliasClient; do
 	    compile $path/$f.sj
 	  done
 	fi
 	
-	if [ "$socket" == "true" ];
+	if [ "$ordinary" == "true" ];
 	then  
-	  local path=tests/src/thesis/benchmark/bmark1/socket  
-	  for f in StreamServer StreamClient ManualServer ManualClient; do
+	  local path=tests/src/thesis/benchmark/bmark2/ordinary  
+	  for f in OrdinaryServer OrdinaryClient; do
 	    compile $path/$f.sj
 	  done
 	fi
 	
 	if [ "$base" == "true" ];
 	then  
-	  local path=tests/src/thesis/benchmark/bmark1  
+	  local path=tests/src/thesis/benchmark/bmark2 
 	  for f in ServerRunner; do
 	    compile $path/$f.sj
 	  done

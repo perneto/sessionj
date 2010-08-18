@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 ##
-# tests/src/thesis/benchmark/bmark1/bin/server.py false LOCALHOST 8888 localhost 7777 SJm 2
+# tests/src/thesis/benchmark/bmark1/bin/server.py false LOCALHOST 8888 localhost 7777 ORDINARYm 2
 # tests/src/thesis/benchmark/bmark1/bin/server.py false CAMELOT 8888 camelot14 7777 ALL 2
 ##
 
@@ -77,10 +77,10 @@ client_socket.connect((client, cport))
 	
 for v in versions:
 	transport = ''
-	if v.startswith('SJ'):
-		transport = v[2]
-		v = v[0:2]
-	elif not(v == 'RMI' or v.startswith('SOCK')):
+	if (v.startswith('NOALIAS') or v.startswith('ORDINARY')):
+		transport = v[len(v)]
+		v = v[0:len(v)-1]
+	else 
 		common.runtime_error('Bad flag: ' + v)
 	
 	for size in message_sizes:
@@ -88,24 +88,15 @@ for v in versions:
 			command = renv									
 			if debug:
 				command += ' -V'													
-			if transport != '':
+			if transport == 'm':
 				command += ' -Dsessionj.transports.negotiation=' + transport \
-			           + ' -Dsessionj.transports.session=' + transport
-			elif v == 'RMI':
-				if env == 'LOCALHOST':
-					command += ' -j ' + common.RMI_CODEBASE \
-			             + ' -j ' + common.RMI_SECURITY_POLICY
-				elif (env == 'DOC' or env == 'CAMELOT'):
-					command += ' -j ' + common.DOC_RMI_CODEBASE \
-				           + ' -j ' + common.DOC_RMI_SECURITY_POLICY 	
-				else:
-					common.runtime_error('Bad environment: ' + env)																								
-			command += ' -cp tests/classes thesis.benchmark.bmark1.ServerRunner ' \
-			         + str(debug) \
-			         + ' ' + sport \
-			         + ' ' + v			
-			#command = '/opt/util-linux-ng-2.17-rc1/schedutils/taskset 0x00000001 ' + command + ' -Xmx256m'        
-			        		
-			for i in range(0, repeats):
-				common.print_and_flush('Parameters: version=' + v + transport + ', size=' + size + ', length=' + length + ', repeat=' + str(i))
-				run_server(debug, client_socket, command)
+			           + ' -Dsessionj.transports.session=' + transport \
+		  	         + ' -cp tests/classes thesis.benchmark.bmark2.ServerRunner ' \
+		             + str(debug) \
+		             + ' ' + sport \
+		             + ' ' + v
+				for i in range(0, repeats):
+					common.print_and_flush('Parameters: version=' + v + transport + ', size=' + size + ', length=' + length + ', repeat=' + str(i))
+					run_server(debug, client_socket, command)		             
+		  elif transport != 'f': 
+				common.runtime_error('Missing transport.')																						

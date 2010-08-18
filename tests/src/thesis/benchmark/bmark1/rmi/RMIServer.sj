@@ -3,7 +3,7 @@ package thesis.benchmark.bmark1.rmi;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import thesis.benchmark.bmark1.ServerMessage;
+import thesis.benchmark.ServerMessage;
 
 public interface RMIServer extends Remote 
 {

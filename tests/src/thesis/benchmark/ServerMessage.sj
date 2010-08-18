@@ -1,4 +1,4 @@
-package thesis.benchmark.bmark1;
+package thesis.benchmark;
 
 public class ServerMessage extends Message 
 {	

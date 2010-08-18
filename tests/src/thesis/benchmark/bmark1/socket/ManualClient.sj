@@ -11,8 +11,8 @@ import sessionj.runtime.SJIOException;
 import sessionj.runtime.util.SJRuntimeUtils;
 
 import thesis.benchmark.Util;
-import thesis.benchmark.bmark1.ServerMessage;
-import thesis.benchmark.bmark1.TimerClient;
+import thesis.benchmark.ServerMessage;
+import thesis.benchmark.TimerClient;
 
 public class ManualClient extends TimerClient 
 {

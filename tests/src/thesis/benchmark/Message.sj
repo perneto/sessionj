@@ -1,4 +1,4 @@
-package thesis.benchmark.bmark1;
+package thesis.benchmark;
 
 import java.io.Serializable;
 
@@ -27,10 +27,16 @@ public abstract class Message implements Serializable
   	return msg;
   }
   
+  public void setMessage(String msg)
+  {
+  	this.msg = msg;
+  }
+  
   public int getMessageSize()
   {
   	return messageSize;
   }
+
   
   public byte[] getPayload() 
   {

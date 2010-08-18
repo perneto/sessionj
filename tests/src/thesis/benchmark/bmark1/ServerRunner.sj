@@ -3,6 +3,9 @@
 
 package thesis.benchmark.bmark1;
 
+import thesis.benchmark.Server;
+import thesis.benchmark.SignalServer;
+
 // Spawns a pair of Server and SignalServer.
 public class ServerRunner 
 {
