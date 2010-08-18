@@ -7,8 +7,8 @@
 # Global parameters.
 ##
 PREFIX  = 'bmark1-'
-MODES   = c('RMI', 'SJm', 'SJs', 'SOCKET')
-SIZES   = c('100', '1024')
+MODES   = c('RMI', 'SJm', 'SJs', 'SOCKm', 'SOCKs')
+SIZES   = c('0', '1024')
 LENGTHS = c('1', '10', '100', '1000')
 
 
@@ -44,8 +44,8 @@ load_csv <- function(mode, size, length)
 ##
 # Global parameters for graph plotting.
 ##
-PLOT_MODES = c('RMI', 'SJm', 'SJs', 'SOCKET')   # SJs is a bit slow, so can omit
-PLOT_COLOURS = c('red', 'blue', 'black', 'green')
+PLOT_MODES = c('RMI', 'SJm', 'SJs', 'SOCKm', 'SOCKs')   # SJs is a bit slow, so can omit
+PLOT_COLOURS = c('red', 'blue', 'black', 'green', 'purple')
 
 
 ##
