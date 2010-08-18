@@ -7,10 +7,10 @@ import thesis.benchmark.bmark1.ServerMessage;
 
 public interface RMIServer extends Remote 
 {
-	public static final String RMI_SERVER_OBJECT = "RMI_SERVER_OBJECT"; 
+	static final String RMI_SERVER_OBJECT = "RMI_SERVER_OBJECT"; 
 	
-	public void init() throws RemoteException;
-	public void setServerMessageSize(int serverMessageSize) throws RemoteException;
-	public ServerMessage getServerMessage(boolean flag) throws RemoteException;
-	public void close() throws RemoteException;
+	void init() throws RemoteException;
+	void setServerMessageSize(int serverMessageSize) throws RemoteException;
+	ServerMessage getServerMessage(boolean flag) throws RemoteException;
+	void close() throws RemoteException;
 }
