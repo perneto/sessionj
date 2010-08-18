@@ -1,4 +1,4 @@
-#$ awk -f ../bin/parser.awk -v prefix='csv/bmark1' bmark1-20100816_0004.tx
+#$ awk -f ../bin/parser.awk -v prefix='csv/bmark1' bmark1-....txt
 
 ##
 # N.B. This script will overwrite existing files without warning.
