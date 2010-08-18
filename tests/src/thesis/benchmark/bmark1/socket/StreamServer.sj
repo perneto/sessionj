@@ -10,8 +10,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import thesis.benchmark.Util;
-import thesis.benchmark.bmark1.AbstractServer;
-import thesis.benchmark.bmark1.ServerMessage;
+import thesis.benchmark.AbstractServer;
+import thesis.benchmark.ServerMessage;
 
 public class StreamServer extends AbstractServer
 {

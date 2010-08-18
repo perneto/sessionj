@@ -1,6 +1,6 @@
-//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark1.sj.SJClient false localhost 8888 -1 10 2 1 BODY 
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark2.ordinary.OrdinaryClient false localhost 8888 -1 10 2 1 BODY 
 
-package thesis.benchmark.bmark1.sj;
+package thesis.benchmark.bmark2.ordinary;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
@@ -8,21 +8,21 @@ import sessionj.runtime.net.SJService;
 import sessionj.runtime.net.SJSocket;
 
 import thesis.benchmark.Util;
-import thesis.benchmark.ServerMessage;
 import thesis.benchmark.TimerClient;
+import thesis.benchmark.bmark2.NoaliasMessage;
 
-public class SJClient extends TimerClient 
+// Mostly based on bmark1.sj.SJClient
+public class OrdinaryClient extends TimerClient 
 {
-	private static protocol pClient cbegin.!<int>.![?(ServerMessage)]*
+	private static protocol pClient cbegin.!<int>.![?(NoaliasMessage).!<NoaliasMessage>]*
 
-  public SJClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, int iters, String flag) 
+  public OrdinaryClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, int iters, String flag) 
   {
   	super(debug, host, port, cid, serverMessageSize, sessionLength, iters, flag);
   }
 
   public void run(boolean warmup, boolean timer) throws Exception
-  {
-  	//SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "sa");  	
+  {  	
 	  final noalias SJService c = SJService.create(pClient, getHost(), getPort());
 	  final noalias SJSocket s;
 	  	  
@@ -35,10 +35,9 @@ public class SJClient extends TimerClient
   	
     	startTimer();
 			
-	    //s = serv.request(params);
 	  	s = c.request();
 		    
-	  	debugPrintln("[SJClient] Connected using: " + s.getConnection().getTransportName());
+	  	debugPrintln("[OrdinaryClient] Connected using: " + s.getConnection().getTransportName());
 	  	
   		initialised();
 	  	
@@ -47,10 +46,16 @@ public class SJClient extends TimerClient
 	    int len = 0;	    
 	    s.outwhile(len < sessionLength) 
 	    {
-	    	ServerMessage msg = (ServerMessage) s.receive();            
+	    	NoaliasMessage msg = (NoaliasMessage) s.receive();            
         
-        debugPrintln("[SJClient " + cid + "] Received: " + msg);
+        debugPrintln("[NoaliasClient " + cid + "] Received: " + msg);
 
+        msg.incrementMessageId();
+        
+        s.send(msg);
+        
+        debugPrintln("[NoaliasClient " + cid + "] Dispatached: " + msg);
+        
         if (debug)
         {
         	Thread.sleep(Util.DEBUG_DELAY);
@@ -86,6 +91,6 @@ public class SJClient extends TimerClient
     int iters = Integer.parseInt(args[6]);
     String flag = args[7];
 
-    new SJClient(debug, host, port, cid, serverMessageSize, sessionLength, iters, flag).run();
+    new OrdinaryClient(debug, host, port, cid, serverMessageSize, sessionLength, iters, flag).run();
   }
 }

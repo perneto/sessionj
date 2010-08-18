@@ -1,4 +1,4 @@
-package thesis.benchmark.bmark1;
+package thesis.benchmark;
 
 // Implementing this interface (or extending AbstractServer), the Server should perform a GC step with each iteration.  
 public interface Server  

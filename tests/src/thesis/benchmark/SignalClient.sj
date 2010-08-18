@@ -1,6 +1,6 @@
-//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark1.SignalClient false localhost 8888 KILL
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.SignalClient false localhost 8888 KILL
 
-package thesis.benchmark.bmark1;
+package thesis.benchmark;
 
 import java.io.DataOutputStream;
 import java.net.Socket;

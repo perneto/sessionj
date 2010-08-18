@@ -80,15 +80,28 @@ bar_plot <- function(data, size, length)
 	{
 		tmp[[mode]] <- c(mean(data[[mode]][[size]][[length]]))
 	}
-	barplot(unlist(tmp), names.arg=PLOT_MODES)
-	#barplot(tmp)
+	barplot(unlist(tmp), names.arg=PLOT_MODES) #, axis.lty=1)
+	tmp
+}
+
+   
+##
+# Error bars for bar plots.
+##
+error_bars <- function(x, y, upper, lower=upper, length=0.1, ...)
+{
+	if (length(x) != length(y) | length(y) != length(lower) | length(lower) != length(upper))
+	{
+		stop("vectors must be same length: ")
+	}
+	arrows(x,y+upper, x, y-lower, angle=90, code=3, length=length, ...)
 }
 
 
 ##
-# Bar plot all.
+# Bar plot all. Can be refactored a lot using matrices.
 ##
-bar_plot_all <- function(data, size) 
+bar_plot_all <- function(data, size, level=0) 
 {
 	tmp <- list()
 	for (mode in PLOT_MODES)
@@ -99,13 +112,90 @@ bar_plot_all <- function(data, size)
 			tmp[[mode]] <- c(tmp[[mode]], mean(data[[mode]][[size]][[length]]))
 		}
 	}
-	res <- as.matrix(tmp[[PLOT_MODES[[1]]]])
-	for (i in c(2:length(PLOT_MODES)))
+	foo <- list()
+	lowers <- list()
+	uppers <- list()
+	if (level != 0)
 	{
-		res <- cbind(res, tmp[[PLOT_MODES[[i]]]]) 
+		bar <- 1
+		for (length in LENGTHS)
+		{
+			for (mode in PLOT_MODES)
+			{
+				ci <- conf_int(data, mode, size, length, level)
+				#lowers <- c(lowers, ci$lower)
+				#uppers <- c(uppers, ci$upper)
+				lowers <- c(lowers, ci)
+				foo <- c(foo, tmp[[mode]][[bar]])
+			}
+			bar <- bar + 1
+		}
 	}
-	barplot(t(res), beside=TRUE)
+	#res <- as.matrix(tmp[[PLOT_MODES[[1]]]])
+	res <- matrix(0, length(tmp[[1]]), 0) # as.matrix does not work directly on tmp
+	#for (i in c(2:length(PLOT_MODES)))
+	for (mode in MODES)
+	{
+		#res <- cbind(res, tmp[[PLOT_MODES[[i]]]]) 
+		res <- cbind(res, tmp[[mode]]) 
+	}
+	bp <- barplot(t(res), beside=TRUE) #, axis.lty=1)
+	if (level != 0)
+	{
+		error_bars(bp, unlist(foo), unlist(lowers)) #, unlist(uppers)) 
+	}
 	res
+}
+
+
+##
+# Confidence interval. 0 < level < 1
+##
+conf_int <- function(data, mode, size, length, level)
+{
+	d <- data[[mode]][[size]][[length]]
+	m <- mean(d)
+	s <- sd(d)
+	n <- nrow(d)
+	q <- qnorm(1 - ((1 - level) / 2))
+	error <- q * s / sqrt(n)
+	#list(lower=m - error, upper=m + error)
+	error
+}
+
+
+##
+# ANOVA
+##
+my_anova <- function(data, size, length)
+{
+	rows <- nrow(data[[1]][[size]][[length]]) # Assume the same for all param. combinations
+	means <- list()
+	for (mode in MODES)
+	{
+		means[[mode]] <- mean(data[[mode]][[size]][[length]])
+	}
+	meanmean <- mean(unlist(means))
+	ssa <- 0
+	#for (mode in MODES)
+	for (mode in names(means))
+	{
+		tmp <- means[[mode]] - meanmean
+		ssa <- ssa + (tmp * tmp)
+	}
+	ssa <- rows * ssa
+	sse <- 0
+	for (mode in MODES)
+	{
+		for (i in c(1:rows))
+		{
+			v <- data[[mode]][[size]][[length]]$V1[[i]] # FIXME: V1 is hacky (use row/colnames)
+			tmp <- v - means[[mode]]
+			sse <- sse + (tmp * tmp)
+		}
+	}
+	#means
+	list(ssa=ssa, sse=sse)
 }
 
 

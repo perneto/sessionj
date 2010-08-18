@@ -1,7 +1,7 @@
-//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark1.sj.SJServer false 8888
-//$ bin/sessionj -cp tests/classes/ -server thesis.benchmark.bmark1.sj.SJServer false 8888
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark2.ordinary.OrdinaryServer false 8888
+//$ bin/sessionj -cp tests/classes/ -server thesis.benchmark.bmark2.ordinary.OrdinaryServer false 8888
 
-package thesis.benchmark.bmark1.sj;
+package thesis.benchmark.bmark2.ordinary;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
@@ -12,10 +12,12 @@ import sessionj.runtime.net.SJSocket;
 import thesis.benchmark.Util;
 import thesis.benchmark.AbstractServer;
 import thesis.benchmark.ServerMessage;
+import thesis.benchmark.bmark2.NoaliasMessage;
 
-public class SJServer extends AbstractServer
+// Mostly based on bmark1.sj.SJServer.
+public class OrdinaryServer extends AbstractServer
 {
-	private static protocol pServerBody ?(int).?[!<ServerMessage>]*
+	private static protocol pServerBody ?(int).?[!<NoaliasMessage>.?(NoaliasMessage)]*
 	private static protocol pServer sbegin.@(pServerBody)
 	
 	protected volatile boolean run = true;
@@ -23,22 +25,20 @@ public class SJServer extends AbstractServer
 	  
 	private SJServerSocketCloser ssc;
 	
-  public SJServer(boolean debug, int port) 
+  public OrdinaryServer(boolean debug, int port) 
   {
   	super(debug, port);
   }
 
   public void run() throws Exception
-  {		
-  	//SJSessionParameters params = SJTransportUtils.createSJSessionParameters("s", "s");	
+  {			
   	final noalias SJServerSocket ss;  	
 		try (ss) 
 		{
-			//ss = SJServerSocket.create(pServer, port, params);
 			ss = SJServerSocket.create(pServer, getPort());				
 			ssc = ss.getCloser();
 			
-			debugPrintln("[SJServer] Listening on: " + getPort());
+			debugPrintln("[OrdinaryServer] Listening on: " + getPort());
 			
 			boolean debug = isDebug();			
 			while (run) 
@@ -64,26 +64,29 @@ public class SJServer extends AbstractServer
    	}
   }
 
-  private void doSession(boolean debug, final noalias @(pServerBody) s) throws SJIOException, InterruptedException
+  private void doSession(boolean debug, final noalias @(pServerBody) s) throws SJIOException, ClassNotFoundException, InterruptedException
   {
 		int serverMessageSize = s.receiveInt();		  			     
 		
-		debugPrintln("[SJServer] Received message size parameter: " + serverMessageSize);
-		
-    int len = 0;	    
+		debugPrintln("[OrdinaryServer] Received message size parameter: " + serverMessageSize);
+			    
+    NoaliasMessage msg = new NoaliasMessage(-1, 0, serverMessageSize);
     s.inwhile() 
-    {
-      ServerMessage msg = new ServerMessage(0, new Integer(len).toString(), serverMessageSize);                  
-      s.send(msg);
+    {                  
+    	s.send(msg);
       
-      debugPrintln("[SJServer] Dispatached: " + msg);
+      debugPrintln("[NoliasServer] Dispatached: " + msg);
 
+      msg = (NoaliasMessage) s.receive();
+      
+      debugPrintln("[NoliasServer] Received: " + msg);
+      
+      msg.incrementMessageId();
+      
       if (debug)
       {
       	Thread.sleep(Util.DEBUG_DELAY);
       }
-           	     
-      len++;
     }  	
   }
   
@@ -99,6 +102,6 @@ public class SJServer extends AbstractServer
   	boolean debug = Boolean.parseBoolean(args[0].toLowerCase());
   	int port = Integer.parseInt(args[1]);
     
-  	new SJServer(debug, port).run();
+  	new OrdinaryServer(debug, port).run();
   }
 }
