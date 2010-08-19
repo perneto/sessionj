@@ -288,6 +288,8 @@ class SJFifoPairConnection extends AbstractSJConnection implements SJLocalConnec
 
   public void writeReference(Object o)
   {
+  	System.out.println("a: " + o);
+  	
   	synchronized (theirs)
     {
 		  theirs.add(o);

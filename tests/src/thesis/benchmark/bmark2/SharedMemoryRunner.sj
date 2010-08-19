@@ -1,4 +1,4 @@
-//$ bin/sessionj -Dsessionj.transports.negotiation=f -Dsessionj.transports.session=f -cp tests/classes/ thesis.benchmark.bmark2.SharedMemoryRunner false 8888 -1 10 2 1 BODY 3 NOALIAS 
+//$ bin/sessionj -Dsessionj.transports.negotiation=f -Dsessionj.transports.session=f -cp tests/classes/ thesis.benchmark.bmark2.SharedMemoryRunner false 8888 -1 1 2 1 BODY 3 NOALIAS 
 
 package thesis.benchmark.bmark2;
 
