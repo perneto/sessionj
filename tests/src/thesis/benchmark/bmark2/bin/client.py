@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 ##
-# tests/src/thesis/benchmark/bmark1/bin/client.py false LOCALHOST 7777 localhost 8888 ORDINARYm 2 3 BODY
-# tests/src/thesis/benchmark/bmark1/bin/client.py false CAMELOT 7777 camelot15 8888 ALL 2 3 FULL
-# nohup tests/src/thesis/benchmark/bmark1/bin/client.py false LOCALHOST 7777 localhost 8888 SJm 2 3 BODY < /dev/null 1>foo.txt 2>bar.txt &
+# tests/src/thesis/benchmark/bmark2/bin/client.py false LOCALHOST 7777 localhost 8888 ORDINARYm 2 3 BODY
+# tests/src/thesis/benchmark/bmark2/bin/client.py false CAMELOT 7777 camelot15 8888 ALL 2 3 FULL
+# nohup tests/src/thesis/benchmark/bmark2/bin/client.py false LOCALHOST 7777 localhost 8888 SJm 2 3 BODY < /dev/null 1>foo.txt 2>bar.txt &
 ##	
 
 import os
@@ -63,9 +63,9 @@ def run_command(debug, command):
 	common.debug_print(debug, 'Command: ' + command)	
 	os.system(command)
 	
-def run_client(debug, s, run_command):								
+def run_client(debug, s, command):								
 	s.recv(1024) # Wait for the Server to signal that it is ready				
-	run_command(debug, run_command)
+	run_command(debug, command)
 	run_command(debug, kill_command)								
 
 
@@ -87,7 +87,7 @@ common.debug_print(debug, 'Listening on port: ' + str(cport))
 for v in versions:
 	transport = ''
 	if (v.startswith('NOALIAS') or v.startswith('ORDINARY')):		
-		transport = v[len(v)]
+		transport = v[len(v)-1]
 		v = v[0:len(v)-1]		
 		if (v.startswith('NOALIAS')):
 			client = 'noaliaz.NoaliasClient'
@@ -100,11 +100,11 @@ for v in versions:
 		for length in session_lengths:
 			runCommand = renv		
 			if debug:
-				runCommand += ' -V'																			
+				runCommand += ' -V'							
+			runCommand += ' -Dsessionj.transports.negotiation=' + transport \
+			            + ' -Dsessionj.transports.session=' + transport													
 			if transport == 'm':
-				runCommand += ' -Dsessionj.transports.negotiation=' + transport \
-			              + ' -Dsessionj.transports.session=' + transport \
-			              + ' -cp tests/classes thesis.benchmark.bmark1.' \
+				runCommand += ' -cp tests/classes thesis.benchmark.bmark2.' \
 			              + client \
 			              + ' ' + str(debug) \
 			              + ' ' + serverName \
@@ -113,12 +113,23 @@ for v in versions:
 			              + size \
 			              + ' ' + length \
 			              + ' ' + iters \
-			              + ' ' + timer		
+			              + ' ' + timer
+			elif transport == 'f':
+				runCommand += ' -cp tests/classes thesis.benchmark.bmark2.SharedMemoryRunner' \
+			              + ' ' + str(debug) \
+			              + ' ' + sport \
+			              + ' -1 ' \
+			              + size \
+			              + ' ' + length \
+			              + ' ' + iters \
+			              + ' ' + timer \
+			              + ' ' + str(common.SERVER_WARMUP) \
+			              + ' ' + v		
 		
 			for i in range(0, repeats): # Number of Server and Client instances to repeat (cf. iters)
 				common.print_and_flush('Parameters: version=' + v + transport + ', size=' + size + ', length=' + length + ', repeat=' + str(i))
 				if transport == 'm':	
 					run_client(debug, s, runCommand)
-				else
+				else:
 					run_command(debug, runCommand)
 				

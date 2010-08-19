@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 ##
-# tests/src/thesis/benchmark/bmark1/bin/server.py false LOCALHOST 8888 localhost 7777 ORDINARYm 2
-# tests/src/thesis/benchmark/bmark1/bin/server.py false CAMELOT 8888 camelot14 7777 ALL 2
+# tests/src/thesis/benchmark/bmark2/bin/server.py false LOCALHOST 8888 localhost 7777 ORDINARYm 2
+# tests/src/thesis/benchmark/bmark2/bin/server.py false CAMELOT 8888 camelot14 7777 ALL 2
 ##
 
 import socket
@@ -54,8 +54,8 @@ else:
 ##
 # Run one Server instance.
 ## 
-server_warmup = 3 # seconds
-cool_down = 3
+server_warmup = common.SERVER_WARMUP 
+cool_down = 3 # seconds
 
 def run_server(debug, client_socket, command):								
 	common.debug_print(debug, 'Command: ' + command)														
@@ -78,9 +78,9 @@ client_socket.connect((client, cport))
 for v in versions:
 	transport = ''
 	if (v.startswith('NOALIAS') or v.startswith('ORDINARY')):
-		transport = v[len(v)]
+		transport = v[len(v)-1]
 		v = v[0:len(v)-1]
-	else 
+	else: 
 		common.runtime_error('Bad flag: ' + v)
 	
 	for size in message_sizes:
@@ -98,5 +98,5 @@ for v in versions:
 				for i in range(0, repeats):
 					common.print_and_flush('Parameters: version=' + v + transport + ', size=' + size + ', length=' + length + ', repeat=' + str(i))
 					run_server(debug, client_socket, command)		             
-		  elif transport != 'f': 
+			elif transport != 'f': 
 				common.runtime_error('Missing transport.')																						
