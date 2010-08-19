@@ -18,6 +18,7 @@ CAMELOT_JAVA = '~/bin/jdk1.6.0_21-64/bin/java'
 ALL_VERSIONS = ['NOALIASm', 'ORDINARYm', 'NOALIASf', 'ORDINARYf']
 ALL_MESSAGE_SIZES = ['0', '1024']
 ALL_SESSION_LENGTHS = ['1', '10', '100', '1000']
+SERVER_WARMUP = 3 # seconds
 
 
 ##
