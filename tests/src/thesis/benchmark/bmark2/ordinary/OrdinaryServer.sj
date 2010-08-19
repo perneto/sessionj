@@ -11,13 +11,14 @@ import sessionj.runtime.net.SJSocket;
 
 import thesis.benchmark.Util;
 import thesis.benchmark.AbstractServer;
-import thesis.benchmark.ServerMessage;
-import thesis.benchmark.bmark2.NoaliasMessage;
+//import thesis.benchmark.bmark2.NoaliasMessage;
+import thesis.benchmark.bmark2.NoaliasBinaryTree;
 
 // Mostly based on bmark1.sj.SJServer.
 public class OrdinaryServer extends AbstractServer
 {
-	private static protocol pServerBody ?(int).?[!<NoaliasMessage>.?(NoaliasMessage)]*
+	//private static protocol pServerBody ?(int).?[!<NoaliasMessage>.?(NoaliasMessage)]*
+	private static protocol pServerBody ?(int).?[!<NoaliasBinaryTree>.?(NoaliasBinaryTree)]*
 	private static protocol pServer sbegin.@(pServerBody)
 	
 	protected volatile boolean run = true;
@@ -66,18 +67,20 @@ public class OrdinaryServer extends AbstractServer
 
   private void doSession(boolean debug, final noalias @(pServerBody) s) throws SJIOException, ClassNotFoundException, InterruptedException
   {
-		int serverMessageSize = s.receiveInt();		  			     
+		int serverMessageSize = s.receiveInt(); // Tree depth		  			     
 		
-		debugPrintln("[OrdinaryServer] Received message size parameter: " + serverMessageSize);
+		debugPrintln("[OrdinaryServer] Received message size parameter: " + serverMessageSize); 
 			    
-    NoaliasMessage msg = new NoaliasMessage(-1, 0, serverMessageSize);
+    //NoaliasMessage msg = new NoaliasMessage(-1, 0, serverMessageSize);
+		NoaliasBinaryTree msg = NoaliasBinaryTree.createDepth(-1, 0, serverMessageSize);
     s.inwhile() 
     {                  
     	s.send(msg);
       
       debugPrintln("[NoliasServer] Dispatached: " + msg);
 
-      msg = (NoaliasMessage) s.receive();
+      //msg = (NoaliasMessage) s.receive();
+      msg = (NoaliasBinaryTree) s.receive();
       
       debugPrintln("[NoliasServer] Received: " + msg);
       

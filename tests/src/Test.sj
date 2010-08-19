@@ -10,6 +10,7 @@ import sessionj.runtime.net.*;
 import sessionj.runtime.util.*;
 
 import thesis.benchmark.ServerMessage;
+import thesis.benchmark.bmark2.NoaliasBinaryTree;
 
 public class Test  
 {		
@@ -19,7 +20,10 @@ public class Test
 	{		
 		noalias Test test = new Test();
 		
-		ServerMessage msg = new ServerMessage(-1, args[0], Integer.parseInt(args[1]));
+		//ServerMessage msg = new ServerMessage(-1, args[0], Integer.parseInt(args[1]));
+		NoaliasBinaryTree msg = NoaliasBinaryTree.createDepth(-1, 0, Integer.parseInt(args[0]));
+		
+		msg.incrementMessageId();
 		
 		System.out.println(msg);
 		System.out.println(SJRuntimeUtils.serializeObject(msg).length);
