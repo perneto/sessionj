@@ -132,4 +132,5 @@ for v in versions:
 					run_client(debug, s, runCommand)
 				else:
 					run_command(debug, runCommand)
+					time.sleep(common.SERVER_COOLDOWN)
 				

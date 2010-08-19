@@ -55,7 +55,7 @@ else:
 # Run one Server instance.
 ## 
 server_warmup = common.SERVER_WARMUP 
-cool_down = 3 # seconds
+cool_down = common.SERVER_COOLDOWN
 
 def run_server(debug, client_socket, command):								
 	common.debug_print(debug, 'Command: ' + command)														
