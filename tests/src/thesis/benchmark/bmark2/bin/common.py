@@ -16,7 +16,8 @@ CAMELOT_JAVA = '~/bin/jdk1.6.0_21-64/bin/java'
 # Benchmark configuration parameters.
 ##
 ALL_VERSIONS = ['NOALIASm', 'ORDINARYm', 'NOALIASf', 'ORDINARYf']
-ALL_MESSAGE_SIZES = ['0', '1024', '10240']
+#ALL_MESSAGE_SIZES = ['0', '1024', '10240'] # Original parameters for NoaliasMessage
+ALL_MESSAGE_SIZES = ['1', '2', '4', '8']    # Tree depths for NoaliasBinaryTree
 ALL_SESSION_LENGTHS = ['1', '10', '100', '1000']
 SERVER_WARMUP = 3   # seconds
 SERVER_COOLDOWN = 3 
@@ -25,7 +26,8 @@ SERVER_COOLDOWN = 3
 ##
 # Benchmark debugging parameters.
 ##
-DEBUG_MESSAGE_SIZES = ['0', '10240']
+#DEBUG_MESSAGE_SIZES = ['0', '10240'] # Original parameters for NoaliasMessage
+DEBUG_MESSAGE_SIZES = ['1', '2']      # Tree depths for NoaliasBinaryTree
 DEBUG_SESSION_LENGTHS = ['0', '2'] 
 
 

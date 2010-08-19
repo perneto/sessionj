@@ -11,11 +11,13 @@ import sessionj.runtime.net.SJSocket;
 
 import thesis.benchmark.Util;
 import thesis.benchmark.AbstractServer;
-import thesis.benchmark.bmark2.NoaliasMessage;
+//import thesis.benchmark.bmark2.NoaliasMessage;
+import thesis.benchmark.bmark2.NoaliasBinaryTree;
 
 public class NoaliasServer extends AbstractServer
 {
-	private static protocol pServerBody ?(int).?[!<NoaliasMessage>.?(NoaliasMessage)]*
+	//private static protocol pServerBody ?(int).?[!<NoaliasMessage>.?(NoaliasMessage)]*
+	private static protocol pServerBody ?(int).?[!<NoaliasBinaryTree>.?(NoaliasBinaryTree)]*
 	private static protocol pServer sbegin.@(pServerBody)
 	
 	protected volatile boolean run = true;
@@ -68,14 +70,16 @@ public class NoaliasServer extends AbstractServer
 		
 		debugPrintln("[NoaliasServer] Received message size parameter: " + serverMessageSize);
 			    
-    noalias NoaliasMessage msg = new NoaliasMessage(-1, 0, serverMessageSize);
+    //noalias NoaliasMessage msg = new NoaliasMessage(-1, 0, serverMessageSize);
+		noalias NoaliasBinaryTree msg = NoaliasBinaryTree.createDepth(-1, 0, serverMessageSize);
     s.inwhile() 
     {                  
       debugPrintln("[NoaliasServer] Dispataching: " + msg);      
     	
     	s.send(msg);     
 
-      msg = (NoaliasMessage) s.receive();
+      //msg = (NoaliasMessage) s.receive();
+      msg = (NoaliasBinaryTree) s.receive();
       
       debugPrintln("[NoaliasServer] Received: " + msg);
       

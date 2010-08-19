@@ -9,11 +9,13 @@ import sessionj.runtime.net.SJSocket;
 
 import thesis.benchmark.Util;
 import thesis.benchmark.TimerClient;
-import thesis.benchmark.bmark2.NoaliasMessage;
+//import thesis.benchmark.bmark2.NoaliasMessage;
+import thesis.benchmark.bmark2.NoaliasBinaryTree;
 
 public class NoaliasClient extends TimerClient 
 {
-	private static protocol pClient cbegin.!<int>.![?(NoaliasMessage).!<NoaliasMessage>]*
+	//private static protocol pClient cbegin.!<int>.![?(NoaliasMessage).!<NoaliasMessage>]*
+	private static protocol pClient cbegin.!<int>.![?(NoaliasBinaryTree).!<NoaliasBinaryTree>]*
 
   public NoaliasClient(boolean debug, String host, int port, int cid, int serverMessageSize, int sessionLength, int iters, String flag) 
   {
@@ -45,7 +47,8 @@ public class NoaliasClient extends TimerClient
 	    int len = 0;	    
 	    s.outwhile(len < sessionLength) 
 	    {
-	    	noalias NoaliasMessage msg = (NoaliasMessage) s.receive();            
+	    	//noalias NoaliasMessage msg = (NoaliasMessage) s.receive();
+	    	noalias NoaliasBinaryTree msg = (NoaliasBinaryTree) s.receive();
         
         debugPrintln("[NoaliasClient " + cid + "] Received: " + msg);
 
