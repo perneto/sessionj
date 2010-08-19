@@ -48,13 +48,13 @@ public class OrdinaryClient extends TimerClient
 	    {
 	    	NoaliasMessage msg = (NoaliasMessage) s.receive();            
         
-        debugPrintln("[NoaliasClient " + cid + "] Received: " + msg);
+        debugPrintln("[OrdinaryClient " + cid + "] Received: " + msg);
 
         msg.incrementMessageId();
         
         s.send(msg);
         
-        debugPrintln("[NoaliasClient " + cid + "] Dispatached: " + msg);
+        debugPrintln("[OrdinaryClient " + cid + "] Dispatached: " + msg);
         
         if (debug)
         {

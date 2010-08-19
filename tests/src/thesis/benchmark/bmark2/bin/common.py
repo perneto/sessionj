@@ -16,9 +16,10 @@ CAMELOT_JAVA = '~/bin/jdk1.6.0_21-64/bin/java'
 # Benchmark configuration parameters.
 ##
 ALL_VERSIONS = ['NOALIASm', 'ORDINARYm', 'NOALIASf', 'ORDINARYf']
-ALL_MESSAGE_SIZES = ['0', '1024']
+ALL_MESSAGE_SIZES = ['0', '1024', '10240']
 ALL_SESSION_LENGTHS = ['1', '10', '100', '1000']
-SERVER_WARMUP = 3 # seconds
+SERVER_WARMUP = 3   # seconds
+SERVER_COOLDOWN = 3 
 
 
 ##
