@@ -123,7 +123,7 @@ main()
 	if [ "$base" == "true" ];
 	then  
 	  local path=tests/src/thesis/benchmark/bmark2 
-	  for f in ServerRunner; do
+	  for f in ServerRunner SharedMemoryRunner; do
 	    compile $path/$f.sj
 	  done
 	fi  
