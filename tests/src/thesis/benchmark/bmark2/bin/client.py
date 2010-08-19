@@ -125,12 +125,14 @@ for v in versions:
 			              + ' ' + timer \
 			              + ' ' + str(common.SERVER_WARMUP) \
 			              + ' ' + v		
+			else:
+				common.runtime_error('Bad transport: ' + transport)
 		
 			for i in range(0, repeats): # Number of Server and Client instances to repeat (cf. iters)
 				common.print_and_flush('Parameters: version=' + v + transport + ', size=' + size + ', length=' + length + ', repeat=' + str(i))
 				if transport == 'm':	
 					run_client(debug, s, runCommand)
-				else:
+				else: #elif transport == 'f':
 					run_command(debug, runCommand)
 					time.sleep(common.SERVER_COOLDOWN)
 				
