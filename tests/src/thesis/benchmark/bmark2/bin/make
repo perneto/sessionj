@@ -99,7 +99,7 @@ main()
 	  tests/src/thesis/benchmark/bin/make $flag BASE
 	  
 	  local path=tests/src/thesis/benchmark/bmark2  
-	  for f in NoaliasMessage; do
+	  for f in NoaliasMessage NoaliasBinaryTree; do
 	    compile $path/$f.sj
 	  done
 	fi
