@@ -626,7 +626,7 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	}
 	
 	public boolean isPeerInterruptibleOut(boolean selfInterrupting) throws SJIOException {
-	    ser.writeBoolean(selfInterrupting);
+	    ser.writeBoolean(selfInterrupting); // Any chance this will be a lost message? (should be handled by forwarding)
 	    return readBooleanHandleCS();
 	}
 	
@@ -649,9 +649,13 @@ public class SJSessionProtocolsImpl implements SJSessionProtocols
 	}
 	
 	public boolean isPeerInterruptingIn(boolean selfInterruptible) throws SJIOException {
-	    boolean isPeerInt = readBooleanHandleCS();
+		//RAY
+	    /*boolean isPeerInt = readBooleanHandleCS();  
 	    ser.writeBoolean(selfInterruptible);
-	    return isPeerInt;
+	    return isPeerInt;*/
+		ser.writeBoolean(selfInterruptible);
+		return readBooleanHandleCS();		
+		//YAR
 	}
 
 	public boolean recurse(String lab) throws SJIOException 

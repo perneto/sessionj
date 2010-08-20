@@ -676,6 +676,25 @@ public class SJRuntime
         return s.insync();
     }
 
+    //RAY
+    public static LoopCondition negotiateOutsync(final boolean selfInterruptible, final SJSocket s) throws SJIOException {
+    	boolean interrupting = s.isPeerInterruptingIn(selfInterruptible);
+      if (interrupting)
+              return new LoopCondition() {
+                  public boolean call(boolean arg) throws SJIOException {
+                      return interruptibleOutsync(arg, s);
+                  }
+              };
+      else
+          /*return new LoopCondition() {
+              public boolean call(boolean arg) throws SJIOException {
+                  return outsync(arg, s);
+              }
+          };*/
+      	return null;
+  }    
+    //YAR
+    
     public static LoopCondition negotiateOutsync(final boolean selfInterruptible, final SJSocket[] sockets) throws SJIOException {
         boolean interrupting = checkAllAgree(new SJSocketTest() {
                 public boolean call(SJSocket s) throws SJIOException {
@@ -697,6 +716,11 @@ public class SJRuntime
             };
     }
 
+    private static boolean interruptibleOutsync(boolean condition, SJSocket s) throws SJIOException {
+      s.interruptibleOutsync(condition);
+      return condition;
+  }
+    
     private static boolean interruptibleOutsync(boolean condition, SJSocket[] sockets) throws SJIOException {
         for (SJSocket s : sockets) {
             s.interruptibleOutsync(condition);
@@ -704,6 +728,10 @@ public class SJRuntime
         return condition;
     }
 
+    public static void negotiateNormalInwhile(SJSocket s) throws SJIOException {
+      s.isPeerInterruptibleOut(false);
+  }
+    
     public static void negotiateNormalInwhile(SJSocket[] sockets) throws SJIOException {
         for (SJSocket s : sockets) s.isPeerInterruptibleOut(false);
     }
