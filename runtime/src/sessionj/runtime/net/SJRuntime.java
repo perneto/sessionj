@@ -773,7 +773,10 @@ public class SJRuntime
     }
 
     private static boolean checkAllAgree(final SJSocketTest test, SJSocket[] sockets, String message) throws SJIOException {
-        ExecutorService es = Executors.newFixedThreadPool(sockets.length);
+    	//RAY
+    	// Order which the values arrive doesn't matter (and we need them all before progressing): we can just do one by one in _any_ order (that means we can pick an arbitrary order, we don't have to actually need to handle "any order")  
+    	// Seems to heavy weight to make a new Executor object every time we do a loop (e.g. two nested loops, end up making a lot of these for the inner loop)
+        /*ExecutorService es = Executors.newFixedThreadPool(sockets.length);
 
         List<Future<Boolean>> values = new LinkedList<Future<Boolean>>();
         for (final SJSocket s : sockets) {
@@ -782,23 +785,46 @@ public class SJRuntime
                     return test.call(s);
                 }
             }));
-        }
+        }*/
+    	//boolean[] values = new boolean[sockets.length];
+    	boolean first = test.call(sockets[0]);
+    //for (int i = 0; i < values.length; i++)
+    	for (int i = 1; i < sockets.length; i++)
+    	{
+    		//values[i] = test.call(sockets[i]);
+    		if (first != test.call(sockets[i]))
+    		{
+    			throw new SJIOException(message);
+    		}
+    	}
+    	//YAR
         
+    	/*
         boolean fold;
         try {
-            fold = values.get(0).get();
+        	//RAY
+            /*fold = values.get(0).get();
             for (int i=1; i<values.size(); ++i) {
                 if (values.get(i).get() ^ fold) throw new SJIOException(message);
-            }        
-        } catch (InterruptedException e) {
+            }*
+        	fold = values[0];
+        	for (int i = 1; i < values.length; i++)
+        	{
+        		if (values[i] ^ fold) throw new SJIOException(message); // This is "late detection"; we could have raised the error earlier as soon as we read one value that doesn't match the previous (then we don't need to loop twice)
+        	}
+        	//YAR
+        /*} catch (InterruptedException e) {
             throw new SJIOException(e);
         } catch (ExecutionException e) {
-            throw new SJIOException(e);
+            throw new SJIOException(e);*
         } finally {
-            es.shutdown();
+        	//RAY
+            //es.shutdown();
+        	//YAR
         }
 
-        return fold;
+        return fold;*/
+    	return first;
     }
 
     public static void outlabel(String lab, SJSocket s) throws SJIOException
