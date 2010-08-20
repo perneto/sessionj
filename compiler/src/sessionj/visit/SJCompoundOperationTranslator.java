@@ -10,6 +10,7 @@ import polyglot.util.UniqueID;
 import polyglot.visit.ContextVisitor;
 import polyglot.visit.NodeVisitor;
 import static sessionj.SJConstants.*;
+import sessionj.SJConstants;
 import sessionj.ast.SJNodeFactory;
 import sessionj.ast.sessops.basicops.SJRecurse;
 import sessionj.ast.sessops.compoundops.*;
@@ -36,6 +37,9 @@ import java.util.*;
 public class SJCompoundOperationTranslator extends ContextVisitor 
 //public class SJCompoundOperationTranslator extends SJSessionVisitor // Doesn't work because we translate some code (e.g. SJRecurse) but type information required by the SJSessionVisitor framework is not immediately available.  
 {
+	private static final String INWHILE_VAR = "_inwhile";
+	private static int inwhileCounter = 1;
+	
 	private final SJTypeSystem sjts;
 	private final SJNodeFactory sjnf = (SJNodeFactory) nodeFactory();
 
@@ -141,64 +145,170 @@ public class SJCompoundOperationTranslator extends ContextVisitor
 
     private Node translateSJOutwhile(SJOutwhile outwhile, QQ qq) {
         String unique = UniqueID.newID("loopCond");
-        Expr sockArray = buildNewArray(outwhile.position(), outwhile.targets());
-
-        BooleanLit interruptible = new BooleanLit_c(outwhile.position(), outwhile.isInterruptible());
-        return qq.parseStmt(
-"{ sessionj.runtime.net.LoopCondition %s = " +
-"sessionj.runtime.net.SJRuntime.negotiateOutsync(%E, %E);" +
-" while (%s.call(%E)) %S }",
-                unique,
-                interruptible, sockArray,
-                unique, outwhile.cond(), outwhile.body()
-        );
+        boolean isInterruptible = outwhile.isInterruptible();
+        BooleanLit interruptible = new BooleanLit_c(outwhile.position(), isInterruptible);
+        //RAY
+        List targets = outwhile.targets();
+        String translation;
+        Object[] mapping;
+        if (targets.size() == 1)
+        {
+        	if (isInterruptible)
+        	{
+	        	translation = "{ sessionj.runtime.net.LoopCondition %s = " 
+	        		          + "sessionj.runtime.net.SJRuntime.negotiateOutsync(%E, %s);" 
+	        		          + " while (%s.call(%E)) %S }";
+	        	mapping = new Object[] { unique, interruptible, ((Local) targets.get(0)).name(), unique, outwhile.cond(), outwhile.body()};
+        	}
+        	else
+        	{
+        		translation = "{ sessionj.runtime.net.SJRuntime.negotiateOutsync(%E, %s);" 
+		                    + " while (sessionj.runtime.net.SJRuntime.outsync(%E, %s)) %S }";
+        		String sockName = ((Local) targets.get(0)).name();
+	mapping = new Object[] { interruptible, sockName, outwhile.cond(), sockName, outwhile.body()};
+        	}
+        }
+        else
+        {
+	        Expr sockArray = buildNewArray(outwhile.position(), targets);
+	        translation = "{ sessionj.runtime.net.LoopCondition %s = " +
+	      	"sessionj.runtime.net.SJRuntime.negotiateOutsync(%E, %E);" +
+	      	" while (%s.call(%E)) %S }";
+	        mapping = new Object[] { unique, interruptible, sockArray, unique, outwhile.cond(), outwhile.body()};
+	        /*
+	        BooleanLit interruptible = new BooleanLit_c(outwhile.position(), outwhile.isInterruptible());
+	        return qq.parseStmt(
+	"{ sessionj.runtime.net.LoopCondition %s = " +
+	"sessionj.runtime.net.SJRuntime.negotiateOutsync(%E, %E);" +
+	" while (%s.call(%E)) %S }",
+	                unique,
+	                interruptible, sockArray,
+	                unique, outwhile.cond(), outwhile.body()
+	        );*/
+        }  
+        return qq.parseStmt(translation, mapping);
+      //YAR        
     }
 
     private Node translateSJInwhile(SJInwhile inwhile, QQ qq) {
-        Expr sockArray = buildNewArray(inwhile.position(), inwhile.targets());
-
-        return qq.parseStmt(
-"{ sessionj.runtime.net.SJRuntime.negotiateNormalInwhile(%E);" +
-" while (sessionj.runtime.net.SJRuntime.insync(%E)) %S }",
-                sockArray, sockArray, inwhile.body()
-        );
+    		List targets = inwhile.targets();
+   
+        /*return qq.parseStmt(
+        		"{ sessionj.runtime.net.SJRuntime.negotiateNormalInwhile(%E);" +
+        		" while (sessionj.runtime.net.SJRuntime.insync(%E)) %S }",
+        		                sockArray, sockArray, inwhile.body()
+        		        );*/
+        
+        //RAY
+        String translation;
+        Object[] mapping;
+        if (targets.size() == 1)
+        {
+        	translation = "{ sessionj.runtime.net.SJRuntime.negotiateNormalInwhile(%s);" 
+                             + " while (sessionj.runtime.net.SJRuntime.insync(%s)) %S }";
+        	String sockName = ((Local) targets.get(0)).name();
+					return qq.parseStmt(translation, new Object[] { sockName, sockName, inwhile.body() });      	
+        }
+        else
+        {
+          Expr sockArray = buildNewArray(inwhile.position(), targets);
+          String tmpVarName = SJConstants.SJ_TMP_LOCAL + INWHILE_VAR + (inwhileCounter++);        	
+  				translation = "{ sessionj.runtime.net.SJSocket[] %s = %E;"
+                             + " sessionj.runtime.net.SJRuntime.negotiateNormalInwhile(%s);" 
+                             + " while (sessionj.runtime.net.SJRuntime.insync(%s)) %S }";
+					mapping = new Object[] { tmpVarName, sockArray, tmpVarName, tmpVarName, inwhile.body() };
+        }
+        
+				return qq.parseStmt(translation, mapping);        
+        //YAR
     }
 
     private Node translateSJOutinwhile(SJOutInwhile outinwhile, QQ qq) {
-        Expr sourcesArray = buildNewArray(outinwhile.position(), outinwhile.insyncSources());
-        Expr targetsArray = buildNewArray(outinwhile.position(), outinwhile.outsyncTargets());
-        String loopCond = UniqueID.newID("loopCond");
+    		List sources = outinwhile.insyncSources();
+    		List targets = outinwhile.outsyncTargets();
+
+    		String loopCond = UniqueID.newID("loopCond");
         String peerInterruptible = UniqueID.newID("peerInterruptible");
 
-        List<Object> subst = new LinkedList<Object>(Arrays.asList(
-            loopCond, targetsArray
-        ));
-        String code =
-            "{ sessionj.runtime.net.LoopCondition %s = " +
-            "sessionj.runtime.net.SJRuntime.negotiateOutsync(false, %E); ";
-        if (outinwhile.hasCondition()) {
-            code += "boolean %s = ";
-            subst.add(peerInterruptible);              
-        }
-        code += "sessionj.runtime.net.SJRuntime.";
-        code += outinwhile.hasCondition() ?
-            "negotiateInterruptingInwhile" : "negotiateNormalInwhile";
-        code += "(%E); while(%s.call(sessionj.runtime.net.SJRuntime.";
-
-        subst.add(sourcesArray);
-        subst.add(loopCond);
+        List<Object> subst = new LinkedList<Object>();
+        String code;
         
-        if (outinwhile.hasCondition()) {
-            code += "interruptingInsync(%E, %s, %E)";
-            subst.add(outinwhile.cond());
-            subst.add(peerInterruptible);
-            subst.add(sourcesArray);
-        } else {
-            code += "insync(%E)";
-            subst.add(sourcesArray);
+        // FIXME: this should be better factored. here, should treat sources and targets separately. but also should integrate better with the same "optimisations" in the translation of in/outwhile
+        if (sources.size() == 1 && targets.size() == 1)  
+        {
+        	String sourceName = ((Local) sources.get(0)).name();
+        	String targetName = ((Local) targets.get(0)).name(); 
+        	
+	        code = "{ sessionj.runtime.net.SJRuntime.negotiateOutsync(false, %s); ";
+	        subst.add(targetName);
+	        if (outinwhile.hasCondition()) 
+	        {
+	          /*code += "boolean %s = ";
+	          subst.add(peerInterruptible);*/
+	        	throw new RuntimeException("[SJCompoundOperation] TODO.");
+	        }
+	        code += "sessionj.runtime.net.SJRuntime.";
+	        if (outinwhile.hasCondition()) 
+	        {
+	        	//code += "negotiateInterruptingInwhile" 
+	        	throw new RuntimeException("[SJCompoundOperation] TODO.");
+	        }
+	        else
+	        {
+	        	code += "negotiateNormalInwhile";
+	        }
+	        code += "(%s); while(sessionj.runtime.net.SJRuntime.outsync(";
+	        subst.add(sourceName);
+	        
+	        if (outinwhile.hasCondition()) {
+	            /*code += "interruptingInsync(%E, %s, %E)";
+	            subst.add(outinwhile.cond());
+	            subst.add(peerInterruptible);
+	            subst.add(sourcesArray);*/
+	        	throw new RuntimeException("[SJCompoundOperation] TODO.");
+	        } else {
+	            code += "sessionj.runtime.net.SJRuntime.insync(%s)";
+	            subst.add(sourceName);
+	        }
+	        code += ", %s)) %S  }";
+	        subst.add(targetName);
+	        subst.add(outinwhile.body());      
         }
-        code += ")) %S  }";
-        subst.add(outinwhile.body());
+        else
+        {
+          Expr sourcesArray = buildNewArray(outinwhile.position(), sources);  // inwhile sockets
+          Expr targetsArray = buildNewArray(outinwhile.position(), targets); // outwhile sockets        	
+        	
+	        subst = new LinkedList<Object>(Arrays.asList(
+	            loopCond, targetsArray
+	        ));
+	        code =
+	            "{ sessionj.runtime.net.LoopCondition %s = " +
+	            "sessionj.runtime.net.SJRuntime.negotiateOutsync(false, %E); ";
+	        if (outinwhile.hasCondition()) {
+	            code += "boolean %s = ";
+	            subst.add(peerInterruptible);              
+	        }
+	        code += "sessionj.runtime.net.SJRuntime.";
+	        code += outinwhile.hasCondition() ?
+	            "negotiateInterruptingInwhile" : "negotiateNormalInwhile";
+	        code += "(%E); while(%s.call(sessionj.runtime.net.SJRuntime.";
+	
+	        subst.add(sourcesArray);
+	        subst.add(loopCond);
+	        
+	        if (outinwhile.hasCondition()) {
+	            code += "interruptingInsync(%E, %s, %E)";
+	            subst.add(outinwhile.cond());
+	            subst.add(peerInterruptible);
+	            subst.add(sourcesArray);
+	        } else {
+	            code += "insync(%E)";
+	            subst.add(sourcesArray);
+	        }
+	        code += ")) %S  }";
+	        subst.add(outinwhile.body());
+        }
 
         return qq.parseStmt(code, subst);
     }
