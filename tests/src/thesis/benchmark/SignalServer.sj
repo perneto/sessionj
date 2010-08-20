@@ -14,9 +14,10 @@ public class SignalServer
 	
 	private boolean debug; 
   private int port; // The same value as for Server: we apply the offset in here  
-  private Server server;
+  //private Server server;
+  private Killable server;
   
-  public SignalServer(boolean debug, int port, Server server)
+  public SignalServer(boolean debug, int port, Killable server)
   {
   	this.debug = debug;
     this.port = port;

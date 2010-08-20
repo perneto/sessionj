@@ -33,7 +33,7 @@ public class SJClient extends TimerClient
 			int serverMessageSize = getServerMessageSize();
 	    int sessionLength = (warmup && !debug) ? WARMUP_SESSION_LENGTH : getSessionLength();
   	
-    	startTimer();
+    	startTimer(); // Could do: if (timer) ...
 			
 	    //s = serv.request(params);
 	  	s = c.request();
