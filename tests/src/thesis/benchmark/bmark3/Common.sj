@@ -9,8 +9,8 @@ import thesis.benchmark.bmark3.ParticleV;
 
 public class Common
 {
-	public static final int MAX_PARTICLES = 4000;
-
+	public static final int ITERATION_DELAY = 500; // Millis
+	
 	//public static final double G = 6.674 * Math.pow(10, -11);
 	public static final double G = 1.0;
 		

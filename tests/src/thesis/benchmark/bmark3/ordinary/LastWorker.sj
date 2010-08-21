@@ -127,9 +127,11 @@ public class LastWorker extends NbodyTimer implements Killable
 			  if (timer)
 		  	{
 		  		printTimer();
-		  	}	 	  
-			  
+		  	}	 	  			  
 		  	resetTimer();
+		  	
+		  	System.gc();
+		  	Thread.sleep(Common.ITERATION_DELAY);
 			}
 		}
 		finally 

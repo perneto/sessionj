@@ -1,4 +1,4 @@
-//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.Client false localhost 8888 10
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.Client false localhost 8888 5 1 true 
 
 package thesis.benchmark.bmark3;
 
@@ -19,14 +19,16 @@ public class Client
 	private String host; 
 	private int port; 
 	private int numParticles;
+	private int offset;
 	private boolean timer;
 	
-	public Client(boolean debug, String host, int port, int numParticles, boolean timer)
+	public Client(boolean debug, String host, int port, int numParticles, int offset, boolean timer)
 	{
 		this.debug = debug;
 		this.host = host;
 		this.port = port;
 		this.numParticles = numParticles;
+		this.offset = offset;
 		this.timer = timer;
 	}
 	
@@ -38,7 +40,7 @@ public class Client
 		{ 				
 			Particle[] particles = new Particle[numParticles];
 			ParticleV[] pvs = new ParticleV[numParticles];
-			initParticles(particles, pvs);
+			initParticles(particles, pvs, offset);
 			
 			Common.debugPrintln(debug, "Initial: " + Arrays.toString(particles));
 			
@@ -53,7 +55,7 @@ public class Client
 		finally { }
 	}
 
-	private void initParticles(Particle[] particles, ParticleV[] pvs)
+	private void initParticles(Particle[] particles, ParticleV[] pvs, int offset)
 	{
 		for(int i = 0; i < particles.length; i++)
 		{		
@@ -62,9 +64,9 @@ public class Client
 			
 			if (debug)
 			{
-				p.x = i;
-				p.y = i;
-				p.m = 1.0;
+				p.x = i + offset;
+				p.y = i + offset;
+				p.m = 1.0 + offset;
 			}
 			else
 			{
@@ -91,9 +93,10 @@ public class Client
 		String host = args[1];
 		int port = Integer.parseInt(args[2]);
 		int numParticles = Integer.parseInt(args[3]);
-		boolean timer = Boolean.parseBoolean(args[4]);
+		int offset = Integer.parseInt(args[4]);
+		boolean timer = Boolean.parseBoolean(args[5]);
 		
-		Client c = new Client(debug, host, port, numParticles, timer); 		
+		Client c = new Client(debug, host, port, numParticles, offset, timer); 		
 		c.run();
 	}	
 }

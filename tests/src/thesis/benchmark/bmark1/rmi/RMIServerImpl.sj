@@ -42,7 +42,7 @@ public class RMIServerImpl extends UnicastRemoteObject implements RMIServer, Ser
 		Registry registry = LocateRegistry.getRegistry();		
 		registry.rebind(RMIServer.RMI_SERVER_OBJECT, remoteObject);
 		
-		debugPrintln("[RMIServer] Server object exported to rmiregistry at localhost on standard port and bound to name: " + RMIServer.RMI_SERVER_OBJECT);
+		debugPrintln("[RMIServer] Server object exported to RMI registry at localhost on standard port and bound to name: " + RMIServer.RMI_SERVER_OBJECT);
   }
   
   public void kill() throws NoSuchObjectException
