@@ -17,15 +17,28 @@ import thesis.benchmark.bmark3.Common;
 import thesis.benchmark.bmark3.Particle;
 import thesis.benchmark.bmark3.ParticleV;
 
-public class FirstWorker
+public class FirstWorker implements Killable
 {
 	private static protocol LAST_LINK_SERVER sbegin.?[?[!<Particle[]>]*]* // No ring token message
 			
 	private volatile boolean run = true;
 	private volatile boolean finished = false;
 	private SJServerSocketCloser ssc;	
-			 
-	public void run(boolean debug, int port, int port_l, int port_r, int numParticles) throws Exception
+	 
+	private boolean debug;
+	private int port;  
+	private int port_l;  
+	private int port_r; 
+	
+	public FirstWorker(boolean debug, int port, int port_l, int port_r)
+	{
+		this.debug = debug;
+		this.port= port;  
+		this.port_l= port_l;  
+		this.port_r = port_r; 
+	}
+	
+	public void run() throws Exception
 	{
 		final noalias SJServerSocket ss;
 		final noalias SJServerSocket ss_l;
@@ -51,7 +64,7 @@ public class FirstWorker
 					
 					Common.debugPrintln(debug, "[FirstWorker] Accepted client.");
 					
-					s.receiveBoolean();
+					s.receiveBoolean(); // Discarded (only used by LastWorker)
 					Particle[] particles = (Particle[]) s.receive();
 					ParticleV[] pvs = (ParticleV[]) s.receive();						
 					
@@ -66,8 +79,8 @@ public class FirstWorker
 					int i = 0;				
 					<s_l, s_r>.inwhile()
 					{				
-						Particle[] current = new Particle[numParticles];										
-						System.arraycopy(particles, 0, current, 0, numParticles);					
+						Particle[] current = new Particle[particles.length];										
+						System.arraycopy(particles, 0, current, 0, current.length);					
 						<s_l, s_r>.inwhile()
 						{					
 							s_r.send(current);
@@ -84,6 +97,9 @@ public class FirstWorker
 					s.send(particles);
 				}
 				finally { }
+				
+		  	System.gc();
+		  	Thread.sleep(Common.ITERATION_DELAY);
 			}
 		}
 		finally 
@@ -104,15 +120,9 @@ public class FirstWorker
 		boolean debug = Boolean.parseBoolean(args[0]);
 		int port = Integer.parseInt(args[1]);
 		int port_l = Integer.parseInt(args[2]);
-		int port_r = Integer.parseInt(args[3]);				
-		int numParticles = Integer.parseInt(args[4]);		
-		
-		if (numParticles > Common.MAX_PARTICLES/* && numParticles <= MAX_PROCESSORS*/)
-		{	
-			throw new RuntimeException("[FirstWorker] Too many particles: " + numParticles);
-		}
-		
-		FirstWorker fw = new FirstWorker();			
-		fw.run(debug, port, port_l, port_r, numParticles);
+		int port_r = Integer.parseInt(args[3]);						
+				
+		FirstWorker fw = new FirstWorker(debug, port, port_l, port_r);			
+		fw.run();
 	}	
 }

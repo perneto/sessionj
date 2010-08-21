@@ -23,7 +23,22 @@ public class Worker implements Killable
 	private volatile boolean finished = false;
 	private SJServerSocketCloser ssc;
 	
-	public void run(boolean debug, int port, int port_l, String host_r, int port_r, int numParticles) throws Exception
+	private boolean debug;
+	private int port;  
+	private int port_l;
+	private String host_r;
+	private int port_r; 
+	
+	public Worker(boolean debug, int port, int port_l, String host_r, int port_r)
+	{
+		this.debug = debug;
+		this.port = port;  
+		this.port_l = port_l;
+		this.host_r = host_r;
+		this.port_r = port_r; 
+	}	
+	
+	public void run() throws Exception
 	{			
 		final noalias SJServerSocket ss;
 		final noalias SJServerSocket ss_l;
@@ -48,7 +63,7 @@ public class Worker implements Killable
 					
 					Common.debugPrintln(debug, "[FirstWorker] Accepted client.");
 					
-					s.receiveBoolean();
+					s.receiveBoolean(); // Discarded (only used by LastWorker)
 					Particle[] particles = (Particle[]) s.receive();
 					ParticleV[] pvs = (ParticleV[]) s.receive();		
 					
@@ -63,8 +78,8 @@ public class Worker implements Killable
 					int i = 0;																		
 					s_r.outwhile(s_l.inwhile())
 					{								
-						Particle[] current = new Particle[numParticles];										
-						System.arraycopy(particles, 0, current, 0, numParticles);					
+						Particle[] current = new Particle[particles.length];										
+						System.arraycopy(particles, 0, current, 0, current.length);					
 						s_r.outwhile(s_l.inwhile())
 						{			
 							s_r.send(current);
@@ -81,6 +96,9 @@ public class Worker implements Killable
 					s.send(particles);
 				}
 				finally { }
+				
+		  	System.gc();
+		  	Thread.sleep(Common.ITERATION_DELAY);
 			}
 		}		
 		finally 
@@ -103,14 +121,8 @@ public class Worker implements Killable
 		int port_l = Integer.parseInt(args[2]);
 		String host_r = args[3];
 		int port_r = Integer.parseInt(args[4]);				
-		int numParticles = Integer.parseInt(args[5]);
-		
-		if (numParticles > Common.MAX_PARTICLES/* && numParticles <= MAX_PROCESSORS*/)
-		{	
-			throw new RuntimeException("[Worker] Too many particles: " + numParticles);
-		}
 
-		Worker w = new Worker(); 
-		w.run(debug, port, port_l, host_r, port_r, numParticles);
+		Worker w = new Worker(debug, port, port_l, host_r, port_r); 
+		w.run();
 	}	
 }
