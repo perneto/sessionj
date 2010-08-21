@@ -1,5 +1,5 @@
 //$ bin/sessionjc -cp tests/classes/ tests/src/thesis/benchmark/bmark3/ordinary/Worker.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.ordinary.Worker false 4443 localhost 4444 1
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.ordinary.Worker false 4442 localhost 4440 
 
 package thesis.benchmark.bmark3.ordinary;
 

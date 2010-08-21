@@ -1,5 +1,5 @@
 //$ bin/sessionjc -cp tests/classes/ tests/src/thesis/benchmark/bmark3/ordinary/LastWorker.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.ordinary.LastWorker false 8888 localhost 4441 localhost 5550 2 1 BODY
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.ordinary.LastWorker false 8888 localhost 4441 localhost 4442 2 1 BODY
 
 package thesis.benchmark.bmark3.ordinary;
 

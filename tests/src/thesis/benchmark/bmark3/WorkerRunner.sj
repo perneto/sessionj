@@ -1,4 +1,6 @@
-//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.WorkerRunner false 8888 SJ 
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.WorkerRunner false 6666 m FW o 4440 4441 
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.WorkerRunner false 7777 m W o 4442 localhost 4440
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.WorkerRunner false 8888 m LW o localhost 4441 localhost 4442 2 1 BODY
 
 package thesis.benchmark.bmark3;
 
@@ -19,10 +21,10 @@ public class WorkerRunner
     final boolean debug = Boolean.parseBoolean(args[0]);
     final int port = Integer.parseInt(args[1]);
     final String transport = args[2];
-    final String party = args[3];
-    final String flag = args[4];
+    final String party = args[3]; // "FW", "W", or "LW"
+    final String flag = args[4];  // "n" or "o"
   	
-    if (!(flag == ORDINARY || flag == NOALIAS))
+    if (!(flag.equals(ORDINARY) || flag.equals(NOALIAS)))
   	{
   		throw new RuntimeException("[WorkerRunner] Bad flag: " + flag);
   	}
@@ -37,7 +39,7 @@ public class WorkerRunner
   		       ? new thesis.benchmark.bmark3.ordinary.FirstWorker(debug, port, port_l, port_r) 
   		       : null;//new thesis.benchmark.bmark3.noalias.FirstWorker(debug);
 		}
-  	else if (flag.equals(WORKER))
+  	else if (party.equals(WORKER))
 		{
   		int port_l = Integer.parseInt(args[5]);
   		String host_r = args[6];
@@ -47,7 +49,7 @@ public class WorkerRunner
   		       ? new thesis.benchmark.bmark3.ordinary.Worker(debug, port, port_l, host_r, port_r) 
   		       : null;//new thesis.benchmark.bmark3.noalias.LastWorker(debug);
 		}
-  	else if (flag.equals(LAST_WORKER))
+  	else if (party.equals(LAST_WORKER))
 		{
   		String host_l = args[5];
   		int port_l = Integer.parseInt(args[6]);
@@ -76,7 +78,7 @@ public class WorkerRunner
     		}
     		catch (Exception x)
     		{
-    			throw new RuntimeException(x);
+    			//throw new RuntimeException(x); // Should be the exception due to being killed
     		}    		
     	}
     }.start();
