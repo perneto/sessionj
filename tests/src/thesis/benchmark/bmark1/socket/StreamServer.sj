@@ -80,9 +80,9 @@ public class StreamServer extends AbstractServer
 	    {
 	      ServerMessage msg = new ServerMessage(0, new Integer(len).toString(), serverMessageSize);            	      
 	      os.writeObject(msg);
-	      os.flush();
+	      //os.flush(); // Doesn't seem to make much difference here or after reset
 	      os.reset(); // Writes a byte
-	      //os.flush();
+	      os.flush();
 	      
 	      debugPrintln("[StreamServer] Dispatached: " + msg);
 	
