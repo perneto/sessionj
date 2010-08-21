@@ -1,14 +1,11 @@
-//$ bin/sessionjc -cp tests/classes/ tests/src/thesis/benchmark/bmark3/ordinary/LastWorker.sj -d tests/classes/
-//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.ordinary.LastWorker false 8888 localhost 5550 localhost 4441 10 2 1 BODY
+//$ bin/sessionj -cp tests/classes/ thesis.benchmark.bmark3.Client false localhost 8888 10
 
-package thesis.benchmark.bmark3.ordinary;
+package thesis.benchmark.bmark3;
 
 import java.util.Arrays;
 
 import sessionj.runtime.SJIOException;
 import sessionj.runtime.SJProtocol;
-import sessionj.runtime.net.SJServerSocket;
-import sessionj.runtime.net.SJServerSocketCloser;
 import sessionj.runtime.net.SJService;
 import sessionj.runtime.net.SJSocket;
 
@@ -18,24 +15,40 @@ import thesis.benchmark.bmark3.ParticleV;
 
 public class Client
 {	
+	private boolean debug;
 	private String host; 
 	private int port; 
+	private int numParticles;
+	private boolean timer;
 	
-	public Client(String host, int port)
+	public Client(boolean debug, String host, int port, int numParticles, boolean timer)
 	{
+		this.debug = debug;
 		this.host = host;
 		this.port = port;
+		this.numParticles = numParticles;
+		this.timer = timer;
 	}
 	
 	public void run() throws Exception
 	{
-		final noalias SJService c = SJService.create(NBODY_CLIENT, host, port);
+		final noalias SJService c = SJService.create(Common.NBODY_CLIENT, host, port);
 		final noalias SJSocket s;
 		try (s)
 		{ 				
+			Particle[] particles = new Particle[numParticles];
+			ParticleV[] pvs = new ParticleV[numParticles];
+			initParticles(particles, pvs);
+			
+			Common.debugPrintln(debug, "Initial: " + Arrays.toString(particles));
+			
 			s = c.request();			
+			s.send(timer);
 			s.send(particles);
-			Particle[] particles = (Particle[]) s.receive();	
+			s.send(pvs);
+			particles = (Particle[]) s.receive();
+			
+			Common.debugPrintln(debug, "Results: " + Arrays.toString(particles));
 		}
 		finally { }
 	}
@@ -74,10 +87,13 @@ public class Client
 	
 	public static void main(String args[]) throws Exception
 	{
-		String host = args[0];
-		int port = Integer.parseInt(args[1]);
+		boolean debug = Boolean.parseBoolean(args[0]);
+		String host = args[1];
+		int port = Integer.parseInt(args[2]);
+		int numParticles = Integer.parseInt(args[3]);
+		boolean timer = Boolean.parseBoolean(args[4]);
 		
-		Client c = new Client(host, port); 		
+		Client c = new Client(debug, host, port, numParticles, timer); 		
 		c.run();
 	}	
 }

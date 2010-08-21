@@ -84,11 +84,12 @@ public class SJStreamSerializer extends SJAbstractSerializer
 		{
 			oos.writeByte(SJ_OBJECT);
 			oos.writeObject(o); 
-			oos.flush(); // Flush needed? bad?
-			
-			oos.reset(); 
+						
+			oos.reset(); // Writes a byte (so flush afterwards)
             // Does this affect performance? Would it be faster to make a new oos? (Probably not.)
             // Should we manually keep track of which objects have been sent and reset only when necessary?
+			
+			oos.flush(); // Flush needed? bad?
 		}
 		catch (IOException ioe)
 		{
@@ -302,6 +303,7 @@ public class SJStreamSerializer extends SJAbstractSerializer
 			throw new SJIOException(ioe);				
 		}			
 		
+		// FIXME: this may not work because using conn directly may intefere with our oos? 
 		((SJLocalConnection) conn).writeReference(o); // Ignoring possibly open oos, writing straight to conn (is this OK?).
 	}
 	

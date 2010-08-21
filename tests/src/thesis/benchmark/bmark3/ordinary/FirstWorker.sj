@@ -35,7 +35,7 @@ public class FirstWorker
 			ss = SJServerSocket.create(Common.NBODY_SERVER, port);
 			ssc = ss.getCloser();
 			
-			Common.debugPrintln(debug, "[Worker] Service started on port: " + port);
+			Common.debugPrintln(debug, "[FirstWorker] Service started on port: " + port);
 			
 			ss_l = SJServerSocket.create(Common.LINK_SERVER, port_l);
 			ss_r = SJServerSocket.create(LAST_LINK_SERVER, port_r);
@@ -48,27 +48,30 @@ public class FirstWorker
 				try(s, s_l, s_r)
 				{	
 					s = ss.accept();
-
-					/*Particle[] particles = new Particle[numParticles]; // The particles
-					ParticleV[] pvs = new ParticleV[numParticles];     // The particles' velocities*/ 
+					
+					Common.debugPrintln(debug, "[FirstWorker] Accepted client.");
+					
+					s.receiveBoolean();
 					Particle[] particles = (Particle[]) s.receive();
 					ParticleV[] pvs = (ParticleV[]) s.receive();						
+					
+					//Common.debugPrintln(debug, "[FirstWorker] Initial: " + Arrays.toString(particles));
 					
 					s_l = ss_l.accept();										
 					s_l.send(1);
 					s_r = ss_r.accept();
 					
-					//initParticles(debug, particles, pvs);
+					Common.debugPrintln(debug, "[FirstWorker] Accepted left and right links.");
 					
 					int i = 0;				
-					<s_r, s_l>.inwhile()
+					<s_l, s_r>.inwhile()
 					{				
 						Common.debugPrintln(debug, "\n[FirstWorker] Iteration: " + i);
 						Common.debugPrintln(debug, "[FirstWorker] Particles: " + Arrays.toString(particles));				
 					
 						Particle[] current = new Particle[numParticles];										
 						System.arraycopy(particles, 0, current, 0, numParticles);					
-						<s_r, s_l>.inwhile()
+						<s_l, s_r>.inwhile()
 						{					
 							s_r.send(current);
 							Common.computeForces(particles, current, pvs);						
@@ -88,7 +91,10 @@ public class FirstWorker
 				finally { }
 			}
 		}
-		finally { }
+		finally 
+		{ 
+			finished = true;			
+		}
 	}
 	
 	public void kill() throws Exception
@@ -97,39 +103,7 @@ public class FirstWorker
   	ssc.close(); // Break the accepting loop (make the blocked accept throw an exception)		
 		while (!this.finished);
   }	
-	
-	/*private void initParticles(boolean debug, Particle[] particles, ParticleV[] pvs)
-	{
-		for(int i = 0; i < particles.length; i++)
-		{		
-			Particle p = new Particle();	
-			ParticleV pv = new ParticleV();
-			
-			if (debug)
-			{
-				p.x = particles.length + i;
-				p.y = particles.length + i;
-				p.m = 1.0;
-			}
-			else
-			{
-				p.x = 10.0 * Math.random();
-				p.y = 10.0 * Math.random();
-				p.m = 10.0 * Math.random();
-			}
-			
-			pv.vi_old = 0;
-			pv.vj_old = 0;
-			pv.ai_old = 0;
-			pv.aj_old = 0;
-			pv.ai = 0;
-			pv.aj = 0;
 
-			particles[i] = p;
-			pvs[i] = pv;
-		}
-	}*/
-	
 	public static void main(String args[]) throws Exception
 	{
 		boolean debug = Boolean.parseBoolean(args[0]);

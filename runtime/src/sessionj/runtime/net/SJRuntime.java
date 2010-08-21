@@ -698,7 +698,8 @@ public class SJRuntime
     public static LoopCondition negotiateOutsync(final boolean selfInterruptible, final SJSocket[] sockets) throws SJIOException {
         boolean interrupting = checkAllAgree(new SJSocketTest() {
                 public boolean call(SJSocket s) throws SJIOException {
-                    return s.isPeerInterruptingIn(selfInterruptible);
+                    boolean b = s.isPeerInterruptingIn(selfInterruptible);
+                    return b;
                 }
             }, sockets,
            "Multi-party outwhile: all peers need to be either interrupting or non-interrupting");
@@ -733,7 +734,10 @@ public class SJRuntime
   }
     
     public static void negotiateNormalInwhile(SJSocket[] sockets) throws SJIOException {
-        for (SJSocket s : sockets) s.isPeerInterruptibleOut(false);
+        for (SJSocket s : sockets) 
+        {
+        	s.isPeerInterruptibleOut(false);
+        }
     }
 
     public static boolean negotiateInterruptingInwhile(SJSocket[] sockets) throws SJIOException {
@@ -776,6 +780,7 @@ public class SJRuntime
     	//RAY
     	// Order which the values arrive doesn't matter (and we need them all before progressing): we can just do one by one in _any_ order (that means we can pick an arbitrary order, we don't have to actually need to handle "any order")  
     	// Seems to heavy weight to make a new Executor object every time we do a loop (e.g. two nested loops, end up making a lot of these for the inner loop)
+    	// FIXME: no, the isPeerInterruptible is a synchronous exchange, so we will block if users do not write sockets in the right order
         /*ExecutorService es = Executors.newFixedThreadPool(sockets.length);
 
         List<Future<Boolean>> values = new LinkedList<Future<Boolean>>();
