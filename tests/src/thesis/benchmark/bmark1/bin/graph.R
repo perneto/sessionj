@@ -11,6 +11,12 @@ MODES   = c('RMI', 'SJm', 'SJs', 'SOCKm', 'SOCKs')
 SIZES   = c('0', '1024')
 LENGTHS = c('1', '10', '100', '1000')
 
+##
+# Global parameters for graph plotting.
+##
+PLOT_MODES = c('RMI', 'SJm', 'SJs', 'SOCKm', 'SOCKs')
+PLOT_COLOURS = c('red', 'blue', 'black', 'green', 'purple')
+
 
 ##
 # Load data from csv files.
@@ -39,13 +45,6 @@ load_csv <- function(mode, size, length)
 	res <- read.csv(paste(PREFIX, mode, "-size_", size, "-len_", length, ".csv", sep=""), head=FALSE, sep=",")
 	res
 }
-
-
-##
-# Global parameters for graph plotting.
-##
-PLOT_MODES = c('RMI', 'SJm', 'SJs', 'SOCKm', 'SOCKs')   # SJs is a bit slow, so can omit
-PLOT_COLOURS = c('red', 'blue', 'black', 'green', 'purple')
 
 
 ##
@@ -134,7 +133,7 @@ bar_plot_all <- function(data, size, level=0)
 	#res <- as.matrix(tmp[[PLOT_MODES[[1]]]])
 	res <- matrix(0, length(tmp[[1]]), 0) # as.matrix does not work directly on tmp
 	#for (i in c(2:length(PLOT_MODES)))
-	for (mode in PLOT_MODES)
+	for (mode in MODES)
 	{
 		#res <- cbind(res, tmp[[PLOT_MODES[[i]]]]) 
 		res <- cbind(res, tmp[[mode]]) 

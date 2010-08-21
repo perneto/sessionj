@@ -85,11 +85,11 @@ public class SJStreamSerializer extends SJAbstractSerializer
 			oos.writeByte(SJ_OBJECT);
 			oos.writeObject(o); 
 						
-			oos.reset(); // Writes a byte (so flush afterwards)
-            // Does this affect performance? Would it be faster to make a new oos? (Probably not.)
-            // Should we manually keep track of which objects have been sent and reset only when necessary?
+			oos.reset(); // Writes a byte (so flush afterwards?)
+            // Does this affect performance? Yes, quite expensive it seems. Would it be faster to make a new oos? (Probably not.)
+            // Should we manually keep track of which objects have been sent and reset only when necessary? i.e. when we get a repeat reference passed to us
 			
-			oos.flush(); // Flush needed? bad?
+			oos.flush(); // Flush needed? bad? // From microbenchmarks, it doesn't seem to make much difference if flush after or before reset; however, reset is expensive
 		}
 		catch (IOException ioe)
 		{
