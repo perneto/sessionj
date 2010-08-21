@@ -50,7 +50,9 @@ public class Worker implements Killable
 					
 					s.receiveBoolean();
 					Particle[] particles = (Particle[]) s.receive();
-					ParticleV[] pvs = (ParticleV[]) s.receive();							
+					ParticleV[] pvs = (ParticleV[]) s.receive();		
+					
+					Common.debugPrintln(debug, "[FirstWorker] Initial: " + Arrays.toString(particles));
 					
 					s_r = c_r.request();
 					s_l = ss_l.accept();						
@@ -58,13 +60,9 @@ public class Worker implements Killable
 					Common.debugPrintln(debug, "[FirstWorker] Created left link and accepted right link.");
 					
 					s_l.send(s_r.receiveInt() + 1);				
-					
 					int i = 0;																		
 					s_r.outwhile(s_l.inwhile())
-					{			
-						Common.debugPrintln(debug, "\n[Worker] Iteration: " + i);
-						Common.debugPrintln(debug, "[Worker] Particles: " + Arrays.toString(particles));
-					
+					{								
 						Particle[] current = new Particle[numParticles];										
 						System.arraycopy(particles, 0, current, 0, numParticles);					
 						s_r.outwhile(s_l.inwhile())
@@ -74,14 +72,12 @@ public class Worker implements Killable
 							current = (Particle[]) s_l.receive();
 						}									
 						Common.computeForces(particles, current, pvs);					
-						Common.computeNewPos(particles, pvs, i);						
-						
+						Common.computeNewPos(particles, pvs, i);												
 						i++;
+						
+						Common.debugPrintln(debug, "\n[Worker] Step: " + i);
+						Common.debugPrintln(debug, "[Worker] Particles: " + Arrays.toString(particles));
 					}			
-	
-					Common.debugPrintln(debug, "\n[Worker] Iteration: " + i);
-					Common.debugPrintln(debug, "[Worker] Particles: " + Arrays.toString(particles));
-					
 					s.send(particles);
 				}
 				finally { }

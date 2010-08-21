@@ -55,7 +55,7 @@ public class FirstWorker
 					Particle[] particles = (Particle[]) s.receive();
 					ParticleV[] pvs = (ParticleV[]) s.receive();						
 					
-					//Common.debugPrintln(debug, "[FirstWorker] Initial: " + Arrays.toString(particles));
+					Common.debugPrintln(debug, "[FirstWorker] Initial: " + Arrays.toString(particles));
 					
 					s_l = ss_l.accept();										
 					s_l.send(1);
@@ -66,9 +66,6 @@ public class FirstWorker
 					int i = 0;				
 					<s_l, s_r>.inwhile()
 					{				
-						Common.debugPrintln(debug, "\n[FirstWorker] Iteration: " + i);
-						Common.debugPrintln(debug, "[FirstWorker] Particles: " + Arrays.toString(particles));				
-					
 						Particle[] current = new Particle[numParticles];										
 						System.arraycopy(particles, 0, current, 0, numParticles);					
 						<s_l, s_r>.inwhile()
@@ -78,14 +75,12 @@ public class FirstWorker
 							current = (Particle[]) s_l.receive();
 						}										
 						Common.computeForces(particles, current, pvs);					
-						Common.computeNewPos(particles, pvs, i);	
-						
+						Common.computeNewPos(particles, pvs, i);							
 						i++;
+						
+						Common.debugPrintln(debug, "\n[FirstWorker] Step: " + i);
+						Common.debugPrintln(debug, "[FirstWorker] Particles: " + Arrays.toString(particles));								
 					}
-					
-					Common.debugPrintln(debug, "\n[FirstWorker] Iteration: " + i);
-					Common.debugPrintln(debug, "[FirstWorker] Particles: " + Arrays.toString(particles));
-					
 					s.send(particles);
 				}
 				finally { }
