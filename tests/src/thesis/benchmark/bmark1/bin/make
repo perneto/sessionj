@@ -22,7 +22,7 @@ compile()
 {
   echo Compiling: $1
   $compiler -J $java -cp $classpath $1 -d $destination
-  if [ $? -ne 0 ]; then exit 1; fi
+  if [ $? -ne 0 ]; then exit 1; fi # Can replace with the script exit-on-error flag
 }
 
 
