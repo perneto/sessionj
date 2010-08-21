@@ -45,18 +45,20 @@ public class Worker implements Killable
 				try (s, s_r, s_l) 
 				{
 					s = ss.accept();
-
-					/*Particle[] particles = new Particle[numParticles]; // The particles
-					ParticleV[] pvs = new ParticleV[numParticles];     // The particles' velocities*/ 
+					
+					Common.debugPrintln(debug, "[FirstWorker] Accepted client.");
+					
+					s.receiveBoolean();
 					Particle[] particles = (Particle[]) s.receive();
 					ParticleV[] pvs = (ParticleV[]) s.receive();							
 					
 					s_r = c_r.request();
-					s_l = ss_l.accept();													 				
+					s_l = ss_l.accept();						
+					
+					Common.debugPrintln(debug, "[FirstWorker] Created left link and accepted right link.");
+					
 					s_l.send(s_r.receiveInt() + 1);				
 					
-					//initParticles(particles, pvs); 
-												
 					int i = 0;																		
 					s_r.outwhile(s_l.inwhile())
 					{			
@@ -97,30 +99,6 @@ public class Worker implements Killable
   	ssc.close(); // Break the accepting loop (make the blocked accept throw an exception)		
 		while (!this.finished);
   }	
-	
-	/*// Assume Worker is not used in debug mode (only First/LastWorker).
-	private void initParticles(Particle[] particles, ParticleV[] pvs)
-	{
-		for(int i = 0; i < particles.length; i++)
-		{		
-			Particle p = new Particle();
-			p.x = 10.0 * Math.random();
-			p.y = 10.0 * Math.random();
-			p.m = 10.0 * Math.random();
-			
-			particles[i] = p;
-			ParticleV pv = new ParticleV();
-			
-			pv.vi_old = 0;
-			pv.vj_old = 0;			
-			pv.ai_old = 0;
-			pv.aj_old = 0;
-			pv.ai = 0;
-			pv.aj = 0;
-			
-			pvs[i] = pv;
-		}
-	}*/
 	
 	public static void main(String args[]) throws Exception
 	{

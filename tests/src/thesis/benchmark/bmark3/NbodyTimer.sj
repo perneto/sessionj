@@ -32,8 +32,8 @@ abstract public class NbodyTimer
   }
 
   // Does a GC step (so subclasses don't need to)
-  public final void run() throws Exception
-  {
+  public abstract void run() throws Exception;
+  /*{
   	try
   	{
 	  	run(true, false); // Dummy run: warms up the Client and Server JVMs
@@ -51,9 +51,9 @@ abstract public class NbodyTimer
   	{
   		
   	}
-  }
+  }*/
   
-  abstract public void run(boolean warmup, boolean timer) throws Exception; 
+  //abstract public void run(boolean warmup, boolean timer) throws Exception; 
   
   public boolean isDebug()
   {

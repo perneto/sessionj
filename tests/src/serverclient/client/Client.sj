@@ -16,57 +16,35 @@ import serverclient.server.Server;
 
 public class Client
 {		
-	//private final noalias protocol p_client { cbegin.!<int> }
 	private final noalias protocol p_client { ^(Server.p_server) }
 	
 	public void run(boolean debug, String setups, String transports, String server, int port) throws Exception
 	{
-		final noalias SJSocket s;	
-			
-		try (s)
+		final noalias SJSocket s1, s2;				
+		try (s1, s2)
 		{
-			//long start = System.nanoTime();
-							
-			s = SJService.create(p_client, server, port).request(SJTransportUtils.createSJSessionParameters(setups, transports));
+			s1 = SJService.create(p_client, server, port).request(SJTransportUtils.createSJSessionParameters(setups, transports));
+			s2 = SJService.create(p_client, server, port).request(SJTransportUtils.createSJSessionParameters(setups, transports));
 			//s = SJService.create(p_client, server, port).request();
 			
 			long start = System.nanoTime();
 			
-			/*s.send("ABC");			
-			s.receive();*/
-			
 			int i = 0;
-			
-			if (i == 0)
-			{
-				//throw new RuntimeException("foo");
-			}
-			
-			s.outwhile(i++ < 3)
-			{
-				s.outbranch($1)
-				{								
-					//Thread.sleep(10000);					
+			<s1, s2>.outwhile(i++ < 3)
+			{							
+				//Thread.sleep(10000);					
 
-					/*System.out.println("Current session type: " + s.currentSessionType());
-					System.out.println("Remaining session type: " + s.remainingSessionType());*/
-					
-					s.send("Hello from Client!");
-					//s.send(123);
-										
-					/*System.out.println("Current session type: " + s.currentSessionType());
-					System.out.println("Remaining session type: " + s.remainingSessionType());*/
-					
-					//System.out.println("Received: " + (String) s.receive(5000));
-					System.out.println("Received: " + (String) s.receive());
-				}
-			}
+				/*System.out.println("Current session type: " + s.currentSessionType());
+				System.out.println("Remaining session type: " + s.remainingSessionType());*/
+				
+				//<s1, s2>.send("Hello from Client!");
+
+				System.out.println("Received s1: " + (String) s1.receive());
+				System.out.println("Received s2: " + (String) s2.receive());
+			}			
 			
-			System.out.println("Received: " + s.receiveInt());
-			
-			long finish = System.nanoTime();
-			
-			System.out.println("time = " + (finish - start) / 1000000 + " millis.");							
+			long finish = System.nanoTime();			
+			//System.out.println("time = " + (finish - start) / 1000000 + " millis.");							
 		}
 		finally
 		{

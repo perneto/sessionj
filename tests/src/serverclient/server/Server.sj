@@ -14,13 +14,11 @@ import sessionj.runtime.transport.httpservlet.*;
 
 public class Server
 {	
-	//public final noalias protocol p_server { sbegin.?(String).!<String> }
-	public final noalias protocol p_server { sbegin.?[?{$1:?(String).!<String>}]*.!<int> }
+	public final noalias protocol p_server { sbegin.?[!<String>]* }
 	
 	public void run(boolean debug, String setups, String transports, int port) throws Exception
 	{
-		final noalias SJServerSocket ss;
-		
+		final noalias SJServerSocket ss;		
 		try (ss)
 		{
 			ss = SJServerSocket.create(p_server, port, SJTransportUtils.createSJSessionParameters(setups, transports));
@@ -28,152 +26,36 @@ public class Server
 			
 			//while (true)
 			{
-				final noalias SJSocket s;
-				
-				try (s)
+				final noalias SJSocket s1, s2;				
+				try (s1, s2)
 				{
-					s = ss.accept();
+					s1 = ss.accept();
+					s2 = ss.accept();
 						
-					System.out.println("Accepted connection from: " + s.getHostName() + ":" + s.getPort());
-					System.out.println("Transport: " + s.getConnection().getTransportName());
+					//System.out.println("Accepted connection from: " + s.getHostName() + ":" + s.getPort());
+					//System.out.println("Transport: " + s.getConnection().getTransportName());
 						
-					/*s.receive();					
-					s.send("DEF");*/
-					
-					s.inwhile()
-					{
-						s.inbranch()
-						{
-							case $1:
-							{
-								//System.out.println("Received: " + (String) s.receive(1000));
-								System.out.println("Received: " + (String) s.receive());
+					<s1, s2>.inwhile()
+					{						
+						//System.out.println("Received: " + (String) s.receive());								
+						//Thread.sleep(1000);
 								
-								//Thread.sleep(3000);
-								
-								s.send("Hello from Server!");		
-							}
-						}
+						<s1, s2>.send("Hello from Server!");		
 					}
-					
-					s.send(12345);
 				}
-				/*catch (Exception x)
-				{
-					x.printStackTrace();
-				}*/
-				finally 
-				{
-					
-				}
+				finally { }
 			}
 		}
-		finally
-		{
-			
-		}
+		finally { }
 	}
 	
 	public static void main(String[] args) throws Exception
 	{
-		boolean debug = Boolean.parseBoolean(args[0]);
-		
+		boolean debug = Boolean.parseBoolean(args[0]);		
 		String setups = args[1];
 		String transports = args[2];
-		
-		//configureTransports(setups, transports);
- 
-		int port = Integer.parseInt(args[3]);
-		
+		int port = Integer.parseInt(args[3]);		
+ 		
 		new Server().run(debug, setups, transports, port);
 	}
-	
-	/*private static SJSessionParameters createSJSessionParameters(String setups, String transports)
-	{
-		SJSessionParameters params;
-		
-		if (setups.contains("d") && transports.contains("d"))
-		{
-			params = new SJSessionParameters();
-		}
-		else
-		{
-			List ss = new LinkedList();
-			List ts = new LinkedList();				
-			
-			parseTransportFlags(ss, setups);
-			parseTransportFlags(ts, transports);
-								
-			params = new SJSessionParameters(ss, ts);
-		}
-
-		return params;
-	}
-	
-	private static void parseTransportFlags(List ts, String transports)
-	{
-		if (transports.contains("d"))
-		{
-			ts.add(new SJFifoPair());
-			ts.add(new SJStreamTCP());
-			
-			return;
-		}
-		
-		char[] cs = transports.toCharArray();
-		
-		for (int i = 0; i < cs.length; i++)
-		{
-			switch (cs[i])
-			{
-				case 'f':
-				{
-					ts.add(new SJFifoPair());
-					
-					break;
-				}
-				case 's':
-				{
-					ts.add(new SJStreamTCP());
-					
-					break;
-				}					
-				case 'm':
-				{			
-					ts.add(new SJManualTCP());
-					
-					break;
-				}					
-				case 'h':
-				{			
-					ts.add(new SJHTTPServlet());
-					
-					break;
-				}
-			}
-		}					
-	}
-	
-	private static void configureTransports(String setups, String transports)
-	{
-		SJTransportManager sjtm = SJRuntime.getTransportManager();	
-		
-		if (!setups.contains("d"))
-		{
-			List ss = new LinkedList();
-			
-			parseTransportFlags(ss, setups);		
-			
-			sjtm.configureSetups(ss);
-		}
-		
-		if (!transports.contains("d"))
-		{
-			List ts = new LinkedList();
-			
-			parseTransportFlags(ts, transports);	
-			
-			sjtm.configureTransports(ts);
-		}		
-	}*/	
 }

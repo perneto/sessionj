@@ -14,7 +14,7 @@ public class Common
 	//public static final double G = 6.674 * Math.pow(10, -11);
 	public static final double G = 1.0;
 		
-	public static protocol NBODY_SERVER sbegin.?(Particle[]).?(ParticleV[]).!<Particle[]>
+	public static protocol NBODY_SERVER sbegin.?(boolean).?(Particle[]).?(ParticleV[]).!<Particle[]> // boolean ignored except for LastWorker
 	public static protocol NBODY_CLIENT ^(NBODY_SERVER)
 	
 	public static protocol LINK_SERVER sbegin.!<int>.?[?[?(Particle[])]*]* // Server socket is on our s_l side: s_l guy connects to us		
