@@ -81,7 +81,7 @@ public class LastWorker extends NbodyTimer implements Killable
 					Particle[] particles = (Particle[]) s.receive();
 					ParticleV[] pvs = (ParticleV[]) s.receive();					
 					
-					//debugPrintln("[LastWorker] Initial: " + Arrays.toString(particles));
+					debugPrintln("[LastWorker] Initial: " + Arrays.toString(particles));
 					
 					long timeStarted = 0;		
 					long timeFinished = 0;			
@@ -100,31 +100,25 @@ public class LastWorker extends NbodyTimer implements Killable
 					int i = 0;				
 					<s_r, s_l>.outwhile(i < len)
 					{	
-						debugPrintln("\n[LastWorker] Simulation step: " + i);
-						debugPrintln("[LastWorker] Particles: " + Arrays.toString(particles));
-						
 						Particle[] current = new Particle[particles.length];					
 						System.arraycopy(particles, 0, current, 0, current.length);				
-						
 						int j = 0;					
 						<s_r, s_l>.outwhile(j < (numProcessors - 1))
 						{									
 							s_r.send(current);	
 							Common.computeForces(particles, current, pvs);													
-							current = (Particle[]) s_l.receive();						
-							
+							current = (Particle[]) s_l.receive();													
 							j++;
 						}																						
 						Common.computeForces(particles, current, pvs);										
-						Common.computeNewPos(particles, pvs, i);
-											
+						Common.computeNewPos(particles, pvs, i);											
 						i++;
+						
+						debugPrintln("\n[LastWorker] Step: " + i);
+						debugPrintln("[LastWorker] Particles: " + Arrays.toString(particles));						
 					}
 	
 			  	stopTimer();
-					
-					debugPrintln("\n[LastWorker] Simulation step: " + i);
-					debugPrintln("[LastWorker] Particles: " + Arrays.toString(particles));
 					
 					s.send(particles);
 				}
