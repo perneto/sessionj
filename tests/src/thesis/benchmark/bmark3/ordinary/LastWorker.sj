@@ -83,9 +83,6 @@ public class LastWorker extends NbodyTimer implements Killable
 					
 					debugPrintln("[LastWorker] Initial: " + Arrays.toString(particles));
 					
-					long timeStarted = 0;		
-					long timeFinished = 0;			
-				
 					s_r = c_r.request();
 					s_l = c_l.request();
 	

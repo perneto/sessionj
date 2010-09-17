@@ -5,22 +5,25 @@
 
 ##
 # Global parameters.
-##
+#
 PREFIX  = 'bmark1-'
 MODES   = c('RMI', 'SJm', 'SJs', 'SOCKm', 'SOCKs')
 SIZES   = c('0', '1024')
 LENGTHS = c('1', '10', '100', '1000')
 
+
 ##
 # Global parameters for graph plotting.
-##
-PLOT_MODES = c('RMI', 'SJm', 'SJs', 'SOCKm', 'SOCKs')
-PLOT_COLOURS = c('red', 'blue', 'black', 'green', 'purple')
+#
+#PLOT_MODES = c('RMI', 'SJm', 'SJs', 'SOCKm', 'SOCKs')
+#PLOT_COLOURS = c('red', 'blue', 'black', 'green', 'purple')
+PLOT_MODES = c('RMI', 'SJm', 'SOCKm')
+PLOT_COLOURS = c('red', 'blue', 'green')
 
 
 ##
 # Load data from csv files.
-##
+#
 load_all <- function() 
 {
 	data <- list()
@@ -43,13 +46,14 @@ load_all <- function()
 load_csv <- function(mode, size, length) 
 {
 	res <- read.csv(paste(PREFIX, mode, "-size_", size, "-len_", length, ".csv", sep=""), head=FALSE, sep=",")
+	colnames(res) <- paste(mode, size, length)
 	res
 }
 
 
 ##
 # Line plot.
-##
+#
 line_plot <- function(data, size) 
 {
 	first = TRUE
@@ -71,36 +75,26 @@ line_plot <- function(data, size)
 
 ##
 # Single bar plot.
-##
-bar_plot <- function(data, size, length) 
+#
+bar_plot <- function(data, size, length, ...) 
 {
 	tmp <- list()
 	for (mode in PLOT_MODES)
 	{
-		tmp[[mode]] <- c(mean(data[[mode]][[size]][[length]]))
+		#tmp[[mode]] <- c(mean(data[[mode]][[size]][[length]]))
+		tmp[[mode]] <- c(mean(data[[mode]][[size]][[length]]) / 1000000) # nanos to millis
 	}
-	barplot(unlist(tmp), names.arg=PLOT_MODES) #, axis.lty=1)
+	#barplot(unlist(tmp), names.arg=PLOT_MODES) #, axis.lty=1)
+	barplot(unlist(tmp), names.arg=PLOT_MODES, ...)
 	tmp
 }
 
    
 ##
-# Error bars for bar plots.
-##
-error_bars <- function(x, y, upper, lower=upper, length=0.1, ...)
-{
-	if (length(x) != length(y) | length(y) != length(lower) | length(lower) != length(upper))
-	{
-		stop("vectors must be same length: ")
-	}
-	arrows(x,y+upper, x, y-lower, angle=90, code=3, length=length, ...)
-}
-
-
-##
 # Bar plot all. Can be refactored a lot using matrices.
-##
-bar_plot_all <- function(data, size, level=0) 
+# scale: e.g. 1000000 for nano to millis
+#
+bar_plot_all <- function(data, size, scale=1, level=0, ...) 
 {
 	tmp <- list()
 	for (mode in PLOT_MODES)
@@ -108,7 +102,8 @@ bar_plot_all <- function(data, size, level=0)
 		tmp[[mode]] <- c()
 		for (length in LENGTHS)
 		{
-			tmp[[mode]] <- c(tmp[[mode]], mean(data[[mode]][[size]][[length]]))
+			#tmp[[mode]] <- c(tmp[[mode]], mean(data[[mode]][[size]][[length]]))
+			tmp[[mode]] <- c(tmp[[mode]], mean(data[[mode]][[size]][[length]]) / scale)
 		}
 	}
 	foo <- list()
@@ -121,7 +116,7 @@ bar_plot_all <- function(data, size, level=0)
 		{
 			for (mode in PLOT_MODES)
 			{
-				ci <- conf_int(data, mode, size, length, level)
+				ci <- conf_int(data, mode, size, length, scale, level)
 				#lowers <- c(lowers, ci$lower)
 				#uppers <- c(uppers, ci$upper)
 				lowers <- c(lowers, ci)
@@ -138,7 +133,10 @@ bar_plot_all <- function(data, size, level=0)
 		#res <- cbind(res, tmp[[PLOT_MODES[[i]]]]) 
 		res <- cbind(res, tmp[[mode]]) 
 	}
-	bp <- barplot(t(res), beside=TRUE) #, axis.lty=1)
+	colnames(res) <- PLOT_MODES
+	rownames(res) <- LENGTHS
+	#bp <- barplot(t(res), beside=TRUE) #, axis.lty=1)
+	bp <- barplot(t(res), beside=TRUE, ...)
 	if (level != 0)
 	{
 		error_bars(bp, unlist(foo), unlist(lowers)) #, unlist(uppers)) 
@@ -148,24 +146,109 @@ bar_plot_all <- function(data, size, level=0)
 
 
 ##
-# Confidence interval. 0 < level < 1
-##
-conf_int <- function(data, mode, size, length, level)
+# Organise the data for the thesis figure.
+#
+thesis_data <- function(data, scale=1)
 {
-	d <- data[[mode]][[size]][[length]]
+	res <- list()
+	for (length in LENGTHS)
+	{
+		for (size in SIZES)
+		{
+			graph <- matrix(nrow=0, ncol=3)
+			tmp <- list()
+			for (mode in PLOT_MODES)
+			{
+				tmp <- c(tmp, mean(data[[mode]][[size]][[length]]) / scale)
+			}
+			graph <- rbind(graph, tmp)
+			rownames(graph) <- size
+			colnames(graph) <- PLOT_MODES
+			res[[length]][[size]] <- graph
+		}
+	}
+	res
+}
+
+##
+# Plot a single chart.
+#
+thesis_fig <- function(data, length, size, scale=1, level=0, units='nanos')
+{
+	res <- thesis_data(data, scale)
+	yvalues <- list()  # The height at which to draw each arrow bar
+	errors <- list()   # The size of the arrow bar (in one direction)
+	if (level != 0)
+	{
+		i <- 1  # Index for mode values inside each graph matrix
+		for (mode in PLOT_MODES)
+		{
+			ci <- conf_int(data, mode, size, length, scale, level)
+			errors <- c(errors, ci)
+			yvalues <- c(yvalues, res[[length]][[size]][[i]])
+			i <- i + 1
+		}
+	}
+	#bp <- barplot(res[[length]][[size]], col=PLOT_COLOURS)
+	#x <- paste('Message Size ', size, ' B') 
+	title <- paste('Size ', size, ' B')
+	y <- paste('Session Duration (', units, ')', sep='')
+	bp <- barplot(res[[length]][[size]], space=0, main=title, ylab=y, names.arg=c('', '', ''))
+	if (level != 0)
+	{
+		error_bars(bp, unlist(yvalues), unlist(errors)) 
+	}
+	bp
+}
+
+##
+# Plot all charts in a grid.
+#
+test <- function(data, scale=1, level=0, units='nanos')
+{
+	par(mfrow=c(2,4))
+	for (length in LENGTHS)
+	{
+		for (size in SIZES)
+		{
+			thesis_fig(data, length, size, scale, level, units)
+		}
+	}
+}
+
+
+##
+# Error bars for bar plots (currently, only for bar_plot_all).
+#
+error_bars <- function(x, y, upper, lower=upper, length=0.1, ...)
+{
+	if (length(x) != length(y) | length(y) != length(lower) | length(lower) != length(upper))
+	{
+		stop(paste("Vectors must be same length: x =", length(x), ", y =", length(y)))
+	}
+	arrows(x, y+upper, x, y-lower, angle=90, code=3, length=length, ...)
+}
+
+
+##
+# Confidence interval. 0 < level < 1
+#
+conf_int <- function(data, mode, size, length, scale, level)
+{
+	d <- data[[mode]][[size]][[length]] 
 	m <- mean(d)
 	s <- sd(d)
 	n <- nrow(d)
 	q <- qnorm(1 - ((1 - level) / 2))
 	error <- q * s / sqrt(n)
-	#list(lower=m - error, upper=m + error)
-	error
+	#list(lower=m - error, upper=m + error) # Upper and lower are the same (symmetric)
+	error / scale
 }
 
 
 ##
 # ANOVA
-##
+#
 my_anova <- function(data, size, length)
 {
 	rows <- nrow(data[[1]][[size]][[length]]) # Assume the same for all param. combinations
@@ -200,7 +283,7 @@ my_anova <- function(data, size, length)
 
 ##
 # The main function (not really needed, user can call load_all directly).
-##
+#
 main <- function()
 {
 	data <- load_all()
@@ -210,6 +293,6 @@ main <- function()
 
 ##
 # Call main function.
-##
+#
 #main()
 
