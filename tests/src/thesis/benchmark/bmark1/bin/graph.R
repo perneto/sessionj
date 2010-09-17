@@ -21,6 +21,20 @@ PLOT_MODES = c('RMI', 'SJm', 'SOCKm')
 PLOT_COLOURS = c('red', 'blue', 'green')
 
 
+#Load the tikzDevice package
+require(tikzDevice)
+
+# The following will create normal.tex in the working
+# directory the first time this is run it may take a long time because the
+# process of calulating string widths for proper placement is
+# computationally intensive, the results will get cached for the current R
+# session or will get permenantly cached if you set
+# options( tikzMetricsDictionary='/path/to/dictionary' ) which will be
+# created if it does not exist.  Also if the flag standAlone is not set to
+# TRUE then a file is created which can be included with \include{}
+tikz('benchmark1.tex', standAlone=FALSE, width=5, height=5)
+
+
 ##
 # Load data from csv files.
 #
@@ -151,9 +165,9 @@ bar_plot_all <- function(data, size, scale=1, level=0, ...)
 thesis_data <- function(data, scale=1)
 {
 	res <- list()
-	for (length in LENGTHS)
+	for (size in SIZES)
 	{
-		for (size in SIZES)
+		for (length in LENGTHS)
 		{
 			graph <- matrix(nrow=0, ncol=3)
 			tmp <- list()
@@ -162,9 +176,9 @@ thesis_data <- function(data, scale=1)
 				tmp <- c(tmp, mean(data[[mode]][[size]][[length]]) / scale)
 			}
 			graph <- rbind(graph, tmp)
-			rownames(graph) <- size
+			rownames(graph) <- length
 			colnames(graph) <- PLOT_MODES
-			res[[length]][[size]] <- graph
+			res[[size]][[length]] <- graph
 		}
 	}
 	res
@@ -173,7 +187,7 @@ thesis_data <- function(data, scale=1)
 ##
 # Plot a single chart.
 #
-thesis_fig <- function(data, length, size, scale=1, level=0, units='nanos')
+thesis_fig <- function(data, size, length, scale=1, level=0, doylab=T, units='nanos')
 {
 	res <- thesis_data(data, scale)
 	yvalues <- list()  # The height at which to draw each arrow bar
@@ -185,15 +199,22 @@ thesis_fig <- function(data, length, size, scale=1, level=0, units='nanos')
 		{
 			ci <- conf_int(data, mode, size, length, scale, level)
 			errors <- c(errors, ci)
-			yvalues <- c(yvalues, res[[length]][[size]][[i]])
+			yvalues <- c(yvalues, res[[size]][[length]][[i]])
 			i <- i + 1
 		}
 	}
 	#bp <- barplot(res[[length]][[size]], col=PLOT_COLOURS)
 	#x <- paste('Message Size ', size, ' B') 
-	title <- paste('Size ', size, ' B')
+	title <- paste('Length ', length)
 	y <- paste('Session Duration (', units, ')', sep='')
-	bp <- barplot(res[[length]][[size]], space=0, main=title, ylab=y, names.arg=c('', '', ''))
+	if (doylab == T)
+	{
+		bp <- barplot(res[[size]][[length]], space=0, main=title, ylab=y, names.arg=c('', '', ''))
+	}
+	else
+	{
+		bp <- barplot(res[[size]][[length]], space=0, main=title, names.arg=c('', '', ''))
+	}
 	if (level != 0)
 	{
 		error_bars(bp, unlist(yvalues), unlist(errors)) 
@@ -207,13 +228,26 @@ thesis_fig <- function(data, length, size, scale=1, level=0, units='nanos')
 test <- function(data, scale=1, level=0, units='nanos')
 {
 	par(mfrow=c(2,4))
-	for (length in LENGTHS)
+	for (size in SIZES)
 	{
-		for (size in SIZES)
+		doylab <- T
+		for (length in LENGTHS)
 		{
-			thesis_fig(data, length, size, scale, level, units)
+			thesis_fig(data, size, length, scale, level, doylab, units)
+			doylab <- F
 		}
 	}
+}
+
+
+##
+#
+#
+print_tikz <- function()
+{
+	dev.off() #Close the device
+	#tools::texi2dvi('benchmark1.tex', pdf=T) # Compile the tex file
+	#system(paste(getOption('pdfviewer'),'normal.pdf'))# optionally view it:
 }
 
 
