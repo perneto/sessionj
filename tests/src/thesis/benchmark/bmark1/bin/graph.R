@@ -19,9 +19,8 @@ LENGTHS = c('1', '10', '100', '1000')
 # Global parameters for graph plotting.
 #
 #PLOT_MODES = c('RMI', 'SJm', 'SJs', 'SOCKm', 'SOCKs')
-#PLOT_COLOURS = c('red', 'blue', 'black', 'green', 'purple')
-PLOT_MODES = c('RMI', 'SJm', 'SOCKm')
-PLOT_COLOURS = c('red', 'blue', 'green')
+PLOT_MODES = c('SOCKm', 'SJm', 'RMI')
+#PLOT_COLOURS = c('red', 'blue', 'green')
 
 
 ##
@@ -195,11 +194,11 @@ single_chart <- function(data, size, length, scale=1, units='nanos', level=0, do
 	}
 	if (doleg == T)
 	{
-		legend <- c('RMI', 'SJ', 'Socket')
-		args <- list(x='topright', legend=c('RMI','SJ','Socket')) # For legend
+		legend <- c('Socket', 'SJ', 'RMI')
+		args <- list(x='topleft', bty='n', cex=1.2) # For legend
 	}
 	#bp <- barplot(res[[size]][[length]], space=0, xlab=xlab, ylab=ylab, names.arg=c('', xlab, ''))
-	bp <- barplot(res[[size]][[length]], beside=TRUE, ylab=ylab, names.arg=NULL, legend.text=legend, args.legend=args)
+	bp <- barplot(res[[size]][[length]], beside=TRUE, ylab=ylab, names.arg=NULL, legend.text=legend, args.legend=args, ylim=c(0, (max(res[[size]][[length]]) * 1.14)))
 	if (doleg)
 	{
 		#legend(...)
@@ -239,15 +238,16 @@ charts_for_size <- function(data, size, scale=1, level=0, units='nanos')
 	#for (size in SIZES)
 	#{
 		doylab <- T
-		doleg <- F
+		doleg <- T
 		for (length in LENGTHS)
 		{
 			if (length == LENGTHS[[length(LENGTHS)]])
 			{
-				doleg <- T
+				#doleg <- T
 			}
 			single_chart(data, size, length, scale, units, level, doylab, doleg)
 			doylab <- F
+			doleg <- F
 		}
 	#}
 }
@@ -266,8 +266,8 @@ test_tikz <- function(size='0')
 print_tikz <- function()
 {
 	# width, height: inches
-	width <- 6
-	height <- 3
+	width <- 6.3
+	height <- 3.2
 
 	# The following will create normal.tex in the working
 	# directory the first time this is run it may take a long time because the
