@@ -1,6 +1,9 @@
 ##
 # Set the current directory to the csv directory.
-##
+# data <- load_all()
+# bar_plot_all(data, '0', 1000000, 0.95)
+#
+require(tikzDevice)  # Load the tikzDevice package
 
 
 ##
@@ -19,20 +22,6 @@ LENGTHS = c('1', '10', '100', '1000')
 #PLOT_COLOURS = c('red', 'blue', 'black', 'green', 'purple')
 PLOT_MODES = c('RMI', 'SJm', 'SOCKm')
 PLOT_COLOURS = c('red', 'blue', 'green')
-
-
-#Load the tikzDevice package
-require(tikzDevice)
-
-# The following will create normal.tex in the working
-# directory the first time this is run it may take a long time because the
-# process of calulating string widths for proper placement is
-# computationally intensive, the results will get cached for the current R
-# session or will get permenantly cached if you set
-# options( tikzMetricsDictionary='/path/to/dictionary' ) which will be
-# created if it does not exist.  Also if the flag standAlone is not set to
-# TRUE then a file is created which can be included with \include{}
-tikz('benchmark1.tex', standAlone=FALSE, width=5, height=5)
 
 
 ##
@@ -160,7 +149,7 @@ bar_plot_all <- function(data, size, scale=1, level=0, ...)
 
 
 ##
-# Organise the data for the thesis figure.
+# Organise the data for the thesis figures.
 #
 thesis_data <- function(data, scale=1)
 {
@@ -169,15 +158,16 @@ thesis_data <- function(data, scale=1)
 	{
 		for (length in LENGTHS)
 		{
-			graph <- matrix(nrow=0, ncol=3)
-			tmp <- list()
+			graph <- matrix(nrow=3, ncol=0)
+			tmp <- NULL
 			for (mode in PLOT_MODES)
 			{
+				#tmp <- c(tmp, mean(data[[mode]][[size]][[length]]) / scale)
 				tmp <- c(tmp, mean(data[[mode]][[size]][[length]]) / scale)
 			}
-			graph <- rbind(graph, tmp)
-			rownames(graph) <- length
-			colnames(graph) <- PLOT_MODES
+			graph <- cbind(graph, tmp)
+			colnames(graph) <- paste("Length", length)  # If no xlab is set on the plot, this seems to get used by default (but formatted as an axis name)
+			rownames(graph) <- PLOT_MODES
 			res[[size]][[length]] <- graph
 		}
 	}
@@ -187,9 +177,42 @@ thesis_data <- function(data, scale=1)
 ##
 # Plot a single chart.
 #
-thesis_fig <- function(data, size, length, scale=1, level=0, doylab=T, units='nanos')
+single_chart <- function(data, size, length, scale=1, units='nanos', level=0, doylab=T, doleg=F)
 {
 	res <- thesis_data(data, scale)
+	tmp <- get_errors(data, res, size, length, scale, level)
+	yvalues <- tmp[['yvalues']]
+	errors <- tmp[['errors']]
+	#x <- paste('Message Size ', size, ' B') 
+	#title <- paste('Length ', length)
+	xlab <- paste('Length ', length)
+	ylab <- NULL
+	legend <- NULL
+	args <- NULL # For legend
+	if (doylab == T)
+	{
+		ylab <- paste('Session Duration (', units, ')', sep='')
+	}
+	if (doleg == T)
+	{
+		legend <- c('RMI', 'SJ', 'Socket')
+		args <- list(x='topright', legend=c('RMI','SJ','Socket')) # For legend
+	}
+	#bp <- barplot(res[[size]][[length]], space=0, xlab=xlab, ylab=ylab, names.arg=c('', xlab, ''))
+	bp <- barplot(res[[size]][[length]], beside=TRUE, ylab=ylab, names.arg=NULL, legend.text=legend, args.legend=args)
+	if (doleg)
+	{
+		#legend(...)
+	}
+	if (level != 0)
+	{
+		error_bars(bp, unlist(yvalues), unlist(errors)) 
+	}
+	bp
+}
+
+get_errors <- function(data, res, size, length, scale, level)
+{
 	yvalues <- list()  # The height at which to draw each arrow bar
 	errors <- list()   # The size of the arrow bar (in one direction)
 	if (level != 0)
@@ -203,58 +226,78 @@ thesis_fig <- function(data, size, length, scale=1, level=0, doylab=T, units='na
 			i <- i + 1
 		}
 	}
-	#bp <- barplot(res[[length]][[size]], col=PLOT_COLOURS)
-	#x <- paste('Message Size ', size, ' B') 
-	title <- paste('Length ', length)
-	y <- paste('Session Duration (', units, ')', sep='')
-	if (doylab == T)
-	{
-		bp <- barplot(res[[size]][[length]], space=0, main=title, ylab=y, names.arg=c('', '', ''))
-	}
-	else
-	{
-		bp <- barplot(res[[size]][[length]], space=0, main=title, names.arg=c('', '', ''))
-	}
-	if (level != 0)
-	{
-		error_bars(bp, unlist(yvalues), unlist(errors)) 
-	}
-	bp
+	list(yvalues=yvalues, errors=errors)
 }
 
 ##
 # Plot all charts in a grid.
 #
-test <- function(data, scale=1, level=0, units='nanos')
+charts_for_size <- function(data, size, scale=1, level=0, units='nanos')
 {
-	par(mfrow=c(2,4))
-	for (size in SIZES)
-	{
+	#par(mfrow=c(1,4), xpd=T, mar=par()$mar+c(0,0,0,4))
+	par(mfrow=c(1,4))
+	#for (size in SIZES)
+	#{
 		doylab <- T
+		doleg <- F
 		for (length in LENGTHS)
 		{
-			thesis_fig(data, size, length, scale, level, doylab, units)
+			if (length == LENGTHS[[length(LENGTHS)]])
+			{
+				doleg <- T
+			}
+			single_chart(data, size, length, scale, units, level, doylab, doleg)
 			doylab <- F
 		}
-	}
+	#}
 }
 
 
 ##
 #
 #
+test_tikz <- function(size='0')
+{
+	par(cex.lab=1.3, cex.axis=1.2)
+	data <- load_all()
+	charts_for_size(data, size, 1000000, 0.95, 'millis')
+}
+
 print_tikz <- function()
 {
-	dev.off() #Close the device
+	# width, height: inches
+	width <- 6
+	height <- 3
+
+	# The following will create normal.tex in the working
+	# directory the first time this is run it may take a long time because the
+	#	process of calulating string widths for proper placement is
+	#	computationally intensive, the results will get cached for the current R
+	# session or will get permenantly cached if you set
+	# options( tikzMetricsDictionary='/path/to/dictionary' ) which will be
+	# created if it does not exist.  Also if the flag standAlone is not set to
+	# TRUE then a file is created which can be included with \include{}
+	tikz('benchmark1-0.tex', standAlone=FALSE, width, height)
+
+	test_tikz('0')
+
+	dev.off() # Close the device
 	#tools::texi2dvi('benchmark1.tex', pdf=T) # Compile the tex file
-	#system(paste(getOption('pdfviewer'),'normal.pdf'))# optionally view it:
+	#system(paste(getOption('pdfviewer'),'normal.pdf')) # View it
+
+	tikz('benchmark1-1024.tex', standAlone=FALSE, width, height)
+
+	test_tikz('1024')
+
+	dev.off() # Close the device
 }
 
 
 ##
 # Error bars for bar plots (currently, only for bar_plot_all).
+# length: the size of the arrow heads (inches)
 #
-error_bars <- function(x, y, upper, lower=upper, length=0.1, ...)
+error_bars <- function(x, y, upper, lower=upper, length=0.05, ...)
 {
 	if (length(x) != length(y) | length(y) != length(lower) | length(lower) != length(upper))
 	{
@@ -276,7 +319,7 @@ conf_int <- function(data, mode, size, length, scale, level)
 	q <- qnorm(1 - ((1 - level) / 2))
 	error <- q * s / sqrt(n)
 	#list(lower=m - error, upper=m + error) # Upper and lower are the same (symmetric)
-	error / scale
+	error / scale  # Should scale before or after main calculation?
 }
 
 
