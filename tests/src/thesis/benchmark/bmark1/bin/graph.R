@@ -190,7 +190,7 @@ single_chart <- function(data, size, length, scale=1, units='nanos', level=0, do
 	args <- NULL # For legend
 	if (doylab == T)
 	{
-		ylab <- paste('Session Duration (', units, ')', sep='')
+		ylab <- paste('Session duration (', units, ')', sep='')
 	}
 	if (doleg == T)
 	{
