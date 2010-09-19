@@ -229,7 +229,7 @@ get_errors <- function(data, res, size, length, scale, level)
 }
 
 ##
-# Plot all charts in a grid.
+# Plot all charts for one message size in a row.
 #
 charts_for_size <- function(data, size, scale=1, level=0, units='nanos')
 {
@@ -278,17 +278,13 @@ print_tikz <- function()
 	# created if it does not exist.  Also if the flag standAlone is not set to
 	# TRUE then a file is created which can be included with \include{}
 	tikz('benchmark1-0.tex', standAlone=FALSE, width, height)
-
 	test_tikz('0')
-
 	dev.off() # Close the device
 	#tools::texi2dvi('benchmark1.tex', pdf=T) # Compile the tex file
 	#system(paste(getOption('pdfviewer'),'normal.pdf')) # View it
 
 	tikz('benchmark1-1024.tex', standAlone=FALSE, width, height)
-
 	test_tikz('1024')
-
 	dev.off() # Close the device
 }
 
