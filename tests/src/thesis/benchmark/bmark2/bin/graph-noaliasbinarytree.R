@@ -137,7 +137,15 @@ single_chart <- function(data, size, length, scale=1, units='nanos', level=0, do
 		args <- list(x='topleft', bty='n', cex=1.2) # For legend
 	}
 	#bp <- barplot(res[[size]][[length]], beside=TRUE, ylab=ylab, names.arg=NULL, legend.text=legend, args.legend=args)
-	bp <- barplot(res[[size]][[length]], beside=TRUE, ylab=ylab, names.arg=NULL, legend.text=legend, args.legend=args, ylim=c(0, (max(res[[size]][[length]]) * 1.13)))
+	if (doleg == T)
+	{
+		ylim <- c(0, (max(res[[size]][[length]]) * 1.6))
+	}
+	else
+	{
+		ylim <- c(0, (max(res[[size]][[length]]) * 1.13))
+	}
+	bp <- barplot(res[[size]][[length]], beside=TRUE, ylab=ylab, names.arg=NULL, legend.text=legend, args.legend=args, ylim=ylim)
 	if (doleg)
 	{
 		#legend(...)
@@ -171,11 +179,11 @@ get_errors <- function(data, res, size, length, scale, level)
 ##
 # Plot all charts for one message size in a row.
 #
-charts_for_size <- function(data, size, scale=1, level=0, units='nanos')
+charts_for_size <- function(data, size, scale=1, level=0, units='nanos', doleg=T)
 {
 	par(mfrow=c(1,4))
 	doylab <- T
-	doleg <- T
+	#doleg <- T
 	for (length in LENGTHS)
 	{
 		if (length == LENGTHS[[length(LENGTHS)]])
@@ -192,37 +200,51 @@ charts_for_size <- function(data, size, scale=1, level=0, units='nanos')
 ##
 #
 #
-test_tikz <- function(size='1')
+test_tikz <- function(size='1', doleg=T)
 {
 	par(cex.lab=1.3, cex.axis=1.2)
 	data <- load_all()
-	charts_for_size(data, size, 1000000, 0.95, 'millis')
+	charts_for_size(data, size, 1000000, 0.95, 'millis', doleg)
 }
 
-print_tikz <- function()
+print_tikz <- function(justlegrow=F)
 {
 	# width, height: inches
 	width <- 6.3
 	height <- 2.6
 
-	for (size in SIZES)
+	if (justlegrow == T)  # Only do chart row for size '1'
 	{
-		# The following will create normal.tex in the working
-		# directory the first time this is run it may take a long time because the
-		#	process of calulating string widths for proper placement is
-		#	computationally intensive, the results will get cached for the current R
-		# session or will get permenantly cached if you set
-		# options( tikzMetricsDictionary='/path/to/dictionary' ) which will be
-		# created if it does not exist.  Also if the flag standAlone is not set to
-		# TRUE then a file is created which can be included with \include{}
-		tmp <- paste('benchmark2-', size, '.tex', sep='')
+		tmp <- paste('benchmark2-1.tex')
 		tikz(tmp, standAlone=FALSE, width, height)
 
-		test_tikz(size)
+		test_tikz('1', T)
 
 		dev.off() # Close the device
-		#tools::texi2dvi('benchmark1.tex', pdf=T) # Compile the tex file
-		#system(paste(getOption('pdfviewer'),'normal.pdf')) # View it
+	}
+	else
+	{
+		doleg <- T
+		for (size in SIZES)
+		{
+			# The following will create normal.tex in the working
+			# directory the first time this is run it may take a long time because the
+			#	process of calulating string widths for proper placement is
+			#	computationally intensive, the results will get cached for the current R
+			# session or will get permenantly cached if you set
+			# options( tikzMetricsDictionary='/path/to/dictionary' ) which will be
+			# created if it does not exist.  Also if the flag standAlone is not set to
+			# TRUE then a file is created which can be included with \include{}
+			tmp <- paste('benchmark2-', size, '.tex', sep='')
+			tikz(tmp, standAlone=FALSE, width, height)
+
+			test_tikz(size, doleg)
+			doleg <- F
+
+			dev.off() # Close the device
+			#tools::texi2dvi('benchmark1.tex', pdf=T) # Compile the tex file
+			#system(paste(getOption('pdfviewer'),'normal.pdf')) # View it
+		}
 	}
 }	
 
