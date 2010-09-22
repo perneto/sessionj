@@ -134,12 +134,12 @@ single_chart <- function(data, size, length, scale=1, units='nanos', level=0, do
 	if (doleg == T)
 	{
 		legend <- c(expression('NA'[sm]), expression('O'[sm]), expression('NA'[d]), expression('O'[d]))
-		args <- list(x='topleft', bty='n', cex=1.2) # For legend
+		args <- list(x='topleft', bty='n', cex=1.2)  # For legend
 	}
 	#bp <- barplot(res[[size]][[length]], beside=TRUE, ylab=ylab, names.arg=NULL, legend.text=legend, args.legend=args)
 	if (doleg == T)
 	{
-		ylim <- c(0, (max(res[[size]][[length]]) * 1.6))
+		ylim <- c(0, (max(res[[size]][[length]]) * 1.6))  # Needs a bit extra, tikzDevice seems to push the legend down to the level of the y-axis
 	}
 	else
 	{
