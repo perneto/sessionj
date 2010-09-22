@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 ##
+# rmiregistry &
 # tests/src/thesis/benchmark/bmark1/bin/server.py false LOCALHOST 8888 localhost 7777 SJm 2
 # tests/src/thesis/benchmark/bmark1/bin/server.py false CAMELOT 8888 camelot14 7777 ALL 2
 ##
