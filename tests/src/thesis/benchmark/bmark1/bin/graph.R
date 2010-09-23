@@ -130,7 +130,7 @@ bar_plot_all <- function(data, size, scale=1, level=0, ...)
 	#res <- as.matrix(tmp[[PLOT_MODES[[1]]]])
 	res <- matrix(0, length(tmp[[1]]), 0) # as.matrix does not work directly on tmp
 	#for (i in c(2:length(PLOT_MODES)))
-	for (mode in MODES)
+	for (mode in PLOT_MODES)
 	{
 		#res <- cbind(res, tmp[[PLOT_MODES[[i]]]]) 
 		res <- cbind(res, tmp[[mode]]) 
@@ -157,7 +157,7 @@ thesis_data <- function(data, scale=1)
 	{
 		for (length in LENGTHS)
 		{
-			graph <- matrix(nrow=3, ncol=0)
+			graph <- matrix(nrow=length(PLOT_MODES), ncol=0)
 			tmp <- NULL
 			for (mode in PLOT_MODES)
 			{
