@@ -1,4 +1,6 @@
+# From bmark1/res/ 
 #$ awk -f ../bin/parser.awk -v prefix='csv/bmark1' bmark1-....txt
+# prefix is [csv directory]/[results file prefix]
 
 ##
 # N.B. This script will overwrite existing files without warning.
