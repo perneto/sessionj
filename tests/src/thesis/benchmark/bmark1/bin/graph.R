@@ -266,8 +266,8 @@ test_tikz <- function(size='0')
 print_tikz <- function()
 {
 	# width, height: inches
-	width <- 6.3
-	height <- 3.2
+	width <- 6.1
+	height <- 2.8
 
 	# The following will create normal.tex in the working
 	# directory the first time this is run it may take a long time because the
