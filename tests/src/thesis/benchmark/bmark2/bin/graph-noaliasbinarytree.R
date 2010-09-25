@@ -88,6 +88,56 @@ bar_plot <- function(data, size, length)
 
 
 ##
+# Bar plot all. Can be refactored a lot using matrices.
+##
+bar_plot_all <- function(data, size, level=0) 
+{
+	tmp <- list()
+	for (mode in PLOT_MODES)
+	{
+		tmp[[mode]] <- c()
+		for (length in LENGTHS)
+		{
+			tmp[[mode]] <- c(tmp[[mode]], mean(data[[mode]][[size]][[length]]))
+		}
+	}
+	foo <- list()
+	lowers <- list()
+	uppers <- list()
+	if (level != 0)
+	{
+		bar <- 1
+		for (length in LENGTHS)
+		{
+			for (mode in PLOT_MODES)
+			{
+				ci <- conf_int(data, mode, size, length, level)
+				#lowers <- c(lowers, ci$lower)
+				#uppers <- c(uppers, ci$upper)
+				lowers <- c(lowers, ci)
+				foo <- c(foo, tmp[[mode]][[bar]])
+			}
+			bar <- bar + 1
+		}
+	}
+	#res <- as.matrix(tmp[[PLOT_MODES[[1]]]])
+	res <- matrix(0, length(tmp[[1]]), 0) # as.matrix does not work directly on tmp
+	#for (i in c(2:length(PLOT_MODES)))
+	for (mode in PLOT_MODES)
+	{
+		#res <- cbind(res, tmp[[PLOT_MODES[[i]]]]) 
+		res <- cbind(res, tmp[[mode]]) 
+	}
+	bp <- barplot(t(res), beside=TRUE) #, axis.lty=1)
+	if (level != 0)
+	{
+		error_bars(bp, unlist(foo), unlist(lowers)) #, unlist(uppers)) 
+	}
+	res
+}
+
+
+##
 # Organise the data for the thesis figures.
 #
 thesis_data <- function(data, scale=1)
@@ -210,8 +260,8 @@ test_tikz <- function(size='1', doleg=T)
 print_tikz <- function(justlegrow=F)
 {
 	# width, height: inches
-	width <- 6.3
-	height <- 2.6
+	width <- 6.1
+	height <- 2.55
 
 	if (justlegrow == T)  # Only do chart row for size '1'
 	{
@@ -259,56 +309,6 @@ error_bars <- function(x, y, upper, lower=upper, length=0.05, ...)
 		stop("vectors must be same length: ")
 	}
 	arrows(x,y+upper, x, y-lower, angle=90, code=3, length=length, ...)
-}
-
-
-##
-# Bar plot all. Can be refactored a lot using matrices.
-##
-bar_plot_all <- function(data, size, level=0) 
-{
-	tmp <- list()
-	for (mode in PLOT_MODES)
-	{
-		tmp[[mode]] <- c()
-		for (length in LENGTHS)
-		{
-			tmp[[mode]] <- c(tmp[[mode]], mean(data[[mode]][[size]][[length]]))
-		}
-	}
-	foo <- list()
-	lowers <- list()
-	uppers <- list()
-	if (level != 0)
-	{
-		bar <- 1
-		for (length in LENGTHS)
-		{
-			for (mode in PLOT_MODES)
-			{
-				ci <- conf_int(data, mode, size, length, level)
-				#lowers <- c(lowers, ci$lower)
-				#uppers <- c(uppers, ci$upper)
-				lowers <- c(lowers, ci)
-				foo <- c(foo, tmp[[mode]][[bar]])
-			}
-			bar <- bar + 1
-		}
-	}
-	#res <- as.matrix(tmp[[PLOT_MODES[[1]]]])
-	res <- matrix(0, length(tmp[[1]]), 0) # as.matrix does not work directly on tmp
-	#for (i in c(2:length(PLOT_MODES)))
-	for (mode in PLOT_MODES)
-	{
-		#res <- cbind(res, tmp[[PLOT_MODES[[i]]]]) 
-		res <- cbind(res, tmp[[mode]]) 
-	}
-	bp <- barplot(t(res), beside=TRUE) #, axis.lty=1)
-	if (level != 0)
-	{
-		error_bars(bp, unlist(foo), unlist(lowers)) #, unlist(uppers)) 
-	}
-	res
 }
 
 
