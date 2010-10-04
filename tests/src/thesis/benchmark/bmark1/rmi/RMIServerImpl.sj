@@ -50,22 +50,22 @@ public class RMIServerImpl extends UnicastRemoteObject implements RMIServer, Ser
 		UnicastRemoteObject.unexportObject(remoteObject, true);
   }
 	
-  public void init() throws RemoteException
+  public void init() //throws RemoteException
   {
   	len = 0;
   }
   
-	public void setServerMessageSize(int serverMessageSize) throws RemoteException
+	public void setServerMessageSize(int serverMessageSize) //throws RemoteException
 	{
 		this.serverMessageSize = serverMessageSize;
 	}
 	
-	public void close() throws RemoteException
+	public void close() //throws RemoteException
 	{
 		System.gc();
 	}
 	
-	public ServerMessage getServerMessage(boolean flag) throws RemoteException
+	public ServerMessage getServerMessage(boolean flag) //throws RemoteException
 	{
 		if (flag)
 		{
