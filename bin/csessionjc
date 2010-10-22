@@ -33,7 +33,8 @@ vmargs=
 classpath=
 #java=java
 #java=/vol/bitbucket/jdk1.6.0_18/bin/java
-java=~/java/jdk1.6.0_17/bin/java
+#java=~/java/jdk1.6.0_17/bin/java
+java=~/bin/jdk1.6.0_21-64/bin/java
 ext=sessionj
 eclipse=0
 
