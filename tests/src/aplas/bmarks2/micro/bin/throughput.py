@@ -12,7 +12,7 @@ import common
 
 
 if len(sys.argv) != 9:
-	common.printAndFlush('Usage: timer.py <debug> <env> <serverName> <server_port> <client_port> <version> <inners> <outers>')
+	common.printAndFlush('Usage: throughput.py <debug> <env> <serverName> <server_port> <client_port> <version> <inners> <outers>')
 	sys.exit(1)
 	
 debug = common.parseBoolean(sys.argv[1])
