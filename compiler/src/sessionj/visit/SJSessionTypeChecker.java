@@ -940,7 +940,8 @@ public class SJSessionTypeChecker extends ContextVisitor // Maybe factor out an 
 						if (arg instanceof SJLocalChannel)
 						{
 							// Session type information is not actually recorded for SJVariables (no extension object for it).
-							SJSessionType ours = sjcontext.findChannel(sjname);
+							//SJSessionType ours = sjcontext.findChannel(sjname);
+							SJSessionType ours = sjcontext.findChannel(sjname).getCanonicalForm();  // FIXME: find best place to do the standardisation
 
                             checkMethodTakesSameSessionType(theirs, ours);
                         }
