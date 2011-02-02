@@ -414,7 +414,7 @@ public class SJNoAliasTranslator extends ContextVisitor
 			}
 			else if (!(arg instanceof Lit))
 			{
-				throw new RuntimeException("[SJNoAliasTranslator] Shouldn't get here.");
+				throw new RuntimeException("[SJNoAliasTranslator] Shouldn't get here: " + arg);
 			}
 		}
 
