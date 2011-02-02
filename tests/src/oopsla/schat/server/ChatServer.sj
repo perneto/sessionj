@@ -8,8 +8,9 @@ import java.util.*;
 
 import sessionj.runtime.*;
 import sessionj.runtime.net.*;
+import sessionj.runtime.session.*;
 
-import util.*; // FIXME: for some reason, doesn't like specific classes (TransportUtils) to be specified.
+//import util.*; // FIXME: for some reason, doesn't like specific classes (TransportUtils) to be specified.
 
 import oopsla.schat.common.*;
 import oopsla.schat.common.events.*;
@@ -32,7 +33,7 @@ public class ChatServer
 	
 	public ChatServer(String setups, String transports, int port_s) throws Exception
 	{ 
-		this.params = TransportUtils.createSJSessionParameters(setups, transports);
+		//this.params = SJTransportUtils.createSJSessionParameters(setups, transports);
 		
 		final noalias SJServerSocket ss_s;
 		
@@ -40,7 +41,8 @@ public class ChatServer
 		{
 			ChatServer.debugPrintln("[ChatServer] Server starting...");
 			
-			ss_s = SJServerSocket.create(ChatProtocols.p_sc_chat, port_s, params);
+			ss_s = SJServerSocket.create(ChatProtocols.p_sc_chat, port_s, null);
+			//ss_s = SJServerSocket.create(ChatProtocols.p_sc_chat, port_s);
 
 			ChatServer.debugPrintln("[ChatServer] Server listening on port: " + port_s);
 			
