@@ -47,13 +47,13 @@ public class Server2
 					
 					typecase (s)
 					{
-						when (@(p_body)) // Both the first "accept" event and all subsequent iterations.
+						when (@(p_body))  // Both the first "accept" event and all subsequent iterations.
 						{
-							int i = s.receiveInt();
+							int i = s.receiveInt();  // Selected session means there is a message available for reading.
 							
 							System.out.println("Received (" + s.getPort() + "): " + i);
 							
-							s.recursion(X) // Selected session means there is a message available for reading.
+							s.recursion(X)
 							{
 								sel.registerInput(s);
 							}								
