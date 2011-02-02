@@ -16,7 +16,8 @@ import serverclient.server.Server;
 
 public class Client
 {		
-	private final noalias protocol p_client { ^(Server.p_server) }
+	//private final noalias protocol p_client { ^(Server.p_server) }
+	private final noalias protocol p_client { cbegin.![?(int)]* }     // Testing session initiation compatibility check.
 	
 	public void run(boolean debug, String setups, String transports, String server, int port) throws Exception
 	{
@@ -39,8 +40,11 @@ public class Client
 				
 				//<s1, s2>.send("Hello from Client!");
 
-				System.out.println("Received s1: " + (String) s1.receive());
-				System.out.println("Received s2: " + (String) s2.receive());
+				//System.out.println("Received s1: " + (String) s1.receive());
+				//System.out.println("Received s2: " + (String) s2.receive());
+				
+				System.out.println("Received s1: " + s1.receiveInt());
+				System.out.println("Received s2: " + s2.receiveInt());
 			}			
 			
 			long finish = System.nanoTime();			

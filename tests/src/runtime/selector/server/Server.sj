@@ -50,24 +50,24 @@ public class Server
 					
 					typecase (s)
 					{
-						when (@(p_body)) // Should be the "accept" event.
+						when (@(p_body)) // Initially includes the "accept" event, and then just "normal" session recursion after that.
 						{
-							s.recursion(X) // Selected session means there is a message available for reading.
+							s.recursion(X)             // Selected session means...
 							{
-								int i = s.receiveInt();
+								int i = s.receiveInt();  // ...there is a message available for reading.
 								
-								System.out.println("Received (" + s.getPort() + "): " + i);
+								System.out.println("Receive-1 (" + s.getPort() + "): " + i);
 								
 								map.put(new Integer(s.getPort()), new Integer(i));
 								
 								sel.registerInput(s);
 							}								
 						}
-						when (?(String).!<int>.@(p_body)) // Every iteration after the first.
+						when (?(String).!<int>.@(p_body))
 						{
 							String m = (String) s.receive();
 							
-							System.out.println("Received (" + s.getPort() + "): " + m);
+							System.out.println("Receive-2 (" + s.getPort() + "): " + m);
 							
 							s.send(((Integer) map.get(new Integer(s.getPort()))).intValue() * Integer.parseInt(m));
 							
